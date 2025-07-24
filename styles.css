@@ -6,3 +6,16 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.ec-deliminator-input {
+  width: 40px;
+  height: 20px;
+  margin-bottom: 10px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/*# sourceMappingURL=styles.css.map */

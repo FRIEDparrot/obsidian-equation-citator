@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
+	"id": "equation_citator",
+	"name": "Equation Citator",
+	"version": "0.0.1",
+	"minAppVersion": "1.8.10",
+	"description": "Enables you to cite equations like Latex in your Obsidian notes.",
 	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"authorUrl": "https://github.com/friedparrot", 
+	"fundingUrl": "",
+	"isDesktopOnly": true
 }
