@@ -45,4 +45,4 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
         await plugin.app.vault.create(newFilePath, md_processed);
         new Notice(`Exported to ${newFilePath}`);
     }
-}
+}   
