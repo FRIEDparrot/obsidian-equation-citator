@@ -7,14 +7,14 @@ import { EquationCitatorSettings } from "@/settings/settingsTab";
 import { escapeRegExp } from "@/utils/string_utils";
 import { editorInfoField, MarkdownView } from "obsidian";
 import {
+    EquationRef,
     splitFileCitation,
-    combineContinuousEquationTags
+    combineContinuousEquationTags,
+    replaceCitationsInMarkdown
 } from "@/utils/citation_utils";
 import { CitationCache } from "@/cache/citationCache";
-import { EquationRef, parseCitationsInMarkdown } from "@/utils/citation_utils";
+import { DISABLED_DELIMITER } from "@/utils/string_utils";
 
-
-const DISABLED_DELIMITER = `§¶∞&#&@∸∹≑≒≓≔≕≖≗≘≙≚≛≜≝≞≟≠≇≈≉≊≋≌≍≎≏⋤⋥⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱`
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -34,13 +34,13 @@ export class EquationCitation {
 function renderEquationCitation(
     citeEquationTags: string[],
     settings: EquationCitatorSettings,
-    isInteractive: boolean = false
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+    isInteractive: boolean = false  
 ): HTMLElement {
     const el = document.createElement('span');
     const fileCiteDelimiter = settings.enableCrossFileCitation ?
         settings.fileCiteDelimiter || '^' :
         DISABLED_DELIMITER;
-
     // set render format for the equation
     const formatedCiteEquationTags = settings.enableContinuousCitation ?
         combineContinuousEquationTags(
@@ -50,7 +50,7 @@ function renderEquationCitation(
             fileCiteDelimiter
         )
         : citeEquationTags;
-
+    
     const renderedCitations: string[] = [];
 
     // render equation parts
@@ -192,7 +192,8 @@ export function createMathCitationExtension(settings: EquationCitatorSettings) {
                         const inSelection = selection.from < currentEqRange.to && selection.to > currentEqRange.from;
                         const text = state.sliceDoc(currentEqRange.from, currentEqRange.to);
                         const matches = [...text.matchAll(this.citePattern)];
-                        const hasEquationCitation = matches && matches.length === 1;
+                        const matches_ref = [...text.matchAll(/\\ref\{([^}]*)\}/g)];
+                        const hasEquationCitation = (matches.length === 1 && matches_ref.length === 1);
                         const modeRender = !sourceMode || (sourceMode && settings.enableCitationInSourceMode);
 
                         if (hasEquationCitation && modeRender && !inSelection && !inCursor) {
@@ -243,13 +244,6 @@ export async function mathCitationPostProcessor(
     citationCache: CitationCache,
     settings: EquationCitatorSettings
 ): Promise<void> {
-
-    const printingMode = (Boolean(el.querySelector("div.print > *")) || Boolean(el.querySelector("div.slides > *")));
-    if (printingMode && !settings.enableInPdfExport) {
-        Debugger.log("Skip rendering equation citation in PDF print mode");
-        return;   // skip rendering in PDF print mode if not enabled in settings
-    }
-
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) return;
 
@@ -313,291 +307,32 @@ function isSourceMode(view: EditorView): boolean {
     return currentMode?.sourceMode ? true : false;
 }
 
-//////////////////////////  PDF  print element  ////////////////////////  
+
+//////////////////////////  Make Markdown for PDF Export  ////////////////////////  
 
 /**
+ * Replace all citations in markdown with HTML inline format for PDF rendering 
  * @note
  * Since the original PDF rendering function is not accessible,
- * and patching it is potentially unstable, we adopt the following
- * approach to render equation citations during PDF export:
- * 
- * 1. Match citation patterns in the original markdown content
- * 2. Store the original content, and replace citations with HTML elements
- * 3. Export the file to PDF
- * 4. Restore the original markdown content
+ * and patching it is potentially unstable, we make a  markdown copy by replacing the 
+ * markdown with HTML format with inline styles for PDF export to render correctly. 
  * 
  * This is admittedly a workaround—not elegant, and somewhat crude—
  *  but it is effective and stable in most practical cases.
  */
-/**
- * Enhanced PDF processing function that replaces citations with HTML format
- * and adds navigation features for equations and cross-file references
- */
-export function processPrintMarkdown(md: string, settings: EquationCitatorSettings): string {
-    let processedMd = md;
-    
-    // Step 1: Parse citations in the markdown
-    const citations = parseCitationsInMarkdown(md);
-    if (citations.length === 0) return md;
-    
-    // Step 2: Find and wrap equation blocks with IDs
-    processedMd = wrapEquationBlocks(processedMd);
-    
-    // Step 3: Replace citations with HTML format
-    processedMd = replaceCitationsWithHTML(processedMd, citations, settings);
-    
-    // Step 4: Add footnotes for cross-file references
-    processedMd = addCrossFileFootnotes(processedMd, citations, settings);
-    
-    return processedMd;
-}
-
-/**
- * Wraps equation blocks ($$...$$) with div containers that have unique IDs
- */
-function wrapEquationBlocks(md: string): string {
-    const lines = md.split('\n');
-    const result: string[] = [];
-    let inEquationBlock = false;
-    let equationCounter = 1;
-    let currentEquation: string[] = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmedLine = line.trim();
-        
-        if (trimmedLine === '$$' && !inEquationBlock) {
-            // Start of equation block
-            inEquationBlock = true;
-            currentEquation = [];
-            result.push(`<div id="eq-block-${equationCounter}" class="em-equation-block-print">`);
-            result.push(line);
-        } else if (trimmedLine === '$$' && inEquationBlock) {
-            // End of equation block
-            inEquationBlock = false;
-            result.push(line);
-            result.push('</div>');
-            equationCounter++;
-        } else {
-            result.push(line);
-        }
-    }
-    
-    return result.join('\n');
-}
-
-/**
- * Replaces \ref{} citations with HTML format for PDF rendering
- */
-function replaceCitationsWithHTML(
-    md: string, 
-    citations: EquationRef[], 
-    settings: EquationCitatorSettings
-): string {
-    let processedMd = md;
+export function makePrintMarkdown(md: string, settings: EquationCitatorSettings): string {
+    const rangeSymbol = settings.enableContinuousCitation ?
+        settings.continuousRangeSymbol || '~' : null; 
     const fileCiteDelimiter = settings.enableCrossFileCitation ? 
         settings.fileCiteDelimiter || '^' : DISABLED_DELIMITER;
     
-    // Process citations in reverse order to maintain string positions
-    const sortedCitations = [...citations].sort((a, b) => b.line - a.line);
-    
-    for (const citation of sortedCitations) {
-        const lines = processedMd.split('\n');
-        const line = lines[citation.line];
-        
-        if (!line) continue;
-        
-        // Find the citation pattern in the line
-        const fullCitationPattern = new RegExp(
-            `\\$([^$]*?)\\\\ref\\{${escapeRegExp(settings.citationPrefix)}([^}]+)\\}([^$]*?)\\$`,
-            'g'
-        );
-        
-        const newLine = line.replace(fullCitationPattern, (match, beforeRef, citationContent, afterRef) => {
-            // Only replace if this is a single \ref{} in the math expression
-            const refCount = (match.match(/\\ref\{/g) || []).length;
-            if (refCount !== 1) return match;
-            
-            // Parse citation tags
-            const eqNumbers: string[] = citationContent.split(settings.multiCitationDelimiter || ',')
-                .map(t => t.trim());
-            
-            // Apply continuous citation formatting if enabled
-            const formattedCiteEquationTags = settings.enableContinuousCitation ?
-                combineContinuousEquationTags(
-                    eqNumbers,
-                    settings.continuousRangeSymbol || '~',
-                    settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-                    fileCiteDelimiter
-                ) : eqNumbers;
-            
-            // Generate HTML for citations
-            const citationHTML = generateCitationHTML(formattedCiteEquationTags, settings, fileCiteDelimiter);
-            
-            // Return the math expression with HTML citation
-            const beforePart = beforeRef.trim() ? `$${beforeRef}$` : '';
-            const afterPart = afterRef.trim() ? `$${afterRef}$` : '';
-            
-            return `${beforePart}${citationHTML}${afterPart}`.replace(/\$\$+/g, '$');
-        });
-        
-        lines[citation.line] = newLine;
-        processedMd = lines.join('\n');
-    }
-    
-    return processedMd;
+    const result = replaceCitationsInMarkdown(
+        md,
+        settings.citationPrefix,
+        rangeSymbol,
+        settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+        fileCiteDelimiter, 
+        settings.multiCitationDelimiter || ','
+    );
+    return result;
 }
-
-/**
- * Generates HTML for citation rendering in PDF
- */
-function generateCitationHTML(
-    citeEquationTags: string[], 
-    settings: EquationCitatorSettings,
-    fileCiteDelimiter: string
-): string {
-    const renderedCitations: string[] = [];
-    
-    for (const tag of citeEquationTags) {
-        const { local, crossFile } = splitFileCitation(tag, fileCiteDelimiter);
-        
-        if (crossFile) {
-            // Citation with cross-file reference
-            const localCitation = settings.citationFormat.replace('#', local);
-            const linkHTML = `<a href="#eq-${local.replace(/\./g, '-')}" class="em-math-citation-print">${localCitation}</a>`;
-            const superscriptHTML = `<sup><a href="#footnote-${crossFile}" class="em-math-citation-file-superscript-print">[${crossFile}]</a></sup>`;
-            
-            renderedCitations.push(`<span class="em-math-citation-container-print">${linkHTML}${superscriptHTML}</span>`);
-        } else {
-            // Regular in-file citation
-            const localCitation = settings.citationFormat.replace('#', local);
-            const linkHTML = `<a href="#eq-${local.replace(/\./g, '-')}" class="em-math-citation-print">${localCitation}</a>`;
-            
-            renderedCitations.push(`<span class="em-math-citation-container-print">${linkHTML}</span>`);
-        }
-    }
-    
-    return renderedCitations.join(settings.multiCitationDelimiter + ' ' || ', ');
-}
-
-/**
- * Adds footnotes for cross-file references at the end of the document
- */
-function addCrossFileFootnotes(
-    md: string, 
-    citations: EquationRef[], 
-    settings: EquationCitatorSettings
-): string {
-    if (!settings.enableCrossFileCitation) return md;
-    
-    const fileCiteDelimiter = settings.fileCiteDelimiter || '^';
-    const crossFileRefs = new Map<string, string>();
-    
-    // Collect all cross-file references
-    for (const citation of citations) {
-        const eqNumbers: string[] = citation.label.split(settings.multiCitationDelimiter || ',')
-            .map(t => t.trim());
-        
-        for (const eqNum of eqNumbers) {
-            const { crossFile } = splitFileCitation(eqNum, fileCiteDelimiter);
-            if (crossFile && !crossFileRefs.has(crossFile)) {
-                // You might want to resolve the actual filename from the crossFile number
-                // For now, using a placeholder - you can implement file resolution logic
-                crossFileRefs.set(crossFile, `Reference File ${crossFile}`);
-            }
-        }
-    }
-    
-    if (crossFileRefs.size === 0) return md;
-    
-    // Add footnotes section
-    let footnotesSection = '\n\n---\n\n### References\n\n';
-    
-    for (const [fileNum, fileName] of crossFileRefs) {
-        footnotesSection += `<div id="footnote-${fileNum}">[^${fileNum}]: ${fileName}</div>\n`;
-    }
-    
-    return md + footnotesSection;
-}
-
-/**
- * Inject PDF citation styles into the document head
- */
-export function injectPDFStyles(): void {
-    const existingStyle = document.getElementById('em-pdf-citation-styles');
-    if (existingStyle) return;
-    
-    const styleElement = document.createElement('style');
-    styleElement.id = 'em-pdf-citation-styles';
-    styleElement.innerHTML = PDF_CITATION_STYLES.replace(/<\/?style>/g, '');
-    document.head.appendChild(styleElement);
-}
-
-/**
- * Remove PDF citation styles from the document head
- */
-export function removePDFStyles(): void {
-    const styleElement = document.getElementById('em-pdf-citation-styles');
-    if (styleElement) {
-        styleElement.remove();
-    }
-}
-
-/**
- * Enhanced styles for PDF rendering
- */
-export const PDF_CITATION_STYLES = `
-<style>
-.em-math-citation-print,
-.em-math-citation-container-print {
-    font-family: "Latin Modern Roman", "Latin Modern Math", "CMU Serif", "Computer Modern", serif;
-    color: #000000 !important;
-    text-decoration: none;
-}
-
-.em-math-citation-print:hover {
-    text-decoration: underline;
-}
-
-.em-math-citation-file-superscript-print {
-    font-family: "Latin Modern Roman", "Latin Modern Math", "CMU Serif", "Computer Modern", serif;
-    font-size: 0.7em;
-    vertical-align: super;
-    margin-left: 1px;
-    color: #000000 !important;
-    text-decoration: none;
-}
-
-.em-math-citation-file-superscript-print:hover {
-    text-decoration: underline;
-}
-
-.em-equation-block-print {
-    position: relative;
-    margin: 10px 0;
-}
-
-.em-equation-block-print::before {
-    content: "";
-    position: absolute;
-    left: -20px;
-    top: 0;
-    width: 2px;
-    height: 100%;
-    background-color: #f0f0f0;
-}
-
-@media print {
-    .em-math-citation-print,
-    .em-math-citation-file-superscript-print,
-    .em-math-citation-container-print {
-        color: #000000 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-    
-    .em-equation-block-print::before {
-        display: none;
-    }
-}
-</style>`;

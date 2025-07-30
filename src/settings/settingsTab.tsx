@@ -30,11 +30,10 @@ export interface EquationCitatorSettings {
     cacheUpdateTime: number; // Debounce time for preview rendering  
     cacheCleanTime: number; // Time to automatically clear cache  
 
-    // pdf rendering settings 
-    enableInPdfExport: boolean; // Enable PDF rendering for equations  
-    useThemedCitationColorInPdf: boolean; // if use themed citation color in PDF rendering 
-    defaultCitationColorInPdf: string; // default citation color in PDF rendering  
-
+    // pdf rendering settings
+    citationColorInPdf: string; // default citation color in PDF rendering  
+    fileSuperScriptColorInPdf: string; // default file citation color in PDF rendering 
+    
     // auto numbering settings  
     autoNumberDelimiter: string; // Auto numbering delimiter   
     autoNumberType: AutoNumberingType; // Use relative heading level for auto numbering 
@@ -64,10 +63,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
 
     cacheUpdateTime: 3000, // Max time for cache to refresh 
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes)
-
-    enableInPdfExport: true,  // Default to true for convenience  
-    useThemedCitationColorInPdf: false, // Default to true for convenience 
-    defaultCitationColorInPdf: "#000000", // black color for default citation color in PDF rendering 
+    
+    citationColorInPdf: "#000000", // black color for default citation color in PDF rendering 
+    fileSuperScriptColorInPdf: "#000000", // black color for default file citation color in PDF rendering  
 
     autoNumberDelimiter: ".", // Default delimiter for auto numbering  
     autoNumberDepth: 3, // Default to 3 (i.e., 1.1.1 for 3 levels)  
@@ -391,34 +389,30 @@ export class SettingsTabView extends PluginSettingTab {
 
         // ================== PDF export settings ================ 
         containerEl.createEl("h2", { text: "PDF Export Settings", cls: "ec-settings-header" });
-        const enablePdfExportSetting = new Setting(containerEl)
-        
-        let enablePdfExportSettingContainer: HTMLElement | null = null;
-        enablePdfExportSetting.setName("Enable citation render in pdf")
-            .setDesc("Enable citation pdf render. Always enable this option unless any issue with pdf rendering.")
-            .addToggle((toggle) => {
-                const parent = enablePdfExportSetting.settingEl.parentElement; 
-                const updatePdfExportSettingsContainer = (value: boolean) => {
-                    if (value && parent && !enablePdfExportSettingContainer) {
-                        enablePdfExportSettingContainer  = document.createElement("div");
-                        parent.insertBefore(
-                            enablePdfExportSettingContainer,
-                            enablePdfExportSetting.settingEl.nextSibling
-                        );
-                        this.showPdfExportSettings(enablePdfExportSettingContainer);
-                    } else {
-                        if ((!value || !parent) && enablePdfExportSettingContainer) {
-                            enablePdfExportSettingContainer.remove();
-                            enablePdfExportSettingContainer = null;
-                        }
-                    }
-                };
-                updatePdfExportSettingsContainer(this.plugin.settings.enableInPdfExport);
-                toggle.setValue(this.plugin.settings.enableInPdfExport);
-                toggle.onChange((value) => {
-                    this.plugin.settings.enableInPdfExport = value;
-                    updatePdfExportSettingsContainer(value);
+        containerEl.createEl("p", {
+            text: "⚠️WARNING: original pdf export would failed to render citations, please \
+use plugin command `Make markdown copy to export PDF`, \
+this will make a correctly-rendered markdown from current note to export pdf.",
+            cls: "ec-settings-warning"
+        });
+        const pdfExportColorSetting = new Setting(containerEl)
+         pdfExportColorSetting .setName("Citation color in markdown for PDF")
+            .setDesc("Citation colors in PDF export. 1: equation citations 2: superscripts")
+            .addColorPicker((color) => {
+                color.setValue(this.plugin.settings.citationColorInPdf)
+                color.onChange((value) => {
+                    this.plugin.settings.citationColorInPdf = value;
                     this.plugin.saveSettings();
+                    document.documentElement.style.setProperty('--em-math-citation-color-print', value);
+                    Debugger.log("citation color in pdf changed to:", value); 
+                });
+            }).addColorPicker((color) => {
+                color.setValue(this.plugin.settings.fileSuperScriptColorInPdf)
+                color.onChange((value) => {
+                    this.plugin.settings.fileSuperScriptColorInPdf = value;
+                    this.plugin.saveSettings();
+                    Debugger.log("file superscript color in pdf changed to:", value); 
+                    document.documentElement.style.setProperty('--em-math-citation-file-superscript-color-print', value);
                 });
             });
 
@@ -447,9 +441,7 @@ export class SettingsTabView extends PluginSettingTab {
                     new Notice("Settings have been restored to defaults");
                 });
             });
-
-
-
+        
         new Setting(containerEl)
             .setName("Debug Mode")
             .setDesc("Enables debug mode for the plugin (this option needs re-enable after each Obsidian restart)")
@@ -567,29 +559,14 @@ export class SettingsTabView extends PluginSettingTab {
             );
     }
 
-    showPdfExportSettings(containerEl: HTMLElement): void {
-        new Setting(containerEl)
-            .setName("Use Themed citation color in PDF")
-            .setDesc("Use themed citation color in PDF export, second option is default color")
-            .addToggle((toggle) => {
-                toggle.setValue(this.plugin.settings.useThemedCitationColorInPdf);
-                toggle.onChange((value) => {
-                    this.plugin.settings.useThemedCitationColorInPdf = value;
-                    this.plugin.saveSettings();
-                });
-            })
-            .addColorPicker((color) => {
-                color.setValue(this.plugin.settings.defaultCitationColorInPdf)
-                color.onChange((value) => {
-                    this.plugin.settings.defaultCitationColorInPdf = value;
-                    this.plugin.saveSettings();
-                });
-            });
-    }
 
     resetStyles(): void {
         document.documentElement.style.setProperty('--em-math-citation-color', DEFAULT_SETTINGS.citationColor);
         document.documentElement.style.setProperty('--em-math-citation-hover-color', DEFAULT_SETTINGS.citationHoverColor);
+        document.documentElement.style.setProperty('--em-math-citation-file-superscript-color', DEFAULT_SETTINGS.fileSuperScriptColor);
+        document.documentElement.style.setProperty('--em-math-citation-file-superscript-hover-color', DEFAULT_SETTINGS.fileSuperScriptHoverColor);
+        document.documentElement.style.setProperty('--em-math-citation-color-print', DEFAULT_SETTINGS.citationColor); 
+        document.documentElement.style.setProperty('--em-math-citation-file-superscript-color-print', DEFAULT_SETTINGS.fileSuperScriptColor);
     }
 }
 

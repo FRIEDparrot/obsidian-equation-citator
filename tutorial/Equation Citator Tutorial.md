@@ -30,16 +30,26 @@ Use footnote format (ctrl P + `insert footnote` ), and in the page footer , use 
 We can cite equation by footnote $\ref{eq:1.1^1}$. Hold ctrl to see preview. 
 
 ### (3) Continuous Citation
-The equation `$\ref{eq:1.3.1~3^1, 2.1.1~2^1}$ ` will be rendered  as :  $\ref{eq:1.3.1~3^1 , 2.1.1~2^1}$  
+The equation `$\ref{eq:1^1.3.1~3, 1^2.1.1~2}$ ` will be rendered  as :  $\ref{eq: 1^1.3.1~3 , 1^2.1.1~2}$  
 
-Note if we enable the continuous citation, the equation write in a continuous sequence will also be rendered continuously.  For example, `$\ref{eq:1.3.1, 1.3.2, 1.3.3}` will be rendered as $\ref{eq:1.3.1, 1.3.2, 1.3.3}$. 
+Note if we enable the continuous citation, the equation write in a continuous sequence will also be rendered continuously.  For example, `$\ref{eq:1.3.1, 1.3.2, 1.3.3}` will be rendered as $\ref{eq:1.3.1, 1.3.2, 1.3.3}$ . 
 
-Similarly, we can use `$\ref{eq:P1, P2}$`, which will be rendered as $\ref{eq:P1, P2}$ 
+Similarly, we can use `$\ref{eq:P1, P2}$`, which will be rendered as $\ref{eq:P1, P2}$, but we can also simply use $\ref{eq:P1~2}$ 
 $$ \Large \boxed{du = T ds  - p dv} \tag{1.3.1} $$
 $$ \Large \boxed{\Large df = -s dT- pdv } \tag{1.3.2} $$
 $$ \Large\boxed{G = H - TS} \tag{1.3.3} $$
 
-We can also use cross file citation continuously, such as  `$\ref{eq:1.3.1^2, 1.3.2^2, 1.3.3^2, 2.1.1~2^2}$ `.   $\ref{eq:1.3.1^2, 1.3.2^2, 1.3.3^2, 2.1.1~2^2}$ 
+We can also use cross file citation continuously, such as  `$\ref{eq:2^1.3.1, 2^1.3.2, 2^1.3.3, 2^2.1.1~2}$ `.  
+
+This is render result :  $\ref{eq:2^1.3.1, 2^1.3.2, 2^1.3.3, 2^2.1.1~2}$ 
+
+The following (such as writing multiple `\ref{}` in a citation,  or have wrong prefix) is incorrect citation pattern, which will not be rendered.  
+
+```
+$\ref{eq:1.1} \ref{}$ ,  $\ref{123}$
+```
+
+rendered as :  $\ref{eq:1.1} \ref{}$ ,  $\ref{123}$ 
 
 ## 2. Auto-number Settings 
 ### (1) Auto-number equation feature 
@@ -82,14 +92,10 @@ $$ block
 # not write content before or after equation block in one line!
 ```
 
-
 ### (3) TO DO LIST 
+1. **Update links when renaming equations in auto-numbering** : when auto-number command triggered, automatic update citation.  
 
-1. **Update links when renaming equations** : when auto-number command triggered, automatic update citation.  
-
-2. **More pdf support**  :  in-file citation may be rendered as link which can jump to correct position in pdf in the future version  
-
-
+2. **More pdf support**  :  In-file citation may can be rendered as link which can jump to correct position in pdf. But obsidian didn't provide any API to do this,  link jump is also not available, so I still not figure it out. 
 
 [^1]: [[test file for citation]]
 

@@ -15,8 +15,6 @@ import {
     createMathCitationExtension,
     mathCitationPostProcessor,
     processPrintMarkdown,
-    injectPDFStyles,
-    removePDFStyles
 } from '@/views/citation_render';
 import { CitationCache } from '@/cache/citationCache';
 import Debugger from '@/debug/debugger';
@@ -40,7 +38,6 @@ export default class EquationCitator extends Plugin {
         // Register Live Preview extension and Reading Mode extension 
         this.loadEditorExtensions();
         this.loadReadingModeExtensions();
-        this.setupPrinterInterceptor();
     }
     onunload() {
         if (this.observer) {
@@ -96,74 +93,9 @@ export default class EquationCitator extends Plugin {
             }
         });
     }
-
-    setupPrinterInterceptor() {
-        this.registerDomEvent(window, 'beforeprint', this.handleBeforePrint.bind(this));
-        this.registerDomEvent(window, 'afterprint', this.handleAfterPrint.bind(this));
-    }
-
+    
     /** when exporting, currentPrintFilePath must be null to avoid race condition */
     private currentPrintFilePath: string | null = null;
     private currentPrintFileContent = "";
-
-    async handleBeforePrint() {
-        if (!this.settings.enableInPdfExport) return;
-        // get the current active file 
-        const file = this.app.workspace.getActiveFile();
-        if (!file) return;  // only allow export pdf for active file
-
-        if (this.currentPrintFilePath != null) {
-            // race exporting start, ignore this event
-            this.failExportPdf("Race export condition detected, ignore exporting");
-            return;
-        }
-        this.currentPrintFilePath = file.path;
-        const originalFileContent = await this.app.vault.read(file);
-        this.currentPrintFileContent = originalFileContent;    // cache the original content 
-        
-        new Notice("Equation Citator: pdf exporting, please not close obsidian");
-        let proceededContent = originalFileContent; 
-        Debugger.log("Pdf exporting, file:", file.path);
-        try {
-            injectPDFStyles();
-            // render the markdown content with citations HTML blocks 
-            proceededContent = processPrintMarkdown(originalFileContent, this.settings);
-        }
-        catch (error) {
-            Debugger.error("Error processing markdown for print:", error);
-        }
-        finally {
-            // await this.app.vault.modify(file, proceededContent);
-            console.log("Pdf exporting, content:", proceededContent);
-        }
-    }
-
-    async handleAfterPrint() {
-        if (!this.settings.enableInPdfExport) return;
-        if (!this.currentPrintFilePath) return;  // ignore if not start exporting pdf  
-
-        // in all case, write back the original content  
-        try {
-            // Remove PDF-specific styles
-            removePDFStyles(); 
-            // in all case, write back the original content  
-            const file_origin = this.app.vault.getAbstractFileByPath(this.currentPrintFilePath);
-            if (!file_origin || !(file_origin instanceof TFile)) {
-                console.log("Pdf exporting, file not found:", this.currentPrintFilePath)
-                return;  // file not found, ignore 
-            }
-            await this.app.vault.modify(file_origin, this.currentPrintFileContent);
-        } catch (error) {
-            Debugger.error("Error restoring file after print:", error); 
-            new Notice("Error restoring file. Turn on debug mode for more details.");
-        } finally {
-            this.currentPrintFilePath = null;  // reset the cache
-            this.currentPrintFileContent = "";
-        }
-    }
-
-    failExportPdf(error: string) {
-        new Notice("Equation Citator: failed to render citation, turn on debug mode for details");
-        Debugger.error("Failed to render citation in pdf:", error);
-    }
+    
 }

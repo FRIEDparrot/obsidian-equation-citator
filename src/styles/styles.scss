@@ -47,6 +47,13 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
     width: 120px;
 }
 
+.ec-settings-warning {
+    color: red; 
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 14px; 
+}
+
 /* Regular citation styles for live preview and reading mode */
 .em-math-citation,
 .em-math-citaion-failed {
@@ -79,73 +86,25 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
     color: var(--em-math-citation-file-superscript-hover-color);
 }
 
-
-/* PDF print-specific styles */ 
-.em-math-citation-print,
+/* 
+when generating markdown for print pdf, 
+    get following styles from stylesheets 
+*/
 .em-math-citation-container-print {
-    font-family: var(--em-math-latex-font);
-    color: #000000;
-    text-decoration: none;
-    display: inline;
+    cursor: default;
 }
 
-.em-math-citation-print:hover {
-    text-decoration: underline;
+.em-math-citation-print {
+    // not use font family or add any other styles with ", this is not saft in obsidian
+    text-decoration: none;
 }
 
 .em-math-citation-file-superscript-print {
-    font-family: var(--em-math-latex-font);
+    // not use font family or add any other styles with ", this is not saft in obsidian 
     font-size: 0.7em;
     vertical-align: super;
     margin-left: 1px;
     color: #000000;
     text-decoration: none;
-}
-
-.em-math-citation-file-superscript-print:hover {
-    text-decoration: underline;
-}
-
-.em-equation-block-print {
-    position: relative;
-    margin: 10px 0;
-    padding: 5px 0;
-}
-
-.em-equation-block-print::before {
-    content: "";
-    position: absolute;
-    left: -20px;
-    top: 0;
-    width: 2px;
-    height: 100%;
-    background-color: #f0f0f0;
-}
-
-/* Print-specific overrides */
-@media print {
-    .em-math-citation-print,
-    .em-math-citation-file-superscript-print,
-    .em-math-citation-container-print {
-        color: yellow !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-    
-    .em-equation-block-print::before {
-        display: none;
-    }
-    
-    /* Ensure equation blocks are properly spaced in print */
-    .em-equation-block-print {
-        page-break-inside: avoid;
-        margin: 15px 0;
-    }
-    
-    /* Make sure links are visible in print */
-    .em-math-citation-print[href],
-    .em-math-citation-file-superscript-print[href] {
-        color: #000000 !important;
-        text-decoration: none !important;
-    }
+    cursor: pointer;
 }

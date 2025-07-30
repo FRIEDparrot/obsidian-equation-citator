@@ -1,4 +1,4 @@
-import { getStyleFromStyleSheet } from "@/styles/pdfRenderStyles";
+import { getStyleFromStyleSheet } from "@/utils/styles_utils";
 
 describe("getStyleFromStyleSheet", () => {
     const cssText = `

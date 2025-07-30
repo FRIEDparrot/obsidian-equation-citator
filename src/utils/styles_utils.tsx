@@ -30,3 +30,4 @@ export function getStyleFromStyleSheet(className: string, defaultStyle: string):
     }
     return defaultStyle;
 }
+

@@ -19,8 +19,12 @@ export class CitationCache {
         this.forceUpdateTimeout = plugin.settings.cacheUpdateTime ?? 3000;
     }
 
+    getCitationForFileInstantly(sourcePath: string): EquationRef[] | undefined {
+        
+    }
+
     /**
-     * Get citations for a file, which is called in postProcessor  
+     * Get citations for a file, and update the cache if needed  
      * @param sourcePath 
      * @returns 
      */

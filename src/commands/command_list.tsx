@@ -1,6 +1,8 @@
 import EquationCitator from '@/main';
 import { autoNumberCurrentFileEquations } from '@/func/autoNumber';
 import { MarkdownView } from 'obsidian';
+import { makePrintMarkdown } from '@/views/citation_render';
+import { exportCurrentMarkdown } from '@/func/exportMarkdown';
 
 
 export default function registerCommands(plugin: EquationCitator) {
@@ -32,6 +34,14 @@ export default function registerCommands(plugin: EquationCitator) {
                 ch: cursorPos.ch + 6 + citePrefix.length
             };
             editor.setCursor(newCursorPos);
-        }, 
+        },
+    })
+
+    plugin.addCommand({
+        id: 'make-markdown-copy-to-export-pdf',
+        name: 'Make markdown copy to export PDF', 
+        callback: async () => {
+            exportCurrentMarkdown(plugin);
+        }
     })
 }
