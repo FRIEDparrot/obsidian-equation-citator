@@ -5,7 +5,7 @@ const tsJestTransformCfg = createDefaultPreset().transform;
 /** @type {import("jest").Config} **/
 module.exports = {
   preset: 'ts-jest', // use ts-jest preset 
-  testEnvironment: "node",
+  testEnvironment: 'jsdom', // use jsdom environment for simulate browser environment
   transform: {
     ...tsJestTransformCfg,
   },

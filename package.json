@@ -1,6 +1,6 @@
 {
 	"name": "equation_citator",
-	"version": "1.0.0",
+	"version": "0.0.1",
 	"description": "An Equation Citator Allows you to cite equations in your Obsidian notes.",
 	"main": "main.js",
 	"scripts": {
@@ -9,6 +9,7 @@
 		"dev:esbuild": "node esbuild.config.mjs",
 		"dev": "powershell -Command \"Start-Process cmd '/c npm run watch:css' -WindowStyle Hidden; npm run dev:esbuild\"",
 		"test": "npx jest",
+		"dbg": "npx jest ./src/tests/dbg.test.ts",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
@@ -22,12 +23,14 @@
 		"@codemirror/view": "^6.38.1",
 		"@lezer/markdown": "^1.4.3",
 		"@types/jest": "^30.0.0",
+		"@types/markdown-it": "^14.1.2",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
 		"esbuild": "^0.25.8",
 		"jest": "^30.0.5",
+		"jsdom": "^26.1.0",
 		"obsidian": "latest",
 		"ts-jest": "^29.4.0",
 		"tslib": "2.4.0",

@@ -1,11 +1,10 @@
 {
 	"id": "equation_citator",
 	"name": "Equation Citator",
-	"version": "0.0.1",
+	"author": "Fried Parrot",
+	"version": "1.0.0",
 	"minAppVersion": "1.8.10",
-	"description": "Enables you to cite equations like Latex in your Obsidian notes.",
-	"author": "Obsidian",
+	"description": "Enable you to cite equations like it in latex in obsidian.",
 	"authorUrl": "https://github.com/friedparrot", 
-	"fundingUrl": "",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }

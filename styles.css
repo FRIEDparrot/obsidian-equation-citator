@@ -1,13 +1,34 @@
 /*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
+This is SCSS file for compile the CSS file for equation_citator plugin. 
 */
-.ec-deliminator-input {
-  width: 40px;
+:root {
+  --em-math-citation-color: #cec2f4;
+  --em-math-citation-hover-color: #a18cec;
+  --em-math-citation-file-superscript-color: #8e77e1;
+  --em-math-citation-file-superscript-hover-color: #6d50e0;
+  --em-math-latex-font: "Latin Modern Roman", "Latin Modern Math", "CMU Serif",
+      "Computer Modern", serif;
+}
+
+/* element styles  in settings tab */
+.ec-settings-title,
+.ec-settings-header {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: orange;
+}
+
+.ec-settings-title {
+  font-size: 25px;
+}
+
+.ec-settings-header {
+  font-size: 20px;
+}
+
+.ec-delimiter-input,
+.ec-multi-delimiter-input {
   height: 20px;
   margin-bottom: 10px;
   text-align: center;
@@ -16,6 +37,113 @@ If your plugin does not need CSS, delete this file.
   padding: 2px 6px;
   border-radius: 4px;
   border: 1px solid #ccc;
+}
+
+.ec-delimiter-input {
+  width: 75px;
+}
+
+.ec-multi-delimiter-input {
+  width: 120px;
+}
+
+/* Regular citation styles for live preview and reading mode */
+.em-math-citation,
+.em-math-citaion-failed {
+  font-family: var(--em-math-latex-font);
+  position: relative;
+  padding: 1px 2px;
+  pointer-events: auto;
+  user-select: none;
+  display: inline-block;
+  color: var(--em-math-citation-color);
+}
+
+.em-math-citation:hover {
+  cursor: pointer;
+  color: var(--em-math-citation-hover-color);
+}
+
+.em-math-citation-file-superscript {
+  font-family: var(--em-math-latex-font);
+  font-size: 0.7em;
+  position: relative;
+  vertical-align: super;
+  margin-left: 1px;
+  color: var(--em-math-citation-file-superscript-color);
+  z-index: 10;
+}
+
+.em-math-citation-file-superscript:hover {
+  cursor: pointer;
+  color: var(--em-math-citation-file-superscript-hover-color);
+}
+
+/* PDF print-specific styles */
+.em-math-citation-print,
+.em-math-citation-container-print {
+  font-family: var(--em-math-latex-font);
+  color: #000000;
+  text-decoration: none;
+  display: inline;
+}
+
+.em-math-citation-print:hover {
+  text-decoration: underline;
+}
+
+.em-math-citation-file-superscript-print {
+  font-family: var(--em-math-latex-font);
+  font-size: 0.7em;
+  vertical-align: super;
+  margin-left: 1px;
+  color: #000000;
+  text-decoration: none;
+}
+
+.em-math-citation-file-superscript-print:hover {
+  text-decoration: underline;
+}
+
+.em-equation-block-print {
+  position: relative;
+  margin: 10px 0;
+  padding: 5px 0;
+}
+
+.em-equation-block-print::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: #f0f0f0;
+}
+
+/* Print-specific overrides */
+@media print {
+  .em-math-citation-print,
+  .em-math-citation-file-superscript-print,
+  .em-math-citation-container-print {
+    color: yellow !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .em-equation-block-print::before {
+    display: none;
+  }
+  /* Ensure equation blocks are properly spaced in print */
+  .em-equation-block-print {
+    page-break-inside: avoid;
+    margin: 15px 0;
+  }
+  /* Make sure links are visible in print */
+  .em-math-citation-print[href],
+  .em-math-citation-file-superscript-print[href] {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
 }
 
 /*# sourceMappingURL=styles.css.map */
