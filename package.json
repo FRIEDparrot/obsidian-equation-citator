@@ -30,6 +30,7 @@
 		"builtin-modules": "3.3.0",
 		"esbuild": "^0.25.8",
 		"jest": "^30.0.5",
+		"jest-environment-jsdom": "^30.0.5",
 		"jsdom": "^26.1.0",
 		"obsidian": "latest",
 		"ts-jest": "^29.4.0",
