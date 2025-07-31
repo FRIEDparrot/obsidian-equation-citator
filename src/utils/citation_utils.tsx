@@ -1,18 +1,20 @@
 import { getStyleFromStyleSheet } from "@/utils/styles_utils";
 import { escapeRegExp, escapeString } from "@/utils/string_utils";
+import { removeInlineCodeBlocks } from "@/utils/string_utils";
+
 
 /**
  * Combines continuous equation tags with common prefixes and file citations.
  * Example: ["P1", "2^1.1.1", "2^1.1.2", "2^1.1.3"] → ["P1", "2^1.1.1~3"]
  */
-export function combineContinuousEquationTags(
+export function combineContinuousCitationTags(
     tags: string[],
     rangeSymbol: string,
     validDelimiters: string[],
     fileDelimiter: string
 ): string[] {
-    if (tags.length === 0) return [];
-
+    if (!tags || tags.length === 0) return [];
+    
     // Create a mapping from original tags to their combined form
     const tagMapping = new Map<string, string>();
     const processedTags = new Set<string>();
@@ -69,12 +71,12 @@ export function combineContinuousEquationTags(
                     const startNum = tagInfos[start].num;
                     const endNum = tagInfos[end].num;
                     const rangeLocal = `${prefix}${startNum}${rangeSymbol}${endNum}`;
-                    combinedTag = filePrefix ? `${filePrefix}${fileDelimiter}${rangeLocal}` : rangeLocal; 
+                    combinedTag = filePrefix ? `${filePrefix}${fileDelimiter}${rangeLocal}` : rangeLocal;
                 }
 
                 // Map all tags in this sequence to the combined form
                 for (let j = start; j <= end; j++) {
-                    const originalTag =  filePrefix? `${filePrefix}${fileDelimiter}${tagInfos[j].tag}` : tagInfos[j].tag;
+                    const originalTag = filePrefix ? `${filePrefix}${fileDelimiter}${tagInfos[j].tag}` : tagInfos[j].tag;
                     tagMapping.set(originalTag, combinedTag);
                     processedTags.add(originalTag);
                 }
@@ -177,21 +179,7 @@ export function splitFileCitation(eqStr: string, fileDelimiter: string): { local
     return { local: eqStr, crossFile: null };
 }
 
-/**
- * Checks if an equation part uses only valid delimiters.
- */
-export function isValidEquationPart(part: string, validDelimiters: string[]): boolean {
-    if (!part) return false;
 
-    // Escape delimiters for regex and join with | (for OR matching)
-    const escapedDelimiters = validDelimiters.map(d =>
-        d === '.' ? '\\.' : (d === '-' ? '\\-' : escapeRegExp(d))
-    ).join('|');
-
-    // Pattern: numbers separated by valid delimiters
-    const validPattern = new RegExp(`^\\d+(?:[${escapedDelimiters}]\\d+)*$`);
-    return validPattern.test(part);
-}
 
 /**
  * Extracts the common prefix between two equation numbers.
@@ -227,7 +215,7 @@ export function extractLastNumber(eq: string, prefix: string): number | null {
     return isNaN(num) ? null : num;
 }
 
-export interface EquationRef {
+export interface CitationRef {
     label: string;
     line: number;
     fullMatch: string;
@@ -236,10 +224,10 @@ export interface EquationRef {
 /**
  * Parses all inline equation cite references in a markdown string. 
  */
-export function parseCitationsInMarkdown(md: string): EquationRef[] {
+export function parseCitationsInMarkdown(md: string): CitationRef[] {
     if (!md.trim()) return [];
 
-    const result: EquationRef[] = [];
+    const result: CitationRef[] = [];
     const lines = md.split('\n');
     let inMultilineCodeBlock = false;
 
@@ -293,27 +281,11 @@ export function parseCitationsInMarkdown(md: string): EquationRef[] {
     return result;
 }
 
-function removeInlineCodeBlocks(line: string): string {
-    let result = '';
-    let inCodeBlock = false;
-    let i = 0;
 
-    while (i < line.length) {
-        if (line[i] === '`' && (i === 0 || line[i - 1] !== '\\')) {
-            // Toggle code block state
-            inCodeBlock = !inCodeBlock;
-            result += ' '; // Replace backtick with space
-        } else if (inCodeBlock) {
-            // Replace code content with spaces
-            result += ' ';
-        } else {
-            // Keep normal content
-            result += line[i];
-        }
-        i++;
-    }
 
-    return result;
+export interface SpanStyles {
+    citationColorInPdf: string;
+    superScriptColorInPdf: string;
 }
 
 
@@ -333,7 +305,9 @@ export function replaceCitationsInMarkdown(
     rangeSymbol: string | null,
     validDelimiters: string[],
     fileDelimiter: string,
-    multiCitationDelimiter = ','
+    multiCitationDelimiter = ',',
+    citationFormat = '(#)',
+    spanStyles = {} as SpanStyles
 ): string {
     if (!markdown.trim()) return markdown;
 
@@ -364,7 +338,7 @@ export function replaceCitationsInMarkdown(
             return line; // In display math block - skip processing
         }
         processedLine = processInlineReferences(
-            line, prefix, rangeSymbol, validDelimiters, fileDelimiter, multiCitationDelimiter
+            line, prefix, rangeSymbol, validDelimiters, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles
         );
         return processedLine;
     });
@@ -380,7 +354,9 @@ function processInlineReferences(
     rangeSymbol: string | null,  // if null, not use continuous equation tags 
     validDelimiters: string[],
     fileDelimiter: string, // if null, not use file citations 
-    multiCitationDelimiter = ','
+    multiCitationDelimiter = ',',
+    citationFormat = '(#)',
+    spanStyles = {} as SpanStyles
 ): string {
     // First marks all inline code block positions
     const codeBlockRanges: Array<{ start: number, end: number }> = [];
@@ -484,7 +460,7 @@ function processInlineReferences(
         // Combines continuous citation tags
         const combinedCitations = (rangeSymbol === null) ?
             citations :
-            combineContinuousEquationTags(
+            combineContinuousCitationTags(
                 citations,
                 rangeSymbol,
                 validDelimiters,
@@ -492,13 +468,15 @@ function processInlineReferences(
             );
 
         // Generates replacement HTML
-        const replacement = generateCitationSpans(combinedCitations, fileDelimiter, multiCitationDelimiter);
-
+        const replacement = generateCitationSpans(
+            combinedCitations, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles
+        );
         // Performs replacement
         result = result.substring(0, mathStart) + replacement + result.substring(mathEnd);
     });
     return result;
 }
+
 
 /**
  * Generates span tags for citations
@@ -507,14 +485,15 @@ export function generateCitationSpans(
     citations: string[],
     fileDelimiter: string,
     multiCitationDelimiter = ',',
-    citationFormat = '(#)'
+    citationFormat = '(#)',
+    spanStyles = {} as SpanStyles
 ): string {
     const spans = citations.map((citation, index) => {
         const { local, crossFile } = splitFileCitation(citation, fileDelimiter);
         const default_style = 'color: #000000;'
-    
-        const citationColorInPdf = document.documentElement.style.getPropertyValue('--em-math-citation-color-print') || '#000000';
-        const superScriptColorInPdf = document.documentElement.style.getPropertyValue('--em-math-citation-file-superscript-color-print') || '#000000' ;
+
+        const citationColorInPdf = spanStyles.citationColorInPdf || '#000000';
+        const superScriptColorInPdf = spanStyles.superScriptColorInPdf || '#000000';
 
         // Gets styles
         const containerStyle = escapeString(getStyleFromStyleSheet(
@@ -533,9 +512,7 @@ export function generateCitationSpans(
                 default_style + 'font-size: 0.7em; vertical-align: super; margin-left: 1px;'
             ), "\""
         ) + ` color: ${superScriptColorInPdf};`
-        
-        let result = `<span style="${containerStyle}">` +  citationFormat.replace('#', `<span style="${citationStyle}">${local}</span>`);
-        
+        let result = `<span style="${containerStyle}">` + citationFormat.replace('#', `<span style="${citationStyle}">${local}</span>`);
         if (crossFile) {
             result += `<sup style="${superscriptStyle}">${'[' + crossFile + ']'}</sup>`;
         }

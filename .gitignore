@@ -1,6 +1,9 @@
 # vscode
 .vscode 
 
+# backup 
+backup/*
+
 # Intellij
 *.iml
 .idea

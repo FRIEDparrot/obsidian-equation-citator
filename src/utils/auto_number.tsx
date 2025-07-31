@@ -1,5 +1,9 @@
 import { Heading, relativeHeadingLevel } from "@/utils/heading";
-import { normalizeEquationBlock, clearEquationTag } from "@/utils/equation_utils";
+import { parseMarkdownLine, updateCodeBlockState } from "@/utils/string_utils";
+import { 
+    clearEquationTag, 
+    trimEquationsBlock, 
+} from "@/utils/equation_utils";
 
 export enum AutoNumberingType {
     Relative = "Relative",
@@ -12,7 +16,8 @@ export function autoNumberEquations(
     maxDepth: number,
     delimiter: string,
     noHeadingEquationPrefix: string,
-    globalPrefix: string
+    globalPrefix: string, 
+    parseQuotes = false
 ): string {
     const lines = content.split('\n');
     const headingRegex = /^(#{1,6})\s+(.*)$/;
@@ -43,7 +48,7 @@ export function autoNumberEquations(
             });
         }
     }
-    return processAutoNumbering(lines, headings, type, maxDepth, delimiter, noHeadingEquationPrefix, globalPrefix);
+    return processAutoNumbering(lines, headings, type, maxDepth, delimiter, noHeadingEquationPrefix, globalPrefix, parseQuotes);
 }
 
 function processAutoNumbering(
@@ -53,37 +58,32 @@ function processAutoNumbering(
     maxDepth: number,
     delimiter: string,
     noHeadingEquationPrefix: string,
-    globalPrefix: string 
+    globalPrefix: string,
+    parseQuotes = false
 ): string {
-    const codeBlockRegex = /^```/;
-    const headingRegex = /^(#{1,6})\s+(.*)$/;
-    const singleLineEqRegex = /^\s*\$\$([\s\S]*?)\$\$\s*$/;
-
     let inCodeBlock = false;
     let inEquationBlock = false;
 
     // Set Counters for equation numbering  
     const levelCounters: number[] = new Array(maxDepth).fill(0);
-    let equationBuffer: string[] = [];   // multi-line equation buffer 
-
+    let equationBuffer: string[] = [];
+    
     // maintain two unique counters for non-heading and heading equations  
     let preHeadingEqNumber = 0; 
     let equationNumber = 0;      
     
-    let currentDepth = 0; // current depth 
-    let currentHeadingIndex = 0; // current heading index in headings array 
+    let currentDepth = 0;
+    let currentHeadingIndex = 0;
 
     const result: string[] = [];
 
     const getAutoNbEquationTag = () => {
         if (currentDepth === 0) {
-            // no heading equations, use prefix counter
             preHeadingEqNumber++;
             const tag = `${globalPrefix}${noHeadingEquationPrefix}${preHeadingEqNumber}`;
             return `\\tag{${tag}}`;
         }
         else {
-            // calculate the equation index 
             const eqIdx = Math.min(currentDepth, maxDepth - 1);
             equationNumber++;
             if (eqIdx === 0) {
@@ -101,84 +101,91 @@ function processAutoNumbering(
     }
 
     const getTaggedEquation = (equationBody: string) => {
-        // equationBody is cleared equation without $$ and tag  
         const tag = getAutoNbEquationTag();
         if (equationBody.endsWith("\n")) {
-            // add tag to the previous line (not trim to avoid \n trimmed)  
             return equationBody.slice(0, -1) + " " + tag + "\n";
         } else {
-            // add tag to the current line 
             return equationBody.trim() + " " + tag;
         }
     }
-
+    let quotePrefix = "";
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        // skip code block content  
-        if (codeBlockRegex.test(line)) {
-            inCodeBlock = !inCodeBlock;
-            result.push(line);
-            continue;
+        const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
+        quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
+
+        // Update code block state
+        if (parseResult.isCodeBlockToggle) {
+            const codeBlockMatches = parseResult.processedContent.match(/```/g);
+            inCodeBlock = updateCodeBlockState(inCodeBlock, codeBlockMatches);
         }
         if (inCodeBlock) {
             result.push(line);
             continue;
         }
-        // Test if it's inside a multi-line equation block
+
+        // Handle multi-line equation blocks
         if (inEquationBlock) {
-            equationBuffer.push(line);
-            if (line.trim().endsWith("$$")) {
-                // add the last line
+            equationBuffer.push(parseResult.cleanedLine.trim());
+            
+            if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
-                // add tag to the equation block  
-                const eqaution_body = normalizeEquationBlock(equationBuffer);
-                const res = getTaggedEquation(eqaution_body);
-                // re-construct multi-line equation block, clear the buffer  
-                result.push(`$$\n${res}\n$$`);
+                const equation_raw = trimEquationsBlock(equationBuffer);
+                const equation_body = clearEquationTag(equation_raw);
+                const res = getTaggedEquation(equation_body);
+                const fullEquationLines  = `$$\n${res}\n$$`.split("\n");
+                result.push(fullEquationLines.map((c) =>  quotePrefix + c).join("\n"));
                 equationBuffer = [];
             }
             continue;
         }
         
-        // match if this line is heading and set the current depth  
-        // note : level counter update logic is different for relative and absolute numbering  
-        const headingMatch = line.match(headingRegex);
-        if (headingMatch) {
-            // **update the level counter when encountering a heading**
+        // Handle headings
+        if (parseResult.isHeading && parseResult.headingMatch) {
             const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
                 relativeHeadingLevel(headings, currentHeadingIndex) :
-                headingMatch[1].length;
+                parseResult.headingMatch[1].length;
 
             if (headingLevel == 0) {
                 throw new Error("Equation Citator : Current heading is not in headings array");
             }
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) {
-                equationNumber = 0; // reset equation counter for this heading  
+                equationNumber = 0;
             }
 
-            currentDepth = Math.min(headingLevel, maxDepth); // current depth -> also index to modify
+            currentDepth = Math.min(headingLevel, maxDepth);
             result.push(line);
             currentHeadingIndex++;
             continue;
         }
 
-        // try to match the whole equation block 
-        const equationMatch = line.match(singleLineEqRegex);
-        if (equationMatch) {
-            const equationBody = clearEquationTag(equationMatch[1].trim());
+        // Handle single-line equations
+        if (parseResult.isSingleLineEquation && parseResult.singleLineEquationMatch) {
+            const rawEquationContent = parseResult.singleLineEquationMatch[1].trim();
+            const equationBody = clearEquationTag(rawEquationContent);
             const equation = getTaggedEquation(equationBody);
-            result.push(`$$ ${equation} $$`);
+            result.push(`${quotePrefix}$$ ${equation} $$`);
             continue;
         }
 
-        if (line.trim().startsWith("$$")) {
-            // start of a multi-line equation block
+        // Handle start of multi-line equation blocks
+        if (parseResult.isEquationBlockStart) {
             inEquationBlock = true;
-            equationBuffer.push(line);
+            equationBuffer.push(  quotePrefix + parseResult.cleanedLine.trim());
             continue;
         }
         result.push(line);
+    }
+
+    // Handle unclosed equation blocks
+    if (inEquationBlock && equationBuffer.length > 0) {
+        const equation_raw = trimEquationsBlock(equationBuffer);
+        const equation_body = clearEquationTag(equation_raw);
+        const res = getTaggedEquation(equation_body);
+        const fullEquationLines  = `$$\n${res}\n$$`.split("\n");
+        result.push(fullEquationLines.map((c) =>  quotePrefix + c).join("\n"));
+        equationBuffer = [];
     }
     return result.join('\n');
 }

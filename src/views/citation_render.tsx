@@ -1,20 +1,22 @@
-import { EditorSelection, Prec, RangeSetBuilder } from "@codemirror/state";
-import { EditorView, WidgetType, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { Prec, RangeSetBuilder } from "@codemirror/state";
+import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import {  MarkdownPostProcessorContext, Notice } from "obsidian";
+import { MarkdownPostProcessorContext, Notice,  } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/settingsTab";
 import { escapeRegExp } from "@/utils/string_utils";
 import { editorInfoField, MarkdownView } from "obsidian";
 import {
-    EquationRef,
+    CitationRef,
+    combineContinuousCitationTags,
     splitFileCitation,
-    combineContinuousEquationTags,
-    replaceCitationsInMarkdown
+    replaceCitationsInMarkdown,
+    SpanStyles,
 } from "@/utils/citation_utils";
 import { CitationCache } from "@/cache/citationCache";
 import { DISABLED_DELIMITER } from "@/utils/string_utils";
-
+import { EquationCitationWidget } from "@/views/equation_citation_widget";
+import EquationCitator from "@/main";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -30,12 +32,23 @@ export class EquationCitation {
     }
 }
 
-// Shared rendering function for both modes
-function renderEquationCitation(
+export interface RenderedCitationTag {
+    local: string;
+    crossFile: string | null;
+}
+
+/**
+ * Shared rendering function for both modes  
+ * @param citeEquationTags 
+ * @param settings 
+ * @param isInteractive 
+ * @returns 
+ */
+export function renderEquationCitation(
     citeEquationTags: string[],
     settings: EquationCitatorSettings,
     // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-    isInteractive: boolean = false  
+    isInteractive: boolean = false,
 ): HTMLElement {
     const el = document.createElement('span');
     const fileCiteDelimiter = settings.enableCrossFileCitation ?
@@ -43,14 +56,14 @@ function renderEquationCitation(
         DISABLED_DELIMITER;
     // set render format for the equation
     const formatedCiteEquationTags = settings.enableContinuousCitation ?
-        combineContinuousEquationTags(
+        combineContinuousCitationTags(
             citeEquationTags,
             settings.continuousRangeSymbol || '~',
             settings.continuousDelimiters.split(' ').filter(d => d.trim()),
             fileCiteDelimiter
         )
         : citeEquationTags;
-    
+
     const renderedCitations: string[] = [];
 
     // render equation parts
@@ -85,54 +98,13 @@ function renderEquationCitation(
     return el;
 }
 
-export class EquationCitationWidget extends WidgetType {
-    public citeEquationTags: string[];
-    constructor(
-        citeEquationTags: string[],
-        public range: { from: number; to: number },
-        private settings: EquationCitatorSettings
-    ) {
-        super();
-        this.citeEquationTags = citeEquationTags.map(t => t.trim());
-    }
-
-    eq(other: EquationCitationWidget) {
-        return this.citeEquationTags === other.citeEquationTags &&
-            this.range.from === other.range.from &&
-            this.range.to === other.range.to;
-    }
-
-    toDOM(view: EditorView): HTMLElement {
-        const el = renderEquationCitation(this.citeEquationTags, this.settings, true);
-
-        // Add interactive behavior for Live Preview mode
-        el.addEventListener('pointerdown', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const setSelectionRange = (view: EditorView, from: number, to: number) => {
-                view.dispatch({
-                    selection: EditorSelection.range(from, to)
-                });
-            };
-            view.focus();
-            setSelectionRange(view, this.range.from, this.range.to);
-        });
-
-        return el;
-    }
-
-    ignoreEvent() {
-        return false;
-    }
-}
-
 /**
  * Live Preview Extension (CodeMirror ViewPlugin) for render equation in editor   
  * @param settings 
  * @returns 
  */
-export function createMathCitationExtension(settings: EquationCitatorSettings) {
+export function createMathCitationExtension(plugin: EquationCitator) {
+    const settings: EquationCitatorSettings = plugin.settings;
     return Prec.high(ViewPlugin.fromClass(class {
         decorations: DecorationSet;
         citePattern: RegExp;
@@ -203,7 +175,7 @@ export function createMathCitationExtension(settings: EquationCitatorSettings) {
                                 currentEqRange.from,
                                 currentEqRange.to,
                                 Decoration.replace({
-                                    widget: new EquationCitationWidget(eqNumbers, currentEqRange, settings)
+                                    widget: new EquationCitationWidget( eqNumbers, currentEqRange, plugin.settings)
                                 })
                             );
                         }
@@ -247,8 +219,8 @@ export async function mathCitationPostProcessor(
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) return;
 
-    const allEquations: EquationRef[] | undefined = await citationCache.getCitationsForFile(ctx.sourcePath)
-    if (!allEquations) return; // no citations found for this file
+    const allCitations: CitationRef[] | undefined = await citationCache.getCitationsForFile(ctx.sourcePath)
+    if (!allCitations) return; // no citations found for this file
 
     // find citation spans in the section  
     const mathSpans = el.querySelectorAll("span.math.math-inline.is-loaded");
@@ -267,7 +239,7 @@ export async function mathCitationPostProcessor(
     if (citeSpans.length === 0) return;   // no citation span found
 
     // all equation citations in the blcok 
-    const equations = allEquations.filter(eq =>
+    const equations = allCitations.filter(eq =>
         eq.line >= sectionInfo.lineStart && eq.line <= sectionInfo.lineEnd
     )
     if (citeSpans.length === equations.length) {
@@ -322,17 +294,22 @@ function isSourceMode(view: EditorView): boolean {
  */
 export function makePrintMarkdown(md: string, settings: EquationCitatorSettings): string {
     const rangeSymbol = settings.enableContinuousCitation ?
-        settings.continuousRangeSymbol || '~' : null; 
-    const fileCiteDelimiter = settings.enableCrossFileCitation ? 
+        settings.continuousRangeSymbol || '~' : null;
+    const fileCiteDelimiter = settings.enableCrossFileCitation ?
         settings.fileCiteDelimiter || '^' : DISABLED_DELIMITER;
-    
+
     const result = replaceCitationsInMarkdown(
         md,
         settings.citationPrefix,
         rangeSymbol,
         settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-        fileCiteDelimiter, 
-        settings.multiCitationDelimiter || ','
+        fileCiteDelimiter,
+        settings.multiCitationDelimiter || ',',
+        settings.citationFormat,
+        {
+            citationColorInPdf: settings.citationColorInPdf,
+            superScriptColorInPdf: settings.fileSuperScriptColorInPdf,
+        } as SpanStyles,
     );
     return result;
 }

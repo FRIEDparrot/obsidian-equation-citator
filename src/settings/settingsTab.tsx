@@ -1,6 +1,6 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import EquationCitator from "@/main";
-import { AutoNumberingType } from "@/utils/autoNumber";
+import { AutoNumberingType } from "@/utils/auto_number";
 import {
     validateEquationDisplayFormat,
     validLetterPrefix,
@@ -41,6 +41,7 @@ export interface EquationCitatorSettings {
     autoNumberNoHeadingPrefix: string;  //  equation numbering prefix for no heading level equations 
     autoNumberPrefixEnabled: boolean; // Setting for auto numbering prefix 
     autoNumberPrefix: string; // Global Auto numbering prefix for equations without any heading level  
+    autoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
 
     debugMode: boolean; // Optional setting for debug mode
 }
@@ -61,7 +62,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     fileSuperScriptColor: "#8e77e1",
     fileSuperScriptHoverColor: "#6d50e0",
 
-    cacheUpdateTime: 3000, // Max time for cache to refresh 
+    cacheUpdateTime: 5000, // Max time for cache to refresh 
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes)
     
     citationColorInPdf: "#000000", // black color for default citation color in PDF rendering 
@@ -72,7 +73,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     autoNumberType: AutoNumberingType.Relative, // Default is using relative heading level 
     autoNumberNoHeadingPrefix: "P",
     autoNumberPrefixEnabled: false,
-    autoNumberPrefix: "", // Default to empty string for no prefix  
+    autoNumberPrefix: "", // Default to empty string for no prefix 
+    autoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes
+
     debugMode: false // debug mode is off by default (for set default, see debugger.tsx)
 };
 
@@ -280,7 +283,7 @@ export class SettingsTabView extends PluginSettingTab {
                     this.plugin.saveSettings();
                 });
             });
-
+        
         const autoNumberingMethodSetting = new Setting(containerEl);
         autoNumberingMethodSetting.setName("Auto Numbering Method")
             .setDesc("Use absolute or relative heading level for auto numbering")
@@ -294,7 +297,7 @@ export class SettingsTabView extends PluginSettingTab {
                     Debugger.log("Auto numbering method changed to:", value);
                 });
             });
-
+        
         const autoNumberingNoHeadingPrefixSetting = new Setting(containerEl);
 
         autoNumberingNoHeadingPrefixSetting
@@ -351,6 +354,18 @@ export class SettingsTabView extends PluginSettingTab {
                 updateAutoNumberingPrefixContainer(this.plugin.settings.autoNumberPrefixEnabled);
             });
 
+        const autoNumberingQuotesSetting = new Setting(containerEl)
+        autoNumberingQuotesSetting.setName("Auto Numbering Equations in Quotes")
+            .setDesc("Enable auto numbering for equations in quotes")
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.autoNumberEquationsInQuotes);
+                toggle.onChange((value) => {
+                    this.plugin.settings.autoNumberEquationsInQuotes = value;
+                    this.plugin.saveSettings();
+                    Debugger.log("Auto numbering equations in quotes enabled:", value);
+                });
+            });
+        
         // ==================  Cache settings ==========    
         containerEl.createEl("h2", { text: "Cache Settings", cls: "ec-settings-header" });
         const CacheUpdateTimeSetting = new Setting(containerEl);
@@ -359,8 +374,8 @@ export class SettingsTabView extends PluginSettingTab {
         CacheUpdateTimeSetting.setName("Cache Update Time")
             .setDesc("Time refresh cache (in ms), for very large document, consider increase this")
             .addSlider((slider) => {
-                slider.setLimits(1000, 5000, 500)
-                slider.setValue(this.plugin.settings.cacheUpdateTime || 3000);
+                slider.setLimits(1000, 10000, 1000)
+                slider.setValue(this.plugin.settings.cacheUpdateTime || 5000);
                 slider.setDynamicTooltip();
                 slider.onChange((value) => {
                     this.plugin.settings.cacheUpdateTime = value;
@@ -368,7 +383,7 @@ export class SettingsTabView extends PluginSettingTab {
                     Debugger.log("Cache Update time changed to:", value, "ms");
                 });
             });
-
+        
         const CacheCleanTimeSetting = new Setting(containerEl);
         CacheCleanTimeSetting.setName("Cache Clean Time")
             .setDesc("Time to automatically clean cache")
@@ -418,7 +433,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
 
         // ==================  Other settings ================== 
         containerEl.createEl("h2", { text: "Other Settings", cls: "ec-settings-header" });
-
+        
         new Setting(containerEl)
             .setName("Reset Settings")
             .setDesc("Reset all settings to default values")

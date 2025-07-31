@@ -1,37 +1,21 @@
-import { replaceCitationsInMarkdown } from "@/utils/citation_utils";
+import { parseEquationsInMarkdown } from "@/utils/equation_utils"; 
 
-const defaultSettings = {
-        prefix: 'eq:',
-        rangeSymbol: '~',
-        validDelimiters: ['.', '-'],
-        fileDelimiter: '^',
-        multiCitationDelimiter: ', '
-    };
-
-test('should not replace citations in multiline code blocks', () => {
-    const markdown = `
-This is normal text with $\\ref{eq:1.1}$.
-
-\`\`\`
-This is code with $\\ref{eq:2.1}$.
-\`\`\`
-
-This is normal text with $\\ref{eq:3.1}$.
-`;
-    const result = replaceCitationsInMarkdown(
-        markdown,
-        defaultSettings.prefix,
-        defaultSettings.rangeSymbol,
-        defaultSettings.validDelimiters,
-        defaultSettings.fileDelimiter,
-        defaultSettings.multiCitationDelimiter
-    );
-
-    // Should replace citations outside code blocks
-    expect(result).toContain('<span');
-    // Should not replace citation inside code block
-    expect(result).toContain('$\\ref{eq:2.1}$');
-    // Count all spans (including nested ones) - should be 4 (outer and inner spans for eq:1.1 and eq:3.1)
-    const spanCount = (result.match(/<span/g) || []).length;
-    expect(spanCount).toBe(4);
+describe('parseEquationsInMarkdown', () => {
+    test('should handle inline code blocks with backticks', () => {
+            const markdown = `
+    Normal equation: 
+    $$ E = mc^2 \\tag{normal} $$
+    Inline code with equation: \`$$ F = ma \\tag{inline} $$\` should be ignored
+    Another equation:
+    $$ P = F/A \\tag{pressure} $$`;
+    
+            const equations = parseEquationsInMarkdown(markdown);
+            
+            expect(equations).toHaveLength(2);
+            expect(equations[0].tag).toBe('normal');
+            expect(equations[0].content).toBe('E = mc^2 \\tag{normal}');
+            expect(equations[1].tag).toBe('pressure');
+            expect(equations[1].content).toBe('P = F/A \\tag{pressure}');
+            expect(equations.some(eq => eq.tag === 'inline')).toBe(false);
+        });
 });

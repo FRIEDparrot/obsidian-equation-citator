@@ -96,13 +96,13 @@ when generating markdown for print pdf,
 
 .em-math-citation-print {
   text-decoration: none;
+  cursor: pointer;
 }
 
 .em-math-citation-file-superscript-print {
   font-size: 0.7em;
   vertical-align: super;
   margin-left: 1px;
-  color: #000000;
   text-decoration: none;
   cursor: pointer;
 }

@@ -1,27 +1,38 @@
-import {HoverPopover,
-        HoverParent,
-        PopoverState,
-        WorkspaceLeaf } from "obsidian"; 
-import { ChangeSpec } from "@codemirror/state";
-import { MarkdownParser } from "@lezer/markdown";
+import { MarkdownRenderer } from "obsidian";
+import { 
+    HoverPopover,
+    HoverParent,
+    PopoverState,
+    WorkspaceLeaf
+} from "obsidian";
+
 import { Tooltip, showTooltip } from "@codemirror/view";
-import EquationCitator from "@/main";
+import Debugger from "@/debug/debugger";
 
-const changes: ChangeSpec[] = [];
+export class CitationPopover extends HoverPopover {
+    tags: string[] = []; // list of tags to be cited  
+    equationsMarkdown: string[] = []; // list of equations to render 
 
-export class EquationPopover extends HoverPopover {
-    plugin : EquationCitator;
-    equations: string[] = []; 
-    constructor(parent: HoverParent, 
-                targetEl: HTMLElement | null, 
-                waitTime?: number) 
-                { 
-                    super(parent, targetEl, waitTime, null);  
-                }
-    
-    async onload(): void {
+    constructor(
+        parent: HoverParent,
+        targetEl: HTMLElement | null,
+        equationsMarkdown: string[],
+        waitTime?: number
+    ) {
+        super(parent, targetEl, waitTime, null);
+        this.equationsMarkdown = equationsMarkdown; //   list of equations to render
     }
-    async onunload(): void {
+
+    async onload(): Promise<void> {
+        Debugger.log("load Citation Popover"); 
+        await this.renderEquations(); 
+    }
+    async onunload(): Promise<void> {
+        
+    }
+    async renderEquations(): Promise<void> {
+
+
     }
     setContent(content: string) {
         this.content = content;

@@ -1,6 +1,6 @@
 import EquationCitator from "@/main";
 import { CurrentFileProcessor } from '@/utils/fileProcessor';
-import {  autoNumberEquations } from "@/utils/autoNumber";
+import {  autoNumberEquations } from "@/utils/auto_number";
 
 export function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     const pluginSettings = plugin.settings;
@@ -14,10 +14,12 @@ export function autoNumberCurrentFileEquations(plugin: EquationCitator) {
                         pluginSettings.autoNumberDepth,
                         pluginSettings.autoNumberDelimiter,
                         pluginSettings.autoNumberNoHeadingPrefix,
-                        prefix
+                        prefix,
+                        pluginSettings.autoNumberEquationsInQuotes
                     )
                     return Promise.resolve(result); 
                 }
             );
             processor.execute(); 
 }
+

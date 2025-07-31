@@ -1,4 +1,4 @@
-import { autoNumberEquations, AutoNumberingType } from '@/utils/autoNumber';
+import { autoNumberEquations, AutoNumberingType } from '@/utils/auto_number';
 import { Heading } from '@/utils/heading';
 
 // Mock dependencies
@@ -25,7 +25,7 @@ jest.mock('@/utils/heading', () => ({
 }));
 
 jest.mock('@/utils/equation_utils', () => ({
-    normalizeEquationBlock: (buffer: string[]) => {
+    trimEquationsBlock: (buffer: string[]) => {
         // Remove first $$ and extract content
         const content = buffer.slice(1, -1).join('\n');
         return content;

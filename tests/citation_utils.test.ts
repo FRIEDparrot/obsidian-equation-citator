@@ -1,9 +1,8 @@
 import {
     splitFileCitation,
-    isValidEquationPart,
     extractCommonPrefix,
     extractLastNumber,
-    combineContinuousEquationTags,
+    combineContinuousCitationTags,
     parseCitationsInMarkdown,
     replaceCitationsInMarkdown,
     generateCitationSpans,
@@ -44,29 +43,6 @@ describe('splitFileCitation', () => {
             local: '2^1.1.1',
             crossFile: '1'
         });
-    });
-});
-
-
-describe('isValidEquationPart', () => {
-    const validDelimiters = ['.', '-', ':', '_'];
-
-    test('should validate correct patterns', () => {
-        expect(isValidEquationPart('1.2.3', validDelimiters)).toBe(true);
-        expect(isValidEquationPart('1-2-3', validDelimiters)).toBe(true);
-        expect(isValidEquationPart('1:2:3', validDelimiters)).toBe(true);
-        expect(isValidEquationPart('1_2_3', validDelimiters)).toBe(true);
-        expect(isValidEquationPart('123', validDelimiters)).toBe(true); 
-    });
-
-    test('should reject invalid patterns', () => {
-        expect(isValidEquationPart('1.2.a', validDelimiters)).toBe(false);
-        expect(isValidEquationPart('1!2!3', validDelimiters)).toBe(false);
-        expect(isValidEquationPart('1 2 3', validDelimiters)).toBe(false);
-    });
-
-    test('should handle empty string', () => {
-        expect(isValidEquationPart('', validDelimiters)).toBe(false);
     });
 });
 
@@ -116,74 +92,74 @@ describe('extractLastNumber', () => {
     });
 });
 
-describe('combineContinuousEquationTags', () => {
+describe('combineContinuousCitationTags', () => {
     const rangeSymbol = '~';
     const validDelimiters = ['.', '-', ':', '_'];
     const fileDelimiter = '^';
 
     test('simplest case', () => {
         const input = ["1.1.1", "1.1.2"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["1.1.1~2"]);
     });
 
     test('should handle random-case input', () => {
         const input = ["EQ1", "EQ2", "EQ3"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["EQ1~3"]);
     });
 
     test('should combine continuous tags with file citations (prefix format)', () => {
         const input = ["P1", "2^1.1.1", "2^1.1.2", "2^1.1.3"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["P1", "2^1.1.1~3"]);
     });
 
     test('should handle mixed file citations (prefix format)', () => {
         const input = ["1^1.1.1", "1^1.1.2", "2^1.1.1", "2^1.1.2"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["1^1.1.1~2", "2^1.1.1~2"]);
     });
 
     test('should not combine non-consecutive tags', () => {
         const input = ["1.1.1", "1.1.3", "1.1.5"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["1.1.1", "1.1.3", "1.1.5"]);
     });
 
     test('should handle different delimiters', () => {
         const input = ["1-1-1", "1-1-2", "1-1-3"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["1-1-1~3"]);
     });
 
     test('should handle single tag groups', () => {
         const input = ["P1", "2.1.1", "3:1:1"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["P1", "2.1.1", "3:1:1"]);
     });
 
     test('should handle empty input', () => {
         const input: string[] = [];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual([]);
     });
 
     test('should maintain original order for non-continuous tags', () => {
         const input = ["1.1.3", "1.1.1", "1.1.2"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["1.1.1~3"]);
     });
 
     test('should handle mixed delimiters in same sequence', () => {
         const input = ["1.1-1", "1.1-2", "1.1-3"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["1.1-1~3"]);
     });
 
     test('should not combine tags with different prefixes', () => {
         const input = ["1.1.1", "2.1.1", "1.1.2"];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual(["1.1.1~2", "2.1.1"]);
     });
 
@@ -198,7 +174,7 @@ describe('combineContinuousEquationTags', () => {
             "3-1-1",
             "3-1-2"
         ];
-        const output = combineContinuousEquationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual([
             "P1",
             "1^1.1.1~2",

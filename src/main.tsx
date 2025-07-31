@@ -14,17 +14,18 @@ import registerRibbonButton from '@/ui/ribbon';
 import {
     createMathCitationExtension,
     mathCitationPostProcessor,
-    processPrintMarkdown,
 } from '@/views/citation_render';
+import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
-import Debugger from '@/debug/debugger';
 
 
 export default class EquationCitator extends Plugin {
     settings: EquationCitatorSettings;
     extensions: Extension[] = [];
+    public citationCache: CitationCache;   // citation cache instance 
+    public equationCache: EquationCache;     // equation cache instance
+
     private mathCitationCompartment = new Compartment();
-    private citationCache: CitationCache;   // citation cache instance 
     private observer: MutationObserver;     // observer for pdf print 
 
     async onload() {
@@ -52,7 +53,7 @@ export default class EquationCitator extends Plugin {
     async loadEditorExtensions() {
         this.registerEditorExtension(
             this.mathCitationCompartment.of(
-                createMathCitationExtension(this.settings)
+                createMathCitationExtension(this)
             )
         )
     }
