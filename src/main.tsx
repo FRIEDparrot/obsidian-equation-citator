@@ -1,7 +1,6 @@
 import {
     Plugin, loadMathJax, MarkdownView,
-    MarkdownPostProcessorContext,
-    Notice, TFile
+    MarkdownPostProcessorContext
 } from 'obsidian';
 import {
     EquationCitatorSettings,
@@ -17,6 +16,7 @@ import {
 } from '@/views/citation_render';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
+import Debugger from './debug/debugger';
 
 
 export default class EquationCitator extends Plugin {
@@ -30,7 +30,10 @@ export default class EquationCitator extends Plugin {
 
     async onload() {
         await this.loadSettings();
+        // initialize caches
         this.citationCache = new CitationCache(this);
+        this.equationCache = new EquationCache(this);
+        Debugger.log("Initializing caches Finished");
 
         loadMathJax();
         this.addSettingTab(new SettingsTabView(this.app, this));
@@ -75,8 +78,8 @@ export default class EquationCitator extends Plugin {
         this.upDateEditorExtensions();
     }
     upDateEditorExtensions() {
-        // create a new extension with the new settings  
-        const newExt = createMathCitationExtension(this.settings);
+        // create a new extension with the new settings
+        const newExt = createMathCitationExtension(this);
         // iterate over all the views and update the extensions  
         this.app.workspace.iterateAllLeaves((leaf) => {
             const view = leaf.view;
@@ -94,9 +97,9 @@ export default class EquationCitator extends Plugin {
             }
         });
     }
-    
+
     /** when exporting, currentPrintFilePath must be null to avoid race condition */
     private currentPrintFilePath: string | null = null;
     private currentPrintFileContent = "";
-    
+
 }

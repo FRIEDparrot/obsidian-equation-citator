@@ -1,0 +1,36 @@
+:root {
+    --em-math-citation-color: #cec2f4;
+    --em-math-citation-hover-color: #a18cec;
+    --em-math-citation-file-superscript-color: #8e77e1;
+    --em-math-citation-file-superscript-hover-color: #6d50e0;
+    --em-math-latex-font: "Latin Modern Roman", "Latin Modern Math", "CMU Serif",
+        "Computer Modern", serif;
+
+
+    /* Light theme colors */
+    --em-background-primary: #ffffff;
+    --em-background-secondary: #f8f9fa;
+    --em-background-primary-alt: #f5f6f7;
+    --em-background-modifier-hover: #e9ecef;
+    --em-background-modifier-border: #dee2e6;
+    --em-text-normal: #212529;
+    --em-text-muted: #6c757d;
+    --em-text-faint: #adb5bd;
+    --em-interactive-accent: #007acc;
+    --em-interactive-accent-rgb: 0, 122, 204;
+    --em-font-interface: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Dark theme colors */
+.theme-dark {
+    --em-background-primary: #1e1e1e;
+    --em-background-secondary: #2d2d2d;
+    --em-background-primary-alt: #252525;
+    --em-background-modifier-hover: #3a3a3a;
+    --em-background-modifier-border: #404040;
+    --em-text-normal: #dcddde;
+    --em-text-muted: #b9bbbe;
+    --em-text-faint: #72767d;
+    --em-interactive-accent: #5865f2;
+    --em-interactive-accent-rgb: 88, 101, 242;
+}

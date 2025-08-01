@@ -32,10 +32,6 @@ export class EquationCitation {
     }
 }
 
-export interface RenderedCitationTag {
-    local: string;
-    crossFile: string | null;
-}
 
 /**
  * Shared rendering function for both modes  
@@ -72,7 +68,7 @@ export function renderEquationCitation(
         const { local, crossFile } = splitFileCitation(tag, fileCiteDelimiter);
         const citationSpan = document.createElement('span');
         citationSpan.className = 'em-math-citation';
-
+        
         if (crossFile) {
             // Create citation with superscript bracket for cross-file references
             const localCitation = settings.citationFormat.replace('#', local);
@@ -97,6 +93,7 @@ export function renderEquationCitation(
     el.innerHTML = renderedCitations.join(settings.multiCitationDelimiter + ' ' || ', ');
     return el;
 }
+
 
 /**
  * Live Preview Extension (CodeMirror ViewPlugin) for render equation in editor   
@@ -175,7 +172,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                                 currentEqRange.from,
                                 currentEqRange.to,
                                 Decoration.replace({
-                                    widget: new EquationCitationWidget( eqNumbers, currentEqRange, plugin.settings)
+                                    widget: new EquationCitationWidget( plugin, eqNumbers, currentEqRange)
                                 })
                             );
                         }

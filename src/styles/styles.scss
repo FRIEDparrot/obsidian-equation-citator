@@ -1,14 +1,9 @@
 /*
 This is SCSS file for compile the CSS file for equation_citator plugin. 
 */
-:root {
-    --em-math-citation-color: #cec2f4;
-    --em-math-citation-hover-color: #a18cec;
-    --em-math-citation-file-superscript-color: #8e77e1;
-    --em-math-citation-file-superscript-hover-color: #6d50e0;
-    --em-math-latex-font: "Latin Modern Roman", "Latin Modern Math", "CMU Serif",
-        "Computer Modern", serif;
-}
+@use "popover";
+@use "variables";
+
 
 /* element styles  in settings tab */
 .ec-settings-title,
@@ -108,3 +103,4 @@ when generating markdown for print pdf,
     text-decoration: none;
     cursor: pointer;
 }
+
