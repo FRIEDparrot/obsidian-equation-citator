@@ -33,7 +33,7 @@ export interface EquationCitatorSettings {
     // pdf rendering settings
     citationColorInPdf: string; // default citation color in PDF rendering  
     fileSuperScriptColorInPdf: string; // default file citation color in PDF rendering 
-    
+
     // auto numbering settings  
     autoNumberDelimiter: string; // Auto numbering delimiter   
     autoNumberType: AutoNumberingType; // Use relative heading level for auto numbering 
@@ -43,6 +43,8 @@ export interface EquationCitatorSettings {
     autoNumberPrefix: string; // Global Auto numbering prefix for equations without any heading level  
     autoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
 
+    citationWidgetColor: string[]; // Citation widget color for different types of citations  
+    citationWidgetColorDark: string[]; // Citation widget color for different types of citations in dark mode 
     debugMode: boolean; // Optional setting for debug mode
 }
 
@@ -64,7 +66,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
 
     cacheUpdateTime: 5000, // Max time for cache to refresh 
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes)
-    
+
     citationColorInPdf: "#000000", // black color for default citation color in PDF rendering 
     fileSuperScriptColorInPdf: "#000000", // black color for default file citation color in PDF rendering  
 
@@ -76,9 +78,10 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     autoNumberPrefix: "", // Default to empty string for no prefix 
     autoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes
 
+    citationWidgetColor: ["#ffffff", "#f8f9fa", "#f5f6f7", "#e9ecef", "#dee2e6"],
+    citationWidgetColorDark: ["#1e1e1e", "#2d2d2d", "#252525", "#3a3a3a", "#404040"],
     debugMode: false // debug mode is off by default (for set default, see debugger.tsx)
 };
-
 
 export class SettingsTabView extends PluginSettingTab {
     plugin: EquationCitator;
@@ -86,7 +89,8 @@ export class SettingsTabView extends PluginSettingTab {
         super(app, plugin);
         this.plugin = plugin;
     }
-
+    private lightEqWidgetCssVars = ['--em-background-primary', '--em-background-secondary', '--em-background-primary-alt', '--em-background-modifier-hover', '--em-background-modifier-border'];
+    private darkEqWidgetCssVars = ['--em-background-primary-dark', '--em-background-secondary-dark', '--em-background-primary-alt-dark', '--em-background-modifier-hover-dark', '--em-background-modifier-border-dark'];
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
@@ -246,7 +250,6 @@ export class SettingsTabView extends PluginSettingTab {
             });
         });
 
-
         // ==================  Auto numbering command settings =======================  
         containerEl.createEl("h2", { text: "Auto equation numbering settings", cls: "ec-settings-header" });
 
@@ -283,7 +286,7 @@ export class SettingsTabView extends PluginSettingTab {
                     this.plugin.saveSettings();
                 });
             });
-        
+
         const autoNumberingMethodSetting = new Setting(containerEl);
         autoNumberingMethodSetting.setName("Auto Numbering Method")
             .setDesc("Use absolute or relative heading level for auto numbering")
@@ -297,7 +300,7 @@ export class SettingsTabView extends PluginSettingTab {
                     Debugger.log("Auto numbering method changed to:", value);
                 });
             });
-        
+
         const autoNumberingNoHeadingPrefixSetting = new Setting(containerEl);
 
         autoNumberingNoHeadingPrefixSetting
@@ -365,7 +368,42 @@ export class SettingsTabView extends PluginSettingTab {
                     Debugger.log("Auto numbering equations in quotes enabled:", value);
                 });
             });
-        
+        // ================== Equation Widget Render Settings ============= 
+        containerEl.createEl("h2", { text: "Equation Widget Settings", cls: "ec-settings-header" });
+        containerEl.createEl("p", { text: "1: background, 2: header/footer, 3: hover, 4: active, 5: border" })
+
+        const lightWidgetColorSetting = new Setting(containerEl);
+        lightWidgetColorSetting.setName("Light Theme Widget Colors")
+            .setDesc("Widget colors for light theme");
+
+
+        for (let i = 0; i < 5; i++) {
+            lightWidgetColorSetting.addColorPicker((color) => {
+                color.setValue(this.plugin.settings.citationWidgetColor[i]);
+                color.onChange((value) => {
+                    this.plugin.settings.citationWidgetColor[i] = value;
+                    this.plugin.saveSettings();
+                    document.documentElement.style.setProperty(this.lightEqWidgetCssVars[i], value);
+                });
+            });
+        }
+
+        // Dark theme widget colors
+
+        const darkWidgetColorSetting = new Setting(containerEl);
+        darkWidgetColorSetting.setName("Dark Theme Widget Colors")
+            .setDesc("Widget colors for dark theme");
+        for (let i = 0; i < 5; i++) {
+            darkWidgetColorSetting.addColorPicker((color) => {
+                color.setValue(this.plugin.settings.citationWidgetColorDark[i]);
+                color.onChange((value) => {
+                    this.plugin.settings.citationWidgetColorDark[i] = value;
+                    this.plugin.saveSettings();
+                    document.documentElement.style.setProperty(this.darkEqWidgetCssVars[i], value);
+                });
+            });
+        }
+
         // ==================  Cache settings ==========    
         containerEl.createEl("h2", { text: "Cache Settings", cls: "ec-settings-header" });
         const CacheUpdateTimeSetting = new Setting(containerEl);
@@ -383,7 +421,7 @@ export class SettingsTabView extends PluginSettingTab {
                     Debugger.log("Cache Update time changed to:", value, "ms");
                 });
             });
-        
+
         const CacheCleanTimeSetting = new Setting(containerEl);
         CacheCleanTimeSetting.setName("Cache Clean Time")
             .setDesc("Time to automatically clean cache")
@@ -411,7 +449,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
             cls: "ec-settings-warning"
         });
         const pdfExportColorSetting = new Setting(containerEl)
-         pdfExportColorSetting .setName("Citation color in markdown for PDF")
+        pdfExportColorSetting.setName("Citation color in markdown for PDF")
             .setDesc("Citation colors in PDF export. 1: equation citations 2: superscripts")
             .addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationColorInPdf)
@@ -419,21 +457,21 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                     this.plugin.settings.citationColorInPdf = value;
                     this.plugin.saveSettings();
                     document.documentElement.style.setProperty('--em-math-citation-color-print', value);
-                    Debugger.log("citation color in pdf changed to:", value); 
+                    Debugger.log("citation color in pdf changed to:", value);
                 });
             }).addColorPicker((color) => {
                 color.setValue(this.plugin.settings.fileSuperScriptColorInPdf)
                 color.onChange((value) => {
                     this.plugin.settings.fileSuperScriptColorInPdf = value;
                     this.plugin.saveSettings();
-                    Debugger.log("file superscript color in pdf changed to:", value); 
+                    Debugger.log("file superscript color in pdf changed to:", value);
                     document.documentElement.style.setProperty('--em-math-citation-file-superscript-color-print', value);
                 });
             });
 
         // ==================  Other settings ================== 
         containerEl.createEl("h2", { text: "Other Settings", cls: "ec-settings-header" });
-        
+
         new Setting(containerEl)
             .setName("Reset Settings")
             .setDesc("Reset all settings to default values")
@@ -456,7 +494,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                     new Notice("Settings have been restored to defaults");
                 });
             });
-        
+
         new Setting(containerEl)
             .setName("Debug Mode")
             .setDesc("Enables debug mode for the plugin (this option needs re-enable after each Obsidian restart)")
@@ -468,6 +506,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                 })
             });
     }
+
 
     showContinuousCitationSettings(containerEl: HTMLElement): void {
         new Setting(containerEl)
@@ -573,15 +612,18 @@ this will make a correctly-rendered markdown from current note to export pdf.",
             }
             );
     }
-
-
+    
     resetStyles(): void {
         document.documentElement.style.setProperty('--em-math-citation-color', DEFAULT_SETTINGS.citationColor);
         document.documentElement.style.setProperty('--em-math-citation-hover-color', DEFAULT_SETTINGS.citationHoverColor);
         document.documentElement.style.setProperty('--em-math-citation-file-superscript-color', DEFAULT_SETTINGS.fileSuperScriptColor);
         document.documentElement.style.setProperty('--em-math-citation-file-superscript-hover-color', DEFAULT_SETTINGS.fileSuperScriptHoverColor);
-        document.documentElement.style.setProperty('--em-math-citation-color-print', DEFAULT_SETTINGS.citationColor); 
+        document.documentElement.style.setProperty('--em-math-citation-color-print', DEFAULT_SETTINGS.citationColor);
         document.documentElement.style.setProperty('--em-math-citation-file-superscript-color-print', DEFAULT_SETTINGS.fileSuperScriptColor);
+        for (let i = 0; i < 5; i++) {
+            document.documentElement.style.setProperty(this.lightEqWidgetCssVars[i], DEFAULT_SETTINGS.citationWidgetColor[i]); // light theme
+            document.documentElement.style.setProperty(this.darkEqWidgetCssVars[i], DEFAULT_SETTINGS.citationWidgetColorDark[i]); // dark theme
+        }
     }
 }
 

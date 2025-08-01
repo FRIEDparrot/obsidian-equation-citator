@@ -5,8 +5,7 @@
     --em-math-citation-file-superscript-hover-color: #6d50e0;
     --em-math-latex-font: "Latin Modern Roman", "Latin Modern Math", "CMU Serif",
         "Computer Modern", serif;
-
-
+    
     /* Light theme colors */
     --em-background-primary: #ffffff;
     --em-background-secondary: #f8f9fa;
@@ -19,18 +18,32 @@
     --em-interactive-accent: #007acc;
     --em-interactive-accent-rgb: 0, 122, 204;
     --em-font-interface: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+
+
+    /* Dark theme colors */ 
+    --em-background-primary-dark: #1e1e1e;
+    --em-background-secondary-dark: #2d2d2d;
+    --em-background-primary-alt-dark: #252525;
+    --em-background-modifier-hover-dark: #3a3a3a;
+    --em-background-modifier-border-dark: #404040;
+    --em-text-normal-dark: #dcddde;
+    --em-text-muted-dark: #b9bbbe;
+    --em-text-faint-dark: #72767d;
+    --em-interactive-accent-dark: #5865f2;
+    --em-interactive-accent-rgb-dark: 88, 101, 242;
 }
 
 /* Dark theme colors */
 .theme-dark {
-    --em-background-primary: #1e1e1e;
-    --em-background-secondary: #2d2d2d;
-    --em-background-primary-alt: #252525;
-    --em-background-modifier-hover: #3a3a3a;
-    --em-background-modifier-border: #404040;
-    --em-text-normal: #dcddde;
-    --em-text-muted: #b9bbbe;
-    --em-text-faint: #72767d;
-    --em-interactive-accent: #5865f2;
-    --em-interactive-accent-rgb: 88, 101, 242;
+    --em-background-primary: var(--em-background-primary-dark);
+    --em-background-secondary: var(--em-background-secondary-dark);
+    --em-background-primary-alt: var(--em-background-primary-alt-dark);
+    --em-background-modifier-hover: var(--em-background-modifier-hover-dark);
+    --em-background-modifier-border: var(--em-background-modifier-border-dark);
+    --em-text-normal: var(--em-text-normal-dark);
+    --em-text-muted: var(--em-text-muted-dark);
+    --em-text-faint: var(--em-text-faint-dark);
+    --em-interactive-accent: var(--em-interactive-accent-dark);
+    --em-interactive-accent-rgb: var(--em-interactive-accent-rgb-dark);
 }

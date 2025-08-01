@@ -1,4 +1,3 @@
-/* Citation Popover Styles */
 @use "variables";
 
 /* Main container styles */
@@ -15,19 +14,21 @@
     animation: fadeInUp 0.2s ease-out;
 }
 
-/* Header styles */
+/* Header styles - more compact */
 .em-citation-header {
-    padding: 16px 20px 12px;
+    padding: 10px 16px 8px;
     background: var(--em-background-secondary);
     border-bottom: 1px solid var(--em-background-modifier-border);
 }
 
 .em-citation-title {
-    margin: 0;
-    font-size: 14px;
+    width: 100%;
+    text-align: center;
+    margin: 2px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--em-text-normal);
-    line-height: 1.4;
+    line-height: 1.3;
 }
 
 /* Content wrapper */
@@ -40,7 +41,7 @@
 .em-equations-container {
     max-height: 280px;
     overflow-y: auto;
-    padding: 8px 0;
+    padding: 2.4px 0;
 }
 
 /* Custom scrollbar */
@@ -61,10 +62,10 @@
     background: var(--em-text-faint);
 }
 
-/* Individual equation wrapper */
+/* Individual equation wrapper - more compact */
 .em-equation-wrapper {
-    margin: 4px 12px;
-    padding: 12px 16px;
+    margin: 3px 10px;
+    padding: 8px 12px;
     border: 1px solid transparent;
     border-radius: 6px;
     background: var(--em-background-primary);
@@ -86,12 +87,12 @@
     box-shadow: 0 0 0 2px rgba(var(--em-interactive-accent-rgb), 0.2);
 }
 
-/* Equation label */
+/* Equation label - more compact */
 .em-equation-label {
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 10px;
+    font-weight: 600;
     color: var(--em-text-muted);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -103,18 +104,18 @@
     font-size: 13px;
 }
 
-/* Math content specific styling */
+/* Math content specific styling - removed blue border */
 .em-equation-content .math {
     font-size: 14px;
     color: var(--em-text-normal);
 }
 
 .em-equation-content .math-block {
-    margin: 8px 0;
-    padding: 8px 12px;
-    background: var(--em-background-secondary);
+    margin: 6px 0;
+    padding: 8px 0;
+    background: transparent;
     border-radius: 4px;
-    border-left: 3px solid var(--em-interactive-accent);
+    text-align: center;
 }
 
 .em-equation-content p {
@@ -128,12 +129,12 @@
     font-size: 12px;
 }
 
-/* Footer styles */
+/* Footer styles - more compact */
 .em-citation-footer {
-    padding: 8px 20px 12px;
+    padding: 6px 16px 8px;
     background: var(--em-background-secondary);
     border-top: 1px solid var(--em-background-modifier-border);
-    font-size: 11px;
+    font-size: 10px;
     color: var(--em-text-muted);
     text-align: center;
     font-style: italic;
@@ -147,8 +148,8 @@
     }
     
     .em-equation-wrapper {
-        margin: 4px 8px;
-        padding: 10px 12px;
+        margin: 3px 6px;
+        padding: 6px 10px;
     }
 }
 

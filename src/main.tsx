@@ -16,7 +16,6 @@ import {
 } from '@/views/citation_render';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
-import Debugger from './debug/debugger';
 
 
 export default class EquationCitator extends Plugin {
@@ -33,7 +32,6 @@ export default class EquationCitator extends Plugin {
         // initialize caches
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
-        Debugger.log("Initializing caches Finished");
 
         loadMathJax();
         this.addSettingTab(new SettingsTabView(this.app, this));

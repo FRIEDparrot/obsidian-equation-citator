@@ -50,6 +50,12 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 
 /* Regular citation styles for live preview and reading mode */
+.em-math-citation-container {
+    position: relative;
+    display: inline-block;
+    cursor: default;
+}
+
 .em-math-citation,
 .em-math-citaion-failed {
     font-family: var(--em-math-latex-font); 

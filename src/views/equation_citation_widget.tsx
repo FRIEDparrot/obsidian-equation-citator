@@ -1,6 +1,6 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { Notice, HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField, HoverPopover } from "obsidian";
+import { Notice, HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField } from "obsidian";
 import { renderEquationCitation } from "@/views/citation_render";
 import { EquationCitatorSettings } from "@/settings/settingsTab";
 import { CitationPopover } from "@/views/citation_popover";
@@ -16,14 +16,19 @@ export interface RenderedCitationTag {
 
 export class EquationCitationWidget extends WidgetType {
     private plugin: EquationCitator;
+
     private el: HTMLElement;
+    private citationEl: HTMLElement[] = [] ;
+    private fileSuprtScriptEl: HTMLElement [] = [];
+
     private view: EditorView;
     private settings: EquationCitatorSettings;
     public citeEquationTags: string[] = [];   // render citation itseld 
     private renderedTags: RenderedCitationTag[] = []; // for render popover
     private popover: CitationPopover | null = null;
-    private isMouseOver = false;
-
+    private isMouseOverCitation = false;
+    private isMouseOverFileSuperscript = false;   
+    
     constructor(
         plugin: EquationCitator,
         citeEquationTags: string[],
@@ -48,6 +53,7 @@ export class EquationCitationWidget extends WidgetType {
     toDOM(view: EditorView): HTMLElement {
         this.view = view;
         const el = renderEquationCitation(this.citeEquationTags, this.settings, true);
+        this.el = el;
         el.setAttribute('tabindex', '0');  // make it focusable
         // Add interactive behavior for Live Preview mode
         el.addEventListener('pointerdown', (event) => {
@@ -61,46 +67,54 @@ export class EquationCitationWidget extends WidgetType {
             view.focus();
             setSelectionRange(view, this.range.from, this.range.to);
         });
-        // Show popover when hover with ctrl key pressed
-        el.addEventListener('mouseenter', async (event) => {
-            this.isMouseOver = true;
-            event.preventDefault();
-            event.stopPropagation();
-            const ctrlKey = event.ctrlKey || event.metaKey;
-            if (ctrlKey && this.popover === null) {
-                await this.showCitationPopover();
-            }
-        })
-        el.addEventListener('mouseleave', () => {
-            this.isMouseOver = false;
-        });
-        document.addEventListener('keydown', async (event) => {
-            if (this.isMouseOver && ( event.ctrlKey || event.metaKey) && this.popover === null){
-                event.preventDefault();
-                event.stopPropagation();
-                await this.showCitationPopover();
-            }
-        });
-        this.el = el;
+        this.registerCitaionEvents();
+        // this.registerFileSuperscriptEvents();
         return el;
     }
-    private async showCitationPopover() : Promise<void> {
+    /**
+     * reigster events for whole citation part.
+     * render equations in once  
+     */
+    private async registerCitaionEvents() {
+        if (this.el) {
+            this.el.addEventListener('mouseenter',() => {
+                this.isMouseOverCitation = true;
+            })
+            this.el.addEventListener('mouseleave', () => {
+                this.isMouseOverCitation = false;
+            });
+            document.addEventListener('keydown', async (event) => {
+                if (this.isMouseOverCitation && (event.ctrlKey || event.metaKey) && this.popover === null) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    await this.showCitationPopover();
+                }
+            });
+        }
+    }
+    private registerFileSuperscriptEvents() {
+        // to be implemented 
+    }
+
+    private async showCitationPopover(): Promise<void> {
         if (this.popover !== null) return;  // already showing popover  
         const renderedEquations = await this.getHoveredEquation();
         const parent = this.getActiveLeaf() as HoverParent | null;
-        if (!parent) {
-            Debugger.error("Failed to get active leaf for equation citation widget. -> in toDOM");
-            return; 
+        if (!parent || !this.el) {
+            Debugger.log(`parent is ${parent} and citationEl is ${this.el},` + 
+                `some of them not found for equation citation widget, can't show popover`);
+            return;
         }
         this.popover = new CitationPopover(
-            this.plugin.app, 
+            this.plugin.app,
             parent,
             this.el,
+            this.citeEquationTags,
             renderedEquations,
             this.plugin.app.workspace.getActiveFile()?.path || "",
             300
         );
-        this.popover.onClose = function(){
+        this.popover.onClose = function () {
             this.popover = null;  // remove popover when closed 
         }.bind(this);
     }
@@ -110,7 +124,7 @@ export class EquationCitationWidget extends WidgetType {
         if (mdView && mdView.leaf) {
             return mdView.leaf;
         }
-        return this.plugin.app.workspace.getMostRecentLeaf(); // fallback to most recent leaf  
+        return null;
     }
 
     private async getHoveredEquation(): Promise<string[]> {
@@ -139,8 +153,6 @@ export class EquationCitationWidget extends WidgetType {
         }
         return [];
     }
-
-
 
     ignoreEvent() {
         return false;

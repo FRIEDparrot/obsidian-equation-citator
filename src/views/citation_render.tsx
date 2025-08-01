@@ -64,29 +64,31 @@ export function renderEquationCitation(
 
     // render equation parts
     for (const tag of formatedCiteEquationTags) {
-        // replace # in render format with the tag number 
+        // replace # in render format with the tag number
+        const containerDiv = document.createElement('div'); 
+        containerDiv.addClass('em-math-citation-container')
+        
         const { local, crossFile } = splitFileCitation(tag, fileCiteDelimiter);
-        const citationSpan = document.createElement('span');
-        citationSpan.className = 'em-math-citation';
+        const citationSpanEl = document.createElement('span');
+        citationSpanEl.className = 'em-math-citation';
         
         if (crossFile) {
             // Create citation with superscript bracket for cross-file references
             const localCitation = settings.citationFormat.replace('#', local);
-            citationSpan.textContent = localCitation;
+            citationSpanEl.textContent = localCitation;
+            containerDiv.appendChild(citationSpanEl);
 
             // Create superscript bracket
-            const superscript = document.createElement('sup');
-            superscript.textContent = `[${crossFile}]`;
-            superscript.className = "em-math-citation-file-superscript";
-            citationSpan.appendChild(superscript);
+            const fileSuperEl = document.createElement('sup');
+            fileSuperEl.textContent = `[${crossFile}]`;
+            fileSuperEl.className = "em-math-citation-file-superscript";
+            containerDiv.appendChild(fileSuperEl);
         } else {
             // Regular citation without cross-file reference
-            citationSpan.textContent = settings.citationFormat.replace('#', local);
+            citationSpanEl.textContent = settings.citationFormat.replace('#', local);
+            containerDiv.appendChild(citationSpanEl);
         }
-
-        const tempDiv = document.createElement('div');
-        tempDiv.appendChild(citationSpan);
-        renderedCitations.push(tempDiv.innerHTML);
+        renderedCitations.push(containerDiv.innerHTML);
     }
 
     // Set innerHTML instead of textContent to preserve HTML formatting
