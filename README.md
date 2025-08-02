@@ -67,6 +67,10 @@ Customize auto-number method (absolute or relative, title level, format, chapter
 
 Original PDF export in obsidian can fail to render citation, so a command is provided to make markdown for export to pdf correctly.
 
+
+>  **For features coming soon**, see [full tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorial/Equation%20Citator%20Tutorial.md) 
+
+
 ## Guidelines
 This plugin relies on text parsing, so please follow these three simple guidelines to ensure it works correctly.
 
@@ -77,13 +81,9 @@ This plugin relies on text parsing, so please follow these three simple guidelin
 3. Avoid using `\}` in your tag or citation (this haven't been tested yet!)
 
 
-
-
-for other features in future, see [full tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorial/Equation%20Citator%20Tutorial.md)
-
 ## Bugs & Questions
 
-Since it's a new plugin, some bugs or issues may still exist. If you encounter any, please provide the following information on the issue page: 
+Since it's a new plugin, some bugs or issues may still exist. If you encounter any, please provide the following information on the issue page (if this is a feature coming soon, please not comment on the issue page, but wait for the release update) : 
 
 1. A description of the bug or issue, along with steps to reproduce it.
 2. The relevant markdown text that triggers the issue.  
