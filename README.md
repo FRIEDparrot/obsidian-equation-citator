@@ -11,7 +11,7 @@
 </center>
 <p></p>
 
-**5 mins Quick Start:**  [Full Tutorial]( <https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorial/Equation%20Citator%20Tutorial.md>)
+**5 mins Quick Start:**  [Full Tutorial]( <https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Equation%20Citator%20Tutorial.md>)
 
 **Video Tutorial**: I'll make a video tutorial if this plugin has 5000 downloads or this repo gets 50 stars.
 
@@ -70,7 +70,7 @@ Customize auto-number method (absolute or relative, title level, format, chapter
 Original PDF export in obsidian can fail to render citation, so a command is provided to make markdown for export to pdf correctly.
 
 
->  **For features coming soon**, see [full tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorial/Equation%20Citator%20Tutorial.md) 
+>  **For features coming soon**, see [full tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Equation%20Citator%20Tutorial.md) 
 
 
 ## Guidelines
