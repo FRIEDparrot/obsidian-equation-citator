@@ -3,94 +3,11 @@ import {
     extractCommonPrefix,
     extractLastNumber,
     combineContinuousCitationTags,
+    splitContinuousCitationTags,
     parseCitationsInMarkdown,
     replaceCitationsInMarkdown,
     generateCitationSpans,
 } from '@/utils/citation_utils';
-
-
-describe('splitFileCitation', () => {
-    test('should split local and cross-file parts with ^ delimiter (prefix format)', () => {
-        expect(splitFileCitation('1^1.3.1', '^')).toEqual({
-            local: '1.3.1',
-            crossFile: '1'
-        });
-    });
-
-    test('should handle missing file delimiter', () => {
-        expect(splitFileCitation('1.3.1', '^')).toEqual({
-            local: '1.3.1',
-            crossFile: null
-        });
-    });
-
-    test('should handle custom delimiters', () => {
-        expect(splitFileCitation('1@1.3.1', '@')).toEqual({
-            local: '1.3.1',
-            crossFile: '1'
-        });
-    });
-
-    test('should preserve full string after delimiter', () => {
-        expect(splitFileCitation('1^1.3.1~3', '^')).toEqual({
-            local: '1.3.1~3',
-            crossFile: '1'
-        });
-    });
-
-    test('should handle multiple file delimiters (use first one)', () => {
-        expect(splitFileCitation('1^2^1.1.1', '^')).toEqual({
-            local: '2^1.1.1',
-            crossFile: '1'
-        });
-    });
-});
-
-describe('extractCommonPrefix', () => {
-    const validDelimiters = ['.', '-', ':', '_'];
-
-    test('should extract common prefix with dot delimiter', () => {
-        expect(extractCommonPrefix('1.3.1', '1.3.3', validDelimiters)).toBe('1.3.');
-    });
-
-    test('should extract common prefix with hyphen delimiter', () => {
-        expect(extractCommonPrefix('1-3-1', '1-3-3', validDelimiters)).toBe('1-3-');
-    });
-
-    test('should handle no common prefix', () => {
-        expect(extractCommonPrefix('1.2.3', '4.5.6', validDelimiters)).toBe('');
-    });
-
-    test('should handle partial match', () => {
-        expect(extractCommonPrefix('1.2.3', '1.2.4.5', validDelimiters)).toBe('1.2.');
-    });
-
-    test('should handle different delimiters', () => {
-        expect(extractCommonPrefix('1.2-3', '1.2-4', validDelimiters)).toBe('1.2-');
-    });
-});
-
-describe('extractLastNumber', () => {
-    test('should extract number after prefix', () => {
-        expect(extractLastNumber('1.3.1', '1.3.')).toBe(1);
-    });
-
-    test('should handle multi-digit numbers', () => {
-        expect(extractLastNumber('1.3.123', '1.3.')).toBe(123);
-    });
-
-    test('should return null for invalid number', () => {
-        expect(extractLastNumber('1.3.a', '1.3.')).toBeNull();
-    });
-
-    test('should handle empty prefix', () => {
-        expect(extractLastNumber('123', '')).toBe(123);
-    });
-
-    test('should handle hyphen delimiters', () => {
-        expect(extractLastNumber('1-3-1', '1-3-')).toBe(1);
-    });
-});
 
 describe('combineContinuousCitationTags', () => {
     const rangeSymbol = '~';
@@ -182,6 +99,285 @@ describe('combineContinuousCitationTags', () => {
             "2^1.1.1",
             "3-1-1~2"
         ]);
+    });
+
+    test('should ignore empty strings in input array', () => {
+        const input = ["", "P1~2", "", "P3~4", "P5~6", "P7~8", "P9~10", "P11~12"];
+        const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
+        expect(output).toEqual([
+            "P1~2",
+            "P3~4",
+            "P5~6",
+            "P7~8",
+            "P9~10",
+            "P11~12"
+        ]); // Empty strings are filtered out (continuous would not be combined)
+    })
+});
+
+
+// Jest test cases
+describe('splitContinuousCitationTags', () => {
+    const rangeSymbol = '~';
+    const validDelimiters = ['.', '-'];
+    const fileDelimiter = '^';
+
+    // Simple cases
+    test('splits simple numeric ranges', () => {
+        expect(splitContinuousCitationTags(['1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['1', '2', '3']);
+    });
+
+    test('splits letter-number ranges', () => {
+        expect(splitContinuousCitationTags(['P1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1', 'P2', 'P3']);
+    });
+
+    test('splits dotted ranges', () => {
+        expect(splitContinuousCitationTags(['1.1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['1.1', '1.2', '1.3']);
+    });
+
+    test('splits complex dotted ranges', () => {
+        expect(splitContinuousCitationTags(['1.2.1~4'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['1.2.1', '1.2.2', '1.2.3', '1.2.4']);
+    });
+
+    test('handles file citations with ranges', () => {
+        expect(splitContinuousCitationTags(['2^1.1.1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['2^1.1.1', '2^1.1.2', '2^1.1.3']);
+    });
+
+    test('handles mixed tags with and without ranges', () => {
+        expect(splitContinuousCitationTags(['P1~2', '2^1.1.1~4', '1.3.2~3', '1^1.3.4'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1', 'P2', '2^1.1.1', '2^1.1.2', '2^1.1.3', '2^1.1.4', '1.3.2', '1.3.3', '1^1.3.4']);
+    });
+
+    test('handles dash delimiters', () => {
+        expect(splitContinuousCitationTags(['A-1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['A-1', 'A-2', 'A-3']);
+    });
+
+    // Edge cases
+    test('returns empty array for empty input', () => {
+        expect(splitContinuousCitationTags([], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual([]);
+    });
+
+    test('returns empty array for null/undefined input', () => {
+        // @ts-ignore
+        expect(splitContinuousCitationTags(null, rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual([]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect(splitContinuousCitationTags(undefined as any, rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual([]);
+    });
+
+    test('handles tags without range symbol', () => {
+        expect(splitContinuousCitationTags(['P1', 'EQ2', '1.3.4'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1', 'EQ2', '1.3.4']);
+    });
+
+    test('handles single number ranges (same start and end)', () => {
+        expect(splitContinuousCitationTags(['P1~1'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1']);
+    });
+
+    test('handles invalid ranges (start > end)', () => {
+        expect(splitContinuousCitationTags(['P5~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P5~3']); // Should keep original tag
+    });
+
+    test('handles invalid ranges (non-numeric end)', () => {
+        expect(splitContinuousCitationTags(['P1~abc'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1~abc']); // Should keep original tag
+    });
+
+    test('handles invalid ranges (non-numeric start)', () => {
+        expect(splitContinuousCitationTags(['Pabc~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['Pabc~3']); // Should keep original tag
+    });
+
+    test('handles ranges with no valid prefix', () => {
+        expect(splitContinuousCitationTags(['~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['~3']); // Should keep original tag
+    });
+
+    test('handles multiple range symbols in one tag', () => {
+        expect(splitContinuousCitationTags(['P1~2~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1~2', 'P1~3']); // Uses last range symbol
+    });
+
+    test('handles file citations without ranges', () => {
+        expect(splitContinuousCitationTags(['2^1.3.4'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['2^1.3.4']);
+    });
+
+    test('handles complex file citation ranges', () => {
+        expect(splitContinuousCitationTags(['10^2.3.1~5'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['10^2.3.1', '10^2.3.2', '10^2.3.3', '10^2.3.4', '10^2.3.5']);
+    });
+
+    test('handles zero-padded numbers', () => {
+        expect(splitContinuousCitationTags(['P01~03'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1', 'P2', 'P3']); // parseInt removes leading zeros
+    });
+
+    test('handles large ranges', () => {
+        expect(splitContinuousCitationTags(['A1~10'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+    });
+
+    test('handles range symbol in file citation part', () => {
+        expect(splitContinuousCitationTags(['2~3^1.1'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['2~3^1.1']); // Range symbol in file part, not local part
+    });
+
+    test('ignores empty strings in input array', () => {
+        expect(splitContinuousCitationTags(['', 'P1~2', ''], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1', 'P2']); // Empty strings are filtered out
+    });
+
+    test('handles whitespace in tags', () => {
+        expect(splitContinuousCitationTags([' P1~2 '], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1', 'P2']); //  for whitespace in tags should be stripped 
+    });
+
+    test('handles tags with only delimiters', () => {
+        expect(splitContinuousCitationTags(['..~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['..~3']); // Invalid format, should keep as-is
+    });
+
+    test('handles very long prefixes', () => {
+        expect(splitContinuousCitationTags(['VERY.LONG.PREFIX.1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['VERY.LONG.PREFIX.1', 'VERY.LONG.PREFIX.2', 'VERY.LONG.PREFIX.3']);
+    });
+
+    // Performance edge case
+    test('handles large range (performance test)', () => {
+        const result = splitContinuousCitationTags(['P1~100'], rangeSymbol, validDelimiters, fileDelimiter);
+        expect(result).toHaveLength(100);
+        expect(result[0]).toBe('P1');
+        expect(result[99]).toBe('P100');
+    });
+
+    test('handles zero-padded numbers', () => {
+        expect(splitContinuousCitationTags(['P01~03'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1', 'P2', 'P3']); // parseInt removes leading zeros
+    });
+
+    // Special characters
+    test('handles special characters in prefix', () => {
+        expect(splitContinuousCitationTags(['$EQ1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['$EQ1', '$EQ2', '$EQ3']);
+    });
+
+    test('handles unicode characters', () => {
+        expect(splitContinuousCitationTags(['α1~2'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['α1', 'α2']);
+    });
+
+    test('handles mixed special characters', () => {
+        expect(splitContinuousCitationTags(['@#$1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['@#$1', '@#$2', '@#$3']);
+    });
+
+    test('handles emoji in prefix', () => {
+        expect(splitContinuousCitationTags(['🔥1~2'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['🔥1', '🔥2']);
+    });
+
+    test('handles Chinese characters', () => {
+        expect(splitContinuousCitationTags(['公式1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['公式1', '公式2', '公式3']);
+    });
+
+    test('handles mixed characters with file citation', () => {
+        expect(splitContinuousCitationTags(['2^$EQ1~3'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['2^$EQ1', '2^$EQ2', '2^$EQ3']);
+    });
+});
+
+describe('splitFileCitation', () => {
+    test('should split local and cross-file parts with ^ delimiter (prefix format)', () => {
+        expect(splitFileCitation('1^1.3.1', '^')).toEqual({
+            local: '1.3.1',
+            crossFile: '1'
+        });
+    });
+
+    test('should handle missing file delimiter', () => {
+        expect(splitFileCitation('1.3.1', '^')).toEqual({
+            local: '1.3.1',
+            crossFile: null
+        });
+    });
+
+    test('should handle custom delimiters', () => {
+        expect(splitFileCitation('1@1.3.1', '@')).toEqual({
+            local: '1.3.1',
+            crossFile: '1'
+        });
+    });
+
+    test('should preserve full string after delimiter', () => {
+        expect(splitFileCitation('1^1.3.1~3', '^')).toEqual({
+            local: '1.3.1~3',
+            crossFile: '1'
+        });
+    });
+
+    test('should handle multiple file delimiters (use first one)', () => {
+        expect(splitFileCitation('1^2^1.1.1', '^')).toEqual({
+            local: '2^1.1.1',
+            crossFile: '1'
+        });
+    });
+});
+
+describe('extractCommonPrefix', () => {
+    const validDelimiters = ['.', '-', ':', '_'];
+
+    test('should extract common prefix with dot delimiter', () => {
+        expect(extractCommonPrefix('1.3.1', '1.3.3', validDelimiters)).toBe('1.3.');
+    });
+
+    test('should extract common prefix with hyphen delimiter', () => {
+        expect(extractCommonPrefix('1-3-1', '1-3-3', validDelimiters)).toBe('1-3-');
+    });
+
+    test('should handle no common prefix', () => {
+        expect(extractCommonPrefix('1.2.3', '4.5.6', validDelimiters)).toBe('');
+    });
+
+    test('should handle partial match', () => {
+        expect(extractCommonPrefix('1.2.3', '1.2.4.5', validDelimiters)).toBe('1.2.');
+    });
+
+    test('should handle different delimiters', () => {
+        expect(extractCommonPrefix('1.2-3', '1.2-4', validDelimiters)).toBe('1.2-');
+    });
+});
+
+describe('extractLastNumber', () => {
+    test('should extract number after prefix', () => {
+        expect(extractLastNumber('1.3.1', '1.3.')).toBe(1);
+    });
+
+    test('should handle multi-digit numbers', () => {
+        expect(extractLastNumber('1.3.123', '1.3.')).toBe(123);
+    });
+
+    test('should return null for invalid number', () => {
+        expect(extractLastNumber('1.3.a', '1.3.')).toBeNull();
+    });
+
+    test('should handle empty prefix', () => {
+        expect(extractLastNumber('123', '')).toBe(123);
+    });
+
+    test('should handle hyphen delimiters', () => {
+        expect(extractLastNumber('1-3-1', '1-3-')).toBe(1);
     });
 });
 
@@ -503,7 +699,7 @@ describe('Citation Utils Tests', () => {
         });
 
         test('should not replace citations in multiline code blocks', () => {
-    const markdown = `
+            const markdown = `
 This is normal text with $\\ref{eq:1.1}$.
 
 \`\`\`
@@ -512,23 +708,23 @@ This is code with $\\ref{eq:2.1}$.
 
 This is normal text with $\\ref{eq:3.1}$.
 `;
-    const result = replaceCitationsInMarkdown(
-        markdown,
-        defaultSettings.prefix,
-        defaultSettings.rangeSymbol,
-        defaultSettings.validDelimiters,
-        defaultSettings.fileDelimiter,
-        defaultSettings.multiCitationDelimiter
-    );
+            const result = replaceCitationsInMarkdown(
+                markdown,
+                defaultSettings.prefix,
+                defaultSettings.rangeSymbol,
+                defaultSettings.validDelimiters,
+                defaultSettings.fileDelimiter,
+                defaultSettings.multiCitationDelimiter
+            );
 
-    // Should replace citations outside code blocks
-    expect(result).toContain('<span');
-    // Should not replace citation inside code block
-    expect(result).toContain('$\\ref{eq:2.1}$');
-    // Count all spans (including nested ones) - should be 4 (outer and inner spans for eq:1.1 and eq:3.1)
-    const spanCount = (result.match(/<span/g) || []).length;
-    expect(spanCount).toBe(4);
-});
+            // Should replace citations outside code blocks
+            expect(result).toContain('<span');
+            // Should not replace citation inside code block
+            expect(result).toContain('$\\ref{eq:2.1}$');
+            // Count all spans (including nested ones) - should be 4 (outer and inner spans for eq:1.1 and eq:3.1)
+            const spanCount = (result.match(/<span/g) || []).length;
+            expect(spanCount).toBe(4);
+        });
 
         test('should not replace citations in display math', () => {
             const markdown = `

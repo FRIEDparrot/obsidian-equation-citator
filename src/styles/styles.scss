@@ -90,6 +90,7 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 /* 
 when generating markdown for print pdf, 
     get following styles from stylesheets 
+    (not add font-size for it!)
 */
 .em-math-citation-container-print {
     cursor: default;

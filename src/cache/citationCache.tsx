@@ -5,7 +5,7 @@ export class CitationCache extends BaseCache<CitationRef> {
     protected parseMarkdown(markdown: string): CitationRef[] {
         return parseCitationsInMarkdown(markdown);
     }
-
+    
     protected getCacheTypeName(): string {
         return 'citation';
     }

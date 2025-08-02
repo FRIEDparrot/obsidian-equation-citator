@@ -1,5 +1,5 @@
 import {
-    Plugin, loadMathJax, MarkdownView,
+    Plugin, MarkdownView,
     MarkdownPostProcessorContext
 } from 'obsidian';
 import {
@@ -16,14 +16,17 @@ import {
 } from '@/views/citation_render';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
-
+import { FootNoteCache } from '@/cache/footnoteCache';
 
 export default class EquationCitator extends Plugin {
     settings: EquationCitatorSettings;
     extensions: Extension[] = [];
+    
+    // initialize caches
     public citationCache: CitationCache;   // citation cache instance 
     public equationCache: EquationCache;     // equation cache instance
-
+    public footnoteCache: FootNoteCache;     // footnote cache instance
+    
     private mathCitationCompartment = new Compartment();
     private observer: MutationObserver;     // observer for pdf print 
 
@@ -32,8 +35,7 @@ export default class EquationCitator extends Plugin {
         // initialize caches
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
-
-        loadMathJax();
+        this.footnoteCache = new FootNoteCache(this);
         this.addSettingTab(new SettingsTabView(this.app, this));
         registerRibbonButton(this);
         registerCommands(this);
@@ -41,10 +43,14 @@ export default class EquationCitator extends Plugin {
         this.loadEditorExtensions();
         this.loadReadingModeExtensions();
     }
+    
     onunload() {
         if (this.observer) {
             this.observer.disconnect();
         }
+        this.citationCache?.destroy();
+        this.equationCache?.destroy();
+        this.footnoteCache?.destroy();
     }
 
     async loadSettings() {

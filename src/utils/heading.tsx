@@ -16,7 +16,8 @@ export interface Heading {
  */
 export function relativeHeadingLevel(headings: Heading[], currentHeadingIndex: number) {
     if (headings.length === 0 || currentHeadingIndex < 0 || currentHeadingIndex >= headings.length) {
-        Debugger.error('Invalid heading index' + currentHeadingIndex + " in total length " + headings.length); 
+        Debugger.log("current Headings : ", headings); 
+        Debugger.error('Invalid heading index ' + currentHeadingIndex + " in total length " + headings.length); 
         return 0;
     }
     const heading_arrays : number[] = [];

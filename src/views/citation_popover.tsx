@@ -1,8 +1,16 @@
-import { App, MarkdownRenderer } from "obsidian";
+import EquationCitator from "@/main";
+import { MarkdownRenderer } from "obsidian";
 import {
     HoverPopover,
     HoverParent,
 } from "obsidian";
+
+export interface RenderedEquation {
+    tag: string;
+    md: string;  // markdown equation content 
+    sourcePath: string | null; // source path of the equation file (if no valid footnote, its null) 
+    filename: string | null;  // filename label (alias) of the equation 
+}
 
 /**
  * Citaton Popover Class, render the equations in the popover 
@@ -10,26 +18,22 @@ import {
 export class CitationPopover extends HoverPopover {
     tags: string[] = []; // list of tags to be cited
     constructor(
-        private app: App,
+        private plugin: EquationCitator,
         parent: HoverParent,
         private targetEl: HTMLElement | null,
-        private equationTags: string[],
-        private equationsMarkdown: string[],
+        private equationsToRender: RenderedEquation[],
         private sourcePath: string,
         waitTime?: number
     ) {
         super(parent, targetEl, waitTime, null);
-        this.equationsMarkdown = equationsMarkdown; // list of equations to render
     }
-    public onOpen() {
-    }
-    public onClose() { }
+    public onOpen() {}
+    public onClose() {}
 
     async onload(): Promise<void> {
         this.onOpen();
         this.showEquations();
     }
-
     async onunload(): Promise<void> {
         this.onClose();
     }
@@ -56,38 +60,46 @@ export class CitationPopover extends HoverPopover {
         equationsContainer.addClass("em-equations-container");
 
         // Loop and create div for each equation
-        this.equationsMarkdown.forEach((eq, index) => {
+        this.equationsToRender.forEach((eq, index) => {
             const equationWrapper = equationsContainer.createDiv();
             equationWrapper.addClass("em-equation-wrapper");
             equationWrapper.setAttribute("data-equation-index", index.toString());
 
+            const equationLabelContainer = equationWrapper.createDiv(); 
+            equationLabelContainer.addClass("em-equation-label-container");
+            
             // Create equation number/label
-            const equationLabel = equationWrapper.createDiv();
-            equationLabel.addClass("em-equation-label");
-            equationLabel.textContent = `EQ ${this.equationTags[index]}`;
-
+            const equationLabel = equationLabelContainer.createDiv();
+            equationLabel.addClass("em-equation-label", "em-equation-number");
+            equationLabel.textContent = `EQ ${eq.tag || index+1}`;
+            
+            // Create equation filename label
+            const fileNameLabel = equationLabelContainer.createDiv();
+            fileNameLabel.addClass("em-equation-label", "em-equation-markdown-filename");
+            fileNameLabel.textContent = `${eq.filename || ""}`;
+            
             // Create equation content div
             const equationDiv = equationWrapper.createDiv();
             equationDiv.addClass("em-equation-content");
 
             // Render the markdown equation
             MarkdownRenderer.render(
-                this.app,
-                eq,
+                this.plugin.app,
+                eq.md,
                 equationDiv,
                 this.sourcePath,
                 // @ts-ignore - targetEl may not be a Component but MarkdownRenderer can handle it
                 this.targetEl
             );
-
             // Add click effects to each equation
             this.addClickEffects(equationWrapper);
         });
 
         // Add footer with equation count
         const footer = container.createDiv();
+        const totalEquations = this.equationsToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${this.equationsMarkdown.length} equation${this.equationsMarkdown.length !== 1 ? 's' : ''}`;
+        footer.textContent = `${totalEquations} equation${totalEquations !== 1 ? 's' : ''}`;
     }
 
     private addClickEffects(equationWrapper: HTMLElement): void {

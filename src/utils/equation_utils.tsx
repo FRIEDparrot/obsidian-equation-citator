@@ -99,13 +99,13 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): 
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
         const line = lines[lineNum];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
-
+        
         // Update code block state
         if (parseResult.isCodeBlockToggle) {
-            const codeBlockMatches = parseResult.processedContent.match(/```/g);
+            const processedContent = parseResult.processedContent.trim();
+            const codeBlockMatches =  /^\s*(?:>+\s*)*```/.test(processedContent) ? processedContent.match(/```/g) : null;
             inCodeBlock = updateCodeBlockState(inCodeBlock, codeBlockMatches);
         }
-
         if (inCodeBlock) continue;
 
         // Handle multi-line equation blocks

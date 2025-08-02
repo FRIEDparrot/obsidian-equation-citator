@@ -17,6 +17,7 @@ export interface EquationCitatorSettings {
     citationHoverColor: string; // Citation display hover color for equations 
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
     enableContinuousCitation: boolean; // Render continuous citations in compat format 
+    renderLocalFileName: boolean; // Render local file name for citations
 
     continuousRangeSymbol: string; // Range symbol for continuous citations in a single cite 
     continuousDelimiters: string; // Delimiter for continuous citations in a single cite 
@@ -28,7 +29,7 @@ export interface EquationCitatorSettings {
 
     // render core settings 
     cacheUpdateTime: number; // Debounce time for preview rendering  
-    cacheCleanTime: number; // Time to automatically clear cache  
+    cacheCleanTime: number; // Time to automatically clear cache 
 
     // pdf rendering settings
     citationColorInPdf: string; // default citation color in PDF rendering  
@@ -49,7 +50,7 @@ export interface EquationCitatorSettings {
 }
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
-    enableCitationInSourceMode: false, // Default to false for convenience  
+    enableCitationInSourceMode: false, // Not enabled by default  
     citationPrefix: "eq:", // Default prefix for citations 
     citationFormat: "(#)", // Default display format for citations  
     citationColor: "#a288f9",
@@ -58,14 +59,15 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableContinuousCitation: true, // Default to true for convenience 
     continuousDelimiters: ". - : \\_", // Default delimiter for continuous citations in a single cite
     continuousRangeSymbol: "~", // Default range symbol for continuous citations in a single cite 
+    renderLocalFileName: true, // Default to true 
 
-    enableCrossFileCitation: true, // Default to true for convenience  
+    enableCrossFileCitation: true, // Default to true
     fileCiteDelimiter: "^", // Default delimiter for file citations 
     fileSuperScriptColor: "#8e77e1",
     fileSuperScriptHoverColor: "#6d50e0",
 
-    cacheUpdateTime: 5000, // Max time for cache to refresh 
-    cacheCleanTime: 300000, // Max time for cache to clear (5 minutes)
+    cacheUpdateTime: 5000, // Max time for cache to refresh (5s)
+    cacheCleanTime: 300000, // Max time for cache to clear (5 minutes) 
 
     citationColorInPdf: "#000000", // black color for default citation color in PDF rendering 
     fileSuperScriptColorInPdf: "#000000", // black color for default file citation color in PDF rendering  
@@ -249,6 +251,17 @@ export class SettingsTabView extends PluginSettingTab {
                 this.plugin.saveSettings();
             });
         });
+
+        const enableLocalFileNameSetting = new Setting(containerEl)
+        enableLocalFileNameSetting.setName("Render Local File Name in Citation")
+            .setDesc("Render local file name for citations")
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.renderLocalFileName);
+                toggle.onChange((value) => {
+                    this.plugin.settings.renderLocalFileName = value;
+                    this.plugin.saveSettings();
+                });
+            });
 
         // ==================  Auto numbering command settings =======================  
         containerEl.createEl("h2", { text: "Auto equation numbering settings", cls: "ec-settings-header" });
@@ -439,7 +452,7 @@ export class SettingsTabView extends PluginSettingTab {
                     Debugger.log(`Cache Clear time changed to: ${value} ms`);
                 });
             });
-
+        
         // ================== PDF export settings ================ 
         containerEl.createEl("h2", { text: "PDF Export Settings", cls: "ec-settings-header" });
         containerEl.createEl("p", {
@@ -612,7 +625,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
             }
             );
     }
-    
+
     resetStyles(): void {
         document.documentElement.style.setProperty('--em-math-citation-color', DEFAULT_SETTINGS.citationColor);
         document.documentElement.style.setProperty('--em-math-citation-hover-color', DEFAULT_SETTINGS.citationHoverColor);

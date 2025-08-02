@@ -1,7 +1,7 @@
 import { Prec, RangeSetBuilder } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { MarkdownPostProcessorContext, Notice,  } from "obsidian";
+import { MarkdownPostProcessorContext, Notice, } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/settingsTab";
 import { escapeRegExp } from "@/utils/string_utils";
@@ -12,6 +12,7 @@ import {
     splitFileCitation,
     replaceCitationsInMarkdown,
     SpanStyles,
+    splitContinuousCitationTags,
 } from "@/utils/citation_utils";
 import { CitationCache } from "@/cache/citationCache";
 import { DISABLED_DELIMITER } from "@/utils/string_utils";
@@ -32,9 +33,9 @@ export class EquationCitation {
     }
 }
 
-
 /**
- * Shared rendering function for both modes  
+ * Shared rendering function for both modes 
+ *    input splitted equation tags, render combined equation citation by settings 
  * @param citeEquationTags 
  * @param settings 
  * @param isInteractive 
@@ -65,13 +66,13 @@ export function renderEquationCitation(
     // render equation parts
     for (const tag of formatedCiteEquationTags) {
         // replace # in render format with the tag number
-        const containerDiv = document.createElement('div'); 
+        const containerDiv = document.createElement('div');
         containerDiv.addClass('em-math-citation-container')
-        
+
         const { local, crossFile } = splitFileCitation(tag, fileCiteDelimiter);
         const citationSpanEl = document.createElement('span');
         citationSpanEl.className = 'em-math-citation';
-        
+
         if (crossFile) {
             // Create citation with superscript bracket for cross-file references
             const localCitation = settings.citationFormat.replace('#', local);
@@ -95,7 +96,6 @@ export function renderEquationCitation(
     el.innerHTML = renderedCitations.join(settings.multiCitationDelimiter + ' ' || ', ');
     return el;
 }
-
 
 /**
  * Live Preview Extension (CodeMirror ViewPlugin) for render equation in editor   
@@ -167,16 +167,27 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                         const hasEquationCitation = (matches.length === 1 && matches_ref.length === 1);
                         const modeRender = !sourceMode || (sourceMode && settings.enableCitationInSourceMode);
 
-                        if (hasEquationCitation && modeRender && !inSelection && !inCursor) {
-                            const eqNumbers: string[] = matches[0][1].split(settings.multiCitationDelimiter || ',');
-                            // Debugger.log("Render Equation citation:", eqNumbers); 
-                            builder.add(
-                                currentEqRange.from,
-                                currentEqRange.to,
-                                Decoration.replace({
-                                    widget: new EquationCitationWidget( plugin, eqNumbers, currentEqRange)
-                                })
-                            );
+                        if (hasEquationCitation && modeRender) {
+                            if (!inSelection && !inCursor) {
+                                const eqNumbers: string[] = matches[0][1].split(settings.multiCitationDelimiter || ',');
+                                const eqNumbersAll = settings.enableContinuousCitation ?
+                                    splitContinuousCitationTags(
+                                        eqNumbers,
+                                        settings.continuousRangeSymbol || '~',
+                                        settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+                                        settings.fileCiteDelimiter
+                                    ) : eqNumbers; // split continuous citation tags if enabled
+                                builder.add(
+                                    currentEqRange.from,
+                                    currentEqRange.to,
+                                    Decoration.replace({
+                                        widget: new EquationCitationWidget(plugin, eqNumbersAll, currentEqRange)
+                                    })
+                                );
+                            }
+                            else if (inCursor) {
+                                // auto-complete citation when cursor is after prefix of citation  
+                            }
                         }
                         currentEqRange = null;
                     }
@@ -250,7 +261,15 @@ export async function mathCitationPostProcessor(
             const match = equations[index].fullMatch.match(fullCitationPattern);
             if (match) {
                 const eqNumbers: string[] = match[1].split(settings.multiCitationDelimiter || ',').map(t => t.trim());
-                const citationWidget = renderEquationCitation(eqNumbers, settings);
+                const eqNumbersAll = settings.enableContinuousCitation ?
+                    splitContinuousCitationTags(
+                        eqNumbers,
+                        settings.continuousRangeSymbol || '~',
+                        settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+                        settings.fileCiteDelimiter
+                    ) : eqNumbers; // split continuous citation tags if enabled  
+                
+                const citationWidget = renderEquationCitation(eqNumbersAll, settings);
                 span.replaceWith(citationWidget);
             }
             else {

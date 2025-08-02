@@ -240,7 +240,7 @@ $$ P = F/A \\tag{pressure} $$`;
 >
 > And this is valid again:
 > $$ P = F/A \\tag{valid2} $$`;
-
+        
         const equations = parseEquationsInMarkdown(markdown);
         
         expect(equations).toHaveLength(2);

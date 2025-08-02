@@ -137,7 +137,7 @@ export function parseMarkdownLine(
 ): MarkdownLineEnvironment {
     const headingRegex = /^(#{1,6})\s+(.*)$/;
     const singleLineEqRegex = /^\s*\$\$(?!\$)([\s\S]*?)(?<!\$)\$\$\s*$/;
-
+    
     // Process quote line to extract content and quote depth
     const { content: processedContent, quoteDepth, qt: inQuote } = parseQuotes
         ? (() => {
@@ -147,7 +147,7 @@ export function parseMarkdownLine(
         : { content: line.trim(), quoteDepth: 0, qt: false };
 
     // Handle code blocks - check for ``` anywhere in the line
-    const codeBlockMatches = processedContent.match(/```/g);
+    const codeBlockMatches = /^\s*(?:>+\s*)*```/.test(line) ? processedContent.match(/```/g) : null;
     const isCodeBlockToggle = !!codeBlockMatches;
 
     // If we're in code block, return early with minimal processing

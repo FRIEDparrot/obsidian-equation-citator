@@ -116,7 +116,7 @@ function processAutoNumbering(
 
         // Update code block state
         if (parseResult.isCodeBlockToggle) {
-            const codeBlockMatches = parseResult.processedContent.match(/```/g);
+            const codeBlockMatches = /^\s*```/.test(line) ? parseResult.processedContent.match(/```/g) : null;
             inCodeBlock = updateCodeBlockState(inCodeBlock, codeBlockMatches);
         }
         if (inCodeBlock) {
@@ -145,7 +145,7 @@ function processAutoNumbering(
             const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
                 relativeHeadingLevel(headings, currentHeadingIndex) :
                 parseResult.headingMatch[1].length;
-
+            
             if (headingLevel == 0) {
                 throw new Error("Equation Citator : Current heading is not in headings array");
             }

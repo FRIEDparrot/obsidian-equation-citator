@@ -104,7 +104,72 @@ export function combineContinuousCitationTags(
         }
     }
 
-    return result;
+    return result.map((r) => r.trim());
+}
+
+/**
+ * Splits continuous citation tags back into individual tags.
+ * Example: ["P1~2", "2^1.1.1~4", "1.3.2~3", "1^1.3.4"] 
+ * → ["P1", "P2", "2^1.1.1", "2^1.1.2", "2^1.1.3", "2^1.1.4", "1.3.2", "1.3.3", "1^1.3.4"]
+ */
+export function splitContinuousCitationTags(
+    tags: string[],
+    rangeSymbol: string,
+    validDelimiters: string[],
+    fileDelimiter: string
+): string[] {
+    if (!tags || tags.length === 0) return [];
+    
+    const result: string[] = [];
+    
+    for (const tag of tags) {
+        // Check if tag contains range symbol
+        if (!tag.includes(rangeSymbol)) {
+            // No range - add as is
+            if (tag) {  // shouldn't be empty string 
+                result.push(tag); 
+            }
+            continue;
+        }
+        
+        // Split into file citation and local parts
+        const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
+        
+        // Check if the local part contains range symbol
+        if (!local.includes(rangeSymbol)) {
+            result.push(tag);
+            continue;
+        }
+        
+        // Extract range from local part
+        const rangeIndex = local.lastIndexOf(rangeSymbol); 
+        const beforeRange = local.substring(0, rangeIndex); // front part
+        const afterRange = local.substring(rangeIndex + rangeSymbol.length);  // next number part 
+        
+        // Try to parse the numbers
+        const startNum = extractLastNumberFromTag(beforeRange, validDelimiters);
+        const endNum = parseInt(afterRange, 10);
+        
+        if (startNum === null || isNaN(endNum) || startNum > endNum) {
+            // Invalid range - only add original tag 
+            result.push(tag);
+            continue;
+        }
+        
+        // Extract the prefix before the start number
+        const prefix = extractPrefixBeforeLastNumber(beforeRange, validDelimiters);
+        
+        // Generate individual tags in the range
+        for (let num = startNum; num <= endNum; num++) {
+            const individualLocal = prefix + num;
+            const individualTag = crossFile ? 
+                `${crossFile}${fileDelimiter}${individualLocal}` : 
+                individualLocal;
+            result.push(individualTag);
+        }
+    }
+    
+    return result.map((r) => r.trim());
 }
 
 /**
@@ -126,7 +191,7 @@ function extractLastNumberFromTag(tag: string, validDelimiters: string[]): numbe
         numStr = tag.substring(lastDelimiterIndex + 1);
     } else {
         // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = tag.match(/^([A-Za-z]+)(\d+)$/);
+        const match = tag.match(/^(.+?)(\d+)$/); 
         if (match) {
             numStr = match[2];
         } else {
@@ -155,7 +220,7 @@ function extractPrefixBeforeLastNumber(tag: string, validDelimiters: string[]): 
         return tag.substring(0, lastDelimiterIndex + 1);
     } else {
         // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = tag.match(/^([A-Za-z]+)(\d+)$/);
+        const match = tag.match(/^(.+?)(\d+)$/);
         if (match) {
             return match[1]; // Return the letter part (e.g., "EQ")
         } else {
@@ -178,7 +243,6 @@ export function splitFileCitation(eqStr: string, fileDelimiter: string): { local
     }
     return { local: eqStr, crossFile: null };
 }
-
 
 
 /**
@@ -229,7 +293,7 @@ export function parseCitationsInMarkdown(md: string): CitationRef[] {
 
     const result: CitationRef[] = [];
     const lines = md.split('\n');
-    let inMultilineCodeBlock = false;
+    let inCodeBlock = false;
 
     // Regex to match inline math with \ref{} - excludes display math $
     // Uses negative lookbehind and lookahead to ensure single $ not preceded/followed by $
@@ -239,15 +303,13 @@ export function parseCitationsInMarkdown(md: string): CitationRef[] {
         const line = lines[lineNum];
 
         // Handle multiline code blocks
-        const codeBlockMatches = line.match(/```/g);
+        const codeBlockMatches = /^\s*(?:>+\s*)*```/.test(line) ? line.match(/```/g) : null;
         if (codeBlockMatches) {
-            // Toggle for each ``` found
             for (let i = 0; i < codeBlockMatches.length; i++) {
-                inMultilineCodeBlock = !inMultilineCodeBlock;
+                inCodeBlock = !inCodeBlock;
             }
         }
-
-        if (inMultilineCodeBlock) continue;
+        if (inCodeBlock) continue;
 
         // Remove inline code block`s (content between backticks)
         const processedLine = removeInlineCodeBlocks(line);
@@ -281,13 +343,12 @@ export function parseCitationsInMarkdown(md: string): CitationRef[] {
     return result;
 }
 
-
+////////////////////  Following Functions are for PDF export usage  ///////////////////////// 
 
 export interface SpanStyles {
     citationColorInPdf: string;
     superScriptColorInPdf: string;
 }
-
 
 /**
  * Replaces inline citations in markdown with <span> tags
@@ -318,7 +379,7 @@ export function replaceCitationsInMarkdown(
     const processedLines = lines.map((line, lineNum) => {
         let processedLine = line;
         // Handles multiline code block state
-        const codeBlockMatches = line.match(/```/g);
+        const codeBlockMatches =  /^\s*(?:>+\s*)*```/.test(line) ? line.match(/```/g) : null;
         if (codeBlockMatches) {
             for (let i = 0; i < codeBlockMatches.length; i++) {
                 inMultilineCodeBlock = !inMultilineCodeBlock;
@@ -346,7 +407,7 @@ export function replaceCitationsInMarkdown(
 }
 
 /**
- * Processes inline citations while avoiding inline code blocks
+ * Processes inline citations to span while avoiding inline code blocks
  */
 function processInlineReferences(
     line: string,
@@ -476,7 +537,6 @@ function processInlineReferences(
     });
     return result;
 }
-
 
 /**
  * Generates span tags for citations
