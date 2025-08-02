@@ -143,7 +143,7 @@ export class EquationCitationWidget extends WidgetType {
             const matchedEquation = fileEquations?.find(cached => cached.tag === eq.tag);
             return {
                 ...eq,
-                md: matchedEquation?.raw || "", // 使用 raw 字段作为 md 内容
+                md: matchedEquation?.raw || "", 
             };
         });
     }
@@ -165,7 +165,7 @@ export class EquationCitationWidget extends WidgetType {
             return;
         }
         const renderedEquations = await this.getEquations();
-
+        
         this.popover = new CitationPopover(
             this.plugin,
             parent,
