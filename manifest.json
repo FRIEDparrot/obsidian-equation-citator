@@ -4,7 +4,7 @@
 	"author": "Fried Parrot",
 	"version": "1.0.0",
 	"minAppVersion": "1.8.10",
-	"description": "Enable you to cite equations very easy like in latex.",
+	"description": "Cite math equation blocks like in latex and preview them very easy.",
 	"authorUrl": "https://github.com/friedparrot", 
 	"isDesktopOnly": true
 }
