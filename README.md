@@ -96,8 +96,12 @@ Also if u have knowledge about plugin development, you can also find which funct
 
 If u have any suggestion or question for this plugin, feel free to leave it in the issue page.
 
-> [!note] Contributors are welcome!
-> 
+
+
+> [!note] 
+> Contributors are welcome!
+>
 > This plugin is totally free, and I would be very glad if anyone can fork this repo and help me to maintain this plugin (since I'm busy during schooltime).
 >
 > If you find this plugin helpful, consider starring this repo and I will be very happy!
+
