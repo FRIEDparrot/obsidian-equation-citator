@@ -6,9 +6,9 @@
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></center>
 
-
-
-<center><small> Released : Aug 3, 2025 </small></center>
+<center>
+    <div><small> Released : Aug 3, 2025 </small></div>
+</center>
 <p></p>
 
 **5 mins Quick Start:**  [Full Tutorial]( <https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorial/Equation%20Citator%20Tutorial.md>)
