@@ -1,10 +1,11 @@
 <h1> <center> Obsidian Equation Citator </center> </h1>
 
-<center>
+<center><span>
   <img src="https://img.shields.io/badge/Latest%20Version-1.0.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
-</center>
+</span></center>
+
 
 <center><small> Released : Aug 3, 2025 </small></center>
 <p></p>
@@ -49,7 +50,7 @@ $\ref{eq: 1^1.3.1~3 , 1^2.1.1~2}$
 # or you can also write like this: 
 equation $\ref{eq:1^1.1.1, 1^1.1.2, 1^1.1.3, 1^2.1.1, 1^2.1.2}$  
 # the above will be automatically combined together as continuous citation. 
-``` 
+```
 
 This will render multiple equations in a winodw : 
 
