@@ -94,11 +94,10 @@ Since it's a new plugin, some bugs or issues may still exist. If you encounter a
 
 Also if u have knowledge about plugin development, you can also find which function is causing the bug or issue, provide testing cases or make pull requests to fix the bug or issue. 
 
-
 If u have any suggestion or question for this plugin, feel free to leave it in the issue page.
 
-> [!NOTE] Contributors are welcome!   
-> This plugin is totally free, and I would be very glad if anyone can fork this repo and help me to maintain this plugin (since I'm busy during schooltime).
+> [!note] Contributors are welcome!
 > 
+> This plugin is totally free, and I would be very glad if anyone can fork this repo and help me to maintain this plugin (since I'm busy during schooltime).
+>
 > If you find this plugin helpful, consider starring this repo and I will be very happy!
-
