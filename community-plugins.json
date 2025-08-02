@@ -1,0 +1,8 @@
+{
+    "id": "equation-citator",
+    "name": "Equation Citator",
+    "version": "1.0.0",
+    "author": "Fried Parrot",
+    "description": "Enable you to cite equations like latex in obsidian.",
+    "repo": "FRIEDparrot/obsidian-equation-citator"
+}
