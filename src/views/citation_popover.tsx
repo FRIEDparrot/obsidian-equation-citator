@@ -1,5 +1,5 @@
 import EquationCitator from "@/main";
-import { MarkdownRenderer } from "obsidian";
+import { MarkdownRenderer, Component } from "obsidian";
 import {
     HoverPopover,
     HoverParent,
@@ -10,6 +10,12 @@ export interface RenderedEquation {
     md: string;  // markdown equation content 
     sourcePath: string | null; // source path of the equation file (if no valid footnote, its null) 
     filename: string | null;  // filename label (alias) of the equation 
+}
+
+class TargetElComponent extends Component {
+    constructor(public targetEl: HTMLElement | null) {
+        super();
+    }
 }
 
 /**
@@ -44,6 +50,8 @@ export class CitationPopover extends HoverPopover {
     */
     showEquations() {
         const container: HTMLElement = this.hoverEl.createDiv();
+        const targetComponent = new TargetElComponent(this.targetEl);
+
         container.addClass("em-citation-popover-container");
 
         // Create header
@@ -88,8 +96,7 @@ export class CitationPopover extends HoverPopover {
                 eq.md,
                 equationDiv,
                 this.sourcePath,
-                // @ts-ignore - targetEl may not be a Component but MarkdownRenderer can handle it
-                this.targetEl
+                targetComponent,
             );
             // Add click effects to each equation
             this.addClickEffects(equationWrapper);

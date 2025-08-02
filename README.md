@@ -76,10 +76,8 @@ This plugin relies on text parsing, so please follow these three simple guidelin
 
 3. Avoid using `\}` in your tag or citation (this haven't been tested yet!)
 
-## Coming Soon
-1. auto-complete citation
 
-Both in-file and cross-file citation will support auto-complete when typing.
+
 
 for other features in future, see [full tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorial/Equation%20Citator%20Tutorial.md)
 
