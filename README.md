@@ -77,8 +77,7 @@ Original PDF export in obsidian can fail to render citation, so a command is pro
 
 5. **Auto complete citation** (New in 1.1.0!)
 
-When you are typing citation format, 
-
+When you are typing citation format, The plugin will suggest you the available equations and citation format and fill in the equation number as you click. Which is shown in the following picture : 
 
 <center><img src="img\auto-complete.png" alt="continuous-cross-file" style="zoom:67%; max-height: 500px; " /></center>
 

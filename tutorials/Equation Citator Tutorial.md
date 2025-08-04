@@ -78,6 +78,7 @@ $$ \Large \boxed{dg = - s dT+v dp } \tag{2.1.2} $$
 For math equations **in quotation**, they will not be auto-numbered by default(we can still set it in settings tab). And we can always cite this equation by $\ref{eq:M}$ and $\ref{eq:N}$ : 
 
 > [!HINT] Toggle auto-number equations in Quotes option to auto number following 
+> 
 > $$ \text{This is a equation in quotation} \tag{M}$$
 > > $$ \text{nest equation} \tag{N} $$
 
