@@ -25,8 +25,9 @@ Other Fixes ([Pull Request #7298](https://github.com/obsidianmd/obsidian-release
 3. All the setting callback functions are used `async` to ensure the settings save correctly. and add `Debugger.log` For Debugging. 
 4. Remove unsaft `innerHTML` operations  
 
-
 ✨ New Features :  
 1. Auto-Complete Feature is now available! 
 2. Preview for Equations is now available in Reading mode!
 
+**small glitch fixed after release**:
+- Now auto-complete will not show up in source mode if `enableInSourceMode` setting is disabled. 

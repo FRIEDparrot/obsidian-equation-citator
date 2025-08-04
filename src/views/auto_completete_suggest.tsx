@@ -1,9 +1,11 @@
-import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext } from "obsidian";
+import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView } from "obsidian";
 import EquationCitator from "@/main";
 import { RenderedEquation } from "@/services/equation_services";
 import { escapeRegExp, findLastUnescapedDollar, isInInlineMathEnvironment } from "@/utils/string_utils";
 import { renderEquationWrapper, TargetElComponent } from "@/views/citation_popover";
 import { splitFileCitation } from "@/utils/citation_utils";
+import { EditorView } from "@codemirror/view";
+import { isSourceMode } from "./citation_render";
 
 export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     citePattern: RegExp;
@@ -36,6 +38,17 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     }
 
     onTrigger(cursor: EditorPosition, editor: Editor, file: TFile | null): EditorSuggestTriggerInfo | null {
+        // judge if it's source mode or not 
+        const mdView = this.plugin.app.workspace.activeEditor?.editor;
+        if (!mdView) return null;
+        
+        // @ts-ignore  this actually exists  
+        const editorView : EditorView = editor.cm;
+        if (!editorView) return null;
+        if (isSourceMode(editorView) && !this.plugin.settings.enableCitationInSourceMode) {
+            return null; // do not suggest in source mode if not enabled in settings
+        }
+
         // get the line before the cursor
         if (Date.now() - this.lastCodeBlockStateUpdateTime > 300) {
             this.refreshInCodeBlockState(editor, cursor); // update codeblock state  
@@ -115,7 +128,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const currentTags = matches[1].trim();
         const startNewTag = currentTags.endsWith(delimiter);
         const lastTag = startNewTag ? "" : currentTags.split(delimiter).pop();
-        if (lastTag === undefined) return; 
+        if (lastTag === undefined) return;
 
         let newContent: string;
         if (lastTag === "") {
@@ -123,10 +136,10 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
             newContent = `\\ref{${this.plugin.settings.citationPrefix}${currentTags}${value.tag}${delimiter} `
         }
         else {
-            const { crossFile } = splitFileCitation(lastTag, fileDelimiter);  
+            const { crossFile } = splitFileCitation(lastTag, fileDelimiter);
             const filePrefix = crossFile ? value.footnoteIndex + fileDelimiter : "";
             const tags = currentTags.split(delimiter);
-            tags[tags.length - 1] = filePrefix +  value.tag;
+            tags[tags.length - 1] = filePrefix + value.tag;
             newContent = `\\ref{${this.plugin.settings.citationPrefix}${tags.join(delimiter + " ")}${delimiter} `
         }
 

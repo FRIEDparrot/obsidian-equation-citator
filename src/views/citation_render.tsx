@@ -325,7 +325,7 @@ async function showReadingModePopover(
 }
 
 // Utility functions
-function isSourceMode(view: EditorView): boolean {
+export function isSourceMode(view: EditorView): boolean {
     const mdView = view.state.field(editorInfoField, false) as MarkdownView | undefined;
     const currentMode = mdView?.currentMode;
     // @ts-ignore
