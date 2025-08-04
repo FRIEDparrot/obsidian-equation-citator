@@ -29,7 +29,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
             `${newFilePath} already exists. Do you want to overwrite it?`,
             async () => {
                 try {
-                    await plugin.app.vault.delete(existingFile, false);
+                    await plugin.app.fileManager.trashFile(existingFile);
                     await plugin.app.vault.create(newFilePath, md_processed);
                     new Notice(`Exported to ${newFilePath}`);
                 }
@@ -38,6 +38,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
                 }
             },
             async () => {
+                // do nothing on cancel 
             }
         ).open();
     }

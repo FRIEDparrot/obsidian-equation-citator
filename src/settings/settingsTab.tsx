@@ -6,6 +6,7 @@ import {
     validLetterPrefix,
     validateDelimiter
 } from "@/utils/string_utils";
+import { ColorManager } from "@/settings/colorManager";
 import Debugger from "@/debug/debugger";
 
 export interface EquationCitatorSettings {
@@ -97,8 +98,6 @@ export class SettingsTabView extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
         containerEl.createEl("h1", { text: "Equation Citator Settings", cls: "ec-settings-title" });
-
-        // dynamic insert and remove delimiter settings 
         containerEl.createEl("h2", { text: "Citation Settings", cls: "ec-settings-header" });
 
         const enableCiteInSourceModeSetting = new Setting(containerEl)
@@ -106,9 +105,10 @@ export class SettingsTabView extends PluginSettingTab {
             .setDesc("Enable render citation in source mode")
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.enableCitationInSourceMode);
-                toggle.onChange((value) => {
+                toggle.onChange(async (value) => {
                     this.plugin.settings.enableCitationInSourceMode = value;
-                    this.plugin.saveSettings();
+                    Debugger.log("Citation in source mode enabled:", value);
+                    await this.plugin.saveSettings();
                 });
             });
 
@@ -119,11 +119,12 @@ export class SettingsTabView extends PluginSettingTab {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder("eq:")
                 text.setValue(this.plugin.settings.citationPrefix)
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.citationPrefix) {
                         this.plugin.settings.citationPrefix = newValue;
-                        this.plugin.saveSettings();
+                        Debugger.log("Citation prefix changed to:", newValue);
+                        await this.plugin.saveSettings();
                     }
                 }
             });
@@ -135,12 +136,13 @@ export class SettingsTabView extends PluginSettingTab {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder("(#)")
                 text.setValue(this.plugin.settings.citationFormat)
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.citationFormat) {
                         if (validateEquationDisplayFormat(newValue)) {
                             this.plugin.settings.citationFormat = newValue;
-                            this.plugin.saveSettings();
+                            Debugger.log("Citation display format changed to:", newValue);
+                            await this.plugin.saveSettings();
                         } else {
                             new Notice("Invalid format, You must use only one '#' symbol to represent equation number");
                             text.setValue(this.plugin.settings.citationFormat);
@@ -154,18 +156,20 @@ export class SettingsTabView extends PluginSettingTab {
             .setDesc("Citation display color, 1: display color 2: color when hovering")
             .addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationColor)
-                color.onChange((value) => {
+                color.onChange(async (value) => {
                     this.plugin.settings.citationColor = value;
-                    this.plugin.saveSettings();
-                    document.documentElement.style.setProperty('--em-math-citation-color', value);
+                    Debugger.log("Citation color changed to:", value);
+                    await this.plugin.saveSettings();
+                    ColorManager.updateAllColors(this.plugin.settings);
                 });
             })
             .addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationHoverColor)
-                color.onChange((value) => {
+                color.onChange(async (value) => {
                     this.plugin.settings.citationHoverColor = value;
-                    this.plugin.saveSettings();
-                    document.documentElement.style.setProperty('--em-math-citation-hover-color', value);
+                    Debugger.log("Citation hover color changed to:", value);
+                    await this.plugin.saveSettings();
+                    ColorManager.updateAllColors(this.plugin.settings);
                 });
             });
 
@@ -176,12 +180,13 @@ export class SettingsTabView extends PluginSettingTab {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder(",")
                 text.setValue(this.plugin.settings.multiCitationDelimiter)
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.multiCitationDelimiter) {
                         if (validateDelimiter(newValue)) {
                             this.plugin.settings.multiCitationDelimiter = newValue;
-                            this.plugin.saveSettings();
+                            Debugger.log("Multi-citation delimiter changed to:", newValue);
+                            await this.plugin.saveSettings();
                         } else {
                             new Notice("Only special characters are allowed, Change not saved");
                             text.setValue(this.plugin.settings.multiCitationDelimiter);
@@ -212,10 +217,10 @@ export class SettingsTabView extends PluginSettingTab {
                 };
                 toggle.setValue(this.plugin.settings.enableContinuousCitation);
                 updateContinuousCitationSettingsContainer(this.plugin.settings.enableContinuousCitation);
-                toggle.onChange((value) => {
+                toggle.onChange(async (value) => {
                     this.plugin.settings.enableContinuousCitation = value;
-                    this.plugin.saveSettings();
                     Debugger.log("Continuous citation enabled:", value);
+                    await this.plugin.saveSettings();
                     updateContinuousCitationSettingsContainer(value);
                 });
             });
@@ -223,14 +228,14 @@ export class SettingsTabView extends PluginSettingTab {
         const crossFileSetting = new Setting(containerEl)
             .setName("Enable Cross-File Citations")
             .setDesc("Use pure footnote style citations to cite equations across files");
-
+        
         crossFileSetting.addToggle((toggle) => {
             toggle.setValue(this.plugin.settings.enableCrossFileCitation);
             let delimiterContainer: HTMLElement | null = null;
             const updateFileSettingsContainer = (show: boolean) => {
                 const parent = crossFileSetting.settingEl.parentElement;
                 if (show && !delimiterContainer && parent) {
-                    delimiterContainer = document.createElement("div");
+                    delimiterContainer = document.createElement('div');
                     parent.insertBefore(
                         delimiterContainer,
                         crossFileSetting.settingEl.nextSibling
@@ -243,12 +248,11 @@ export class SettingsTabView extends PluginSettingTab {
             };
             // update the delimiter visibility based on the current setting  
             updateFileSettingsContainer(this.plugin.settings.enableCrossFileCitation);
-            toggle.onChange((value) => {
+            toggle.onChange(async (value) => {
                 this.plugin.settings.enableCrossFileCitation = value;
-                this.plugin.saveSettings();
                 Debugger.log("Cross-file citation enabled:", value);
+                await this.plugin.saveSettings();
                 updateFileSettingsContainer(value);
-                this.plugin.saveSettings();
             });
         });
 
@@ -257,9 +261,10 @@ export class SettingsTabView extends PluginSettingTab {
             .setDesc("Render local file name for citations")
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.renderLocalFileName);
-                toggle.onChange((value) => {
+                toggle.onChange(async (value) => {
                     this.plugin.settings.renderLocalFileName = value;
-                    this.plugin.saveSettings();
+                    Debugger.log("Local file name in citation enabled:", value);
+                    await this.plugin.saveSettings();
                 });
             });
 
@@ -273,12 +278,13 @@ export class SettingsTabView extends PluginSettingTab {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder("Default: .")
                 text.setValue(this.plugin.settings.autoNumberDelimiter)
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.autoNumberDelimiter) {
                         if (validateDelimiter(newValue)) {
                             this.plugin.settings.autoNumberDelimiter = newValue;
-                            this.plugin.saveSettings();
+                            Debugger.log("Auto numbering delimiter changed to:", newValue);
+                            await this.plugin.saveSettings();
                         } else {
                             new Notice("Only special characters are allowed, Change not saved");
                             text.setValue(this.plugin.settings.autoNumberDelimiter);
@@ -294,9 +300,10 @@ export class SettingsTabView extends PluginSettingTab {
                 slider.setLimits(1, 6, 1)
                 slider.setValue(this.plugin.settings.autoNumberDepth || 1);
                 slider.setDynamicTooltip();
-                slider.onChange((value) => {
+                slider.onChange(async (value) => {
                     this.plugin.settings.autoNumberDepth = value;
-                    this.plugin.saveSettings();
+                    Debugger.log("Auto numbering depth changed to:", value);
+                    await this.plugin.saveSettings();
                 });
             });
 
@@ -307,10 +314,10 @@ export class SettingsTabView extends PluginSettingTab {
                 dropdown.addOption("Relative", "Relative")
                 dropdown.addOption("Absolute", "Absolute")
                 dropdown.setValue(this.plugin.settings.autoNumberType)
-                dropdown.onChange((value) => {
+                dropdown.onChange(async (value) => {
                     this.plugin.settings.autoNumberType = value as AutoNumberingType;
-                    this.plugin.saveSettings();
                     Debugger.log("Auto numbering method changed to:", value);
+                    await this.plugin.saveSettings();
                 });
             });
 
@@ -323,12 +330,13 @@ export class SettingsTabView extends PluginSettingTab {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder("Default: P")
                 text.setValue(this.plugin.settings.autoNumberNoHeadingPrefix)
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.autoNumberNoHeadingPrefix) {
                         if (validLetterPrefix(newValue)) {
                             this.plugin.settings.autoNumberNoHeadingPrefix = newValue;
-                            this.plugin.saveSettings();
+                            Debugger.log("Auto numbering no heading prefix changed to:", newValue);
+                            await this.plugin.saveSettings();
                         } else {
                             new Notice("Only letters are allowed, Change not saved");
                             text.setValue(this.plugin.settings.autoNumberNoHeadingPrefix);
@@ -361,11 +369,11 @@ export class SettingsTabView extends PluginSettingTab {
                     }
                 };
                 toggle.setValue(this.plugin.settings.autoNumberPrefixEnabled);
-                toggle.onChange((value) => {
+                toggle.onChange(async (value) => {
                     this.plugin.settings.autoNumberPrefixEnabled = value;
                     Debugger.log("Auto numbering Prefix enabled:", value);
+                    await this.plugin.saveSettings();
                     updateAutoNumberingPrefixContainer(value);
-                    this.plugin.saveSettings();
                 });
                 updateAutoNumberingPrefixContainer(this.plugin.settings.autoNumberPrefixEnabled);
             });
@@ -375,28 +383,28 @@ export class SettingsTabView extends PluginSettingTab {
             .setDesc("Enable auto numbering for equations in quotes")
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.autoNumberEquationsInQuotes);
-                toggle.onChange((value) => {
+                toggle.onChange(async (value) => {
                     this.plugin.settings.autoNumberEquationsInQuotes = value;
-                    this.plugin.saveSettings();
                     Debugger.log("Auto numbering equations in quotes enabled:", value);
+                    await this.plugin.saveSettings();
                 });
             });
         // ================== Equation Widget Render Settings ============= 
         containerEl.createEl("h2", { text: "Equation Widget Settings", cls: "ec-settings-header" });
         containerEl.createEl("p", { text: "1: background, 2: header/footer, 3: hover, 4: active, 5: border" })
 
+        // For widget colors:
         const lightWidgetColorSetting = new Setting(containerEl);
         lightWidgetColorSetting.setName("Light Theme Widget Colors")
             .setDesc("Widget colors for light theme");
 
-
         for (let i = 0; i < 5; i++) {
             lightWidgetColorSetting.addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationWidgetColor[i]);
-                color.onChange((value) => {
-                    this.plugin.settings.citationWidgetColor[i] = value;
-                    this.plugin.saveSettings();
-                    document.documentElement.style.setProperty(this.lightEqWidgetCssVars[i], value);
+                color.onChange(async (value) => {
+                    ColorManager.updateWidgetColor(i, value, false, this.plugin.settings);
+                    Debugger.log("Widget color " + i + " changed to:", value);
+                    await this.plugin.saveSettings();
                 });
             });
         }
@@ -406,13 +414,14 @@ export class SettingsTabView extends PluginSettingTab {
         const darkWidgetColorSetting = new Setting(containerEl);
         darkWidgetColorSetting.setName("Dark Theme Widget Colors")
             .setDesc("Widget colors for dark theme");
+
         for (let i = 0; i < 5; i++) {
             darkWidgetColorSetting.addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationWidgetColorDark[i]);
-                color.onChange((value) => {
-                    this.plugin.settings.citationWidgetColorDark[i] = value;
-                    this.plugin.saveSettings();
-                    document.documentElement.style.setProperty(this.darkEqWidgetCssVars[i], value);
+                color.onChange(async (value) => {
+                    ColorManager.updateWidgetColor(i, value, true, this.plugin.settings);
+                    Debugger.log("Widget color dark " + i + " changed to:", value);
+                    await this.plugin.saveSettings();
                 });
             });
         }
@@ -428,13 +437,13 @@ export class SettingsTabView extends PluginSettingTab {
                 slider.setLimits(1000, 10000, 1000)
                 slider.setValue(this.plugin.settings.cacheUpdateTime || 5000);
                 slider.setDynamicTooltip();
-                slider.onChange((value) => {
+                slider.onChange(async (value) => {
                     this.plugin.settings.cacheUpdateTime = value;
-                    this.plugin.saveSettings();
                     Debugger.log("Cache Update time changed to:", value, "ms");
+                    await this.plugin.saveSettings();
                 });
             });
-
+        
         const CacheCleanTimeSetting = new Setting(containerEl);
         CacheCleanTimeSetting.setName("Cache Clean Time")
             .setDesc("Time to automatically clean cache")
@@ -446,13 +455,13 @@ export class SettingsTabView extends PluginSettingTab {
                 dropdown.addOption("3600000", "1 hour");
 
                 dropdown.setValue(this.plugin.settings.cacheCleanTime.toString());
-                dropdown.onChange((value) => {
+                dropdown.onChange(async (value) => {
                     this.plugin.settings.cacheCleanTime = parseInt(value);
-                    this.plugin.saveSettings();
                     Debugger.log(`Cache Clear time changed to: ${value} ms`);
+                    await this.plugin.saveSettings();
                 });
             });
-        
+
         // ================== PDF export settings ================ 
         containerEl.createEl("h2", { text: "PDF Export Settings", cls: "ec-settings-header" });
         containerEl.createEl("p", {
@@ -461,24 +470,24 @@ use plugin command `Make markdown copy to export PDF`, \
 this will make a correctly-rendered markdown from current note to export pdf.",
             cls: "ec-settings-warning"
         });
+
+        // these two colors directly transfer to function `makePrintMarkdown` (so not in style variables)
         const pdfExportColorSetting = new Setting(containerEl)
         pdfExportColorSetting.setName("Citation color in markdown for PDF")
             .setDesc("Citation colors in PDF export. 1: equation citations 2: superscripts")
             .addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationColorInPdf)
-                color.onChange((value) => {
+                color.onChange(async (value) => {
                     this.plugin.settings.citationColorInPdf = value;
-                    this.plugin.saveSettings();
-                    document.documentElement.style.setProperty('--em-math-citation-color-print', value);
                     Debugger.log("citation color in pdf changed to:", value);
+                    await this.plugin.saveSettings();
                 });
             }).addColorPicker((color) => {
                 color.setValue(this.plugin.settings.fileSuperScriptColorInPdf)
-                color.onChange((value) => {
+                color.onChange(async (value) => {
                     this.plugin.settings.fileSuperScriptColorInPdf = value;
-                    this.plugin.saveSettings();
                     Debugger.log("file superscript color in pdf changed to:", value);
-                    document.documentElement.style.setProperty('--em-math-citation-file-superscript-color-print', value);
+                    await this.plugin.saveSettings();
                 });
             });
 
@@ -489,7 +498,6 @@ this will make a correctly-rendered markdown from current note to export pdf.",
             .setName("Reset Settings")
             .setDesc("Reset all settings to default values")
             .addButton((button) => {
-                // buttonEl.appendChild(document.createTextNode("Restore Defaults"));
                 button.setIcon("reset");
                 button.onClick(async () => {
                     new Notice("Restoring Settings ...");
@@ -498,12 +506,11 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                     await new Promise(resolve => setTimeout(resolve, 200));
 
                     this.plugin.settings = { ...DEFAULT_SETTINGS };
-                    await this.resetStyles(); // reset styles 
-                    await this.plugin.saveSettings();
+                    await this.resetStyles(); // reset styles
+                    await this.plugin.saveSettings();  // this have no log 
 
                     // Refresh the display
                     await this.display();
-
                     new Notice("Settings have been restored to defaults");
                 });
             });
@@ -520,7 +527,6 @@ this will make a correctly-rendered markdown from current note to export pdf.",
             });
     }
 
-
     showContinuousCitationSettings(containerEl: HTMLElement): void {
         new Setting(containerEl)
             .setName("Continuous Citation Range Symbol")
@@ -529,12 +535,13 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder("~")
                 text.setValue(this.plugin.settings.continuousRangeSymbol)
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.continuousRangeSymbol) {
                         if (validateDelimiter(newValue)) {
                             this.plugin.settings.continuousRangeSymbol = newValue;
-                            this.plugin.saveSettings();
+                            Debugger.log("Continuous citation range symbol changed to:", newValue);
+                            await this.plugin.saveSettings();
                         } else {
                             new Notice("Only special characters are allowed, Change not saved");
                             text.setValue(this.plugin.settings.continuousRangeSymbol);
@@ -550,14 +557,15 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                 text.inputEl.classList.add("ec-multi-delimiter-input");
                 text.setPlaceholder("e.g. '. - : \\_'")
                 text.setValue(this.plugin.settings.continuousDelimiters)
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.continuousDelimiters) {
                         const delimiters = newValue.split(" ");
                         const isValid = delimiters.every(d => validateDelimiter(d));
                         if (isValid) {
                             this.plugin.settings.continuousDelimiters = newValue;
-                            this.plugin.saveSettings();
+                            Debugger.log("Continuous citation delimiter changed to:", newValue);
+                            await this.plugin.saveSettings();
                         } else {
                             new Notice("Only special characters are allowed in each delimiter, Change not saved");
                             text.setValue(this.plugin.settings.continuousDelimiters);
@@ -573,14 +581,15 @@ this will make a correctly-rendered markdown from current note to export pdf.",
             .setDesc("Delimiter after equation number for footnote file citations")
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("Default: ^")
+                text.setPlaceholder("^")
                 text.setValue(this.plugin.settings.fileCiteDelimiter)
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.fileCiteDelimiter) {
                         if (validateDelimiter(newValue)) {
                             this.plugin.settings.fileCiteDelimiter = newValue;
-                            this.plugin.saveSettings();
+                            Debugger.log("File cite delimiter changed to:", newValue);
+                            await this.plugin.saveSettings();
                         } else {
                             new Notice("Only special characters are allowed, Change not saved");
                             text.setValue(this.plugin.settings.fileCiteDelimiter);
@@ -588,23 +597,25 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                     }
                 }
             });
-
+        
         new Setting(containerEl)
             .setName("File Citation Color")
             .setDesc("Color for citations superscript, 1: display color 2: color when hovering")
             .addColorPicker((color) => {
                 color.setValue(this.plugin.settings.fileSuperScriptColor)
-                color.onChange((value) => {
+                color.onChange(async (value) => {
                     this.plugin.settings.fileSuperScriptColor = value;
-                    this.plugin.saveSettings();
-                    document.documentElement.style.setProperty('--em-math-file-cite-color', value);
+                    Debugger.log("File superscript color changed to:", value);
+                    await this.plugin.saveSettings();
+                    ColorManager.updateAllColors(this.plugin.settings)
                 });
             }).addColorPicker((color) => {
                 color.setValue(this.plugin.settings.fileSuperScriptHoverColor)
-                color.onChange((value) => {
+                color.onChange(async (value) => {
                     this.plugin.settings.fileSuperScriptHoverColor = value;
-                    this.plugin.saveSettings();
-                    document.documentElement.style.setProperty('--em-math-file-cite-hover-color', value);
+                    Debugger.log("File superscript hover color changed to:", value);
+                    await this.plugin.saveSettings();
+                    ColorManager.updateAllColors(this.plugin.settings)
                 });
             });
     }
@@ -615,28 +626,18 @@ this will make a correctly-rendered markdown from current note to export pdf.",
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setValue(this.plugin.settings.autoNumberPrefix);
-                text.inputEl.onblur = () => {
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== this.plugin.settings.autoNumberPrefix) {
                         this.plugin.settings.autoNumberPrefix = newValue;
-                        this.plugin.saveSettings();
+                        Debugger.log("Auto numbering prefix changed to:", newValue);
+                        await this.plugin.saveSettings();
                     }
                 }
-            }
-            );
+            });
     }
 
     resetStyles(): void {
-        document.documentElement.style.setProperty('--em-math-citation-color', DEFAULT_SETTINGS.citationColor);
-        document.documentElement.style.setProperty('--em-math-citation-hover-color', DEFAULT_SETTINGS.citationHoverColor);
-        document.documentElement.style.setProperty('--em-math-citation-file-superscript-color', DEFAULT_SETTINGS.fileSuperScriptColor);
-        document.documentElement.style.setProperty('--em-math-citation-file-superscript-hover-color', DEFAULT_SETTINGS.fileSuperScriptHoverColor);
-        document.documentElement.style.setProperty('--em-math-citation-color-print', DEFAULT_SETTINGS.citationColor);
-        document.documentElement.style.setProperty('--em-math-citation-file-superscript-color-print', DEFAULT_SETTINGS.fileSuperScriptColor);
-        for (let i = 0; i < 5; i++) {
-            document.documentElement.style.setProperty(this.lightEqWidgetCssVars[i], DEFAULT_SETTINGS.citationWidgetColor[i]); // light theme
-            document.documentElement.style.setProperty(this.darkEqWidgetCssVars[i], DEFAULT_SETTINGS.citationWidgetColorDark[i]); // dark theme
-        }
+        ColorManager.resetAllColors(DEFAULT_SETTINGS);
     }
 }
-

@@ -1,7 +1,5 @@
-import { getStyleFromStyleSheet } from "@/utils/styles_utils";
 import { escapeRegExp, escapeString } from "@/utils/string_utils";
 import { removeInlineCodeBlocks } from "@/utils/string_utils";
-
 
 /**
  * Combines continuous equation tags with common prefixes and file citations.
@@ -14,7 +12,7 @@ export function combineContinuousCitationTags(
     fileDelimiter: string
 ): string[] {
     if (!tags || tags.length === 0) return [];
-    
+
     // Create a mapping from original tags to their combined form
     const tagMapping = new Map<string, string>();
     const processedTags = new Set<string>();
@@ -119,56 +117,56 @@ export function splitContinuousCitationTags(
     fileDelimiter: string
 ): string[] {
     if (!tags || tags.length === 0) return [];
-    
+
     const result: string[] = [];
-    
+
     for (const tag of tags) {
         // Check if tag contains range symbol
         if (!tag.includes(rangeSymbol)) {
             // No range - add as is
             if (tag) {  // shouldn't be empty string 
-                result.push(tag); 
+                result.push(tag);
             }
             continue;
         }
-        
+
         // Split into file citation and local parts
         const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
-        
+
         // Check if the local part contains range symbol
         if (!local.includes(rangeSymbol)) {
             result.push(tag);
             continue;
         }
-        
+
         // Extract range from local part
-        const rangeIndex = local.lastIndexOf(rangeSymbol); 
+        const rangeIndex = local.lastIndexOf(rangeSymbol);
         const beforeRange = local.substring(0, rangeIndex); // front part
         const afterRange = local.substring(rangeIndex + rangeSymbol.length);  // next number part 
-        
+
         // Try to parse the numbers
         const startNum = extractLastNumberFromTag(beforeRange, validDelimiters);
         const endNum = parseInt(afterRange, 10);
-        
+
         if (startNum === null || isNaN(endNum) || startNum > endNum) {
             // Invalid range - only add original tag 
             result.push(tag);
             continue;
         }
-        
+
         // Extract the prefix before the start number
         const prefix = extractPrefixBeforeLastNumber(beforeRange, validDelimiters);
-        
+
         // Generate individual tags in the range
         for (let num = startNum; num <= endNum; num++) {
             const individualLocal = prefix + num;
-            const individualTag = crossFile ? 
-                `${crossFile}${fileDelimiter}${individualLocal}` : 
+            const individualTag = crossFile ?
+                `${crossFile}${fileDelimiter}${individualLocal}` :
                 individualLocal;
             result.push(individualTag);
         }
     }
-    
+
     return result.map((r) => r.trim());
 }
 
@@ -191,7 +189,7 @@ function extractLastNumberFromTag(tag: string, validDelimiters: string[]): numbe
         numStr = tag.substring(lastDelimiterIndex + 1);
     } else {
         // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = tag.match(/^(.+?)(\d+)$/); 
+        const match = tag.match(/^(.+?)(\d+)$/);
         if (match) {
             numStr = match[2];
         } else {
@@ -379,7 +377,7 @@ export function replaceCitationsInMarkdown(
     const processedLines = lines.map((line, lineNum) => {
         let processedLine = line;
         // Handles multiline code block state
-        const codeBlockMatches =  /^\s*(?:>+\s*)*```/.test(line) ? line.match(/```/g) : null;
+        const codeBlockMatches = /^\s*(?:>+\s*)*```/.test(line) ? line.match(/```/g) : null;
         if (codeBlockMatches) {
             for (let i = 0; i < codeBlockMatches.length; i++) {
                 inMultilineCodeBlock = !inMultilineCodeBlock;
@@ -538,6 +536,15 @@ function processInlineReferences(
     return result;
 }
 
+
+/**
+ * Default styles for PDF print citations
+ */
+const DEFAULT_CONTAINER_STYLE = 'cursor: default;';
+const DEFAULT_CITATION_STYLE = 'text-decoration: none; cursor: pointer;';
+const DEFAULT_SUPERSCRIPT_STYLE = 'font-size: 0.7em; vertical-align: super; margin-left: 1px; text-decoration: none; cursor: pointer;';
+
+
 /**
  * Generates span tags for citations
  */
@@ -550,36 +557,50 @@ export function generateCitationSpans(
 ): string {
     const spans = citations.map((citation, index) => {
         const { local, crossFile } = splitFileCitation(citation, fileDelimiter);
-        const default_style = 'color: #000000;'
+        
 
         const citationColorInPdf = spanStyles.citationColorInPdf || '#000000';
         const superScriptColorInPdf = spanStyles.superScriptColorInPdf || '#000000';
 
-        // Gets styles
-        const containerStyle = escapeString(getStyleFromStyleSheet(
-            'em-math-citation-container-print',
-            default_style,
-        ), "\"") + ` color: ${citationColorInPdf};`;
-
-        const citationStyle = escapeString(getStyleFromStyleSheet(
-            'em-math-citation-print',
-            default_style,
-        ), "\"") + ` color: ${citationColorInPdf};`
-
+        // Combine default styles with color
+        const containerStyle = escapeString(
+            DEFAULT_CONTAINER_STYLE + ` color: ${citationColorInPdf};`, 
+            "\""
+        );
+        
+        const citationStyle = escapeString(
+            DEFAULT_CITATION_STYLE + ` color: ${citationColorInPdf};`,
+            "\""
+        );
+        
         const superscriptStyle = escapeString(
-            getStyleFromStyleSheet(
-                'em-math-citation-file-superscript-print',
-                default_style + 'font-size: 0.7em; vertical-align: super; margin-left: 1px;'
-            ), "\""
-        ) + ` color: ${superScriptColorInPdf};`
+            DEFAULT_SUPERSCRIPT_STYLE + ` color: ${superScriptColorInPdf};`,
+            "\""
+        );
+
         let result = `<span style="${containerStyle}">` + citationFormat.replace('#', `<span style="${citationStyle}">${local}</span>`);
         if (crossFile) {
             result += `<sup style="${superscriptStyle}">${'[' + crossFile + ']'}</sup>`;
         }
-
         result += '</span>';
 
         return result;
     });
     return spans.join(multiCitationDelimiter + ' '); // Joins all spans with comma separator
+}
+
+
+///////////////////////// Auto Complete Functions  //////////////////// 
+export function extractAutoCompleteInputTag(content: string, delimiter: string): string {
+    if (!content) return "";
+    const cleanedContent = content.trim(); 
+    if (/\s$/.test(content) || cleanedContent.endsWith(delimiter)) {
+        return ""; // Do not autocomplete if the user is typing a delimiter ","
+    }
+    const allTags = content.split(delimiter);
+    if (allTags.length === 0) {
+        return ""; 
+    }
+    const lastTag = allTags[allTags.length - 1].trim();  // Get the last tag
+    return lastTag; 
 }

@@ -9,7 +9,7 @@ equation2 :
 $$
 \text{This is a no-heading equation test for continuous cite} \tag{P2}
 $$
-We use  $\ref{eq:P1}$ and $\ref{eq:P2}$ to cite above equations, **Hold ctrl to see preview**.  
+We use  $\ref{eq:P1}$ and $\ref{eq:P2}$ to cite above equations, **Hold ctrl and move mouse here to see the equation preview (no need to ctrl in reading mode)**.  
 
 ## 1. Begin Tutorial  
 ### (1) Basic Citations 
@@ -52,7 +52,7 @@ We can also use cross file citation continuously, such as  `$\ref{eq:2^1.3.1, 2^
 For the 
 ```
 $\ref{eq:2^1.3.1, 2^1.3.2, 2^1.3.3, 2^2.1.1~2}$
-```  
+```
 
 This will be rendered as $\ref{eq:2^1.3.1, 2^1.3.2, 2^1.3.3, 2^2.1.1~2}$.  Note multi continuous will citation will also combined, such as :   $\ref{eq:1~2,3~4}$ 
 
@@ -77,10 +77,9 @@ $$ \Large \boxed{dg = - s dT+v dp } \tag{2.1.2} $$
 
 For math equations **in quotation**, they will not be auto-numbered by default(we can still set it in settings tab). And we can always cite this equation by $\ref{eq:M}$ and $\ref{eq:N}$ : 
 
-> [!NOTE] 
+> [!HINT] Toggle auto-number equations in Quotes option to auto number following 
 > $$ \text{This is a equation in quotation} \tag{M}$$
 > > $$ \text{nest equation} \tag{N} $$
-
 
 ### (2) Follow this rule 
 The auto-number command scan the file and add number add numbers to each equation block. So for it works correctly, you should follow this format when writing equation blocks : 
@@ -110,17 +109,25 @@ $$ block
 ```
 
 
-### (3) Current glitches & to do list  
-**Features coming soon** : 
-1. **Support for preview in reading mode** : Now preview is not available in reading mode, which will be add in the next minor version 
-2. **Auto-Complete support** : Both in-file and cross-file citation will support auto-complete when typing.
-3. **Double-click jump** :  double-click to jump to location of specific equation. 
-4. **File superscript render** : file super-script will render the corresponding footnote in future. 
+### (3) Current glitches & to do list
 
-**Features In future** : 
-1. **Update links when renaming equations in auto-numbering(also provide rename citation option)** : when auto-number command triggered, automatically update citation number. 
-2. Auto-tag while Editing : add an option to auto-tag when cursor move out of equation blocks. 
-3. **More pdf support**  :  In-file citation may can be rendered as link which can jump to correct position in pdf. But obsidian didn't provide any API to do this,  link jump is also not available, so I still not figure it out.  Also I still not figure out how to  modify the exported content in pdf (since `@print` can only control styles of original content)  
+**Features in future versions** : 
+
+- [x] **Support for preview in reading mode** (added in version 1.1.0) 
+
+- [x] **Auto-Complete support** : (added in version 1.1.0)
+- [ ] **Double-click jump** :  double-click to jump to location of specific equation. 
+
+- [ ] **File superscript render** : file super-script will render the corresponding footnote in future. 
+
+- [ ] **Update links when renaming equations in auto-numbering(also provide rename citation option)** : when auto-number command triggered, automatically update citation number. 
+
+**Other features I wanna to add in future** : 
+
+1. Auto-tag while Editing : add an option to auto-tag when cursor move out of equation blocks. 
+2. **More pdf support**  :  In-file citation may can be rendered as link which can jump to correct position in pdf. But obsidian didn't provide any API to do this,  link jump is also not available, so I still not figure it out.  Also I still not figure out how to  modify the exported content in pdf (since `@print` can only control styles of original content)  
+
+
 
 [^1]: [[Cross-File Citation Test 1|Article 1]]
 [^2]: [[Cross-File Citation Test2|Article 2]]

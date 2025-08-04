@@ -1,7 +1,7 @@
 import { Prec, RangeSetBuilder } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { MarkdownPostProcessorContext, Notice, } from "obsidian";
+import { MarkdownPostProcessorContext, Notice, WorkspaceLeaf } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/settingsTab";
 import { escapeRegExp } from "@/utils/string_utils";
@@ -12,12 +12,13 @@ import {
     splitFileCitation,
     replaceCitationsInMarkdown,
     SpanStyles,
-    splitContinuousCitationTags,
+    splitContinuousCitationTags
 } from "@/utils/citation_utils";
 import { CitationCache } from "@/cache/citationCache";
 import { DISABLED_DELIMITER } from "@/utils/string_utils";
-import { EquationCitationWidget } from "@/views/equation_citation_widget";
+import { CitationWidget } from "@/views/citation_widget";
 import EquationCitator from "@/main";
+import { CitationPopover } from "@/views/citation_popover";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -61,7 +62,7 @@ export function renderEquationCitation(
         )
         : citeEquationTags;
 
-    const renderedCitations: string[] = [];
+    const containers: HTMLElement[] = [];
 
     // render equation parts
     for (const tag of formatedCiteEquationTags) {
@@ -89,11 +90,12 @@ export function renderEquationCitation(
             citationSpanEl.textContent = settings.citationFormat.replace('#', local);
             containerDiv.appendChild(citationSpanEl);
         }
-        renderedCitations.push(containerDiv.innerHTML);
+        containers.push(containerDiv);
     }
 
-    // Set innerHTML instead of textContent to preserve HTML formatting
-    el.innerHTML = renderedCitations.join(settings.multiCitationDelimiter + ' ' || ', ');
+    for (const container of containers) {
+        el.appendChild(container);
+    }
     return el;
 }
 
@@ -143,6 +145,8 @@ export function createMathCitationExtension(plugin: EquationCitator) {
             }
         }
 
+        private currentAutoCompleteInput: string | null = null;  // cache current to detect auto-complete input change 
+
         private buildDecorations(view: EditorView): DecorationSet {
             const builder = new RangeSetBuilder<Decoration>();
             const { state } = view;
@@ -166,29 +170,28 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                         const matches_ref = [...text.matchAll(/\\ref\{([^}]*)\}/g)];
                         const hasEquationCitation = (matches.length === 1 && matches_ref.length === 1);
                         const modeRender = !sourceMode || (sourceMode && settings.enableCitationInSourceMode);
+                        if (!hasEquationCitation || !modeRender) return;
+                        if (!inSelection && !inCursor) {
+                            // citations not in cursor,  render full citations 
+                            const eqNumbers: string[] = matches[0][1].split(settings.multiCitationDelimiter || ',');
+                            const eqNumbersAll = settings.enableContinuousCitation ?
+                                splitContinuousCitationTags(
+                                    eqNumbers,
+                                    settings.continuousRangeSymbol || '~',
+                                    settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+                                    settings.fileCiteDelimiter
+                                ) : eqNumbers; // split continuous citation tags if enabled
 
-                        if (hasEquationCitation && modeRender) {
-                            if (!inSelection && !inCursor) {
-                                const eqNumbers: string[] = matches[0][1].split(settings.multiCitationDelimiter || ',');
-                                const eqNumbersAll = settings.enableContinuousCitation ?
-                                    splitContinuousCitationTags(
-                                        eqNumbers,
-                                        settings.continuousRangeSymbol || '~',
-                                        settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-                                        settings.fileCiteDelimiter
-                                    ) : eqNumbers; // split continuous citation tags if enabled
-                                builder.add(
-                                    currentEqRange.from,
-                                    currentEqRange.to,
-                                    Decoration.replace({
-                                        widget: new EquationCitationWidget(plugin, eqNumbersAll, currentEqRange)
-                                    })
-                                );
-                            }
-                            else if (inCursor) {
-                                // auto-complete citation when cursor is after prefix of citation  
-                            }
+                            builder.add(
+                                currentEqRange.from,
+                                currentEqRange.to,
+                                Decoration.replace({
+                                    widget: new CitationWidget(plugin, eqNumbersAll, currentEqRange)
+                                })
+                            );
                         }
+                        // for in cursor auto complete, we add a editorsuggest type widget,
+                        // so not render it in builded decorations 
                         currentEqRange = null;
                     }
                 }
@@ -221,10 +224,10 @@ export function renderFailedCitation(citeTag: string): HTMLElement {
  * @returns 
  */
 export async function mathCitationPostProcessor(
+    plugin: EquationCitator,
     el: HTMLElement,
     ctx: MarkdownPostProcessorContext,
     citationCache: CitationCache,
-    settings: EquationCitatorSettings
 ): Promise<void> {
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) return;
@@ -256,20 +259,21 @@ export async function mathCitationPostProcessor(
         // render equation citation for each math span
         Debugger.log(`Render ${equations.length} equation citations from line ${sectionInfo.lineStart} to ${sectionInfo.lineEnd}`)
 
-        const fullCitationPattern = `\\\\ref\\{${escapeRegExp(settings.citationPrefix)}([^}]+)\\}`;
+        const fullCitationPattern = `\\\\ref\\{${escapeRegExp(plugin.settings.citationPrefix)}([^}]+)\\}`;
         citeSpans.forEach((span, index) => {
             const match = equations[index].fullMatch.match(fullCitationPattern);
             if (match) {
-                const eqNumbers: string[] = match[1].split(settings.multiCitationDelimiter || ',').map(t => t.trim());
-                const eqNumbersAll = settings.enableContinuousCitation ?
+                const eqNumbers: string[] = match[1].split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
+                const eqNumbersAll = plugin.settings.enableContinuousCitation ?
                     splitContinuousCitationTags(
                         eqNumbers,
-                        settings.continuousRangeSymbol || '~',
-                        settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-                        settings.fileCiteDelimiter
+                        plugin.settings.continuousRangeSymbol || '~',
+                        plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+                        plugin.settings.fileCiteDelimiter
                     ) : eqNumbers; // split continuous citation tags if enabled  
-                
-                const citationWidget = renderEquationCitation(eqNumbersAll, settings);
+
+                const citationWidget = renderEquationCitation(eqNumbersAll, plugin.settings);
+                addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
                 span.replaceWith(citationWidget);
             }
             else {
@@ -287,6 +291,37 @@ export async function mathCitationPostProcessor(
 But recognized citation count is : ${equations.length}, between line ${sectionInfo.lineStart} and ${sectionInfo.lineEnd}
 Which is not match. this can cause rendering issue. skip rendering`);
     }
+}
+
+function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, eqNumbersAll: string[], sourcePath: string): void {
+    citationEl.addEventListener('mouseenter', async () => {
+        await showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
+    })
+}
+
+async function showReadingModePopover(
+    plugin: EquationCitator,
+    citationEl: HTMLElement,
+    eqNumbersAll: string[],
+    sourcePath: string
+): Promise<void> {
+    const mdView : MarkdownView | null = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+    const activeLeaf : WorkspaceLeaf | undefined = mdView?.leaf;
+    if (!activeLeaf) return;  // no active leaf found, skip popover
+    const equations = await plugin.equationServices.getEquationsByTags(eqNumbersAll, sourcePath);
+    if (equations.length === 0) return; // no equations found for this citation, skip popover 
+    
+    let popover : CitationPopover | null = new CitationPopover(
+        plugin,
+        // @ts-ignore -> this can often work correctly.  
+        activeLeaf, 
+        citationEl, 
+        equations, 
+        sourcePath,
+        300);
+    popover.onClose = function() {    
+        popover = null;
+    };
 }
 
 // Utility functions

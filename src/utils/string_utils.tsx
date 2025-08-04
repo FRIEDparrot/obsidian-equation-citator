@@ -65,6 +65,169 @@ export function removeInlineCodeBlocks(line: string): string {
     return result;
 }
 
+/**
+ * Determines if the specified position is within a Markdown inline math environment
+ * Math environment definition: Surrounded by unescaped $ symbols, with $ adjacent to non-whitespace characters
+ * Example: $123$ is a formula, while $ 123$ and $123 $ are not formulas
+ * 
+ * @param line - The line to check
+ * @param pos - The position to check (character index)
+ * @returns Returns true if the position is within a math environment, otherwise false
+ */
+export function isInInlineMathEnvironment(line: string, pos: number): boolean {
+    // Boundary check
+    if (pos < 0 || pos > line.length) {
+        return false;
+    }
+    // First remove code block content, replacing with spaces
+    const lineWithoutCodeBlocks = replaceInlineCodeBlocksWithSpaces(line);
+    // Find all valid math environment ranges
+    const mathRanges = findValidMathRanges(lineWithoutCodeBlocks);
+    // Check if the position is within any math environment range
+    return mathRanges.some(range => pos >= range.start && pos <= range.end);
+}
+
+/**
+ * Removes inline code blocks, replacing with spaces, specifically for math environment detection
+ * Correctly handles escaped backticks
+ */
+function replaceInlineCodeBlocksWithSpaces(line: string): string {
+    let result = '';
+    let inCodeBlock = false;
+    let i = 0;
+
+    while (i < line.length) {
+        if (line[i] === '`') {
+            // Check if it's escaped
+            let escapeCount = 0;
+            let j = i - 1;
+            while (j >= 0 && line[j] === '\\') {
+                escapeCount++;
+                j--;
+            }
+            
+            // If the number of backslashes is even (including 0), the backtick is not escaped
+            if (escapeCount % 2 === 0) {
+                inCodeBlock = !inCodeBlock;
+                result += ' '; // Replace backtick with space
+            } else {
+                // Escaped backtick, keep as is
+                result += line[i];
+            }
+        } else if (inCodeBlock) {
+            // Replace code block content with spaces
+            result += ' ';
+        } else {
+            // Keep normal content
+            result += line[i];
+        }
+        i++;
+    }
+
+    return result;
+}
+
+/**
+ * Finds all valid math environment ranges
+ * Correctly handles escape characters
+ */
+function findValidMathRanges(line: string): Array<{start: number, end: number}> {
+    const ranges: Array<{start: number, end: number}> = [];
+    let i = 0;
+
+    while (i < line.length) {
+        // Look for $ symbol
+        if (line[i] === '$') {
+            // Check if it's escaped
+            let escapeCount = 0;
+            let j = i - 1;
+            while (j >= 0 && line[j] === '\\') {
+                escapeCount++;
+                j--;
+            }
+            
+            // If the number of backslashes is odd, the $ is escaped, skip
+            if (escapeCount % 2 === 1) {
+                i++;
+                continue;
+            }
+            
+            const startPos = i;
+            i++; // Skip the opening $
+            
+            // Check if $ is immediately followed by non-whitespace character
+            if (i >= line.length || /\s/.test(line[i])) {
+                // $ is followed by whitespace or end of line, not a valid math environment start
+                continue;
+            }
+            
+            // Look for matching closing $
+            let foundEnd = false;
+            while (i < line.length) {
+                if (line[i] === '$') {
+                    // Check if closing $ is escaped
+                    let endEscapeCount = 0;
+                    let k = i - 1;
+                    while (k >= 0 && line[k] === '\\') {
+                        endEscapeCount++;
+                        k--;
+                    }
+                    
+                    // If closing $ is not escaped
+                    if (endEscapeCount % 2 === 0) {
+                        // Check if $ is immediately preceded by non-whitespace character
+                        if (i > startPos + 1 && !/\s/.test(line[i - 1])) {
+                            // Found valid closing $
+                            ranges.push({
+                                start: startPos + 1, // Excluding opening $
+                                end: i                // Excluding closing $
+                            });
+                            foundEnd = true;
+                        }
+                        i++; // Skip closing $
+                        break;
+                    }
+                }
+                i++;
+            }
+            
+            if (!foundEnd) {
+                // No matching closing $ found, continue searching
+                continue;
+            }
+        } else {
+            i++;
+        }
+    }
+
+    return ranges;
+}
+
+/**
+ * Finds the last unescaped dollar symbol in the line before the specified position 
+ * @param line 
+ * @param pos 
+ * @returns 
+ */
+export function findLastUnescapedDollar(line: string, pos: number): number {
+    for (let i = pos - 1; i >= 0; i--) {
+        if (line[i] === '$') {
+            // check whether it's escaped
+            let backslashes = 0;
+            let j = i - 1;
+            // avoid the case of esaped `\`
+            while (j >= 0 && line[j] === '\\') {
+                backslashes++;
+                j--;
+            }
+            if (backslashes % 2 === 0) {
+                return i; // found unescaped $
+            }
+        }
+    }
+    return -1;
+}
+
 export interface QuoteLineMatch {
     content: string;
     quoteDepth: number;
@@ -137,11 +300,11 @@ export function parseMarkdownLine(
 ): MarkdownLineEnvironment {
     const headingRegex = /^(#{1,6})\s+(.*)$/;
     const singleLineEqRegex = /^\s*\$\$(?!\$)([\s\S]*?)(?<!\$)\$\$\s*$/;
-    
+
     // Process quote line to extract content and quote depth
     const { content: processedContent, quoteDepth, qt: inQuote } = parseQuotes
         ? (() => {
-            const { content, quoteDepth , isQuote } = processQuoteLine(line);
+            const { content, quoteDepth, isQuote } = processQuoteLine(line);
             return { content, quoteDepth: quoteDepth, qt: isQuote };
         })()
         : { content: line.trim(), quoteDepth: 0, qt: false };

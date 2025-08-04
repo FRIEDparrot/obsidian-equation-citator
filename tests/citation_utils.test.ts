@@ -7,6 +7,7 @@ import {
     parseCitationsInMarkdown,
     replaceCitationsInMarkdown,
     generateCitationSpans,
+    extractAutoCompleteInputTag,
 } from '@/utils/citation_utils';
 
 describe('combineContinuousCitationTags', () => {
@@ -168,8 +169,8 @@ describe('splitContinuousCitationTags', () => {
         // @ts-ignore
         expect(splitContinuousCitationTags(null, rangeSymbol, validDelimiters, fileDelimiter))
             .toEqual([]);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect(splitContinuousCitationTags(undefined as any, rangeSymbol, validDelimiters, fileDelimiter))
+        // @ts-ignore
+        expect(splitContinuousCitationTags(undefined, rangeSymbol, validDelimiters, fileDelimiter))
             .toEqual([]);
     });
 
@@ -839,6 +840,168 @@ This is another inline math $\\ref{eq:3.1}$.
             expect(result).toContain('1.1');
             expect(result).toContain('[2]');
             expect(result).toContain('<sup');
+        });
+    });
+});
+
+describe('extractAutoCompleteInputTag', () => {
+    const defaultDelimiter = ',';
+
+    describe('Basic functionality', () => {
+        test('should return the last tag when typing without trailing spaces', () => {
+            expect(extractAutoCompleteInputTag('abc', defaultDelimiter)).toBe('abc');
+            expect(extractAutoCompleteInputTag('tag1,tag2', defaultDelimiter)).toBe('tag2');
+            expect(extractAutoCompleteInputTag('tag1,tag2,tag3', defaultDelimiter)).toBe('tag3');
+        });
+
+        test('should return trimmed last tag when no trailing space in original', () => {
+            expect(extractAutoCompleteInputTag('tag1, tag2', defaultDelimiter)).toBe('tag2');
+            expect(extractAutoCompleteInputTag('tag1,  tag2', defaultDelimiter)).toBe('tag2');
+            expect(extractAutoCompleteInputTag(' tag1 , tag2', defaultDelimiter)).toBe('tag2');
+        });
+
+        test('should handle partial tags', () => {
+            expect(extractAutoCompleteInputTag('tag1,par', defaultDelimiter)).toBe('par');
+            expect(extractAutoCompleteInputTag('tag1,tag2,p', defaultDelimiter)).toBe('p');
+            expect(extractAutoCompleteInputTag('tag1,tag2,partial_tag', defaultDelimiter)).toBe('partial_tag');
+        });
+    });
+
+    describe('Trailing space and delimiter edge cases', () => {
+        test('should return empty string when content ends with delimiter', () => {
+            expect(extractAutoCompleteInputTag('tag1,', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1,tag2,', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1, ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1,tag2, ', defaultDelimiter)).toBe('');
+        });
+
+        test('should return empty string when content ends with any whitespace', () => {
+            expect(extractAutoCompleteInputTag('tag1 ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1,tag2 ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1,tag2  ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1,tag2\t', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1,tag2\n', defaultDelimiter)).toBe('');
+        });
+
+        test('should handle multiple consecutive delimiters', () => {
+            expect(extractAutoCompleteInputTag('tag1,,tag2', defaultDelimiter)).toBe('tag2');
+            expect(extractAutoCompleteInputTag('tag1,,,', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1,,partial', defaultDelimiter)).toBe('partial');
+            expect(extractAutoCompleteInputTag('tag1,, ', defaultDelimiter)).toBe('');
+        });
+
+        test('should work with custom delimiters', () => {
+            expect(extractAutoCompleteInputTag('tag1;tag2', ';')).toBe('tag2');
+            expect(extractAutoCompleteInputTag('tag1|tag2|partial', '|')).toBe('partial');
+            expect(extractAutoCompleteInputTag('tag1::tag2::', '::')).toBe('');
+            expect(extractAutoCompleteInputTag('tag1::partial', '::')).toBe('partial');
+        });
+
+        test('should handle delimiter that does not exist in content', () => {
+            expect(extractAutoCompleteInputTag('single_tag', defaultDelimiter)).toBe('single_tag');
+            expect(extractAutoCompleteInputTag('no_delimiter_here', ';')).toBe('no_delimiter_here');
+        });
+    });
+
+    describe('Empty and whitespace handling', () => {
+        test('should return empty string for empty content or whitespace-only', () => {
+            expect(extractAutoCompleteInputTag('', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('   ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag(' ', defaultDelimiter)).toBe('');
+        });
+
+        test('should handle whitespace-only tags and trailing spaces', () => {
+            expect(extractAutoCompleteInputTag('tag1,   ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1, , tag2', defaultDelimiter)).toBe('tag2');
+            expect(extractAutoCompleteInputTag('tag1, , tag2 ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('tag1,  ,', defaultDelimiter)).toBe('');
+        });
+
+        test('should handle only delimiters', () => {
+            expect(extractAutoCompleteInputTag(',', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag(',,', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag(', ,', defaultDelimiter)).toBe('');
+        });
+    });
+
+    describe('Special characters and edge cases', () => {
+        test('should handle tags with special characters', () => {
+            expect(extractAutoCompleteInputTag('tag_1,tag-2', defaultDelimiter)).toBe('tag-2');
+            expect(extractAutoCompleteInputTag('tag.1,tag:2', defaultDelimiter)).toBe('tag:2');
+            expect(extractAutoCompleteInputTag('tag[1],tag(2)', defaultDelimiter)).toBe('tag(2)');
+            expect(extractAutoCompleteInputTag('tag1,tag@2', defaultDelimiter)).toBe('tag@2');
+        });
+
+        test('should handle numeric tags', () => {
+            expect(extractAutoCompleteInputTag('1,2', defaultDelimiter)).toBe('2');
+            expect(extractAutoCompleteInputTag('123,456,789', defaultDelimiter)).toBe('789');
+            expect(extractAutoCompleteInputTag('eq1,eq2,3', defaultDelimiter)).toBe('3');
+        });
+
+        test('should handle very long content', () => {
+            const longTag = 'a'.repeat(1000);
+            expect(extractAutoCompleteInputTag(`tag1,${longTag}`, defaultDelimiter)).toBe(longTag);
+            
+            const manyTags = Array.from({length: 100}, (_, i) => `tag${i}`).join(',');
+            expect(extractAutoCompleteInputTag(manyTags, defaultDelimiter)).toBe('tag99');
+        });
+
+        test('should handle unicode characters', () => {
+            expect(extractAutoCompleteInputTag('标签1,标签2', defaultDelimiter)).toBe('标签2');
+            expect(extractAutoCompleteInputTag('tag1,émoji🎉', defaultDelimiter)).toBe('émoji🎉');
+            expect(extractAutoCompleteInputTag('Ω,α,β', defaultDelimiter)).toBe('β');
+        });
+    });
+
+    describe('Real-world scenarios', () => {
+        test('should handle typical equation reference patterns', () => {
+            expect(extractAutoCompleteInputTag('eq1', defaultDelimiter)).toBe('eq1');
+            expect(extractAutoCompleteInputTag('eq:main,eq:sub', defaultDelimiter)).toBe('eq:sub');
+            expect(extractAutoCompleteInputTag('eq:1,eq:2,eq:partial', defaultDelimiter)).toBe('eq:partial');
+        });
+
+        test('should handle common typing scenarios with trailing space restrictions', () => {
+            // User just started typing after delimiter
+            expect(extractAutoCompleteInputTag('eq1,e', defaultDelimiter)).toBe('e');
+            
+            // User finished one tag and added delimiter
+            expect(extractAutoCompleteInputTag('eq1,eq2,', defaultDelimiter)).toBe('');
+            
+            // User is in the middle of typing a tag
+            expect(extractAutoCompleteInputTag('eq1,eq2,partia', defaultDelimiter)).toBe('partia');
+            
+            // User finished typing but added space - should not autocomplete
+            expect(extractAutoCompleteInputTag('eq1,eq2,partial ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('eq1,eq2 ', defaultDelimiter)).toBe('');
+        });
+
+        test('should handle mixed spacing patterns without trailing spaces', () => {
+            expect(extractAutoCompleteInputTag('eq1, eq2 ,eq3', defaultDelimiter)).toBe('eq3');
+            expect(extractAutoCompleteInputTag('eq1 ,eq2, eq3', defaultDelimiter)).toBe('eq3');
+            expect(extractAutoCompleteInputTag(' eq1 , eq2 , eq3', defaultDelimiter)).toBe('eq3');
+            
+            // But not when there are trailing spaces
+            expect(extractAutoCompleteInputTag('eq1, eq2 ,eq3 ', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag('eq1 ,eq2, eq3  ', defaultDelimiter)).toBe('');
+        });
+    });
+
+    describe('Boundary conditions', () => {
+        test('should handle single character inputs', () => {
+            expect(extractAutoCompleteInputTag('a', defaultDelimiter)).toBe('a');
+            expect(extractAutoCompleteInputTag('a,b', defaultDelimiter)).toBe('b');
+            expect(extractAutoCompleteInputTag('a,', defaultDelimiter)).toBe('');
+        });
+
+        test('should handle only delimiter inputs', () => {
+            expect(extractAutoCompleteInputTag(',', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag(',,', defaultDelimiter)).toBe('');
+            expect(extractAutoCompleteInputTag(', ,', defaultDelimiter)).toBe('');
+        });
+        // no need to handle empty delimiter as delimiter must be not empty
+        test('should handle null-like inputs gracefully', () => {
+            // These tests assume the function handles these cases, adjust based on actual implementation
+            expect(extractAutoCompleteInputTag('', defaultDelimiter)).toBe('');
         });
     });
 });
