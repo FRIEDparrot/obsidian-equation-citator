@@ -86,6 +86,7 @@ When you are typing citation format,
 
 > [!note]
 > **For updates and bug fixes in each version**, please check the [changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md)
+> 
 > **For features in future updates**, see [full tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Equation%20Citator%20Tutorial.md) 
 
 
