@@ -24,18 +24,6 @@ jest.mock('@/utils/heading', () => ({
     }
 }));
 
-jest.mock('@/utils/equation_utils', () => ({
-    trimEquationsBlock: (buffer: string[]) => {
-        // Remove first $$ and extract content
-        const content = buffer.slice(1, -1).join('\n');
-        return content;
-    },
-    clearEquationTag: (equation: string) => {
-        // Remove existing tags like \tag{...}
-        return equation.replace(/\\tag\{[^}]*\}/g, '').trim();
-    }
-}));
-
 describe('autoNumberEquations', () => {
     describe('Relative Numbering', () => {
         test('should handle equations before any heading with P prefix', () => {
@@ -47,7 +35,7 @@ $$ F = ma $$
 
 $$ G = mg $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ E = mc^2 \\tag{P1} $$');
             expect(result).toContain('$$ F = ma \\tag{P2} $$');
@@ -65,7 +53,7 @@ $$ eq2 $$
 ## Section Next
 $$ eq3 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{1.1} $$');
             expect(result).toContain('$$ eq2 \\tag{1.1.1} $$');
@@ -96,7 +84,7 @@ $$ \\int f(t) dt $$
 
 $$ a+b = c $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ E = mc^2 \\tag{P1} $$');
             expect(result).toContain('$$ G = mg \\tag{1.1} $$');
@@ -120,7 +108,7 @@ $$ eq2 $$
 
 $$ eq3 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 1, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 1, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{1} $$');
             expect(result).toContain('$$ eq2 \\tag{2} $$');
@@ -144,7 +132,7 @@ $$ eq3 $$
 
 $$ eq4 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 2, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 2, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{1.1} $$');
             expect(result).toContain('$$ eq2 \\tag{1.2} $$');
@@ -168,7 +156,7 @@ $$
 x = y + z
 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$\n\\begin{align}\na &= b + c \\\\\nd &= e + f\n\\end{align} \\tag{1.1}\n$$');
             expect(result).toContain('$$\nx = y + z \\tag{1.1.1}\n$$');
@@ -184,10 +172,10 @@ $$ ignored $$
 # Chapter 1
 $$ eq2 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{P1} $$');
-            expect(result).toContain('$$ ignored $$'); // Should remain unchanged
+            expect(result).toContain('$$ ignored $$');
             expect(result).toContain('$$ eq2 \\tag{1.1} $$');
         });
 
@@ -198,7 +186,7 @@ $$ eq2 $$
 
 $$ eq3 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{P1} $$');
             expect(result).toContain('$$ eq2 \\tag{P2} $$');
@@ -215,7 +203,7 @@ $$ e2 $$
 ## H2
 $$ e3 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ e1 \\tag{1.1} $$');
             expect(result).toContain('$$ e2 \\tag{1.1.1} $$');
@@ -231,7 +219,7 @@ $$ eq2 $$
 ## Section A
 $$ eq3 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '-', 'EQ', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '-', 'EQ', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{EQ1} $$');
             expect(result).toContain('$$ eq2 \\tag{1-1} $$');
@@ -244,7 +232,7 @@ $$ E = mc^2 \\tag{old} $$
 
 $$ F = ma \\tag{another} $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ E = mc^2 \\tag{1.1} $$');
             expect(result).toContain('$$ F = ma \\tag{1.2} $$');
@@ -253,7 +241,7 @@ $$ F = ma \\tag{another} $$`;
 
     describe('Edge Cases', () => {
         test('should handle empty content', () => {
-            const result = autoNumberEquations('', AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations('', AutoNumberingType.Relative, 7, '.', 'P', '').md;
             expect(result).toBe('');
         });
 
@@ -266,7 +254,7 @@ Some text here.
 
 More text.`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
             expect(result).toBe(content);
         });
 
@@ -287,22 +275,21 @@ $$ also not an equation $$
 
 $$ eq3 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{P1} $$');
             expect(result).toContain('$$ eq2 \\tag{P2} $$');
             expect(result).toContain('$$ eq3 \\tag{P3} $$');
-            expect(result).toContain('$$ not an equation $$'); // Should remain unchanged
-            expect(result).toContain('$$ also not an equation $$'); // Should remain unchanged
+            expect(result).toContain('$$ not an equation $$');
+            expect(result).toContain('$$ also not an equation $$');
         });
 
         test('should handle maxDepth = 0 gracefully', () => {
             const content = `# Chapter 1
 $$ eq1 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 0, '.', 'P','');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 0, '.', 'P','').md;
 
-            // Should still work with minimal depth
             expect(result).toContain('\\tag{');
         });
 
@@ -320,7 +307,7 @@ $$ e5 $$
 ###### H6
 $$ e6 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
 
             expect(result).toContain('$$ e1 \\tag{1.1} $$');
             expect(result).toContain('$$ e2 \\tag{1.1.1} $$');
@@ -350,7 +337,7 @@ $$ eq5 $$
 ## Section 1.2
 $$ eq6 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{1.1} $$');
             expect(result).toContain('$$ eq2 \\tag{1.1.1} $$');
@@ -382,16 +369,15 @@ $$ eq6 $$
 ####### Not a real heading
 $$ eq7 $$`;
 
-            // Test with maxDepth = 4 (should only show 4 levels)
-            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 5, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 5, '.', 'P', '').md;
             
             expect(result).toContain('$$ eq1 \\tag{1.1} $$');
             expect(result).toContain('$$ eq2 \\tag{1.1.1} $$');
             expect(result).toContain('$$ eq3 \\tag{1.1.1.1} $$');
-            expect(result).toContain('$$ eq4 \\tag{1.1.1.1.1} $$'); // Level 4
-            expect(result).toContain('$$ eq5 \\tag{1.1.1.1.2} $$'); // Still level 4
-            expect(result).toContain('$$ eq6 \\tag{1.1.1.1.3} $$'); // Still level 4
-            expect(result).toContain('$$ eq7 \\tag{1.1.1.1.4} $$'); // Still level 4
+            expect(result).toContain('$$ eq4 \\tag{1.1.1.1.1} $$');
+            expect(result).toContain('$$ eq5 \\tag{1.1.1.1.2} $$');
+            expect(result).toContain('$$ eq6 \\tag{1.1.1.1.3} $$');
+            expect(result).toContain('$$ eq7 \\tag{1.1.1.1.4} $$');
         });
 
         test('should handle equations before any heading', () => {
@@ -403,7 +389,7 @@ $$ first $$
 
 $$ pre3 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
 
             expect(result).toContain('$$ pre1 \\tag{P1} $$');
             expect(result).toContain('$$ pre2 \\tag{P2} $$');
@@ -433,7 +419,7 @@ $$ eq6 $$
 # Another Main
 $$ eq7 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{1.1} $$');
             expect(result).toContain('$$ eq2 \\tag{1.1.1} $$');
@@ -457,7 +443,7 @@ $$ eq3 $$
 ## Back to Level 2
 $$ eq4 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{1.1} $$');
             expect(result).toContain('$$ eq2 \\tag{1.1.1.1} $$');
@@ -481,7 +467,7 @@ $$ eq4 $$
 ### E
 $$ eq5 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{1.1} $$');
             expect(result).toContain('$$ eq2 \\tag{1.1.1} $$');
@@ -504,7 +490,7 @@ $$
 x = y
 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
 
             expect(result).toContain('$$\n\\begin{align}\na &= b \\\\\nc &= d\n\\end{align} \\tag{1.1}\n$$');
             expect(result).toContain('$$\nx = y \\tag{1.1.1}\n$$');
@@ -515,7 +501,7 @@ $$`;
 $$ eq2 $$
 $$ eq3 $$`;
 
-            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
 
             expect(result).toContain('$$ eq1 \\tag{P1} $$');
             expect(result).toContain('$$ eq2 \\tag{P2} $$');
@@ -529,8 +515,8 @@ $$ eq1 $$
 ## B
 $$ eq2 $$`;
 
-            const dotResult = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
-            const dashResult = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '-', 'P', '');
+            const dotResult = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
+            const dashResult = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '-', 'P', '').md;
 
             expect(dotResult).toContain('$$ eq1 \\tag{1.1} $$');
             expect(dotResult).toContain('$$ eq2 \\tag{1.1.1} $$');
@@ -544,8 +530,8 @@ $$ eq2 $$`;
 # A
 $$ eq2 $$`;
 
-            const prefixPResult = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '');
-            const prefixEQResult = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'EQ', '');
+            const prefixPResult = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'P', '').md;
+            const prefixEQResult = autoNumberEquations(content, AutoNumberingType.Absolute, 6, '.', 'EQ', '').md;
 
             expect(prefixPResult).toContain('$$ eq1 \\tag{P1} $$');
             expect(prefixPResult).toContain('$$ eq2 \\tag{1.1} $$');

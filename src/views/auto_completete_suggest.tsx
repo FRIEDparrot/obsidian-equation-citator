@@ -1,4 +1,4 @@
-import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView } from "obsidian";
+import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext } from "obsidian";
 import EquationCitator from "@/main";
 import { RenderedEquation } from "@/services/equation_services";
 import { escapeRegExp, findLastUnescapedDollar, isInInlineMathEnvironment } from "@/utils/string_utils";
@@ -133,7 +133,8 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         let newContent: string;
         if (lastTag === "") {
             // directly append the new tag 
-            newContent = `\\ref{${this.plugin.settings.citationPrefix}${currentTags}${value.tag}${delimiter} `
+            const originTags = currentTags.split(delimiter).join(delimiter + " ");
+            newContent = `\\ref{${this.plugin.settings.citationPrefix}${originTags}${value.tag}${delimiter} `
         }
         else {
             const { crossFile } = splitFileCitation(lastTag, fileDelimiter);
@@ -142,7 +143,6 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
             tags[tags.length - 1] = filePrefix + value.tag;
             newContent = `\\ref{${this.plugin.settings.citationPrefix}${tags.join(delimiter + " ")}${delimiter} `
         }
-
         const replaceStart = {
             line: this.context.start.line,
             ch: lastDollarIndex + 1

@@ -19,36 +19,37 @@ import { CitationCache } from '@/cache/citationCache';
 import { FootNoteCache } from '@/cache/footnoteCache';
 import { ColorManager } from '@/settings/colorManager';
 import { EquationServices } from '@/services/equation_services';
+import { TagService } from '@/services/tag_service';
 import { AutoCompleteSuggest } from '@/views/auto_completete_suggest';
+import { registerRightClickMenu } from '@/ui/rightButtonMenu';
+
 
 export default class EquationCitator extends Plugin {
     settings: EquationCitatorSettings;
     extensions: Extension[] = [];
-    equationServices: EquationServices; 
+    equationServices: EquationServices;
+    tagService: TagService;
 
     // initialize caches
     public citationCache: CitationCache;   // citation cache instance 
     public equationCache: EquationCache;     // equation cache instance
     public footnoteCache: FootNoteCache;     // footnote cache instance
 
-    private autoCompleteSuggest: AutoCompleteSuggest; 
+    private autoCompleteSuggest: AutoCompleteSuggest;
     private mathCitationCompartment = new Compartment();
 
     async onload() {
         await this.loadSettings();
         ColorManager.updateAllColors(this.settings);
+        this.addSettingTab(new SettingsTabView(this.app, this));
         // initialize caches
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
         this.footnoteCache = new FootNoteCache(this);
-        this.addSettingTab(new SettingsTabView(this.app, this));
 
-        // register services class
+        // load caches and register services class 
+        this.loadCaches();
         this.registerServices();
-
-        // register ribbon button and commands 
-        registerRibbonButton(this);
-        registerCommands(this);
         
         // Register Live Preview extension and Reading Mode extension 
         this.loadEditorExtensions();
@@ -57,6 +58,11 @@ export default class EquationCitator extends Plugin {
         // Register auto-complete suggestion widget
         this.autoCompleteSuggest = new AutoCompleteSuggest(this);
         this.registerEditorSuggest(this.autoCompleteSuggest);
+
+        // register ribbon button and commands 
+        registerRibbonButton(this);
+        registerRightClickMenu(this);
+        registerCommands(this);
     }
 
     onunload() {
@@ -71,9 +77,16 @@ export default class EquationCitator extends Plugin {
         this.upDateEditorExtensions();
     }
 
+    loadCaches() { 
+        this.citationCache = new CitationCache(this);
+        this.equationCache = new EquationCache(this);
+        this.footnoteCache = new FootNoteCache(this); 
+    }
+
     registerServices() {
         // sheared services instance  
         this.equationServices = new EquationServices(this);
+        this.tagService = new TagService(this);
     }
 
     async loadEditorExtensions() {
@@ -83,6 +96,7 @@ export default class EquationCitator extends Plugin {
             )
         )
     }
+
     loadReadingModeExtensions() {
         this.registerMarkdownPostProcessor(
             async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {

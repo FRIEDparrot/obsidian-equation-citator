@@ -1,17 +1,19 @@
 <h1> <center> Obsidian Equation Citator </center> </h1>
 
 <center><span>
-  <img src="https://img.shields.io/badge/Latest%20Version-1.1.0-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest%20Version-1.2.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></center>
 
 <center>
-    <div><small> First Release : Aug 3, 2025       Last Updated : Aug 4, 2025 </small></div>
+    <div><small> First Release : Aug 3, 2025       Last Updated : Aug 7, 2025 </small></div>
 </center>
 <p></p>
 
-**5 mins Quick Start:**  [Full Tutorial]( <https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials>)
+**5 mins Quick Start** : see [Full Tutorial]( <https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials>)
+
+**Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) 
 
 **Video Tutorial**: I'll make a video tutorial if this plugin has 5000 downloads or this repo gets 50 stars.
 
@@ -59,9 +61,9 @@ equation $\ref{eq:1^1.1.1, 1^1.1.2, 1^1.1.3, 1^2.1.1, 1^2.1.2}$
 # the above will be automatically combined together as continuous citation. 
 ```
 
-This will render multiple equations in a winodw : 
+This will render multiple equations in a window, and **you can use double click or ctrl + double click on an equation to jump here** : 
 
-<center><img src="img\continuous-cross-file.png" alt="continuous-cross-file" style="zoom:67%; max-height: 500px; " /></center>
+<center><img src="img\crossfile_jump.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px; " /></center>
 
 note here preview is only available in live editor mode now. (reading mode support will be added soon) 
 
@@ -79,12 +81,10 @@ Original PDF export in obsidian can fail to render citation, so a command is pro
 
 When you are typing citation format, The plugin will suggest you the available equations and citation format and fill in the equation number as you click. Which is shown in the following picture : 
 
-<center><img src="img\auto-complete.png" alt="continuous-cross-file" style="zoom:67%; max-height: 500px; " /></center>
-
+<center><img src="img\auto-complete.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px;" /></center>
 
 
 > [!note]
-> **For updates and bug fixes in each version**, please check the [changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md)
 > 
 > **For features in future updates**, see [full tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Equation%20Citator%20Tutorial.md) 
 
@@ -111,7 +111,6 @@ Since it's a new plugin, some bugs or issues may still exist. If you encounter a
 If u have knowledge about plugin development, you can also find which function is causing the bug or issue, provide testing cases or make pull requests to fix the bug or issue. 
 
 Also, if u have any suggestion or question for this plugin, feel free to leave it in the issue page.
-
 
 
 > [!note] 

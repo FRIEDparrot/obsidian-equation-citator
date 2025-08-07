@@ -1,11 +1,15 @@
+import { Notice } from "obsidian";
 import EquationCitator from "@/main";
 import {
     MarkdownRenderer,
     Component,
     HoverPopover,
     HoverParent,
+    TFile,
+    MarkdownView,
+    EditorRange,
 } from "obsidian";
-
+import Debugger from "@/debug/debugger";
 
 export class TargetElComponent extends Component {
     constructor(public targetEl: HTMLElement | null) {
@@ -14,6 +18,8 @@ export class TargetElComponent extends Component {
 }
 
 import { RenderedEquation } from "@/services/equation_services";
+import { EquationMatch, parseFirstEquationInMarkdown } from "@/utils/equation_utils";
+
 
 /**
  * Citaton Popover Class, render the equations in the popover 
@@ -69,9 +75,9 @@ export class CitationPopover extends HoverPopover {
 
         // Loop and create div for each equation
         this.equationsToRender.forEach((eq, index) => {
-            renderEquationWrapper(this.plugin, this.sourcePath, eq, equationsContainer, targetComponent);
+            renderEquationWrapper(this.plugin, this.sourcePath, eq, equationsContainer, targetComponent, true);
         });
-        
+
         // Add footer with equation count
         const footer = container.createDiv();
         const totalEquations = this.equationsToRender.length;
@@ -127,11 +133,12 @@ export class CitationPopover extends HoverPopover {
  * @param targetComponent 
  */
 export function renderEquationWrapper(
-    plugin: EquationCitator, 
-    sourcePath: string, 
-    eq: RenderedEquation, 
-    container: HTMLElement, 
-    targetComponent: Component
+    plugin: EquationCitator,
+    sourcePath: string,
+    eq: RenderedEquation,
+    container: HTMLElement,
+    targetComponent: Component,
+    addLinkJump = false
 ): void {
     const equationWrapper = container.createDiv();
     equationWrapper.addClass("em-equation-wrapper");
@@ -164,6 +171,10 @@ export function renderEquationWrapper(
     );
     // Add click effects to each equation
     addClickEffects(equationWrapper);
+
+    if (addLinkJump) {
+        addClickLinkJump(plugin, equationWrapper, eq);
+    }
 }
 
 function addClickEffects(equationWrapper: HTMLElement): void {
@@ -175,5 +186,66 @@ function addClickEffects(equationWrapper: HTMLElement): void {
 
         // Add active class to clicked equation
         equationWrapper.addClass('em-equation-active');
+    });
+}
+
+async function scrollToTag(plugin: EquationCitator, tag: string): Promise<void> {
+    // get current file path
+    const filePath = plugin.app.workspace.getActiveFile()?.path;
+    if (!filePath) {
+        return;
+    }
+    const file = plugin.app.vault.getAbstractFileByPath(filePath);
+    if (!(file instanceof TFile)) {
+        return;
+    }
+    const md = await plugin.app.vault.cachedRead(file);
+    const match: EquationMatch | undefined = parseFirstEquationInMarkdown(md, tag);
+    if (!match) {
+        Debugger.log("can't find equation with tag: " + tag + " in file: " + filePath);
+        return;
+    }
+    const lineStart = match.lineStart;
+    // scroll to the first equation with tag  
+    const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.editor) {
+        return;
+    }
+
+    // live preview mode 
+    const editor = view.editor;
+    editor.setCursor({ line: lineStart, ch: 0 });
+    const scrollRange: EditorRange = { from: { line: lineStart, ch: 0 }, to: { line: lineStart, ch: 0 } };
+    editor.scrollIntoView(scrollRange, true);
+}
+
+
+function addClickLinkJump(plugin: EquationCitator, equationWrapper: HTMLElement, eq: RenderedEquation): void {
+    // double-click to jump to the equation file 
+    equationWrapper.addEventListener('dblclick', async (event) => {
+        if (!eq.sourcePath || !eq.tag) {
+            return;   // no valid equation file or tag 
+        }
+        const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!view) { return; }
+        const isReadingMode = view.getMode() === "preview";
+        if (isReadingMode) {
+            new Notice("Link jump is not supported in reading mode. Use Live Preview instead.");
+            return;
+        } 
+        if (event.ctrlKey || event.metaKey) {
+            // open in new window and split right 
+            plugin.app.workspace.openLinkText("", eq.sourcePath, "split");
+        }
+        else {
+            plugin.app.workspace.openLinkText("", eq.sourcePath, false); // open in current window
+        }
+        // scroll to the first equation with tag
+        plugin.app.workspace.onLayoutReady(() => {
+            // ensure the layout is ready before scrolling to the tag 
+            setTimeout(async () => {
+                await scrollToTag(plugin, eq.tag);
+            }, 100);
+        })
     });
 }

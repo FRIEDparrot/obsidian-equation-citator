@@ -5,7 +5,7 @@ import {
     combineContinuousCitationTags,
     splitContinuousCitationTags,
     parseCitationsInMarkdown,
-    replaceCitationsInMarkdown,
+    replaceCitationsInMarkdownWithSpan,
     generateCitationSpans,
     extractAutoCompleteInputTag,
 } from '@/utils/citation_utils';
@@ -384,8 +384,7 @@ describe('extractLastNumber', () => {
 
 
 
-
-// Comprehensive test cases
+// Updated test cases for parseCitationsInMarkdown with position field
 describe('parseCitationsInMarkdown', () => {
     // Basic functionality tests
     describe('Basic Cases', () => {
@@ -401,7 +400,11 @@ describe('parseCitationsInMarkdown', () => {
             expect(result).toEqual([{
                 label: 'eq1',
                 line: 0,
-                fullMatch: '$\\ref{eq1}$'
+                fullMatch: '$\\ref{eq1}$',
+                position: {
+                    start: 21,
+                    end: 32
+                }
             }]);
         });
 
@@ -414,9 +417,33 @@ Fourth line $\\ref{eqC}$`;
 
             const result = parseCitationsInMarkdown(md);
             expect(result).toEqual([
-                { label: 'eqA', line: 1, fullMatch: '$\\ref{eqA}$' },
-                { label: 'eqB', line: 2, fullMatch: '$\\ref{eqB}$' },
-                { label: 'eqC', line: 4, fullMatch: '$\\ref{eqC}$' }
+                { 
+                    label: 'eqA', 
+                    line: 1, 
+                    fullMatch: '$\\ref{eqA}$',
+                    position: {
+                        start: 14,
+                        end: 25
+                    }
+                },
+                { 
+                    label: 'eqB', 
+                    line: 2, 
+                    fullMatch: '$\\ref{eqB}$',
+                    position: {
+                        start: 13,
+                        end: 24
+                    }
+                },
+                { 
+                    label: 'eqC', 
+                    line: 4, 
+                    fullMatch: '$\\ref{eqC}$',
+                    position: {
+                        start: 12,
+                        end: 23
+                    }
+                }
             ]);
         });
 
@@ -425,8 +452,24 @@ Fourth line $\\ref{eqC}$`;
             const result = parseCitationsInMarkdown(md);
 
             expect(result).toEqual([
-                { label: 'eq1', line: 0, fullMatch: '$\\ref{eq1}$' },
-                { label: 'eq2', line: 0, fullMatch: '$\\ref{eq2}$' }
+                { 
+                    label: 'eq1', 
+                    line: 0, 
+                    fullMatch: '$\\ref{eq1}$',
+                    position: {
+                        start: 12,
+                        end: 23
+                    }
+                },
+                { 
+                    label: 'eq2', 
+                    line: 0, 
+                    fullMatch: '$\\ref{eq2}$',
+                    position: {
+                        start: 28,
+                        end: 39
+                    }
+                }
             ]);
         });
     });
@@ -473,7 +516,11 @@ Fourth line $\\ref{eqC}$`;
             expect(result).toEqual([{
                 label: 'eq2',
                 line: 0,
-                fullMatch: '$\\ref{eq2}$'
+                fullMatch: '$\\ref{eq2}$',
+                position: {
+                    start: 48,
+                    end: 59
+                }
             }]);
         });
 
@@ -484,7 +531,11 @@ Fourth line $\\ref{eqC}$`;
             expect(result).toEqual([{
                 label: 'eq2',
                 line: 0,
-                fullMatch: '$\\ref{eq2}$'
+                fullMatch: '$\\ref{eq2}$',
+                position: {
+                    start: 32,
+                    end: 43
+                }
             }]);
         });
 
@@ -498,8 +549,24 @@ After code block $\\ref{eq4}$`;
 
             const result = parseCitationsInMarkdown(md);
             expect(result).toEqual([
-                { label: 'eq1', line: 0, fullMatch: '$\\ref{eq1}$' },
-                { label: 'eq4', line: 5, fullMatch: '$\\ref{eq4}$' }
+                { 
+                    label: 'eq1', 
+                    line: 0, 
+                    fullMatch: '$\\ref{eq1}$',
+                    position: {
+                        start: 17,
+                        end: 28
+                    }
+                },
+                { 
+                    label: 'eq4', 
+                    line: 5, 
+                    fullMatch: '$\\ref{eq4}$',
+                    position: {
+                        start: 17,
+                        end: 28
+                    }
+                }
             ]);
         });
 
@@ -510,7 +577,11 @@ After code block $\\ref{eq4}$`;
             expect(result).toEqual([{
                 label: 'eq1',
                 line: 0,
-                fullMatch: '$\\ref{eq1}$'
+                fullMatch: '$\\ref{eq1}$',
+                position: {
+                    start: 33,
+                    end: 44
+                }
             }]);
         });
 
@@ -521,7 +592,11 @@ After code block $\\ref{eq4}$`;
             expect(result).toEqual([{
                 label: 'eq3',
                 line: 0,
-                fullMatch: '$\\ref{eq3}$'
+                fullMatch: '$\\ref{eq3}$',
+                position: {
+                    start: 50,
+                    end: 61
+                }
             }]);
         });
     });
@@ -535,9 +610,33 @@ $$\\ref{eq:1.3}$$`;
 
             const result = parseCitationsInMarkdown(markdown);
             expect(result).toEqual([
-                { label: 'eq:1.1.1', fullMatch: '$\\ref{eq:1.1.1}$', line: 0 },
-                { label: 'eq:1.1', fullMatch: '$txt1\\ref{eq:1.1}txt2$', line: 0 },
-                { label: '', fullMatch: '$\\ref{}$', line: 0 }
+                { 
+                    label: 'eq:1.1.1', 
+                    fullMatch: '$\\ref{eq:1.1.1}$', 
+                    line: 0,
+                    position: {
+                        start: 0,
+                        end: 16
+                    }
+                },
+                { 
+                    label: 'eq:1.1', 
+                    fullMatch: '$txt1\\ref{eq:1.1}txt2$', 
+                    line: 0,
+                    position: {
+                        start: 45,
+                        end: 67
+                    }
+                },
+                { 
+                    label: '', 
+                    fullMatch: '$\\ref{}$', 
+                    line: 0,
+                    position: {
+                        start: 81,
+                        end: 89
+                    }
+                }
             ]);
         });
 
@@ -553,7 +652,11 @@ $$`;
             expect(result).toEqual([{
                 label: 'eq:1.2',
                 line: 0,
-                fullMatch: '$E = mc^2 + \\ref{eq:1.2}$'
+                fullMatch: '$E = mc^2 + \\ref{eq:1.2}$',
+                position: {
+                    start: 16,
+                    end: 41
+                }
             }]);
         });
 
@@ -564,7 +667,11 @@ $$`;
             expect(result).toEqual([{
                 label: 'eq1',
                 line: 0,
-                fullMatch: '$E = \\ref{eq1} + x^2$'
+                fullMatch: '$E = \\ref{eq1} + x^2$',
+                position: {
+                    start: 8,
+                    end: 29
+                }
             }]);
         });
     });
@@ -578,7 +685,11 @@ $$`;
             expect(result).toEqual([{
                 label: '',
                 line: 0,
-                fullMatch: '$\\ref{}$'
+                fullMatch: '$\\ref{}$',
+                position: {
+                    start: 6,
+                    end: 14
+                }
             }]);
         });
 
@@ -602,7 +713,11 @@ $$`;
             expect(result).toEqual([{
                 label: 'eq:1.3.1~3^1, 2.1.1~2^1',
                 line: 0,
-                fullMatch: '$\\ref{eq:1.3.1~3^1, 2.1.1~2^1}$'
+                fullMatch: '$\\ref{eq:1.3.1~3^1, 2.1.1~2^1}$',
+                position: {
+                    start: 14,
+                    end: 45
+                }
             }]);
         });
     });
@@ -621,6 +736,7 @@ $$`;
     });
 });
 
+
 describe('Citation Utils Tests', () => {
     const defaultSettings = {
         prefix: 'eq:',
@@ -633,7 +749,7 @@ describe('Citation Utils Tests', () => {
     describe('replaceCitationsInMarkdown', () => {
         test('should replace simple inline citation', () => {
             const markdown = 'This is $\\ref{eq:1.1}$ a test.';
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -649,7 +765,7 @@ describe('Citation Utils Tests', () => {
 
         test('should handle multiple citations in one math expression', () => {
             const markdown = 'This is $\\ref{eq:1.1, 1.2, 1.3}$ a test.';
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -665,7 +781,7 @@ describe('Citation Utils Tests', () => {
 
         test('should not replace citations in inline code blocks', () => {
             const markdown = 'This is `$\\ref{eq:1.1}$` in code.';
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -680,7 +796,7 @@ describe('Citation Utils Tests', () => {
 
         test('should handle the problematic case from the issue', () => {
             const markdown = 'Note if we enable the continuous citation, the equation write in a continuous sequence will also be rendered continuously. For example, `$\\ref{eq:1.3.1, 1.3.2, 1.3.3}` will be rendered as $\\ref{eq:1.3.1, 1.3.2, 1.3.3}$.';
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -709,7 +825,7 @@ This is code with $\\ref{eq:2.1}$.
 
 This is normal text with $\\ref{eq:3.1}$.
 `;
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -737,7 +853,7 @@ $$
 
 This is another inline math $\\ref{eq:3.1}$.
 `;
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -754,7 +870,7 @@ This is another inline math $\\ref{eq:3.1}$.
 
         test('should handle citations with leading/trailing spaces (should ignore them)', () => {
             const markdown = 'This is $\\ref{eq:1.1} $ and $ \\ref{eq:2.1}$ test.';
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -771,7 +887,7 @@ This is another inline math $\\ref{eq:3.1}$.
 
         test('should handle multiple refs in same math expression (should ignore)', () => {
             const markdown = 'This is $\\ref{eq:1.1} \\ref{eq:2.1}$ test.';
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -786,7 +902,7 @@ This is another inline math $\\ref{eq:3.1}$.
 
         test('should handle cross-file citations', () => {
             const markdown = 'This is $\\ref{eq:2^1.1}$ a cross-file citation.';
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 defaultSettings.rangeSymbol,
@@ -803,7 +919,7 @@ This is another inline math $\\ref{eq:3.1}$.
 
         test('should disable continuous citations when rangeSymbol is null', () => {
             const markdown = 'This is $\\ref{eq:1.1, 1.2, 1.3}$ a test.';
-            const result = replaceCitationsInMarkdown(
+            const result = replaceCitationsInMarkdownWithSpan(
                 markdown,
                 defaultSettings.prefix,
                 null, // Disable continuous citations

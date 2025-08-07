@@ -3,7 +3,7 @@
 ### Version 1.0.0 
 Version 1.0.0 - Initial release  
 
-🚀 Main features include : 
+🚀 Main features of V1.0.0 include : 
 1. Inline citation (support render in both Live Editor and Reading mode)
 2. Cross-file Citation; Continuous citation; 
 3. Equation auto numbering. 
@@ -29,5 +29,20 @@ Other Fixes ([Pull Request #7298](https://github.com/obsidianmd/obsidian-release
 1. Auto-Complete Feature is now available! 
 2. Preview for Equations is now available in Reading mode!
 
-**small glitch fixed after release**:
-- Now auto-complete will not show up in source mode if `enableInSourceMode` setting is disabled. 
+
+### Version 1.2.0  
+Version 1.2.0 - functionally improvements.  
+
+🐛 Fixed Bugs : 
+- Now auto-complete will not show up in source mode if `enableInSourceMode` setting is disabled. (fixed in release edit of 1.1.0)
+- Equation Auto-complete will now add space after the delimiter in single-line equation block case. 
+- Now if no alias (label) is provided for a footnote, it will use the file name as the alias. 
+- Fix some blank line problem in tutorial. also add tutorials for new features. 
+- Refactor the equation utils functions, combine several fucntions into one. 
+
+
+✨ New Features : 
+1. **Link Jump** : **Double click** to jump to equation.  **Ctrl + double click** to create an adjacent window and jump to the equation. (Only support in Live preview mode) 
+
+2. **Rename Tags** : Now you can select tags and right-click to rename it. The citations will be updated automatically.  
+

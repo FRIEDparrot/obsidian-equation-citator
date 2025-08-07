@@ -12,7 +12,7 @@ export function combineContinuousCitationTags(
     fileDelimiter: string
 ): string[] {
     if (!tags || tags.length === 0) return [];
-
+    
     // Create a mapping from original tags to their combined form
     const tagMapping = new Map<string, string>();
     const processedTags = new Set<string>();
@@ -281,6 +281,10 @@ export interface CitationRef {
     label: string;
     line: number;
     fullMatch: string;
+    position: {
+        start: number;  // start index of the full match in the line (inline index)
+        end: number;  // end index of the full match in the line  (inline index) 
+    }
 }
 
 /**
@@ -288,7 +292,6 @@ export interface CitationRef {
  */
 export function parseCitationsInMarkdown(md: string): CitationRef[] {
     if (!md.trim()) return [];
-
     const result: CitationRef[] = [];
     const lines = md.split('\n');
     let inCodeBlock = false;
@@ -309,7 +312,7 @@ export function parseCitationsInMarkdown(md: string): CitationRef[] {
         }
         if (inCodeBlock) continue;
 
-        // Remove inline code block`s (content between backticks)
+        // Remove inline code blocks (replace the code block with spaces) 
         const processedLine = removeInlineCodeBlocks(line);
 
         // Reset regex lastIndex for each line
@@ -321,25 +324,31 @@ export function parseCitationsInMarkdown(md: string): CitationRef[] {
             const [fullMatch, content, label] = match;
 
             // Skip if there are spaces immediately after opening $ or before closing $
-            if (content.startsWith(' ') || content.endsWith(' ')) {
-                continue;
-            }
+            if (content.startsWith(' ') || content.endsWith(' ')) continue;
 
             // Skip if multiple \ref{} in same formula
             const refCount = (content.match(/\\ref\{/g) || []).length;
-            if (refCount > 1) {
-                continue;
-            }
+            if (refCount > 1) continue;
+
+            const startCh = match.index;
+            const endCh = startCh + fullMatch.length;
 
             result.push({
                 label: label,
                 line: lineNum,
-                fullMatch: fullMatch
+                fullMatch: fullMatch,
+                position: {
+                    start: startCh,
+                    end: endCh
+                }
             });
         }
     }
     return result;
 }
+
+
+
 
 ////////////////////  Following Functions are for PDF export usage  ///////////////////////// 
 
@@ -358,7 +367,7 @@ export interface SpanStyles {
  * @param fileDelimiter - File delimiter, defaults to '^'
  * @returns Processed markdown string
  */
-export function replaceCitationsInMarkdown(
+export function replaceCitationsInMarkdownWithSpan(
     markdown: string,
     prefix: string,
     rangeSymbol: string | null,
@@ -557,22 +566,22 @@ export function generateCitationSpans(
 ): string {
     const spans = citations.map((citation, index) => {
         const { local, crossFile } = splitFileCitation(citation, fileDelimiter);
-        
+
 
         const citationColorInPdf = spanStyles.citationColorInPdf || '#000000';
         const superScriptColorInPdf = spanStyles.superScriptColorInPdf || '#000000';
 
         // Combine default styles with color
         const containerStyle = escapeString(
-            DEFAULT_CONTAINER_STYLE + ` color: ${citationColorInPdf};`, 
+            DEFAULT_CONTAINER_STYLE + ` color: ${citationColorInPdf};`,
             "\""
         );
-        
+
         const citationStyle = escapeString(
             DEFAULT_CITATION_STYLE + ` color: ${citationColorInPdf};`,
             "\""
         );
-        
+
         const superscriptStyle = escapeString(
             DEFAULT_SUPERSCRIPT_STYLE + ` color: ${superScriptColorInPdf};`,
             "\""
@@ -593,14 +602,14 @@ export function generateCitationSpans(
 ///////////////////////// Auto Complete Functions  //////////////////// 
 export function extractAutoCompleteInputTag(content: string, delimiter: string): string {
     if (!content) return "";
-    const cleanedContent = content.trim(); 
+    const cleanedContent = content.trim();
     if (/\s$/.test(content) || cleanedContent.endsWith(delimiter)) {
         return ""; // Do not autocomplete if the user is typing a delimiter ","
     }
     const allTags = content.split(delimiter);
     if (allTags.length === 0) {
-        return ""; 
+        return "";
     }
     const lastTag = allTags[allTags.length - 1].trim();  // Get the last tag
-    return lastTag; 
+    return lastTag;
 }

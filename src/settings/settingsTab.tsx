@@ -44,6 +44,10 @@ export interface EquationCitatorSettings {
     autoNumberPrefixEnabled: boolean; // Setting for auto numbering prefix 
     autoNumberPrefix: string; // Global Auto numbering prefix for equations without any heading level  
     autoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
+    
+    // by default, auto-number rename the citation, I don't provide this as option 
+    deleteRepeatTagsInAutoNumbering: boolean; // Delete repeat tags in auto numbering  
+    deleteUnusedTagsInAutoNumbering: boolean; // Delete unused tags in auto numbering  
 
     citationWidgetColor: string[]; // Citation widget color for different types of citations  
     citationWidgetColorDark: string[]; // Citation widget color for different types of citations in dark mode 
@@ -80,7 +84,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     autoNumberPrefixEnabled: false,
     autoNumberPrefix: "", // Default to empty string for no prefix 
     autoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes
-
+    deleteRepeatTagsInAutoNumbering: true, // Default to true, delete repeat tags in auto numbering 
+    deleteUnusedTagsInAutoNumbering: false, // Default to true, delete unused tags in auto numbering 
+    
     citationWidgetColor: ["#ffffff", "#f8f9fa", "#f5f6f7", "#e9ecef", "#dee2e6"],
     citationWidgetColorDark: ["#1e1e1e", "#2d2d2d", "#252525", "#3a3a3a", "#404040"],
     debugMode: false // debug mode is off by default (for set default, see debugger.tsx)
@@ -346,7 +352,6 @@ export class SettingsTabView extends PluginSettingTab {
             });
 
         let autoNumberingPrefixContainer: HTMLElement | null = null;
-
         const autoNumberingPrefixSetting = new Setting(containerEl)
         autoNumberingPrefixSetting.setName("Enable Auto-number prefix")
             .setDesc("Auto equation numbering prefix for purpose like chapter")
@@ -389,6 +394,33 @@ export class SettingsTabView extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 });
             });
+
+        const deleteRepeatTagsInAutoNumberSetting = new Setting(containerEl)
+        deleteRepeatTagsInAutoNumberSetting.setName("Auto Delete Conflicting Tag Citations")
+            .setDesc("Automatically delete conflicting tag citations during auto numbering, instead of prompting you each time.")
+            .addToggle((toggle) => {
+                toggle.setTooltip( "If two tags are assigned the same number during auto numbering, the original citation will be automatically deleted without confirmation. Equivalent to always choosing 'Delete' when renaming tags.")
+                toggle.setValue(this.plugin.settings.deleteRepeatTagsInAutoNumbering);
+                toggle.onChange(async (value) => {
+                    this.plugin.settings.deleteRepeatTagsInAutoNumbering = value;
+                    Debugger.log("Delete repeat tags in auto numbering enabled:", value);
+                    await this.plugin.saveSettings();
+                });
+            });
+        
+        const deleteUnusedTagsInAutoNumberSetting = new Setting(containerEl)
+        deleteUnusedTagsInAutoNumberSetting.setName("Auto Delete Unused Tags Citations")
+            .setDesc("Delete unused tag citations when auto numbering all equations") 
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.deleteUnusedTagsInAutoNumbering);
+                toggle.setTooltip("Deletes citations (e.g., \\ref{1.3.4}) that don't match any equation included in auto-numbering. Citations inside quotes are preserved only if “Auto Numbering Equations in Quotes” is enabled.")
+                toggle.onChange(async (value) => {
+                    this.plugin.settings.deleteUnusedTagsInAutoNumbering = value;
+                    Debugger.log("Delete unused tags in auto numbering enabled:", value);
+                    await this.plugin.saveSettings();
+                });
+            });
+     
         // ================== Equation Widget Render Settings ============= 
         containerEl.createEl("h2", { text: "Equation Widget Settings", cls: "ec-settings-header" });
         containerEl.createEl("p", { text: "1: background, 2: header/footer, 3: hover, 4: active, 5: border" })
@@ -450,9 +482,9 @@ export class SettingsTabView extends PluginSettingTab {
             .addDropdown((dropdown) => {
                 dropdown.addOption("300000", "5 minutes");
                 dropdown.addOption("600000", "10 minutes");
+                dropdown.addOption("900000", "15 minutes");
                 dropdown.addOption("1200000", "20 minutes");
                 dropdown.addOption("1800000", "30 minutes");
-                dropdown.addOption("3600000", "1 hour");
 
                 dropdown.setValue(this.plugin.settings.cacheCleanTime.toString());
                 dropdown.onChange(async (value) => {

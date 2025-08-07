@@ -12,9 +12,8 @@ export default function registerCommands(plugin: EquationCitator) {
             const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
             if (!editor) return;
             const scrollInfo = editor.getScrollInfo();
-
-            autoNumberCurrentFileEquations(plugin);
             
+            autoNumberCurrentFileEquations(plugin);
             // reset the scroll location  
             setTimeout(() => {
                 editor.scrollTo(scrollInfo.left, scrollInfo.top);

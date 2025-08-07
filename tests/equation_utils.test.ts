@@ -1,23 +1,8 @@
 import {
-    getEquationTag,
     parseEquationsInMarkdown,
-    isValidEquationPart
+    isValidEquationPart, 
+    parseFirstEquationInMarkdown 
 } from "@/utils/equation_utils";
-
-describe('getEquationNumber', () => {
-    test('should extract tag numbers correctly', () => {
-        expect(getEquationTag('E = mc^2 \\tag{1.1}')).toBe('1.1');
-        expect(getEquationTag('F = ma \\tag{newton}')).toBe('newton');
-        expect(getEquationTag('P = F/A \\tag{3.2.1}')).toBe('3.2.1');
-        expect(getEquationTag('No tag here')).toBeUndefined();
-        expect(getEquationTag('\\tag{}')).toBeUndefined();
-        expect(getEquationTag('\\tag{ }')).toBeUndefined();
-        expect(getEquationTag('\\tag{ M }')).toBe('M');
-        expect(getEquationTag('\\tag{1.2.3.4} \\tag{5.6}')).toBe('1.2.3.4');
-    });
-});
-
-
 
 describe('isValidEquationPart', () => {
     const validDelimiters = ['.', '-', ':', '_'];
@@ -60,7 +45,7 @@ The above case also shouldn't be parsed.`;
 
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('M');
-        expect(equations[0].content).toBe('\\text{This is a equation in quotation} \\tag{M}');
+        expect(equations[0].contentWithTag).toBe('\\text{This is a equation in quotation} \\tag{M}');
         expect(equations[0].raw).toBe('$$\\text{This is a equation in quotation} \\tag{M}$$');
     });
 
@@ -74,11 +59,11 @@ $$ \\Large \\boxed{dg = - s dT+v dp } $$`;
         const equations = parseEquationsInMarkdown(markdown);
 
         expect(equations).toHaveLength(3);
-        expect(equations[0].content).toBe('E = mc^2');
+        expect(equations[0].contentWithTag).toBe('E = mc^2');
         expect(equations[0].tag).toBeUndefined();
-        expect(equations[1].content).toBe('F = ma \\tag{1.1}');
+        expect(equations[1].contentWithTag).toBe('F = ma \\tag{1.1}');
         expect(equations[1].tag).toBe('1.1');
-        expect(equations[2].content).toBe('\\Large \\boxed{dg = - s dT+v dp }');
+        expect(equations[2].contentWithTag).toBe('\\Large \\boxed{dg = - s dT+v dp }');
     });
 
     test('should handle multi-line equation blocks', () => {
@@ -93,10 +78,10 @@ $$`;
         const equations = parseEquationsInMarkdown(markdown);
 
         expect(equations).toHaveLength(2);
-        expect(equations[0].content).toBe('F = ma');
+        expect(equations[0].contentWithTag).toBe('F = ma');
         expect(equations[0].lineStart).toBe(1);
         expect(equations[0].lineEnd).toBe(3);
-        expect(equations[1].content).toBe('E = mc^2 \\tag{einstein}');
+        expect(equations[1].contentWithTag).toBe('E = mc^2 \\tag{einstein}');
         expect(equations[1].tag).toBe('einstein');
     });
 
@@ -108,7 +93,7 @@ $$`;
 
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('3.1.1');
-        expect(equations[0].content).toContain('du = \\left(\\frac{\\partial u}{\\partial s}\\right)_v ds');
+        expect(equations[0].contentWithTag).toContain('du = \\left(\\frac{\\partial u}{\\partial s}\\right)_v ds');
         expect(equations[0].lineStart).toBe(0);
         expect(equations[0].lineEnd).toBe(1);
     });
@@ -134,9 +119,9 @@ $$ P = F/A \\tag{valid2} $$`;
 
         expect(equations).toHaveLength(2);
         expect(equations[0].tag).toBe('valid');
-        expect(equations[0].content).toBe('E = mc^2 \\tag{valid}');
+        expect(equations[0].contentWithTag).toBe('E = mc^2 \\tag{valid}');
         expect(equations[1].tag).toBe('valid2');
-        expect(equations[1].content).toBe('P = F/A \\tag{valid2}');
+        expect(equations[1].contentWithTag).toBe('P = F/A \\tag{valid2}');
         expect(equations.some(eq => eq.tag === 'invalid1')).toBe(false);
         expect(equations.some(eq => eq.tag === 'invalid2')).toBe(false);
     });
@@ -160,11 +145,11 @@ $$ P = F/A \\tag{valid2} $$`;
 
         expect(equations).toHaveLength(3);
         expect(equations[0].tag).toBe('pythagoras');
-        expect(equations[0].content).toBe('a^2 + b^2 = c^2 \\tag{pythagoras}');
+        expect(equations[0].contentWithTag).toBe('a^2 + b^2 = c^2 \\tag{pythagoras}');
         expect(equations[1].tag).toBe('trig');
-        expect(equations[1].content).toBe('\\sin^2(x) + \\cos^2(x) = 1 \\tag{trig}');
+        expect(equations[1].contentWithTag).toBe('\\sin^2(x) + \\cos^2(x) = 1 \\tag{trig}');
         expect(equations[2].tag).toBe('integral');
-        expect(equations[2].content).toBe('\\int_0^\\infty e^{-x} dx = 1\n\\tag{integral}');
+        expect(equations[2].contentWithTag).toBe('\\int_0^\\infty e^{-x} dx = 1\n\\tag{integral}');
     });
 
     test('should handle edge case: unclosed equation block', () => {
@@ -177,7 +162,7 @@ This should still be parsed even without closing`;
 
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('unclosed');
-        expect(equations[0].content).toBe('F = ma \\tag{unclosed}\nThis should still be parsed even without closing');
+        expect(equations[0].contentWithTag).toBe('F = ma \\tag{unclosed}\nThis should still be parsed even without closing');
         expect(equations[0].lineStart).toBe(1);
         expect(equations[0].lineEnd).toBe(3);
     });
@@ -192,8 +177,8 @@ $ E = mc^2 $   // single dollars should not match`;
         const equations = parseEquationsInMarkdown(markdown);
 
         expect(equations).toHaveLength(2);
-        expect(equations[0].content).toBe('E = mc^2  // missing closing');
-        expect(equations[1].content).toBe('// empty equation');
+        expect(equations[0].contentWithTag).toBe('E = mc^2  // missing closing');
+        expect(equations[1].contentWithTag).toBe('// empty equation');
     });
 
     test('should preserve original formatting in raw field', () => {
@@ -205,7 +190,7 @@ $ E = mc^2 $   // single dollars should not match`;
 
         expect(equations).toHaveLength(1);
         expect(equations[0].raw).toBe('$$   E = mc^2 \\tag{spaced}   $$');
-        expect(equations[0].content).toBe('E = mc^2 \\tag{spaced}');
+        expect(equations[0].contentWithTag).toBe('E = mc^2 \\tag{spaced}');
         expect(equations[0].tag).toBe('spaced');
     });
 
@@ -221,9 +206,9 @@ $$ P = F/A \\tag{pressure} $$`;
         
         expect(equations).toHaveLength(2);
         expect(equations[0].tag).toBe('normal');
-        expect(equations[0].content).toBe('E = mc^2 \\tag{normal}');
+        expect(equations[0].contentWithTag).toBe('E = mc^2 \\tag{normal}');
         expect(equations[1].tag).toBe('pressure');
-        expect(equations[1].content).toBe('P = F/A \\tag{pressure}');
+        expect(equations[1].contentWithTag).toBe('P = F/A \\tag{pressure}');
         expect(equations.some(eq => eq.tag === 'inline')).toBe(false);
     });
 
@@ -245,9 +230,9 @@ $$ P = F/A \\tag{pressure} $$`;
         
         expect(equations).toHaveLength(2);
         expect(equations[0].tag).toBe('valid');
-        expect(equations[0].content).toBe('F = ma \\tag{valid}');
+        expect(equations[0].contentWithTag).toBe('F = ma \\tag{valid}');
         expect(equations[1].tag).toBe('valid2');
-        expect(equations[1].content).toBe('P = F/A \\tag{valid2}');
+        expect(equations[1].contentWithTag).toBe('P = F/A \\tag{valid2}');
         expect(equations.some(eq => eq.tag === 'invalid')).toBe(false);
     });
 
@@ -270,9 +255,9 @@ $$ P = F/A \\tag{pressure} $$`;
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('maxwell');
-        expect(equations[0].content).toContain('\\begin{align}');
-        expect(equations[0].content).toContain('\\nabla \\cdot \\mathbf{E}');
-        expect(equations[0].content).toContain('\\tag{maxwell}');
+        expect(equations[0].contentWithTag).toContain('\\begin{align}');
+        expect(equations[0].contentWithTag).toContain('\\nabla \\cdot \\mathbf{E}');
+        expect(equations[0].contentWithTag).toContain('\\tag{maxwell}');
     });
 
     test('should handle empty content', () => {
@@ -318,7 +303,7 @@ $$ P = F/A \\tag{valid} $$`;  // should parse
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('valid');
-        expect(equations[0].content).toBe('P = F/A \\tag{valid}');
+        expect(equations[0].contentWithTag).toBe('P = F/A \\tag{valid}');
     });
 
     test('should handle equations with leading/trailing whitespace', () => {
@@ -331,7 +316,7 @@ $$`;
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('whitespace');
-        expect(equations[0].content).toBe('E = mc^2 \\tag{whitespace}');
+        expect(equations[0].contentWithTag).toBe('E = mc^2 \\tag{whitespace}');
     });
 
     test('should handle equations in list items', () => {
@@ -347,7 +332,7 @@ $$`;
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('list');
-        expect(equations[0].content).toBe('a^2 + b^2 = c^2 \\tag{list}');
+        expect(equations[0].contentWithTag).toBe('a^2 + b^2 = c^2 \\tag{list}');
     });
 
     test('should handle equations in blockquotes (not callouts)', () => {
@@ -364,7 +349,7 @@ $$`;
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('quadratic');
-        expect(equations[0].content).toBe('x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a} \\tag{quadratic}');
+        expect(equations[0].contentWithTag).toBe('x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a} \\tag{quadratic}');
     });
 
     test('should handle equations with special characters', () => {
@@ -378,7 +363,7 @@ $$`;
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('continuity');
-        expect(equations[0].content).toContain('\\frac{\\partial}{\\partial t}');
+        expect(equations[0].contentWithTag).toContain('\\frac{\\partial}{\\partial t}');
     });
 
     test('should handle multiple equations in sequence', () => {
@@ -417,8 +402,8 @@ $$`;
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('multiline');
-        expect(equations[0].content).toContain('First line of equation');
-        expect(equations[0].content).toContain('Second line of equation');
+        expect(equations[0].contentWithTag).toContain('First line of equation');
+        expect(equations[0].contentWithTag).toContain('Second line of equation');
     });
 
     test('should handle equations with LaTeX comments', () => {
@@ -432,7 +417,7 @@ $$`;
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('commented');
-        expect(equations[0].content).toContain('E = mc^2');
+        expect(equations[0].contentWithTag).toContain('E = mc^2');
     });
 
     test('should handle equations in table cells (should not parse)', () => {
@@ -456,6 +441,293 @@ $$`;
         
         expect(equations).toHaveLength(1);
         expect(equations[0].tag).toBe('money');
-        expect(equations[0].content).toContain('\\$100');
+        expect(equations[0].contentWithTag).toContain('\\$100');
     });
+});
+
+
+describe('parseFirstEquationInMarkdown', () => {
+  describe('Basic functionality', () => {
+    it('should return undefined for empty markdown', () => {
+      expect(parseFirstEquationInMarkdown('', '1')).toBeUndefined();
+      expect(parseFirstEquationInMarkdown('   ', '1')).toBeUndefined();
+    });
+
+    it('should return undefined for empty tag', () => {
+      const markdown = '$$ x = 1 \\tag{1} $$';
+      expect(parseFirstEquationInMarkdown(markdown, '')).toBeUndefined();
+      expect(parseFirstEquationInMarkdown(markdown, '   ')).toBeUndefined();
+    });
+
+    it('should return undefined when no equations exist', () => {
+      const markdown = 'This is just plain text with no equations.';
+      expect(parseFirstEquationInMarkdown(markdown, '1')).toBeUndefined();
+    });
+
+    it('should return undefined when no equations have the target tag', () => {
+      const markdown = `
+        $$ x = 1 \\tag{1} $$
+        $$ y = 2 \\tag{2} $$
+      `;
+      expect(parseFirstEquationInMarkdown(markdown, '3')).toBeUndefined();
+    });
+  });
+
+  describe('Single-line equations', () => {
+    it('should find single-line equation with matching tag', () => {
+      const markdown = '$$ x = 1 \\tag{eq1} $$';
+      const result = parseFirstEquationInMarkdown(markdown, 'eq1');
+      
+      expect(result).toEqual({
+        raw: '$$ x = 1 \\tag{eq1} $$',
+        content: 'x = 1',
+        contentWithTag: 'x = 1 \\tag{eq1}',
+        lineStart: 0,
+        lineEnd: 0,
+        tag: 'eq1',
+        inQuote: false
+      });
+    });
+
+    it('should return first matching equation when multiple exist', () => {
+      const markdown = `
+        $$ x = 1 \\tag{same} $$
+        Some text here
+        $$ y = 2 \\tag{same} $$
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'same');
+      
+      expect(result).toEqual({
+        raw: '$$ x = 1 \\tag{same} $$',
+        content: 'x = 1',
+        contentWithTag: 'x = 1 \\tag{same}',
+        lineStart: 1,
+        lineEnd: 1,
+        tag: 'same',
+        inQuote: false
+      });
+    });
+
+    it('should handle equations with whitespace in tags', () => {
+      const markdown = '$$ x = 1 \\tag{ eq 1 } $$';
+      const result = parseFirstEquationInMarkdown(markdown, 'eq 1');
+      
+      expect(result?.tag).toBe('eq 1');
+    });
+
+    it('should skip equations without tags', () => {
+      const markdown = `
+        $$ x = 1 $$
+        $$ y = 2 \\tag{found} $$
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'found');
+      
+      expect(result).toEqual({
+        raw: '$$ y = 2 \\tag{found} $$',
+        content: 'y = 2',
+        contentWithTag: 'y = 2 \\tag{found}',
+        lineStart: 2,
+        lineEnd: 2,
+        tag: 'found',
+        inQuote: false
+      });
+    });
+  });
+
+  describe('Multi-line equations', () => {
+    it('should find multi-line equation with matching tag', () => {
+      const markdown = `
+        $$
+        x = 1 + 2 + 3
+        \\tag{multiline}
+        $$
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'multiline');
+      
+      expect(result).toEqual({
+        raw: '$$\nx = 1 + 2 + 3\n\\tag{multiline}\n$$',
+        content: 'x = 1 + 2 + 3', 
+        contentWithTag: 'x = 1 + 2 + 3\n\\tag{multiline}',
+        lineStart: 1,
+        lineEnd: 4,
+        tag: 'multiline',
+        inQuote: false
+      });
+    });
+
+    it('should handle complex multi-line equations', () => {
+      const markdown = `
+        $$
+        \\begin{align}
+        x &= a + b \\\\
+        y &= c + d
+        \\end{align}
+        \\tag{complex}
+        $$
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'complex');
+      
+      expect(result?.tag).toBe('complex');
+      expect(result?.lineStart).toBe(1);
+      expect(result?.lineEnd).toBe(7);
+    });
+
+    it('should handle unclosed multi-line equation blocks', () => {
+      const markdown = `
+        $$
+        x = 1
+        \\tag{unclosed}
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'unclosed');
+      
+      expect(result).toEqual({
+        raw: '$$\nx = 1\n\\tag{unclosed}\n',
+        content: 'x = 1',
+        contentWithTag: 'x = 1\n\\tag{unclosed}',
+        lineStart: 1,
+        lineEnd: 4,
+        tag: 'unclosed',
+        inQuote: false
+      });
+    });
+  });
+
+  describe('Equations in quotes', () => {
+    it('should find equation in quote block', () => {
+      const markdown = `
+        > This is a quote
+        > $$ x = 1 \\tag{quoted} $$
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'quoted');
+      
+      expect(result).toEqual({
+        raw: '$$ x = 1 \\tag{quoted} $$',
+        content: 'x = 1',
+        contentWithTag: 'x = 1 \\tag{quoted}',
+        lineStart: 2,
+        lineEnd: 2,
+        tag: 'quoted',
+        inQuote: true
+      });
+    });
+
+    it('should find multi-line equation in quote block', () => {
+      const markdown = `
+        > $$
+        > x = 1 + 2
+        > \\tag{quoted-multi}
+        > $$
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'quoted-multi');
+      
+      expect(result?.tag).toBe('quoted-multi');
+      expect(result?.inQuote).toBe(true);
+      expect(result?.lineStart).toBe(1);
+      expect(result?.lineEnd).toBe(4);
+    });
+  });
+
+  describe('Code block handling', () => {
+    it('should ignore equations inside code blocks', () => {
+      const markdown = `
+        \`\`\`
+        $$ x = 1 \\tag{code} $$
+        \`\`\`
+        $$ y = 2 \\tag{real} $$
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'code');
+      expect(result).toBeUndefined();
+      
+      const result2 = parseFirstEquationInMarkdown(markdown, 'real');
+      expect(result2?.tag).toBe('real');
+    });
+
+    it('should ignore equations in quoted code blocks', () => {
+      const markdown = `
+        > \`\`\`
+        > $$ x = 1 \\tag{quoted-code} $$
+        > \`\`\`
+        > $$ y = 2 \\tag{quoted-real} $$
+      `;
+      const result = parseFirstEquationInMarkdown(markdown, 'quoted-code');
+      expect(result).toBeUndefined();
+      
+      const result2 = parseFirstEquationInMarkdown(markdown, 'quoted-real');
+      expect(result2?.tag).toBe('quoted-real');
+    });
+  });
+
+  describe('Tag variations', () => {
+    it('should handle numeric tags', () => {
+      const markdown = '$$ x = 1 \\tag{123} $$';
+      const result = parseFirstEquationInMarkdown(markdown, '123');
+      expect(result?.tag).toBe('123');
+    });
+
+    it('should handle alphanumeric tags', () => {
+      const markdown = '$$ x = 1 \\tag{eq1a} $$';
+      const result = parseFirstEquationInMarkdown(markdown, 'eq1a');
+      expect(result?.tag).toBe('eq1a');
+    });
+
+    it('should handle tags with special characters', () => {
+      const markdown = '$$ x = 1 \\tag{eq-1.2} $$';
+      const result = parseFirstEquationInMarkdown(markdown, 'eq-1.2');
+      expect(result?.tag).toBe('eq-1.2');
+    });
+
+    it('should be case sensitive for tags', () => {
+      const markdown = '$$ x = 1 \\tag{Case} $$';
+      expect(parseFirstEquationInMarkdown(markdown, 'case')).toBeUndefined();
+      expect(parseFirstEquationInMarkdown(markdown, 'Case')?.tag).toBe('Case');
+    });
+  });
+
+  describe('Mixed content scenarios', () => {
+    it('should work with complex markdown containing various elements', () => {
+      const markdown = `
+        # Title
+        
+        Some text with *emphasis*.
+        
+        \`\`\`javascript
+        const x = 1; // $$ fake \\tag{fake} $$
+        \`\`\`
+        
+        > Quote with equation:
+        > $$ a = b \\tag{quote-eq} $$
+        
+        Regular equation:
+        $$ c = d \\tag{regular} $$
+        
+        $$
+        e = f + g
+        \\tag{multiline-target}
+        $$
+        
+        Final equation: $$ h = i \\tag{final} $$
+      `;
+      
+      const result = parseFirstEquationInMarkdown(markdown, 'multiline-target');
+      expect(result?.tag).toBe('multiline-target');
+      expect(result?.contentWithTag).toContain('e = f + g');
+    });
+
+    it('should prioritize first occurrence in document order', () => {
+      const markdown = `
+        $$ first = 1 \\tag{target} $$
+        
+        $$
+        second = 2
+        \\tag{target}
+        $$
+        
+        > $$ third = 3 \\tag{target} $$
+      `;
+      
+      const result = parseFirstEquationInMarkdown(markdown, 'target');
+      expect(result?.contentWithTag).toBe('first = 1 \\tag{target}');
+      expect(result?.lineStart).toBe(1);
+    });
+  });
 });

@@ -8,8 +8,8 @@ export class CurrentFileProcessor {
     constructor(plugin: EquationCitator, callback: (content: string) => Promise<string>) {
         this.plugin = plugin;
         this.callback = callback; 
-    } 
-
+    }
+    
     private async getEditorMarkdown(editor: Editor): Promise<string> {
         if (editor) {
             const activeFileContent = editor.getValue() || "";

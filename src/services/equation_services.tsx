@@ -81,7 +81,7 @@ export class EquationServices {
         const { local, crossFile } = this.plugin.settings.enableCrossFileCitation ?
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
-
+        
         const { path, filename } = crossFile ?
             this.resolveCrossFileRef(sourcePath, crossFile, footnotes) :
             { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null };

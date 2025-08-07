@@ -42,56 +42,13 @@ export function validateEquationDisplayFormat(format: string): boolean {
     return format.split("#").length === 2;
 }
 
-export function removeInlineCodeBlocks(line: string): string {
-    let result = '';
-    let inCodeBlock = false;
-    let i = 0;
-
-    while (i < line.length) {
-        if (line[i] === '`' && (i === 0 || line[i - 1] !== '\\')) {
-            // Toggle code block state
-            inCodeBlock = !inCodeBlock;
-            result += ' '; // Replace backtick with space
-        } else if (inCodeBlock) {
-            // Replace code content with spaces
-            result += ' ';
-        } else {
-            // Keep normal content
-            result += line[i];
-        }
-        i++;
-    }
-
-    return result;
-}
-
 /**
- * Determines if the specified position is within a Markdown inline math environment
- * Math environment definition: Surrounded by unescaped $ symbols, with $ adjacent to non-whitespace characters
- * Example: $123$ is a formula, while $ 123$ and $123 $ are not formulas
- * 
- * @param line - The line to check
- * @param pos - The position to check (character index)
- * @returns Returns true if the position is within a math environment, otherwise false
- */
-export function isInInlineMathEnvironment(line: string, pos: number): boolean {
-    // Boundary check
-    if (pos < 0 || pos > line.length) {
-        return false;
-    }
-    // First remove code block content, replacing with spaces
-    const lineWithoutCodeBlocks = replaceInlineCodeBlocksWithSpaces(line);
-    // Find all valid math environment ranges
-    const mathRanges = findValidMathRanges(lineWithoutCodeBlocks);
-    // Check if the position is within any math environment range
-    return mathRanges.some(range => pos >= range.start && pos <= range.end);
-}
-
-/**
- * Removes inline code blocks, replacing with spaces, specifically for math environment detection
+ * Removes inline code blocks, by replacing it with spaces, 
+ *            specifically for math environment detection 
+ * Also this will not change the location of the matched content
  * Correctly handles escaped backticks
  */
-function replaceInlineCodeBlocksWithSpaces(line: string): string {
+export function removeInlineCodeBlocks(line: string): string {
     let result = '';
     let inCodeBlock = false;
     let i = 0;
@@ -126,6 +83,30 @@ function replaceInlineCodeBlocksWithSpaces(line: string): string {
 
     return result;
 }
+
+
+/**
+ * Determines if the specified position is within a Markdown inline math environment
+ * Math environment definition: Surrounded by unescaped $ symbols, with $ adjacent to non-whitespace characters
+ * Example: $123$ is a formula, while $ 123$ and $123 $ are not formulas
+ * 
+ * @param line - The line to check
+ * @param pos - The position to check (character index)
+ * @returns Returns true if the position is within a math environment, otherwise false
+ */
+export function isInInlineMathEnvironment(line: string, pos: number): boolean {
+    // Boundary check
+    if (pos < 0 || pos > line.length) {
+        return false;
+    }
+    // First remove code block content, replacing with spaces
+    const lineWithoutCodeBlocks = removeInlineCodeBlocks(line);
+    // Find all valid math environment ranges
+    const mathRanges = findValidMathRanges(lineWithoutCodeBlocks);
+    // Check if the position is within any math environment range
+    return mathRanges.some(range => pos >= range.start && pos <= range.end);
+}
+
 
 /**
  * Finds all valid math environment ranges
@@ -279,7 +260,7 @@ export interface MarkdownLineEnvironment {
     isHeading: boolean;
     headingMatch?: RegExpMatchArray | null;
     isCodeBlockToggle: boolean;
-    isSingleLineEquation: boolean;
+    isSingleLineEquation: boolean;  // single-line equation block
     singleLineEquationMatch?: RegExpMatchArray | null;
     isEquationBlockStart: boolean;
     isEquationBlockEnd: boolean;
