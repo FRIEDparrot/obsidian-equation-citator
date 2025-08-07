@@ -46,3 +46,4 @@ Version 1.2.0 - functionally improvements.
 
 2. **Rename Tags** : Now you can select tags and right-click to rename it. The citations will be updated automatically.  
 
+3. **Equation Auto-numbering** : Now equation auto-numbering will automatically update the relevant citations to ensure the numbering is consistent.  
