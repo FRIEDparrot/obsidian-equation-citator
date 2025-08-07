@@ -44,8 +44,9 @@ export interface EquationCitatorSettings {
     autoNumberPrefixEnabled: boolean; // Setting for auto numbering prefix 
     autoNumberPrefix: string; // Global Auto numbering prefix for equations without any heading level  
     autoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
-    
+
     // by default, auto-number rename the citation, I don't provide this as option 
+    enableUpdateTagsInAutoNumbering: boolean; // Update citation in auto numbering 
     deleteRepeatTagsInAutoNumbering: boolean; // Delete repeat tags in auto numbering  
     deleteUnusedTagsInAutoNumbering: boolean; // Delete unused tags in auto numbering  
 
@@ -83,10 +84,11 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     autoNumberNoHeadingPrefix: "P",
     autoNumberPrefixEnabled: false,
     autoNumberPrefix: "", // Default to empty string for no prefix 
-    autoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes
+    autoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes 
+    enableUpdateTagsInAutoNumbering: true, // Default to true, update citation in auto numbering  
     deleteRepeatTagsInAutoNumbering: true, // Default to true, delete repeat tags in auto numbering 
     deleteUnusedTagsInAutoNumbering: false, // Default to true, delete unused tags in auto numbering 
-    
+
     citationWidgetColor: ["#ffffff", "#f8f9fa", "#f5f6f7", "#e9ecef", "#dee2e6"],
     citationWidgetColorDark: ["#1e1e1e", "#2d2d2d", "#252525", "#3a3a3a", "#404040"],
     debugMode: false // debug mode is off by default (for set default, see debugger.tsx)
@@ -234,7 +236,7 @@ export class SettingsTabView extends PluginSettingTab {
         const crossFileSetting = new Setting(containerEl)
             .setName("Enable Cross-File Citations")
             .setDesc("Use pure footnote style citations to cite equations across files");
-        
+
         crossFileSetting.addToggle((toggle) => {
             toggle.setValue(this.plugin.settings.enableCrossFileCitation);
             let delimiterContainer: HTMLElement | null = null;
@@ -395,32 +397,39 @@ export class SettingsTabView extends PluginSettingTab {
                 });
             });
 
-        const deleteRepeatTagsInAutoNumberSetting = new Setting(containerEl)
-        deleteRepeatTagsInAutoNumberSetting.setName("Auto Delete Conflicting Tag Citations")
-            .setDesc("Automatically delete conflicting tag citations during auto numbering, instead of prompting you each time.")
+        let autoNumberingTagCitationContainer: HTMLElement | null = null; 
+        const enableUpdateTagsInAutoNumberSetting = new Setting(containerEl)
+        enableUpdateTagsInAutoNumberSetting.setName("Auto Update Citations in Auto Numbering")
+            .setDesc("Enable auto update citations during auto numbering")
             .addToggle((toggle) => {
-                toggle.setTooltip( "If two tags are assigned the same number during auto numbering, the original citation will be automatically deleted without confirmation. Equivalent to always choosing 'Delete' when renaming tags.")
-                toggle.setValue(this.plugin.settings.deleteRepeatTagsInAutoNumbering);
+                const parent = enableUpdateTagsInAutoNumberSetting.settingEl.parentElement;
+                const updateAutoNumberCitationContainer = (value: boolean) => { 
+                    if (value && parent && !autoNumberingTagCitationContainer) {
+                        // create a new container for auto numbering settings 
+                        autoNumberingTagCitationContainer = document.createElement("div");
+                        parent.insertBefore(
+                            autoNumberingTagCitationContainer,
+                            enableUpdateTagsInAutoNumberSetting.settingEl.nextSibling
+                        );
+                        this.showAutoNumberingCitationUpdateSettings(autoNumberingTagCitationContainer);
+                    }
+                    else if ((!value || !parent) && autoNumberingTagCitationContainer) {
+                        // remove the container if auto numbering is disabled 
+                        autoNumberingTagCitationContainer.remove();
+                        autoNumberingTagCitationContainer = null;
+                    }
+                };
+
+                toggle.setValue(this.plugin.settings.enableUpdateTagsInAutoNumbering);
                 toggle.onChange(async (value) => {
-                    this.plugin.settings.deleteRepeatTagsInAutoNumbering = value;
-                    Debugger.log("Delete repeat tags in auto numbering enabled:", value);
+                    this.plugin.settings.enableUpdateTagsInAutoNumbering = value;
+                    Debugger.log("Auto update tags in auto numbering enabled:", value); 
                     await this.plugin.saveSettings();
+                    updateAutoNumberCitationContainer(value);  
                 });
+                updateAutoNumberCitationContainer(this.plugin.settings.enableUpdateTagsInAutoNumbering);
             });
-        
-        const deleteUnusedTagsInAutoNumberSetting = new Setting(containerEl)
-        deleteUnusedTagsInAutoNumberSetting.setName("Auto Delete Unused Tags Citations")
-            .setDesc("Delete unused tag citations when auto numbering all equations") 
-            .addToggle((toggle) => {
-                toggle.setValue(this.plugin.settings.deleteUnusedTagsInAutoNumbering);
-                toggle.setTooltip("Deletes citations (e.g., \\ref{1.3.4}) that don't match any equation included in auto-numbering. Citations inside quotes are preserved only if “Auto Numbering Equations in Quotes” is enabled.")
-                toggle.onChange(async (value) => {
-                    this.plugin.settings.deleteUnusedTagsInAutoNumbering = value;
-                    Debugger.log("Delete unused tags in auto numbering enabled:", value);
-                    await this.plugin.saveSettings();
-                });
-            });
-     
+
         // ================== Equation Widget Render Settings ============= 
         containerEl.createEl("h2", { text: "Equation Widget Settings", cls: "ec-settings-header" });
         containerEl.createEl("p", { text: "1: background, 2: header/footer, 3: hover, 4: active, 5: border" })
@@ -475,7 +484,7 @@ export class SettingsTabView extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 });
             });
-        
+
         const CacheCleanTimeSetting = new Setting(containerEl);
         CacheCleanTimeSetting.setName("Cache Clean Time")
             .setDesc("Time to automatically clean cache")
@@ -629,7 +638,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                     }
                 }
             });
-        
+
         new Setting(containerEl)
             .setName("File Citation Color")
             .setDesc("Color for citations superscript, 1: display color 2: color when hovering")
@@ -651,6 +660,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                 });
             });
     }
+
     showAutoNumberingPrefixSettings(containerEl: HTMLElement): void {
         new Setting(containerEl)
             .setName("Auto Numbering Prefix")
@@ -666,6 +676,34 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                         await this.plugin.saveSettings();
                     }
                 }
+            });
+    }
+
+    showAutoNumberingCitationUpdateSettings(containerEl: HTMLElement): void {
+        const deleteRepeatTagsInAutoNumberSetting = new Setting(containerEl)
+        deleteRepeatTagsInAutoNumberSetting.setName("Auto Delete Conflicting Tag Citations")
+            .setDesc("Automatically delete conflicting tag citations during auto numbering, instead of prompting you each time.")
+            .addToggle((toggle) => {
+                toggle.setTooltip("If two tags are assigned the same number during auto numbering, the original citation will be automatically deleted without confirmation. Equivalent to always choosing 'Delete' when renaming tags.")
+                toggle.setValue(this.plugin.settings.deleteRepeatTagsInAutoNumbering);
+                toggle.onChange(async (value) => {
+                    this.plugin.settings.deleteRepeatTagsInAutoNumbering = value;
+                    Debugger.log("Delete repeat tags in auto numbering enabled:", value);
+                    await this.plugin.saveSettings();
+                });
+            });
+
+        const deleteUnusedTagsInAutoNumberSetting = new Setting(containerEl)
+        deleteUnusedTagsInAutoNumberSetting.setName("Auto Delete Unused Tags Citations")
+            .setDesc("Delete unused tag citations when auto numbering all equations")
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.deleteUnusedTagsInAutoNumbering);
+                toggle.setTooltip("Deletes citations (e.g., \\ref{1.3.4}) that don't match any equation included in auto-numbering. Citations inside quotes are preserved only if “Auto Numbering Equations in Quotes” is enabled.")
+                toggle.onChange(async (value) => {
+                    this.plugin.settings.deleteUnusedTagsInAutoNumbering = value;
+                    Debugger.log("Delete unused tags in auto numbering enabled:", value);
+                    await this.plugin.saveSettings();
+                });
             });
     }
 

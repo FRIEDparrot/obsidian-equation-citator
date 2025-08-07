@@ -31,12 +31,16 @@ export function autoNumberCurrentFileEquations(plugin: EquationCitator) {
             );
             // rename tags by tagmapping 
             // Convert Map<string, string> to TagRenamePair[]
-            const renamePairs: TagRenamePair[] = Array.from(tagMapping.entries()).map(([oldTag, newTag]) => ({
-                oldTag,
-                newTag
-            }));
-            Debugger.log("renamePairs", renamePairs);
-            plugin.tagService.renameTags(sourceFile, renamePairs, deleteRepeatTags, deleteUnusedTags, undefined);
+
+            if (settings.enableUpdateTagsInAutoNumbering) {
+                const renamePairs: TagRenamePair[] = Array.from(tagMapping.entries()).map(([oldTag, newTag]) => ({
+                    oldTag,
+                    newTag
+                }));
+                Debugger.log("renamePairs", renamePairs);
+                plugin.tagService.renameTags(sourceFile, renamePairs, deleteRepeatTags, deleteUnusedTags, undefined);
+            }
+            
             return Promise.resolve(md);
         }
     );
