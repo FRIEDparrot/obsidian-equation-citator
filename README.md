@@ -67,11 +67,15 @@ This will render multiple equations in a window, and **you can use double click 
 
 note here preview is only available in live editor mode now. (reading mode support will be added soon) 
 
-3. **Outline-based Equation Autonumber**
+3. **One-click outline-based Equation Autonumber**
 
 This plugin gives you full control of autonumber method for equations.
 
 Customize auto-number method (absolute or relative, title level, format, chapter prefix and more).
+
+you can auto number all the eqautions in your current file by command or just simply one click on the sidebar icon :
+
+<center><img src="img\sidebar-autonumber.png" alt="continuous-cross-file" style="zoom:67%; max-height: 350px; " /></center>
 
 4. **PDF export support** 
 
