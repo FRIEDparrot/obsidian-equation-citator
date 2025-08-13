@@ -1,7 +1,7 @@
 <h1> <center> Obsidian Equation Citator </center> </h1>
 
 <center><span>
-  <img src="https://img.shields.io/badge/Latest%20Version-1.2.0-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest%20Version-1.2.1-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></center>
@@ -45,6 +45,7 @@ this will be rendered as follows (support both light and dark theme) :
 
 Use simple inline `$\ref{eq:A}$` format to cite equation block with `\tag{A}` and preview it just as links in obsidian.
 
+**Select tag (`\tag{1.2}`) and right click to edit tag**, and its **citation will be automatically updated**. 
 
 2. **Corss-file citation, multi-citation and continuous citation**
 
@@ -96,7 +97,8 @@ When you are typing citation format, The plugin will suggest you the available e
 ## Guidelines
 This plugin relies on text parsing, so please follow these three simple guidelines to ensure it works correctly.
 
-1. **Always write code blocks with 3 backticks** (```)  at the beginning and end of the equation block. 
+1. **Always write code blocks with 3 backticks** (```) without space before at the beginning and end of the equation block. 
+  - ⚠️**Not add space before code blocks backticks**, this will cause auto-number to fail.  
 
 2. **Never write any other content in the line of equation blocks** (but it support quote block).
 
