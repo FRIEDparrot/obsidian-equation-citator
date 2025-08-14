@@ -3,8 +3,7 @@ import EquationCitator from "@/main";
 
 export class CurrentFileProcessor {
     plugin: EquationCitator;
-    callback: (content: string) => Promise<string>; 
-
+    callback: (content: string) => Promise<string>;
     constructor(plugin: EquationCitator, callback: (content: string) => Promise<string>) {
         this.plugin = plugin;
         this.callback = callback; 

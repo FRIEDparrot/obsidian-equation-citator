@@ -3,11 +3,11 @@ import { autoNumberCurrentFileEquations } from '@/func/autoNumber';
 import EquationCitator from '@/main';
 
 export default function registerRibbonButton(plugin: EquationCitator) {
-    plugin.addRibbonIcon('square-function', 'Auto-number Current File Equations', () => {
+    plugin.addRibbonIcon('square-function', 'Auto-number Current File Equations', async () => {
         const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
         if (!editor) return;
         const scrollInfo = editor.getScrollInfo();
-        autoNumberCurrentFileEquations(plugin);
+        await autoNumberCurrentFileEquations(plugin);
         // reset the scroll location  
         setTimeout(() => {
             editor.scrollTo(scrollInfo.left, scrollInfo.top);

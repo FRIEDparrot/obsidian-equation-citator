@@ -1,5 +1,5 @@
-import { escapeRegExp, escapeString } from "@/utils/string_utils";
-import { removeInlineCodeBlocks } from "@/utils/string_utils";
+import { escapeRegExp, escapeString, removeInlineCodeBlocks } from "@/utils/string_utils";
+import { isCodeBlockToggle } from "@/utils/regexp_utils";
 
 /**
  * Combines continuous equation tags with common prefixes and file citations.
@@ -12,7 +12,7 @@ export function combineContinuousCitationTags(
     fileDelimiter: string
 ): string[] {
     if (!tags || tags.length === 0) return [];
-    
+
     // Create a mapping from original tags to their combined form
     const tagMapping = new Map<string, string>();
     const processedTags = new Set<string>();
@@ -304,12 +304,7 @@ export function parseCitationsInMarkdown(md: string): CitationRef[] {
         const line = lines[lineNum];
 
         // Handle multiline code blocks
-        const codeBlockMatches = /^\s*(?:>+\s*)*```/.test(line) ? line.match(/```/g) : null;
-        if (codeBlockMatches) {
-            for (let i = 0; i < codeBlockMatches.length; i++) {
-                inCodeBlock = !inCodeBlock;
-            }
-        }
+        if (isCodeBlockToggle(line)) inCodeBlock = !inCodeBlock;
         if (inCodeBlock) continue;
 
         // Remove inline code blocks (replace the code block with spaces) 
@@ -386,11 +381,8 @@ export function replaceCitationsInMarkdownWithSpan(
     const processedLines = lines.map((line, lineNum) => {
         let processedLine = line;
         // Handles multiline code block state
-        const codeBlockMatches = /^\s*(?:>+\s*)*```/.test(line) ? line.match(/```/g) : null;
-        if (codeBlockMatches) {
-            for (let i = 0; i < codeBlockMatches.length; i++) {
-                inMultilineCodeBlock = !inMultilineCodeBlock;
-            }
+        if (isCodeBlockToggle(line)) {
+            inMultilineCodeBlock = !inMultilineCodeBlock;
         }
         if (inMultilineCodeBlock) {
             return line; // In code block - skip processing

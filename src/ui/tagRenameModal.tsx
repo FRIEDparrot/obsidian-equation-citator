@@ -1,7 +1,8 @@
-import { Modal, Setting, Editor } from "obsidian";
+import { Modal, Setting, Editor, Notice } from "obsidian";
 import { TagRenamePair } from "@/services/tag_service";
 import { PromiseOptionsModal, ModalOption } from "@/ui/optionsModal";
 import EquationCitator from "@/main";
+import { assemblyCitationUpdateMessage } from "@/func/autoNumber";
 
 
 export class TagRenameModal extends Modal {
@@ -69,23 +70,25 @@ export class TagRenameModal extends Modal {
     async renameTag(filePath: string, pair: TagRenamePair) {
         // firstly, search all links to find if there's 
         const haveRepetedTags = await this.plugin.tagService.checkRepeatedTags(filePath, [pair]);
+
+        const callRenameTagService = async (deleteRepeat: boolean, deleteUnused: boolean) => {
+            const result = await this.plugin.tagService.renameTags(filePath, [pair], deleteRepeat, deleteUnused, this.editor);
+            if (result) {
+                const msg = assemblyCitationUpdateMessage(result);
+                new Notice(msg);
+            }
+        }
+        
         if (haveRepetedTags) {
             const deleteOption: ModalOption = {
                 label: "Delete",
                 cta: true,
-                action: async () => {
-                    await this.plugin.tagService.renameTags(filePath, [pair], true, false, this.editor);
-                    this.onSubmit(this.newTag);
-
-                }
+                action: callRenameTagService.bind(this, true, false)
             }
             const keepOption: ModalOption = {
                 label: "Keep",
                 cta: false,
-                action: async () => {
-                    await this.plugin.tagService.renameTags(filePath, [pair], false, false, this.editor);
-                    this.onSubmit(this.newTag); // call onSubmit method to rename selected tag 
-                }
+                action: callRenameTagService.bind(this, false, false)
             }
             const cancelOption: ModalOption = {
                 label: "Cancel",
@@ -99,7 +102,7 @@ export class TagRenameModal extends Modal {
             await modal.openWithPromise();
         }
         else {
-            await this.plugin.tagService.renameTags(filePath, [pair], false, false, this.editor);
+            await callRenameTagService(false, false);
             this.onSubmit(this.newTag); // call onSubmit method to rename selected tag 
         } 
     }

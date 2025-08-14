@@ -22,6 +22,12 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
     font-size: 20px;
 }
 
+.ec-settings-nodelimter {
+    border-top: none; 
+    margin-top: 2px;
+    padding-top: 0px;
+}
+
 .ec-delimiter-input,
 .ec-multi-delimiter-input {
     height: 20px;

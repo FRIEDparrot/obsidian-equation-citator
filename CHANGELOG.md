@@ -48,3 +48,21 @@ Version 1.2.0 - functionally improvements.
 2. **Rename Tags** : Now you can select tags and right-click to rename it. The citations will be updated automatically.  
 
 3. **Equation Auto-numbering** : Now equation auto-numbering will automatically update the relevant citations to ensure the numbering is consistent.  
+
+### Version 1.2.1 
+Version 1.2.1 - bug fixes and minor improvements. 
+
+🐛 Fixed Bugs : 
+- Auto-number may not work correctly when there are spaces before the code block 
+- Fixed Equation Jump issue [BUG #6](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/6), now ctrl + double click jump correctly. 
+- When there are multiple views and hover on an non-active view, now double-click will also jump correctly (also [BUG #6](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/6)).
+- Possible deletion bug when renaming tags with `delete unused tags` on (also imporve the efficiency of renaming tags) 
+- Fixed the bug when auto-numbering equations, citations in the original file not updated correctly.
+- Fixed some equation citation issues in tutorial. 
+
+🚀 Optimizations :  
+- Auto Number and tag renaming now show informations of renamed citations. 
+
+✨ New Features : 
+- **(Beta Feature) Cite with inline code in callout** : Add this feature to render citations in callout block. (for [bug #4](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/4)). For limitations, see [Tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Equation%20Citator%20Tutorial.md) 
+

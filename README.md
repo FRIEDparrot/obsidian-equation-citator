@@ -7,11 +7,11 @@
 </span></center>
 
 <center>
-    <div><small> First Release : Aug 3, 2025       Last Updated : Aug 7, 2025 </small></div>
+    <div><small> First Release : Aug 3, 2025       Last Updated : Aug 14, 2025 </small></div>
 </center>
 <p></p>
 
-**5 mins Quick Start** : see [Full Tutorial]( <https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials>)
+**5 mins Quick Start** : see [Full Tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials)
 
 **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) 
 
@@ -98,7 +98,6 @@ When you are typing citation format, The plugin will suggest you the available e
 This plugin relies on text parsing, so please follow these three simple guidelines to ensure it works correctly.
 
 1. **Always write code blocks with 3 backticks** (```) without space before at the beginning and end of the equation block. 
-  - ⚠️**Not add space before code blocks backticks**, this will cause auto-number to fail.  
 
 2. **Never write any other content in the line of equation blocks** (but it support quote block).
 

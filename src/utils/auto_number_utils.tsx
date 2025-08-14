@@ -1,6 +1,7 @@
 import { Heading, relativeHeadingLevel } from "@/utils/heading";
-import { parseMarkdownLine, updateCodeBlockState } from "@/utils/string_utils";
+import { parseMarkdownLine } from "@/utils/string_utils";
 import { parseEquationTag } from "@/utils/equation_utils";
+import { codeBlockStartRegex } from "./regexp_utils";
 
 export enum AutoNumberingType {
     Relative = "Relative",
@@ -23,7 +24,6 @@ export function autoNumberEquations(
 ): AutoNumberProceedResult {
     const lines = content.split('\n');
     const headingRegex = /^(#{1,6})\s+(.*)$/;
-    const codeBlockRegex = /^```/;
 
     // Parse all headings 
     const headings: Heading[] = [];
@@ -31,9 +31,9 @@ export function autoNumberEquations(
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-
+        
         // Check code block and Skip the code block content 
-        if (codeBlockRegex.test(line)) {
+        if (codeBlockStartRegex.test(line)) {
             inCodeBlock = !inCodeBlock;
             continue;
         }
@@ -124,15 +124,11 @@ function processAutoNumbering(
         quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
 
         // Update code block state
-        if (parseResult.isCodeBlockToggle) {
-            const codeBlockMatches = /^\s*```/.test(line) ? parseResult.processedContent.match(/```/g) : null;
-            inCodeBlock = updateCodeBlockState(inCodeBlock, codeBlockMatches);
-        }
+        if (parseResult.isCodeBlockToggle)  inCodeBlock = !inCodeBlock;
         if (inCodeBlock) {
             result.push(line);
             continue;
         }
-
         // Handle multi-line equation blocks
         if (inEquationBlock) {
             equationBuffer.push(parseResult.cleanedLine.trim());

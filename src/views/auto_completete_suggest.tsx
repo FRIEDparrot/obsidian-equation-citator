@@ -1,18 +1,19 @@
-import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext } from "obsidian";
+import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView } from "obsidian";
 import EquationCitator from "@/main";
 import { RenderedEquation } from "@/services/equation_services";
-import { escapeRegExp, findLastUnescapedDollar, isInInlineMathEnvironment } from "@/utils/string_utils";
+import { escapeRegExp, findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvironment } from "@/utils/string_utils";
 import { renderEquationWrapper, TargetElComponent } from "@/views/citation_popover";
 import { splitFileCitation } from "@/utils/citation_utils";
 import { EditorView } from "@codemirror/view";
 import { isSourceMode } from "./citation_render";
+import { isCodeBlockToggle } from "@/utils/regexp_utils";
 
 export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     citePattern: RegExp;
     inCodeBlockState = false; // whether the cursor is inside a code block or not 
     currentCursorLine: number; // only update codeblock state when cursor line change 
     lastCodeBlockStateUpdateTime = 0; // update codeblock state when last update time is more than 300ms
-
+    
     constructor(
         private plugin: EquationCitator
     ) {
@@ -28,10 +29,8 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         let isInCodeBlock = false;
         for (let i = 0; i < cursor.line; i++) {
             const line = lines[i];
-            const matches = /^\s*(?:>+\s*)*```/.test(line) ? line.match(/```/g) : null;
-            if (matches && matches.length % 2 === 1) {
+            if (isCodeBlockToggle(line)) {
                 isInCodeBlock = !isInCodeBlock;
-                continue;
             }
         }
         this.inCodeBlockState = isInCodeBlock;
@@ -41,9 +40,9 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         // judge if it's source mode or not 
         const mdView = this.plugin.app.workspace.activeEditor?.editor;
         if (!mdView) return null;
-        
+
         // @ts-ignore  this actually exists  
-        const editorView : EditorView = editor.cm;
+        const editorView: EditorView = editor.cm;
         if (!editorView) return null;
         if (isSourceMode(editorView) && !this.plugin.settings.enableCitationInSourceMode) {
             return null; // do not suggest in source mode if not enabled in settings
@@ -54,12 +53,21 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
             this.refreshInCodeBlockState(editor, cursor); // update codeblock state  
             this.lastCodeBlockStateUpdateTime = Date.now();
         }
+        const line = editor.getLine(cursor.line);  // get the line before the cursor  
+        const isQuoteLine = /^\s*>/.test(line);
+        const acceptInlineCode = isQuoteLine && this.plugin.settings.enableCiteWithCodeBlockInCallout;
         if (this.inCodeBlockState) {
             return null; // do not suggest inside code block
         }
-        const line = editor.getLine(cursor.line);
-        if (!isInInlineMathEnvironment(line, cursor.ch)) {
-            return null; // do not suggest when not in inline math environment 
+        if (acceptInlineCode) {
+            if (!isInInlineMathEnvironment(line, cursor.ch) && !isInInlineCodeEnvironment(line, cursor.ch)) {
+                return null;  // also suggest when inside code block 
+            }
+        }
+        else {
+            if (!isInInlineMathEnvironment(line, cursor.ch)) {
+                return null; // do not suggest when not in inline math environment 
+            }
         }
         // find the last $ (withoud escape)  
         const lastDollarIndex = findLastUnescapedDollar(line, cursor.ch);
@@ -107,14 +115,16 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (!sourcePath) return;
         const targetEl = el.createDiv();
         const targetComponent = new TargetElComponent(targetEl);
-        renderEquationWrapper(this.plugin, sourcePath, value, el, targetComponent);
+        const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!view) return;
+        renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent);
     }
 
     //  when select a rendered equation. 
     selectSuggestion(value: RenderedEquation, evt: MouseEvent | KeyboardEvent): void {
         const delimiter = this.plugin.settings.multiCitationDelimiter || ",";
         const fileDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
-
+        
         const editor = this.context?.editor;
         if (!editor || !this.context) return;
 

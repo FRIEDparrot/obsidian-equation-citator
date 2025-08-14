@@ -1,4 +1,5 @@
-import { escapeRegExp, updateCodeBlockState, parseMarkdownLine } from "@/utils/string_utils";
+import { escapeRegExp, parseMarkdownLine } from "@/utils/string_utils";
+import { isCodeBlockToggle } from "@/utils/regexp_utils";
 
 /// This file contains utility functions for working with equations tag 
 /// and also process equation blocks 
@@ -81,13 +82,9 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): 
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
 
         // Update code block state
-        if (parseResult.isCodeBlockToggle) {
-            const processedContent = parseResult.processedContent.trim();
-            const codeBlockMatches = /^\s*(?:>+\s*)*```/.test(processedContent) ? processedContent.match(/```/g) : null;
-            inCodeBlock = updateCodeBlockState(inCodeBlock, codeBlockMatches);
-        }
+        if (parseResult.isCodeBlockToggle) inCodeBlock = !inCodeBlock;
         if (inCodeBlock) continue;
-
+        
         // Handle multi-line equation blocks
         if (inEquationBlock) {
             equationBuffer.push(parseResult.cleanedLine.trim());
@@ -180,8 +177,9 @@ export function parseFirstEquationInMarkdown(markdown: string, tag: string): Equ
         // Update code block state
         if (parseResult.isCodeBlockToggle) {
             const processedContent = parseResult.processedContent.trim();
-            const codeBlockMatches = /^\s*(?:>+\s*)*```/.test(processedContent) ? processedContent.match(/```/g) : null;
-            inCodeBlock = updateCodeBlockState(inCodeBlock, codeBlockMatches);
+            if (isCodeBlockToggle(processedContent)) {
+                inCodeBlock = !inCodeBlock; 
+            }
         }
         if (inCodeBlock) continue;
 

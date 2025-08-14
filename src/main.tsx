@@ -13,6 +13,7 @@ import registerRibbonButton from '@/ui/ribbon';
 import {
     createMathCitationExtension,
     mathCitationPostProcessor,
+    calloutCitationPostProcessor,
 } from '@/views/citation_render';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
@@ -46,18 +47,22 @@ export default class EquationCitator extends Plugin {
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
         this.footnoteCache = new FootNoteCache(this);
-
         // load caches and register services class 
         this.loadCaches();
         this.registerServices();
-        
-        // Register Live Preview extension and Reading Mode extension 
-        this.loadEditorExtensions();
-        this.loadReadingModeExtensions();
 
+        // Register Live Preview extension and Reading Mode extension 
         // Register auto-complete suggestion widget
         this.autoCompleteSuggest = new AutoCompleteSuggest(this);
+
+        this.loadEditorExtensions();
+        this.loadReadingModeExtensions();
         this.registerEditorSuggest(this.autoCompleteSuggest);
+
+        // this.app.workspace.onLayoutReady(() => {
+        //     requestAnimationFrame(() => {  
+        //     });
+        // });
 
         // register ribbon button and commands 
         registerRibbonButton(this);
@@ -77,10 +82,10 @@ export default class EquationCitator extends Plugin {
         this.upDateEditorExtensions();
     }
 
-    loadCaches() { 
+    loadCaches() {
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
-        this.footnoteCache = new FootNoteCache(this); 
+        this.footnoteCache = new FootNoteCache(this);
     }
 
     registerServices() {
@@ -104,8 +109,13 @@ export default class EquationCitator extends Plugin {
                 if (!activeView) return;
                 const isReadingMode = activeView.getMode() === "preview";
                 // only update the post processor in reading mode 
-                if (!isReadingMode) return;
-                await mathCitationPostProcessor(this, el, ctx, this.citationCache);
+                if (isReadingMode) {
+                    await mathCitationPostProcessor(this, el, ctx, this.citationCache);
+                }
+                if (this.settings.enableCiteWithCodeBlockInCallout) {
+                    // wait for the callout to be rendered 
+                    await calloutCitationPostProcessor(this, el, ctx, this.citationCache);
+                }
             }
         )
     }
@@ -134,9 +144,5 @@ export default class EquationCitator extends Plugin {
             }
         });
     }
-
-    /** when exporting, currentPrintFilePath must be null to avoid race condition */
-    private currentPrintFilePath: string | null = null;
-    private currentPrintFileContent = "";
 
 }
