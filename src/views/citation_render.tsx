@@ -14,9 +14,9 @@ import {
     SpanStyles,
     splitContinuousCitationTags
 } from "@/utils/citation_utils";
+import { CitationWidget } from "@/views/citation_widget";
 import { CitationCache } from "@/cache/citationCache";
 import { DISABLED_DELIMITER } from "@/utils/string_utils";
-import { CitationWidget } from "@/views/citation_widget";
 import EquationCitator from "@/main";
 import { CitationPopover } from "@/views/citation_popover";
 
@@ -118,11 +118,11 @@ export const tagSelectedField = StateField.define<EditorSelectionInfo>({
         const selectedText = tr.state.sliceDoc(sel.from, sel.to).trim();
         const tagPattern = /^\\tag\{([^}]*)\}$/;
         const tagContent = selectedText.match(tagPattern)?.[1] || null;
-        
-        let tagSelected = false; 
+
+        let tagSelected = false;
         if (tagPattern.test(selectedText)) {
             const tree = syntaxTree(state);
-            let currentMathBlockRange: { from: number; to: number } | null = null; 
+            let currentMathBlockRange: { from: number; to: number } | null = null;
             tree.iterate({
                 enter: (node) => {
                     const t = node.type.name;
@@ -148,12 +148,12 @@ export const tagSelectedField = StateField.define<EditorSelectionInfo>({
             })
 
             return {
-                tagSelected: tagSelected,  
+                tagSelected: tagSelected,
                 tagContent: tagContent,
                 range: { from: sel.from, to: sel.to },
             };
         }
-        
+
         return {
             tagSelected: false,
             tagContent: null,
@@ -173,43 +173,44 @@ export function createMathCitationExtension(plugin: EquationCitator) {
         tagSelectedField,
         ViewPlugin.fromClass(class {
             decorations: DecorationSet;
-            citePattern: RegExp;
+            citeEqPattern: RegExp;
+            citeFigPattern: RegExp;
             lastPrefix: string;
-            lastUpdate = 0;
-            pendingUpdate = false;
-            lastCursorPos = -1;
-            currentAutoCompleteInput: string | null = null;  // cache current to detect auto-complete input change 
 
             constructor(view: EditorView) {
                 this.decorations = this.buildDecorations(view);
-                this.citePattern = new RegExp(
+                this.citeEqPattern = new RegExp(
                     `\\\\ref\\{${escapeRegExp(settings.citationPrefix)}([^}]+)\\}`,
                     "g"
                 );
+                this.citeFigPattern = new RegExp(
+                    `\\\\ref\\{${escapeRegExp(settings.figCitationPrefix)}([^}]+)\\}`
+                )
                 this.lastPrefix = settings.citationPrefix;
+                // this.observeCallouts(view)
             }
             update(update: ViewUpdate) {
-                const cursorPos = update.view.state.selection.main.to;
+                // delay to let the editor finish rendering
+                if (this.lastPrefix !== settings.citationPrefix) {
+                    this.lastPrefix = settings.citationPrefix;
+                    this.citeEqPattern = new RegExp(
+                        `\\\\ref\\{${escapeRegExp(settings.citationPrefix)}([^}]+)\\}`,
+                        "g"
+                    );
+                }
+
                 if (update.docChanged ||
                     update.viewportChanged ||
                     update.focusChanged ||
-                    update.selectionSet ||
-                    this.lastCursorPos !== cursorPos) {
+                    update.selectionSet) {
 
-                    this.lastCursorPos = cursorPos;
                     this.decorations = this.buildDecorations(update.view);
-
-                    if (this.lastPrefix !== settings.citationPrefix) {
-                        this.lastPrefix = settings.citationPrefix;
-                        this.citePattern = new RegExp(
-                            `\\\\ref\\{${escapeRegExp(settings.citationPrefix)}([^}]+)\\}`,
-                            "g"
-                        );
-                    }
+                    // Re-decorate from DOM after changes
+                    // this.decorateFromDOM(update.view);  
                     return;
                 }
-            } 
-                        
+            }
+
             private buildDecorations(view: EditorView): DecorationSet {
                 const builder = new RangeSetBuilder<Decoration>();
                 const { state } = view;
@@ -218,18 +219,33 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                 const cursorPos = state.selection.main.to;
                 const sel = state.selection.main;
                 const sourceMode = isSourceMode(view);
-
-                syntaxTree(state).iterate({
+                const tree = syntaxTree(state);
+                let calloutId = 0;
+                let citationId = 0;
+                tree.iterate({
                     enter: (node) => {
                         const t = node.type.name;
+                        if (t.includes("HyperMD-callout")) {
+                            builder.add(node.from, node.to,
+                                Decoration.mark({
+                                    class: "em-math-citation-callout",
+                                    attributes: {
+                                        "data-ec-callout-id": `${calloutId}`,
+                                        "data-ec-callout-pos": `${node.from}-${node.to}`,
+                                    }
+                                })
+                            );
+                            calloutId++;
+                        }
                         if (t.includes("math-begin") && !t.includes("math-block")) {
                             currentEqRange = { from: node.from, to: -1 };
                         } else if (currentEqRange && currentEqRange.to === -1 && t.includes("math-end") && !t.includes("math-block")) {
                             currentEqRange.to = node.to;
+
                             const inCursor = cursorPos >= currentEqRange.from && cursorPos <= currentEqRange.to;
                             const inSelection = sel.from < currentEqRange.to && sel.to > currentEqRange.from;
                             const text = state.sliceDoc(currentEqRange.from, currentEqRange.to);
-                            const matches = [...text.matchAll(this.citePattern)];
+                            const matches = [...text.matchAll(this.citeEqPattern)];
                             const matches_ref = [...text.matchAll(/\\ref\{([^}]*)\}/g)];
                             const hasEquationCitation = (matches.length === 1 && matches_ref.length === 1);
                             const modeRender = !sourceMode || (sourceMode && settings.enableCitationInSourceMode);
@@ -248,9 +264,13 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                                     currentEqRange.from,
                                     currentEqRange.to,
                                     Decoration.replace({
-                                        widget: new CitationWidget(plugin, eqNumbersAll, currentEqRange)
+                                        widget: new CitationWidget(plugin, eqNumbersAll, currentEqRange),
+                                        attributes: {
+                                            "data-citation-id": citationId
+                                        }
                                     })
                                 );
+                                citationId++;
                             }
                             currentEqRange = null;
                         }
@@ -273,6 +293,25 @@ export function renderFailedCitation(citeTag: string): HTMLElement {
     return el;
 }
 
+function isErrorRenderedSpan(span: Element): boolean {
+    // mark span that render failed (???) as citation span  
+    const anchorTags = span.querySelectorAll('a');  // find a from span 
+    if (anchorTags.length !== 1) return false;
+    // check if it is rendered as ???  
+    return Array.from(anchorTags).some(a => {
+        const questionMarks = a.querySelectorAll('mjx-mtext mjx-c.mjx-c3F');
+        return questionMarks.length === 3;
+    });
+}
+
+function getCitationSpan(el: Element) : Element[] | null {
+    const mathSpans = el.querySelectorAll("span.math.math-inline.is-loaded"); 
+    if (mathSpans.length === 0) return null;
+    const citeSpans = Array.from(mathSpans).filter(span => isErrorRenderedSpan(span)); 
+    if (citeSpans.length === 0) return null;   // no citation span found
+    return citeSpans;
+}
+
 /**
  * Reading Mode Post-Processor 
  * @abstract For design purpose, the cite will rendered once it has \ref{...} format,
@@ -293,24 +332,12 @@ export async function mathCitationPostProcessor(
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) return;
 
+    // find citation spans in the section 
+    const citeSpans = getCitationSpan(el);
+    if (!citeSpans) return;  // no citation span found, skip rendering 
+
     const allCitations: CitationRef[] | undefined = await citationCache.getCitationsForFile(ctx.sourcePath)
     if (!allCitations) return; // no citations found for this file
-
-    // find citation spans in the section  
-    const mathSpans = el.querySelectorAll("span.math.math-inline.is-loaded");
-    if (mathSpans.length === 0) return;
-    const citeSpans = Array.from(mathSpans).filter(span => {
-        // mark span that render failed (???) as citation span  
-        const anchorTags = span.querySelectorAll('a');  // find a from span 
-        if (anchorTags.length !== 1) return false;
-        // check if it is rendered as ???  
-        return Array.from(anchorTags).some(a => {
-            const questionMarks = a.querySelectorAll('mjx-mtext mjx-c.mjx-c3F');
-            return questionMarks.length === 3;
-        })
-    });
-
-    if (citeSpans.length === 0) return;   // no citation span found
 
     // all equation citations in the blcok 
     const equations = allCitations.filter(eq =>
@@ -318,8 +345,6 @@ export async function mathCitationPostProcessor(
     )
     if (citeSpans.length === equations.length) {
         // render equation citation for each math span
-        Debugger.log(`Render ${equations.length} equation citations from line ${sectionInfo.lineStart} to ${sectionInfo.lineEnd}`)
-
         const fullCitationPattern = `\\\\ref\\{${escapeRegExp(plugin.settings.citationPrefix)}([^}]+)\\}`;
         citeSpans.forEach((span, index) => {
             const match = equations[index].fullMatch.match(fullCitationPattern);
@@ -337,13 +362,6 @@ export async function mathCitationPostProcessor(
                 addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
                 span.replaceWith(citationWidget);
             }
-            else {
-                const refPattern = /\\ref\{([^}]*)\}/;
-                const match = equations[index].fullMatch.match(refPattern);
-                const refTag = match ? match[1] : '';
-                const failedWidget = renderFailedCitation(refTag);
-                span.replaceWith(failedWidget);
-            }
         })
     }
     else {
@@ -352,6 +370,39 @@ export async function mathCitationPostProcessor(
 But recognized citation count is : ${equations.length}, between line ${sectionInfo.lineStart} and ${sectionInfo.lineEnd}
 Which is not match. this can cause rendering issue. skip rendering`);
     }
+}
+
+export async function calloutCitationPostProcessor(
+    plugin: EquationCitator,
+    el: HTMLElement,
+    ctx: MarkdownPostProcessorContext,
+    citationCache: CitationCache,
+): Promise<void> {
+    // render the inline-code format citation in the callout block
+    const calloutContent = el.querySelector('.callout-content');
+    if (!calloutContent) return;  // no callout content found, skip rendering   
+    const codeCitations = calloutContent.querySelectorAll('code');
+    if (codeCitations.length === 0) return;  // no code citation found, skip rendering
+    const citationPattern = `^\\$\\\\ref\\{${escapeRegExp(plugin.settings.citationPrefix)}([^}]+)\\}\\$$`;
+    
+    codeCitations.forEach(code => {
+        const citeContent = code.innerText.trim();
+        const match = citeContent.match(citationPattern); 
+        if (match) {
+            const eqNumbers: string[] = match[1].split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
+                const eqNumbersAll = plugin.settings.enableContinuousCitation ?
+                    splitContinuousCitationTags(
+                        eqNumbers,
+                        plugin.settings.continuousRangeSymbol || '~',
+                        plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+                        plugin.settings.fileCiteDelimiter
+                    ) : eqNumbers; // split continuous citation tags if enabled  
+
+                const citationWidget = renderEquationCitation(eqNumbersAll, plugin.settings);
+                addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
+                code.replaceWith(citationWidget);
+        }
+    });
 }
 
 function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, eqNumbersAll: string[], sourcePath: string): void {

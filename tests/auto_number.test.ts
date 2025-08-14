@@ -1,4 +1,4 @@
-import { autoNumberEquations, AutoNumberingType } from '@/utils/auto_number';
+import { autoNumberEquations, AutoNumberingType } from '@/utils/auto_number_utils';
 import { Heading } from '@/utils/heading';
 
 // Mock dependencies

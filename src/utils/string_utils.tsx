@@ -1,6 +1,6 @@
+import { isCodeBlockToggle as isCbToggle }  from "@/utils/regexp_utils";
 
-
-export const DISABLED_DELIMITER = `§¶∞&#&@∸∹≑≒≓≔≕≖≗≘≙≚≛≜≝≞≟≠≇≈≉≊≋≌≍≎≏⋤⋥⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱`
+export const DISABLED_DELIMITER = `§¶∞&#&@∸∹≑≒≓≌≍≎≏⋤⋥≔≕≖≗≘≙≚≛≜≝≞≟≠≇≈≉≊≋⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱`
 
 /** Change string RegExp to RegExp literal */
 export function escapeRegExp(string: string): string {
@@ -84,6 +84,61 @@ export function removeInlineCodeBlocks(line: string): string {
     return result;
 }
 
+/**
+ * Determines if the specified position is within a Markdown inline code environment
+ * Code environment definition: Surrounded by unescaped ` symbols
+ * Example: `code` is an inline code block, while \`code` is not
+ * 
+ * @param line - The line to check
+ * @param pos - The position to check (character index)
+ * @returns Returns true if the position is within an inline code environment, otherwise false
+ */
+export function isInInlineCodeEnvironment(line: string, pos: number): boolean {
+    // Boundary check
+    if (pos < 0 || pos > line.length) {
+        return false;
+    }
+
+    let inCodeBlock = false;
+    let codeBlockStart = -1;
+    let codeBlockEnd = -1;
+    let i = 0;
+
+    while (i < line.length) {
+        if (line[i] === '`') {
+            // Check if it's escaped
+            let escapeCount = 0;
+            let j = i - 1;
+            while (j >= 0 && line[j] === '\\') {
+                escapeCount++;
+                j--;
+            }
+            // If the number of backslashes is even (including 0), the backtick is not escaped
+            if (escapeCount % 2 === 0) {
+                if (!inCodeBlock) {
+                    // Start of code block
+                    codeBlockStart = i + 1; // Position after opening backtick
+                    inCodeBlock = true;
+                } else {
+                    // End of code block
+                    codeBlockEnd = i - 1; // Position before closing backtick
+                    // Check if our position is within this code block
+                    if (pos >= codeBlockStart && pos <= codeBlockEnd) {
+                        return true;
+                    }
+                    inCodeBlock = false;
+                }
+            }
+        }
+        i++;
+    }
+    // Check if we're still in a code block at the end (unclosed)
+    if (inCodeBlock && pos >= codeBlockStart) {
+        return true;
+    }
+
+    return false;
+}
 
 /**
  * Determines if the specified position is within a Markdown inline math environment
@@ -241,18 +296,6 @@ export function processQuoteLine(line: string): QuoteLineMatch {
     }
 }
 
-export function updateCodeBlockState(inCodeBlock: boolean, codeBlockMatches: RegExpMatchArray | null): boolean {
-    if (codeBlockMatches) {
-        let newState = inCodeBlock;
-        // Toggle for each ``` found
-        for (let i = 0; i < codeBlockMatches.length; i++) {
-            newState = !newState;
-        }
-        return newState;
-    }
-    return inCodeBlock;
-}
-
 export interface MarkdownLineEnvironment {
     processedContent: string; // Processed line content with quotes and code blocks removed
     inQuote: boolean;    // Whether the line is inside a quote block (redundant with quoteDepth) 
@@ -290,10 +333,9 @@ export function parseMarkdownLine(
         })()
         : { content: line.trim(), quoteDepth: 0, qt: false };
 
-    // Handle code blocks - check for ``` anywhere in the line
-    const codeBlockMatches = /^\s*(?:>+\s*)*```/.test(line) ? processedContent.match(/```/g) : null;
-    const isCodeBlockToggle = !!codeBlockMatches;
-
+    // Handle code blocks 
+    const isCodeBlockToggle = isCbToggle(processedContent);
+    
     // If we're in code block, return early with minimal processing
     if (inCodeBlock && !isCodeBlockToggle) {
         return {

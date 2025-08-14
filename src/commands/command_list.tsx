@@ -8,12 +8,12 @@ export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
         id: 'auto-number-current-file-equations',
         name: 'Auto-number current file equations',
-        callback: () => {
+        callback: async() => {
             const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
             if (!editor) return;
             const scrollInfo = editor.getScrollInfo();
             
-            autoNumberCurrentFileEquations(plugin);
+            await autoNumberCurrentFileEquations(plugin);
             // reset the scroll location  
             setTimeout(() => {
                 editor.scrollTo(scrollInfo.left, scrollInfo.top);

@@ -1,6 +1,6 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import EquationCitator from "@/main";
-import { AutoNumberingType } from "@/utils/auto_number";
+import { AutoNumberingType } from "@/utils/auto_number_utils";
 import {
     validateEquationDisplayFormat,
     validLetterPrefix,
@@ -14,6 +14,8 @@ export interface EquationCitatorSettings {
     enableCitationInSourceMode: boolean; // Enable citation in source mode 
     citationPrefix: string; // Citation prefix for equations
     citationFormat: string; // Citation display format for equations 
+    figCitationPrefix: string; // Figure Citation Prefix
+    figCitationFormat: string; // citation display format for figures 
     citationColor: string; // Citation display color for equations 
     citationHoverColor: string; // Citation display hover color for equations 
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
@@ -35,6 +37,8 @@ export interface EquationCitatorSettings {
     // pdf rendering settings
     citationColorInPdf: string; // default citation color in PDF rendering  
     fileSuperScriptColorInPdf: string; // default file citation color in PDF rendering 
+
+    enableCiteWithCodeBlockInCallout: boolean; // Enable citation by inline code block in callout
 
     // auto numbering settings  
     autoNumberDelimiter: string; // Auto numbering delimiter   
@@ -59,6 +63,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
     citationPrefix: "eq:", // Default prefix for citations 
     citationFormat: "(#)", // Default display format for citations  
+    figCitationPrefix: "fig:", // prefix for cite figures 
+    figCitationFormat: "fig. #", // citation format for figures 
     citationColor: "#a288f9",
     citationHoverColor: "#c5b6fc",
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
@@ -76,7 +82,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes) 
 
     citationColorInPdf: "#000000", // black color for default citation color in PDF rendering 
-    fileSuperScriptColorInPdf: "#000000", // black color for default file citation color in PDF rendering  
+    fileSuperScriptColorInPdf: "#000000", // black color for default file citation color in PDF rendering 
+
+    enableCiteWithCodeBlockInCallout: false,  // cite with inline code block in quote
 
     autoNumberDelimiter: ".", // Default delimiter for auto numbering  
     autoNumberDepth: 3, // Default to 3 (i.e., 1.1.1 for 3 levels)  
@@ -122,7 +130,7 @@ export class SettingsTabView extends PluginSettingTab {
 
         const citePrefixSetting = new Setting(containerEl)
         citePrefixSetting.setName("Citation Prefix")
-            .setDesc("Prefix used for citations, e.g. 'eq:' means use `\ref{eq:1.1} for citation`")
+            .setDesc("Prefix used for citations, e.g. 'eq:' means use `\\ref{eq:1.1}` for citation")
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder("eq:")
@@ -397,13 +405,13 @@ export class SettingsTabView extends PluginSettingTab {
                 });
             });
 
-        let autoNumberingTagCitationContainer: HTMLElement | null = null; 
+        let autoNumberingTagCitationContainer: HTMLElement | null = null;
         const enableUpdateTagsInAutoNumberSetting = new Setting(containerEl)
         enableUpdateTagsInAutoNumberSetting.setName("Auto Update Citations in Auto Numbering")
             .setDesc("Enable auto update citations during auto numbering")
             .addToggle((toggle) => {
                 const parent = enableUpdateTagsInAutoNumberSetting.settingEl.parentElement;
-                const updateAutoNumberCitationContainer = (value: boolean) => { 
+                const updateAutoNumberCitationContainer = (value: boolean) => {
                     if (value && parent && !autoNumberingTagCitationContainer) {
                         // create a new container for auto numbering settings 
                         autoNumberingTagCitationContainer = document.createElement("div");
@@ -423,9 +431,9 @@ export class SettingsTabView extends PluginSettingTab {
                 toggle.setValue(this.plugin.settings.enableUpdateTagsInAutoNumbering);
                 toggle.onChange(async (value) => {
                     this.plugin.settings.enableUpdateTagsInAutoNumbering = value;
-                    Debugger.log("Auto update tags in auto numbering enabled:", value); 
+                    Debugger.log("Auto update tags in auto numbering enabled:", value);
                     await this.plugin.saveSettings();
-                    updateAutoNumberCitationContainer(value);  
+                    updateAutoNumberCitationContainer(value);
                 });
                 updateAutoNumberCitationContainer(this.plugin.settings.enableUpdateTagsInAutoNumbering);
             });
@@ -438,7 +446,7 @@ export class SettingsTabView extends PluginSettingTab {
         const lightWidgetColorSetting = new Setting(containerEl);
         lightWidgetColorSetting.setName("Light Theme Widget Colors")
             .setDesc("Widget colors for light theme");
-
+        lightWidgetColorSetting.settingEl.addClass("ec-settings-nodelimter");
         for (let i = 0; i < 5; i++) {
             lightWidgetColorSetting.addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationWidgetColor[i]);
@@ -455,7 +463,7 @@ export class SettingsTabView extends PluginSettingTab {
         const darkWidgetColorSetting = new Setting(containerEl);
         darkWidgetColorSetting.setName("Dark Theme Widget Colors")
             .setDesc("Widget colors for dark theme");
-
+        darkWidgetColorSetting.settingEl.addClass("ec-settings-nodelimter");
         for (let i = 0; i < 5; i++) {
             darkWidgetColorSetting.addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationWidgetColorDark[i]);
@@ -503,6 +511,7 @@ export class SettingsTabView extends PluginSettingTab {
                 });
             });
 
+
         // ================== PDF export settings ================ 
         containerEl.createEl("h2", { text: "PDF Export Settings", cls: "ec-settings-header" });
         containerEl.createEl("p", {
@@ -531,7 +540,20 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                     await this.plugin.saveSettings();
                 });
             });
+        // ==================  Beta features settings ==========   
+        containerEl.createEl("h2", { text: "Beta Features", cls: "ec-settings-header" });
 
+        const enableCiteWithCodeBlockInCalloutSetting = new Setting(containerEl);
+        enableCiteWithCodeBlockInCalloutSetting.setName("(Beta) Cite with Inline Code Block in Callout")
+            .setDesc("Enable citation by inline code block in callout")
+            .addToggle((toggle) => {
+                toggle.setValue(this.plugin.settings.enableCiteWithCodeBlockInCallout);
+                toggle.onChange(async (value) => {
+                    this.plugin.settings.enableCiteWithCodeBlockInCallout = value;
+                    Debugger.log("Citation with inline code block in callout enabled:", value);
+                    await this.plugin.saveSettings();
+                });
+            });
         // ==================  Other settings ================== 
         containerEl.createEl("h2", { text: "Other Settings", cls: "ec-settings-header" });
 
@@ -680,6 +702,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
     }
 
     showAutoNumberingCitationUpdateSettings(containerEl: HTMLElement): void {
+
         const deleteRepeatTagsInAutoNumberSetting = new Setting(containerEl)
         deleteRepeatTagsInAutoNumberSetting.setName("Auto Delete Conflicting Tag Citations")
             .setDesc("Automatically delete conflicting tag citations during auto numbering, instead of prompting you each time.")
@@ -694,7 +717,8 @@ this will make a correctly-rendered markdown from current note to export pdf.",
             });
 
         const deleteUnusedTagsInAutoNumberSetting = new Setting(containerEl)
-        deleteUnusedTagsInAutoNumberSetting.setName("Auto Delete Unused Tags Citations")
+        deleteUnusedTagsInAutoNumberSetting
+            .setName("Auto Delete Unused Tags Citations")
             .setDesc("Delete unused tag citations when auto numbering all equations")
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.deleteUnusedTagsInAutoNumbering);
@@ -705,6 +729,8 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                     await this.plugin.saveSettings();
                 });
             });
+
+        deleteUnusedTagsInAutoNumberSetting.settingEl.addClass("ec-settings-nodelimter");
     }
 
     resetStyles(): void {

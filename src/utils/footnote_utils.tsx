@@ -1,3 +1,5 @@
+import { footnoteRegex, isCodeBlockToggle } from "@/utils/regexp_utils";
+
 export interface FootNote {
     num: string;  // footnote number
     path: string; // path to the footnote file
@@ -9,13 +11,11 @@ export function parseFootnoteInMarkdown(markdown: string): FootNote[] {
     const result: FootNote[] = [];
     let inCodeBlock = false;
     // Regex to match footnote pattern: [^x]: [[path|alias]] or [^x]: [[path]]
-    const footnoteRegex = /^\[(\^[^\]]+)\]:\s*\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/;
+    
     
     for (const line of lines) {
-        if (!line.startsWith('[^')) { 
-            // update code block state 
-            const matches =  /^\s*(?:>+\s*)*```/.test(line) ? line.match(/```/g) : null;
-            if (matches && matches.length % 2 === 1) {
+        if (!line.startsWith('[^')) {
+            if (isCodeBlockToggle(line)) {
                 inCodeBlock = !inCodeBlock;
                 continue;
             }

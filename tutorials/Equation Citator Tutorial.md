@@ -52,24 +52,25 @@ These are the two footnotes we used in this file (this denotes the file you want
 We can cite equation by footnote $\ref{eq:1^1.1}$  . Hold ctrl and move mouse over to see preview.
 
 ### (3) Continuous Citation
-The equation `$\ref{eq:1^1.3.1~3, 1^2.1.1~2}$ ` will be rendered  as :  $\ref{eq:1^1.1.1~3,1^1.2.1~2}$
+The equation `$\ref{eq:1^1.3.1~3,1^2.1.1~2}$ ` will be rendered  as :  $\ref{eq:1^1.3.1~3,1^2.1.1~2}$
 
 Note if we enable the continuous citation, the equation write in a continuous sequence will also be rendered continuously.  For example, `$\ref{eq:1.3.1, 1.3.2, 1.3.3, 1.3.4, 1.3.5}` will be rendered as $\ref{eq:1.3.1~5}$ .
 
 Similarly, we can use `$\ref{eq:P1, P2}$`, which will be rendered as $\ref{eq:P1~2}$, but we can also simply use $\ref{eq:P1~2}$ 
-$$ \Large \boxed{du = T ds  - p dv} \tag{1.3.1} $$
+$$ \Large \boxed{du = T ds - p dv} \tag{1.3.1} $$
 $$ \Large \boxed{\Large df = -s dT- pdv } \tag{1.3.2} $$
 $$ \Large\boxed{G = H - TS} \tag{1.3.3} $$
 $$ F = ma \tag{1.3.4} $$
 $$ \Large \boxed{I = \frac{1}{12} ml^{2}} \tag{1.3.5} $$
 
-We can also use cross file citation continuously, such as  `$\ref{eq:2^1.1.1, 2^1.1.2, 2^1.1.3, 2^1.2.1~2}$ `.  This is render result :  $\ref{eq:2^1.1.1~3,2^1.2.1~2}$  
+We can also use cross file citation continuously, such as  `$\ref{eq:2^1.3.1, 2^1.3.2, 2^2.1.1, 2^2.1.2}$ `.  This is render result :  $\ref{eq:2^1.3.1, 2^1.3.2, 2^2.1.1, 2^2.1.2}$   
 
+or use continuous format : 
 ```
-$\ref{eq:2^1.1.1, 2^1.1.2, 2^1.1.3, 2^2.1.1~2}$
+$\ref{eq:2^1.3.1~3, 2^2.1.1~2}$
 ```
 
-  This will be rendered as $\ref{eq:2^1.1.1~3,2^1.2.1~2}$.  Note multi continuous will citation will also combined, such as :   $\ref{eq:1~2,3~4}$
+This will be rendered as $\ref{eq:2^1.3.1~3,2^2.1.1~2}$.  Note multi continuous will citation will also combined, such as :   $\ref{eq:1~2,3~4}$
 
 The following (such as writing multiple `\ref{}` in a citation,  or have wrong prefix) is incorrect citation pattern, which will not be rendered.  
 ```
@@ -81,13 +82,11 @@ The above is rendered as :  $\ref{eq:1.1} \ref{}$ ,  $\ref{123}$
 
 ### (1) Jump to equation
 
-You can use `double-click` to jump to the equation position in the file.
+You can **use `double-click` to jump to the equation position** in the file.
 
+Also, **use `ctrl + double-click` to open a new tab at right side and jump to the equation.**
 
-Also, use `ctrl + double-click` to open a new tab at right side and jump to the equation.
-
-
-Here you can use this for test : $\ref{eq:1.1.1,2^1.2.1}$  
+Here you can use this for test : $\ref{eq:1.1.1,2^1.3.1}$  
 
 ### (2) Rename tag 
 We allow you to rename the tag of equations. which allows you to insert a new equation of change the citation number of equation easily. 
@@ -203,7 +202,26 @@ Some Content $$equation$$   # not write any content before it !
 this  is an $$ equation
 $$ block  # not write content before or after equation block in one line!
 ```
-## 5. Todo list & In future 
+
+## 5. Beta Features 
+
+Beta features are features not fully supported yet, and we may not add full support for them in recent future. 
+
+### (1) Cite with inline code in callout  
+This plugin doesn't support citation in callout because of internal flaws (see [bug #4](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/4)), but if that is necessary for you, you can use \`\$\ref{eq:1.1}\$\` to cite equation in callout by enabling this beta feature. 
+
+For example, enable the beta feature and change the content of following callout (or re-open the file) to render citations in callout. 
+
+
+> [!NOTE]
+> Normal citations will be rendered incorrectly in callout $\ref{eq:1.1.1, }$, but if you enable this beta feature, this is a  citation in callout  test for `$\ref{eq:1.1.3, 1.3.1, }$` 
+
+> [!WARNING]
+> **Limitations** : 
+> 1. When equation tag is changed or auto-numbering is triggered, this citation will not be updated automatically. (need to manually update) 
+> 2. Correct render of this citation is not supported in PDF export. (need your manually fix)
+
+## 6. Todo list & In future 
 
 **Core Features to do list** :
 
