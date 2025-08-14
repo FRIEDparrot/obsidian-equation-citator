@@ -77,6 +77,7 @@ export class TagRenameModal extends Modal {
                 const msg = assemblyCitationUpdateMessage(result);
                 new Notice(msg);
             }
+            this.onSubmit(this.newTag); // call onSubmit method to rename selected tag
         }
         
         if (haveRepetedTags) {
@@ -103,7 +104,6 @@ export class TagRenameModal extends Modal {
         }
         else {
             await callRenameTagService(false, false);
-            this.onSubmit(this.newTag); // call onSubmit method to rename selected tag 
         } 
     }
 }

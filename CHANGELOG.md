@@ -60,6 +60,8 @@ Version 1.2.1 - bug fixes and minor improvements.
 - Fixed the bug when auto-numbering equations, citations in the original file not updated correctly.
 - Fixed some equation citation issues in tutorial. 
 
+> Release Patch :  fix bug : rename tag will fail if show repeat prompt
+
 🚀 Optimizations :  
 - Auto Number and tag renaming now show informations of renamed citations. 
 
