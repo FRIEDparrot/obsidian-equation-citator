@@ -41,11 +41,15 @@ this will be rendered as follows (support both light and dark theme) :
   - don't want to add ugly block reference `^` in your equation blocks for reference, and make your citation more organized and clean. 
 
 ## Main Features
-1. **Easy Citation and preview**
+1. **Easy Citation, Preview and Rename Tags**
 
 Use simple inline `$\ref{eq:A}$` format to cite equation block with `\tag{A}` and preview it just as links in obsidian.
 
 **Select tag (`\tag{1.2}`) and right click to edit tag**, and its **citation will be automatically updated**. 
+
+<center><img src="img\rename_tag.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px; " /></center>
+
+
 
 2. **Corss-file citation, multi-citation and continuous citation**
 
