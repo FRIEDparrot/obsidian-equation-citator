@@ -39,7 +39,8 @@ Version 1.2.0 - functionally improvements.
 - Now if no alias (label) is provided for a footnote, it will use the file name as the alias. 
 - Fix some blank line problem in tutorial. also add tutorials for new features. 
 - Refactor the equation utils functions, combine several fucntions into one. 
-- Provide an option to enable/disable citation update when auto-numbering equations. 
+
+> Release Patch : Provide an option to enable/disable citation update when auto-numbering equations. 
 
 
 ✨ New Features : 
