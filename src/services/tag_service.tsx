@@ -3,6 +3,7 @@ import { FootNote } from "@/utils/footnote_utils";
 import { resolveBackLinks } from "@/utils/link_utils";
 import { TFile, Editor } from "obsidian";
 import { CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags } from "@/utils/citation_utils";
+import { createCitationString } from "@/utils/regexp_utils";
 
 export interface TagRenamePair {
     oldTag: string;
@@ -176,17 +177,23 @@ export class TagService {
         const currentFileTagMapping = new Map<string, string>();
         effectivePairs.forEach(pair => {
             currentFileTagMapping.set(pair.oldTag, pair.newTag);
-        })
-        const currentFileContent = await this.plugin.app.vault.cachedRead(file);
+        });
+        // use read here to get strong consistency (since in many auto-number may change file lines)
+        const currentFileContent = await this.plugin.app.vault.read(file);
         let currentFileUpdatedNum = 0;
         if (editor) {
             const currentFileLines = currentFileContent.split('\n');
             const { updatedLineMap, updatedNum } = await this.updateCitationLines(
                 currentFileLines, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
             );
-            updatedLineMap.forEach((newline, lineNum) => {
-                editor.replaceRange(newline, { line: lineNum, ch: 0 }, { line: lineNum, ch: currentFileLines[lineNum].length })
-            })
+            const sortedUpdatedLineMap = new Map(Array.from(updatedLineMap.entries()).sort((a, b) => b[0] - a[0]));
+            sortedUpdatedLineMap
+                .forEach((newline: string, lineNum: number) => {
+                    editor.replaceRange(
+                        newline,
+                        { line: lineNum, ch: 0 },
+                        { line: lineNum, ch: currentFileLines[lineNum].length })
+                })
             currentFileUpdatedNum = updatedNum;
         } else {
             // no editor instance, update the citation in current file without editor instance 
@@ -197,7 +204,7 @@ export class TagService {
             currentFileUpdatedNum = updatedNum;
         }
         addToChangeMap(sourceFile, currentFileUpdatedNum);  // add the current file to the change map
-        
+
         /***  update the citation in backlink files ******/
         /****  update the citation in backlink files ******/
         const linksAll = this.plugin.app.metadataCache.resolvedLinks;
@@ -235,7 +242,7 @@ export class TagService {
                     crossFileTagMapping.set(oldTag, newTag);
                 }
             });
-            const md = await this.plugin.app.vault.cachedRead(file);
+            const md = await this.plugin.app.vault.read(file);
             const { updatedContent, updatedNum } = await this.updateCitations(
                 md, crossFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
             );
@@ -308,7 +315,7 @@ export class TagService {
             const newCitations = combineContinuousCitationTags(
                 processedCitations, rangeSymbol, citeDelimiters, fileDelimiter
             );
-            const newCitationRaw = `$\\ref{${prefix}${newCitations.join(multiEqDelimiter)}}$`;
+            const newCitationRaw = createCitationString(prefix, newCitations.join(multiEqDelimiter));
             lineMap.set(c.line, before + newCitationRaw + after);  // update the citation with new tag 
         }
         return {

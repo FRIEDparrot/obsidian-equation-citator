@@ -30,13 +30,13 @@ describe('combineContinuousCitationTags', () => {
     test('should combine continuous tags with file citations (prefix format)', () => {
         const input = ["P1", "2^1.1.1", "2^1.1.2", "2^1.1.3"];
         const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
-        expect(output).toEqual(["P1", "2^1.1.1~3"]);
+        expect(output).toEqual(["P1", "2^{1.1.1~3}"]);
     });
 
     test('should handle mixed file citations (prefix format)', () => {
         const input = ["1^1.1.1", "1^1.1.2", "2^1.1.1", "2^1.1.2"];
         const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
-        expect(output).toEqual(["1^1.1.1~2", "2^1.1.1~2"]);
+        expect(output).toEqual(["1^{1.1.1~2}", "2^{1.1.1~2}"]);
     });
 
     test('should not combine non-consecutive tags', () => {
@@ -84,20 +84,20 @@ describe('combineContinuousCitationTags', () => {
     test('should handle complex mixed cases with prefix format', () => {
         const input = [
             "P1",
-            "1^1.1.1",
-            "1^1.1.2",
+            "1^{1.1.1}",
+            "1^{1.1.2}",
             "2.1.1",
             "2.1.2",
-            "2^1.1.1",
+            "2^{1.1.1}",
             "3-1-1",
             "3-1-2"
         ];
         const output = combineContinuousCitationTags(input, rangeSymbol, validDelimiters, fileDelimiter);
         expect(output).toEqual([
             "P1",
-            "1^1.1.1~2",
+            "1^{1.1.1~2}",
             "2.1.1~2",
-            "2^1.1.1",
+            "2^{1.1.1}",
             "3-1-1~2"
         ]);
     });
@@ -146,12 +146,12 @@ describe('splitContinuousCitationTags', () => {
 
     test('handles file citations with ranges', () => {
         expect(splitContinuousCitationTags(['2^1.1.1~3'], rangeSymbol, validDelimiters, fileDelimiter))
-            .toEqual(['2^1.1.1', '2^1.1.2', '2^1.1.3']);
+            .toEqual(['2^{1.1.1}', '2^{1.1.2}', '2^{1.1.3}']);
     });
 
     test('handles mixed tags with and without ranges', () => {
-        expect(splitContinuousCitationTags(['P1~2', '2^1.1.1~4', '1.3.2~3', '1^1.3.4'], rangeSymbol, validDelimiters, fileDelimiter))
-            .toEqual(['P1', 'P2', '2^1.1.1', '2^1.1.2', '2^1.1.3', '2^1.1.4', '1.3.2', '1.3.3', '1^1.3.4']);
+        expect(splitContinuousCitationTags(['P1~2', '2^{1.1.1~4}', '1.3.2~3', '1^{1.3.4}'], rangeSymbol, validDelimiters, fileDelimiter))
+            .toEqual(['P1', 'P2', '2^{1.1.1}', '2^{1.1.2}', '2^{1.1.3}', '2^{1.1.4}', '1.3.2', '1.3.3', '1^{1.3.4}']);
     });
 
     test('handles dash delimiters', () => {
@@ -211,12 +211,12 @@ describe('splitContinuousCitationTags', () => {
 
     test('handles file citations without ranges', () => {
         expect(splitContinuousCitationTags(['2^1.3.4'], rangeSymbol, validDelimiters, fileDelimiter))
-            .toEqual(['2^1.3.4']);
+            .toEqual(['2^{1.3.4}']);
     });
 
     test('handles complex file citation ranges', () => {
         expect(splitContinuousCitationTags(['10^2.3.1~5'], rangeSymbol, validDelimiters, fileDelimiter))
-            .toEqual(['10^2.3.1', '10^2.3.2', '10^2.3.3', '10^2.3.4', '10^2.3.5']);
+            .toEqual(['10^{2.3.1}', '10^{2.3.2}', '10^{2.3.3}', '10^{2.3.4}', '10^{2.3.5}']);
     });
 
     test('handles zero-padded numbers', () => {
@@ -231,7 +231,7 @@ describe('splitContinuousCitationTags', () => {
 
     test('handles range symbol in file citation part', () => {
         expect(splitContinuousCitationTags(['2~3^1.1'], rangeSymbol, validDelimiters, fileDelimiter))
-            .toEqual(['2~3^1.1']); // Range symbol in file part, not local part
+            .toEqual(['2~3^{1.1}']); // Range symbol in file part, not local part
     });
 
     test('ignores empty strings in input array', () => {
@@ -295,7 +295,7 @@ describe('splitContinuousCitationTags', () => {
 
     test('handles mixed characters with file citation', () => {
         expect(splitContinuousCitationTags(['2^$EQ1~3'], rangeSymbol, validDelimiters, fileDelimiter))
-            .toEqual(['2^$EQ1', '2^$EQ2', '2^$EQ3']);
+            .toEqual(['2^{$EQ1}', '2^{$EQ2}', '2^{$EQ3}']);
     });
 });
 
@@ -332,6 +332,34 @@ describe('splitFileCitation', () => {
         expect(splitFileCitation('1^2^1.1.1', '^')).toEqual({
             local: '2^1.1.1',
             crossFile: '1'
+        });
+    });
+
+        test('should handle citation with braces around local part', () => {
+        expect(splitFileCitation('2^{1.1.1}', '^')).toEqual({
+            local: '1.1.1',
+            crossFile: '2'
+        });
+    });
+
+    test('should handle citation with braces and suffix', () => {
+        expect(splitFileCitation('2^{1.1.1~3}', '^')).toEqual({
+            local: '1.1.1~3',
+            crossFile: '2'
+        });
+    });
+
+    test('should handle nested braces correctly', () => {
+        expect(splitFileCitation('3^{1.{2}.1}', '^')).toEqual({
+            local: '1.2.1',
+            crossFile: '3'
+        });
+    });
+
+    test('should trim spaces around crossFile and local parts', () => {
+        expect(splitFileCitation(' 4 ^ { 1.2.3 } ', '^')).toEqual({
+            local: '1.2.3',
+            crossFile: '4'
         });
     });
 });

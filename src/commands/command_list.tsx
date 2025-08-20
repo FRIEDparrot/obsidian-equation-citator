@@ -1,8 +1,9 @@
 import EquationCitator from '@/main';
-import { autoNumberCurrentFileEquations } from '@/func/autoNumber';
+import { autoNumberCurrentFileEquations, insertAutoNumberTag } from '@/func/autoNumber';
 import { MarkdownView } from 'obsidian';
 import { exportCurrentMarkdown } from '@/func/exportMarkdown';
 import { insertTextWithCursorOffset } from '@/func/insertTextOnCursor';
+import { createCitationString, createEquationTagString } from '@/utils/regexp_utils';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
@@ -28,10 +29,18 @@ export default function registerCommands(plugin: EquationCitator) {
             const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
             if (!editor) return;
             const citePrefix = plugin.settings.citationPrefix;
-            const citationString = `$\\ref{${citePrefix}}$ `;
-            // Move cursor to inside the braces after `\ref{`
+            const citationString = createCitationString(citePrefix);
+            // Move cursor to the correct position 
             insertTextWithCursorOffset(editor, citationString, 6 + citePrefix.length);
         },
+    })
+
+    plugin.addCommand({
+        id: 'make-markdown-copy-to-export-pdf',
+        name: 'Make markdown copy to export PDF',
+        callback: async () => {
+            exportCurrentMarkdown(plugin);
+        }
     })
 
     plugin.addCommand({
@@ -40,17 +49,17 @@ export default function registerCommands(plugin: EquationCitator) {
         callback: () => {
             const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
             if (!editor) return;
-            const tagString = '\\tag{}';
+            const tagString = createEquationTagString("");
             // Move cursor inside the braces
             insertTextWithCursorOffset(editor, tagString, 5);
         }
     })
 
     plugin.addCommand({
-        id: 'make-markdown-copy-to-export-pdf',
-        name: 'Make markdown copy to export PDF',
+        id: 'insert-tag-with-auto-number-on-cursor-position',
+        name: 'Insert tag on cursor position with auto-number',
         callback: async () => {
-            exportCurrentMarkdown(plugin);
+            await insertAutoNumberTag(plugin);
         }
     })
 }

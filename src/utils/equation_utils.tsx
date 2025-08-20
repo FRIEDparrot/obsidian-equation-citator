@@ -1,5 +1,5 @@
-import { escapeRegExp, parseMarkdownLine } from "@/utils/string_utils";
-import { isCodeBlockToggle } from "@/utils/regexp_utils";
+import { parseMarkdownLine } from "@/utils/string_utils";
+import { escapeRegExp, createEquationTagRegex, isCodeBlockToggle } from "@/utils/regexp_utils";
 
 /// This file contains utility functions for working with equations tag 
 /// and also process equation blocks 
@@ -41,11 +41,12 @@ export function isValidEquationPart(part: string, validDelimiters: string[]): bo
  * @returns 
  */
 export function parseEquationTag(eqn: string): EquationParseResult {
-    const tagRegex = /\\tag\{\s*([^}]+)\s*\}/;
-    const match = tagRegex.exec(eqn);
-    // trim equations  
+    // Remove $$ if present 
     const contentWithTag = eqn.replace(/^\s*\$\$\s*/, "").replace(/\s*\$\$\s*$/, "").trim();
-    const content = contentWithTag.replace(tagRegex, '').trim();
+    const pattern = createEquationTagRegex(false, null); 
+    const match = contentWithTag.match(pattern);   // only match first tag 
+    // trim equations 
+    const content = contentWithTag.replace(pattern, '').trim();
     return {
         content,
         contentWithTag,
@@ -76,7 +77,6 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): 
     let equationStartLine = 0;
     let equationBuffer: string[] = [];
     const equations: EquationMatch[] = [];
-
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
         const line = lines[lineNum];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
@@ -87,8 +87,7 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): 
         
         // Handle multi-line equation blocks
         if (inEquationBlock) {
-            equationBuffer.push(parseResult.cleanedLine.trim());
-
+            equationBuffer.push(parseResult.cleanedLine.trim()); 
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
                 const rawContent = equationBuffer.join('\n');
@@ -173,7 +172,6 @@ export function parseFirstEquationInMarkdown(markdown: string, tag: string): Equ
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
         const line = lines[lineNum];
         const parseResult = parseMarkdownLine(line, true, inCodeBlock);
-
         // Update code block state
         if (parseResult.isCodeBlockToggle) {
             const processedContent = parseResult.processedContent.trim();

@@ -58,12 +58,7 @@ export default class EquationCitator extends Plugin {
         this.loadEditorExtensions();
         this.loadReadingModeExtensions();
         this.registerEditorSuggest(this.autoCompleteSuggest);
-
-        // this.app.workspace.onLayoutReady(() => {
-        //     requestAnimationFrame(() => {  
-        //     });
-        // });
-
+        
         // register ribbon button and commands 
         registerRibbonButton(this);
         registerRightClickMenu(this);
@@ -105,13 +100,12 @@ export default class EquationCitator extends Plugin {
     loadReadingModeExtensions() {
         this.registerMarkdownPostProcessor(
             async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
+                // const isReadingMode = activeView.getMode() === "preview"; 
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (!activeView) return;
-                const isReadingMode = activeView.getMode() === "preview";
-                // only update the post processor in reading mode 
-                if (isReadingMode) {
-                    await mathCitationPostProcessor(this, el, ctx, this.citationCache);
-                }
+                if (!activeView) return; 
+                // also register in live preview mode to render citations in link preview  
+                await mathCitationPostProcessor(this, el, ctx, this.citationCache);
+                
                 if (this.settings.enableCiteWithCodeBlockInCallout) {
                     // wait for the callout to be rendered 
                     await calloutCitationPostProcessor(this, el, ctx, this.citationCache);

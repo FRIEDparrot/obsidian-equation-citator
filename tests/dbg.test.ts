@@ -1,14 +1,7 @@
-
-import { resolveBackLinks, resolveForwardLinks } from "@/utils/link_utils";
-
-test('should handle malformed resolvedLinks data', () => {
-        const malformedData = {
-                'file1.md': null,
-                'file2.md': 'invalid',
-                'file3.md': { 'file4.md': 1 }
-        };
-        
-        expect(resolveBackLinks(malformedData, 'file4.md')).toEqual(['file3.md']);
-        expect(resolveForwardLinks(malformedData, 'file1.md')).toEqual([]);
-        expect(resolveForwardLinks(malformedData, 'file2.md')).toEqual([]);
+import { matchNestedCitation } from "@/utils/regexp_utils";
+describe('Edge cases', () => {
+    it('should handle multiple refs (return null)', () => {
+        const result = matchNestedCitation('\\ref{eq:1} \\ref{eq:2}', null);
+        expect(result).toBeNull();
+    });
 });

@@ -1,15 +1,17 @@
-import EquationCitator from "@/main";
-import { CurrentFileProcessor } from '@/utils/fileProcessor';
-import { autoNumberEquations } from "@/utils/auto_number_utils";
+import { MarkdownView } from "obsidian";
+import { MarkdownFileProcessor } from '@/utils/fileProcessor';
+import { autoNumberEquations, getAutoNumberInCursor } from "@/utils/auto_number_utils";
 import { TagRenamePair, TagRenameResult } from "@/services/tag_service";
 import { Notice } from "obsidian";
 import Debugger from "@/debug/debugger";
+import EquationCitator from "@/main";
+import { insertTextWithCursorOffset } from "./insertTextOnCursor";
 
 export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     const settings = plugin.settings;
-    const prefix = settings.autoNumberPrefixEnabled ? settings.autoNumberPrefix : "";
-    const deleteRepeatTags = settings.deleteRepeatTagsInAutoNumbering;
-    const deleteUnusedTags = settings.deleteUnusedTagsInAutoNumbering;
+    const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
+        autoNumberNoHeadingPrefix, autoNumberPrefix, autoNumberEquationsInQuotes } = plugin.settings;
+    const { deleteRepeatTagsInAutoNumbering: deleteRepeatTags, deleteUnusedTagsInAutoNumbering: deleteUnusedTags } = plugin.settings;
     const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
     let citationUpdateResult: TagRenameResult | undefined;
     let tagMapping: Map<string, string> = new Map();
@@ -18,26 +20,26 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
         new Notice("Auto number is not supported in reading mode");
         return;
     }
-    const processor = new CurrentFileProcessor(
+    const processor = new MarkdownFileProcessor(
         plugin,
+        sourceFile,
         async (content) => {
-            const { md, tagMapping : tm } = autoNumberEquations(
+            const { md, tagMapping: tm } = autoNumberEquations(
                 content,
-                settings.autoNumberType,
-                settings.autoNumberDepth,
-                settings.autoNumberDelimiter,
-                settings.autoNumberNoHeadingPrefix,
-                prefix,
-                settings.autoNumberEquationsInQuotes
+                autoNumberType,
+                autoNumberDepth,
+                autoNumberDelimiter,
+                autoNumberNoHeadingPrefix,
+                autoNumberPrefix,
+                autoNumberEquationsInQuotes
             );
             tagMapping = tm;
-            // rename tags by tagmapping 
-            
+            // rename tags by tagmapping
             return Promise.resolve(md);
         }
     );
     await processor.execute();  // process current file content 
-    
+
     if (settings.enableUpdateTagsInAutoNumbering && tagMapping.size > 0) {
         // Convert Map<string, string> to TagRenamePair[] 
         const renamePairs: TagRenamePair[] = Array.from(tagMapping.entries()).map(([oldTag, newTag]) => ({
@@ -49,11 +51,9 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
         citationUpdateResult = await plugin.tagService.renameTags(
             sourceFile, renamePairs, deleteRepeatTags, deleteUnusedTags, editor
         );
-        if (citationUpdateResult) {
-            Debugger.log("citation update details :", citationUpdateResult.details);
-        }
+        if (citationUpdateResult) Debugger.log("citation update details :", citationUpdateResult.details);
     }
-    
+
     // show notice message  
     let msg = "Auto numbering finished.";
     if (citationUpdateResult) {
@@ -61,6 +61,31 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
         msg += '\n' + citeUpdateMsg;
     }
     new Notice(msg);
+}
+
+export function insertAutoNumberTag(plugin: EquationCitator): void {
+    const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+    if (!editor) return;
+    const cursorPos = editor.getCursor();
+    const content = editor.getValue();
+    const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
+        autoNumberNoHeadingPrefix, autoNumberPrefix, autoNumberEquationsInQuotes } = plugin.settings;
+
+    const autoNumberTag = getAutoNumberInCursor(
+        content,
+        cursorPos,
+        autoNumberType,
+        autoNumberDepth,
+        autoNumberDelimiter,
+        autoNumberNoHeadingPrefix,
+        autoNumberPrefix,
+        autoNumberEquationsInQuotes);
+    if (!autoNumberTag) {
+        new Notice("Cursor is not in a valid equation block");
+        return;
+    }
+    const insertText = `\\tag{${autoNumberTag}}`;
+    insertTextWithCursorOffset(editor, insertText, insertText.length);
 }
 
 export function assemblyCitationUpdateMessage(result: TagRenameResult): string {

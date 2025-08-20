@@ -1,5 +1,11 @@
 // escapeString.test.ts
-import { escapeString, processQuoteLine, isInInlineMathEnvironment, findLastUnescapedDollar } from "@/utils/string_utils";
+import {
+  escapeString,
+  processQuoteLine,
+  isInInlineMathEnvironment,
+  findLastUnescapedDollar,
+  removePairedBraces
+} from "@/utils/string_utils";
 
 describe('escapeString', () => {
   it('should escape backslashes', () => {
@@ -451,5 +457,63 @@ describe('findLastUnescapedDollar', () => {
       const manyEscaped = '\\$'.repeat(100) + '$';
       expect(findLastUnescapedDollar(manyEscaped, manyEscaped.length)).toBe(200);
     });
+  });
+});
+
+describe('removePairedBraces (remove only braces, keep inner content)', () => {
+  it('removes braces for a simple pair, keeps inner content', () => {
+    expect(removePairedBraces('abc{def}ghi')).toBe('abcdefghi');
+  });
+
+  it('handles nested braces correctly, keeping all inner content', () => {
+    expect(removePairedBraces('a{b{c}d}e')).toBe('abcde');
+  });
+
+  it('keeps unmatched closing brace when there is no opening', () => {
+    expect(removePairedBraces('abc}def')).toBe('abc}def');
+  });
+
+  it('keeps leading unmatched closing braces', () => {
+    expect(removePairedBraces('}}abc')).toBe('}}abc');
+  });
+
+  it('keeps trailing unmatched closing braces', () => {
+    expect(removePairedBraces('abc}}')).toBe('abc}}');
+  });
+
+  it('removes an unmatched opening brace but keeps following content', () => {
+    expect(removePairedBraces('abc{def')).toBe('abcdef');
+  });
+
+  it('handles multiple pairs and interleaving text', () => {
+    expect(removePairedBraces('a{b}c{d}e')).toBe('abcde');
+  });
+
+  it('handles consecutive/nested braces with content', () => {
+    expect(removePairedBraces('a{{b}}c')).toBe('abc');
+  });
+
+  it('handles complex mix, preserving outer unmatched } and inner content', () => {
+    expect(removePairedBraces('}}a{b}c{{d}}e{f')).toBe('}}abcdef');
+  });
+
+  it('removes only braces when there is nothing inside', () => {
+    expect(removePairedBraces('a{{}{}}b')).toBe('ab');
+  });
+
+  it('empty string stays empty', () => {
+    expect(removePairedBraces('')).toBe('');
+  });
+
+  it('string with no braces is unchanged', () => {
+    expect(removePairedBraces('hello world')).toBe('hello world');
+  });
+
+  it('mixed unmatched order "}{": keep leading } and remove {', () => {
+    expect(removePairedBraces('}{')).toBe('}');
+  });
+
+  it('mixed content around unmatched braces', () => {
+    expect(removePairedBraces('}{x}{')).toBe('}x');
   });
 });

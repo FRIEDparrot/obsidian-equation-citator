@@ -1,33 +1,30 @@
-import {  Editor, Notice } from "obsidian";
-import EquationCitator from "@/main"; 
+import { Notice, TFile } from "obsidian";
+import EquationCitator from "@/main";
+import Debugger from "@/debug/debugger";
 
-export class CurrentFileProcessor {
-    plugin: EquationCitator;
-    callback: (content: string) => Promise<string>;
-    constructor(plugin: EquationCitator, callback: (content: string) => Promise<string>) {
-        this.plugin = plugin;
-        this.callback = callback; 
-    }
+/**
+ * Fix :
+ * Not use current file processor 
+ * (since it have bad real-time update and may confilct with some other file operation)
+ */
+export class MarkdownFileProcessor {
+    constructor(private plugin: EquationCitator,
+        private sourcePath: string,
+        private callback: (content: string) => Promise<string>) { }
     
-    private async getEditorMarkdown(editor: Editor): Promise<string> {
-        if (editor) {
-            const activeFileContent = editor.getValue() || "";
-            return activeFileContent;  
-        }
-        return ""; 
-    }
-
     public async execute() {
-        const editor = this.plugin.app.workspace.activeEditor?.editor;
-        if (editor) {
-            const content = await this.getEditorMarkdown(editor); 
-            const processedContent = await this.callback(content); 
-            if (processedContent) {
-                editor.setValue(processedContent);
-            }
+        const file = this.plugin.app.vault.getAbstractFileByPath(this.sourcePath);
+        if (!(file instanceof TFile)) {
+            new Notice(`File ${this.sourcePath} not found.`);
+            return;
+        }
+        const content = await this.plugin.app.vault.read(file);  // read file content 
+        const processedContent = await this.callback(content);
+        if (processedContent) {
+            await this.plugin.app.vault.modify(file, processedContent);  // save processed content to file  
         }
         else {
-            new Notice("No active editor found."); 
-        } 
+            Debugger.log("No content processed.");
+        }
     }
 }

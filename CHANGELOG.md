@@ -69,3 +69,25 @@ Version 1.2.1 - bug fixes and minor improvements.
 ✨ New Features : 
 - **(Beta Feature) Cite with inline code in callout** : Add this feature to render citations in callout block. (for [bug #4](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/4)). For limitations, see [Tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Equation%20Citator%20Tutorial.md) 
 
+
+### Version 1.2.2  
+Version 1.2.2 - many critical bug fixes and significant improvements for user experience.  
+
+🐛 Fixed Bugs & Optimizations : 
+ - [x] **(Critical Bug Fix)** Fix [Bug #14](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/14), and now the current file will be auto-numbered correctly even with 1-line tags. (Now note will not become a mass after auto-numbering😅) 
+ - [x] Fix [Bug #15](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/15), now citations will be rendered in LiveEditor preview Widget. 
+ - [x] Fix [Bug #16](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/16), now auto-complete will work correctly and not  create redundant space 
+ - [x] Fix [Bug #17](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/17),  citation suggest will work normally when complete in mid position.
+ - [x] Fix multiple same equations render processing, now it will auto matically be combined, `$\ref{eq:1.1.1, 1.1.1, 1.1.2, 1.1.2, 1.1.3, 1.1.4, 1.1.6,  }$`  now should be rendered as  `(1.1.1~4), (1.1.6)`, which is rendered as `(1.1.1~2), (1.1.2~4), (1.1.6)` in previous versions. 
+ - [x] Fix the citation not rendered correctly when there are spaces between ref brace and citation prefix (e.g. `ref{ eq:1.1}` will not be rendered correctly) 
+ - [x] Fix PDF export issue : The markdown prepend the path name instead of creating it under the same folder. 
+
+✨ New Features : 
+- [x] **(Significant Improvement)** Cross-File Citation now support use inner braces in citation (A large refactor has been made for this, PDF support and autocomplete are also updated to support this feature). 
+- [x] Optimize the tutorial and readme file, add new features, remove unnecessary parts and duplicates. Moved rules part from readme to tutorial.
+- [x] **(slight improvement)** Optimize user experience : Now if type a space after citation, the plugin stop suggesting. 
+- [x] **(User Experience Improvement)**  Add a new command for inserting tag with auto-number. (allows quick insertion of tags more easily) 
+
+```markdown
+$\ref{eq:2^{1.1}}$    // inner braces in citation 
+```

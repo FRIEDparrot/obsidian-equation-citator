@@ -1,6 +1,6 @@
 {
 	"name": "equation_citator",
-	"version": "0.0.1",
+	"version": "1.2.2",
 	"description": "An Equation Citator Allows you to cite equations in your Obsidian notes.",
 	"main": "main.js",
 	"scripts": {
@@ -14,8 +14,8 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"keywords": [],
-	"author": "",
-	"license": "MIT",
+	"author": "FRIEDparrot",
+	"license": "Apache-2.0",
 	"devDependencies": {
 		"@codemirror/autocomplete": "^6.18.6",
 		"@codemirror/language": "^6.11.2",
