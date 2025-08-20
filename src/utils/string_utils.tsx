@@ -1,11 +1,6 @@
-import { isCodeBlockToggle as isCbToggle }  from "@/utils/regexp_utils";
+import { isCodeBlockToggle as isCbToggle, headingRegex, singleLineEqBlockPattern }  from "@/utils/regexp_utils";
 
 export const DISABLED_DELIMITER = `§¶∞&#&@∸∹≑≒≓≌≍≎≏⋤⋥≔≕≖≗≘≙≚≛≜≝≞≟≠≇≈≉≊≋⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱`
-
-/** Change string RegExp to RegExp literal */
-export function escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
 // escapeString.ts
 export function escapeString(str: string, quoteType: '"' | "'" = '"'): string {
@@ -82,6 +77,34 @@ export function removeInlineCodeBlocks(line: string): string {
     }
 
     return result;
+}
+
+/**
+ * Removes all braces {} and extract the content in braces from the content  
+ * @param content 
+ * @returns 
+ */
+export function removeBraces(content: string) {
+    // Remove all braces { and } 
+    return content.replace(/[{}]/g, '');
+}
+
+export function removePairedBraces(content: string): string {
+    let cnt = 0;
+    const result: string[] = [];
+    for (let i = 0; i < content.length; i++) {
+        const char = content[i]; 
+        if (char === '{') {
+            cnt++;
+            continue;
+        }
+        if (char === '}' && cnt > 0) {
+            cnt--;
+            continue;
+        }
+        result.push(char);
+    }
+    return result.join('');
 }
 
 /**
@@ -322,9 +345,6 @@ export function parseMarkdownLine(
     parseQuotes = true,
     inCodeBlock = false
 ): MarkdownLineEnvironment {
-    const headingRegex = /^(#{1,6})\s+(.*)$/;
-    const singleLineEqRegex = /^\s*\$\$(?!\$)([\s\S]*?)(?<!\$)\$\$\s*$/;
-
     // Process quote line to extract content and quote depth
     const { content: processedContent, quoteDepth, qt: inQuote } = parseQuotes
         ? (() => {
@@ -357,11 +377,12 @@ export function parseMarkdownLine(
     // Check for heading
     const headingMatch = cleanedLine.match(headingRegex);
     const isHeading = !!headingMatch;
-
+    
+    
     // Check for single-line equation
-    const singleLineEquationMatch = cleanedLine.match(singleLineEqRegex);
-    const isSingleLineEquation = !!singleLineEquationMatch;
-
+    const singleLineEquationMatch = cleanedLine.match(singleLineEqBlockPattern);
+    const isSingleLineEquation = Boolean(singleLineEquationMatch);
+    
     // Check for multi-line equation block start/end
     const trimmedLine = cleanedLine.trim();
     const isEquationBlockStart = trimmedLine.startsWith("$$") && !trimmedLine.startsWith("$$$");

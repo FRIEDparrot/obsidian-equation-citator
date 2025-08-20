@@ -5,8 +5,8 @@ import { splitFileCitation } from "@/utils/citation_utils";
 import { EquationMatch } from "@/utils/equation_utils";
 
 export interface RenderedEquation {
-    tag: string;
-    md: string;  // markdown equation content 
+    tag: string;  // tag of the equation 
+    md: string;   // markdown equation content 
     sourcePath: string | null; // source path of the equation file (if no valid footnote, its null) 
     filename: string | null;  // filename label (alias) of the equation
     footnoteIndex: string | null; // index of the footnote (if any)

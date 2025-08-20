@@ -21,9 +21,9 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
     const originalName = file.name.replace(/\.md$/, '');
     const newName = originalName + '-exported.md';
     const folderPath = file.path.substring(0, file.path.lastIndexOf('/'));
-    const newFilePath = folderPath + newName;
+    const newFilePath = folderPath + '/' + newName;
     const existingFile = plugin.app.vault.getAbstractFileByPath(newFilePath);
-
+    
     if (existingFile instanceof TFile) {
         const confirmOption: ModalOption = {
             label: "Confirm",

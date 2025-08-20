@@ -4,12 +4,9 @@ import { syntaxTree } from "@codemirror/language";
 import { MarkdownPostProcessorContext, Notice, WorkspaceLeaf } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/settingsTab";
-import { escapeRegExp } from "@/utils/string_utils";
 import { editorInfoField, MarkdownView } from "obsidian";
 import {
     CitationRef,
-    combineContinuousCitationTags,
-    splitFileCitation,
     replaceCitationsInMarkdownWithSpan,
     SpanStyles,
     splitContinuousCitationTags
@@ -19,6 +16,8 @@ import { CitationCache } from "@/cache/citationCache";
 import { DISABLED_DELIMITER } from "@/utils/string_utils";
 import EquationCitator from "@/main";
 import { CitationPopover } from "@/views/citation_popover";
+import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/regexp_utils";
+import { renderEquationCitation } from "@/views/citation_widget";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -32,71 +31,6 @@ export class EquationCitation {
         this.tagContent = tagContent.trim();
         this.fileCitation = fileCitation?.trim() || null;
     }
-}
-
-/**
- * Shared rendering function for both modes 
- *    input splitted equation tags, render combined equation citation by settings 
- * @param citeEquationTags 
- * @param settings 
- * @param isInteractive 
- * @returns 
- */
-export function renderEquationCitation(
-    citeEquationTags: string[],
-    settings: EquationCitatorSettings,
-    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-    isInteractive: boolean = false,
-): HTMLElement {
-    const el = document.createElement('span');
-    const fileCiteDelimiter = settings.enableCrossFileCitation ?
-        settings.fileCiteDelimiter || '^' :
-        DISABLED_DELIMITER;
-    // set render format for the equation
-    const formatedCiteEquationTags = settings.enableContinuousCitation ?
-        combineContinuousCitationTags(
-            citeEquationTags,
-            settings.continuousRangeSymbol || '~',
-            settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-            fileCiteDelimiter
-        )
-        : citeEquationTags;
-
-    const containers: HTMLElement[] = [];
-
-    // render equation parts
-    for (const tag of formatedCiteEquationTags) {
-        // replace # in render format with the tag number
-        const containerDiv = document.createElement('div');
-        containerDiv.addClass('em-math-citation-container')
-
-        const { local, crossFile } = splitFileCitation(tag, fileCiteDelimiter);
-        const citationSpanEl = document.createElement('span');
-        citationSpanEl.className = 'em-math-citation';
-
-        if (crossFile) {
-            // Create citation with superscript bracket for cross-file references
-            const localCitation = settings.citationFormat.replace('#', local);
-            citationSpanEl.textContent = localCitation;
-            containerDiv.appendChild(citationSpanEl);
-
-            // Create superscript bracket
-            const fileSuperEl = document.createElement('sup');
-            fileSuperEl.textContent = `[${crossFile}]`;
-            fileSuperEl.className = "em-math-citation-file-superscript";
-            containerDiv.appendChild(fileSuperEl);
-        } else {
-            // Regular citation without cross-file reference
-            citationSpanEl.textContent = settings.citationFormat.replace('#', local);
-            containerDiv.appendChild(citationSpanEl);
-        }
-        containers.push(containerDiv);
-    }
-
-    for (const container of containers) {
-        el.appendChild(container);
-    }
-    return el;
 }
 
 export interface EditorSelectionInfo {
@@ -116,11 +50,11 @@ export const tagSelectedField = StateField.define<EditorSelectionInfo>({
         const state = tr.state;
         const sel = tr.state.selection.main;
         const selectedText = tr.state.sliceDoc(sel.from, sel.to).trim();
-        const tagPattern = /^\\tag\{([^}]*)\}$/;
-        const tagContent = selectedText.match(tagPattern)?.[1] || null;
+        const tagRegex = createEquationTagRegex(true, null);
+        const tagContent = selectedText.match(tagRegex)?.[1] || null;
 
         let tagSelected = false;
-        if (tagPattern.test(selectedText)) {
+        if (tagRegex.test(selectedText)) {
             const tree = syntaxTree(state);
             let currentMathBlockRange: { from: number; to: number } | null = null;
             tree.iterate({
@@ -173,30 +107,17 @@ export function createMathCitationExtension(plugin: EquationCitator) {
         tagSelectedField,
         ViewPlugin.fromClass(class {
             decorations: DecorationSet;
-            citeEqPattern: RegExp;
-            citeFigPattern: RegExp;
             lastPrefix: string;
 
             constructor(view: EditorView) {
                 this.decorations = this.buildDecorations(view);
-                this.citeEqPattern = new RegExp(
-                    `\\\\ref\\{${escapeRegExp(settings.citationPrefix)}([^}]+)\\}`,
-                    "g"
-                );
-                this.citeFigPattern = new RegExp(
-                    `\\\\ref\\{${escapeRegExp(settings.figCitationPrefix)}([^}]+)\\}`
-                )
                 this.lastPrefix = settings.citationPrefix;
                 // this.observeCallouts(view)
             }
             update(update: ViewUpdate) {
                 // delay to let the editor finish rendering
                 if (this.lastPrefix !== settings.citationPrefix) {
-                    this.lastPrefix = settings.citationPrefix;
-                    this.citeEqPattern = new RegExp(
-                        `\\\\ref\\{${escapeRegExp(settings.citationPrefix)}([^}]+)\\}`,
-                        "g"
-                    );
+                    this.lastPrefix = settings.citationPrefix;  // update the prefix
                 }
 
                 if (update.docChanged ||
@@ -242,17 +163,21 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                         } else if (currentEqRange && currentEqRange.to === -1 && t.includes("math-end") && !t.includes("math-block")) {
                             currentEqRange.to = node.to;
 
+                            const modeRender = !sourceMode || (sourceMode && settings.enableCitationInSourceMode);
+                            if (!modeRender) return;  // source mode rendering is disabled, skip rendering 
+
                             const inCursor = cursorPos >= currentEqRange.from && cursorPos <= currentEqRange.to;
                             const inSelection = sel.from < currentEqRange.to && sel.to > currentEqRange.from;
                             const text = state.sliceDoc(currentEqRange.from, currentEqRange.to);
-                            const matches = [...text.matchAll(this.citeEqPattern)];
-                            const matches_ref = [...text.matchAll(/\\ref\{([^}]*)\}/g)];
-                            const hasEquationCitation = (matches.length === 1 && matches_ref.length === 1);
-                            const modeRender = !sourceMode || (sourceMode && settings.enableCitationInSourceMode);
-                            if (!hasEquationCitation || !modeRender) return;
+
+                            // citation match 
+                            const cm = matchNestedCitation(text, settings.citationPrefix);
+                            if (!cm) return;
                             if (!inSelection && !inCursor) {
-                                // citations not in cursor,  render full citations 
-                                const eqNumbers: string[] = matches[0][1].split(settings.multiCitationDelimiter || ',');
+                                // citations not in cursor,  render full citations
+                                const eqNumbers: string[] = cm.label.split(settings.multiCitationDelimiter || ',').map(c => c.trim()).filter(c => c.length > 0);
+
+                                // split all equations to combine later  
                                 const eqNumbersAll = settings.enableContinuousCitation ?
                                     splitContinuousCitationTags(
                                         eqNumbers,
@@ -260,6 +185,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                                         settings.continuousDelimiters.split(' ').filter(d => d.trim()),
                                         settings.fileCiteDelimiter
                                     ) : eqNumbers; // split continuous citation tags if enabled 
+
                                 builder.add(
                                     currentEqRange.from,
                                     currentEqRange.to,
@@ -304,10 +230,10 @@ function isErrorRenderedSpan(span: Element): boolean {
     });
 }
 
-function getCitationSpan(el: Element) : Element[] | null {
-    const mathSpans = el.querySelectorAll("span.math.math-inline.is-loaded"); 
+function getCitationSpan(el: Element): Element[] | null {
+    const mathSpans = el.querySelectorAll("span.math.math-inline.is-loaded");
     if (mathSpans.length === 0) return null;
-    const citeSpans = Array.from(mathSpans).filter(span => isErrorRenderedSpan(span)); 
+    const citeSpans = Array.from(mathSpans).filter(span => isErrorRenderedSpan(span));
     if (citeSpans.length === 0) return null;   // no citation span found
     return citeSpans;
 }
@@ -329,6 +255,8 @@ export async function mathCitationPostProcessor(
     ctx: MarkdownPostProcessorContext,
     citationCache: CitationCache,
 ): Promise<void> {
+    const { citationPrefix } = plugin.settings;
+
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) return;
 
@@ -340,28 +268,26 @@ export async function mathCitationPostProcessor(
     if (!allCitations) return; // no citations found for this file
 
     // all equation citations in the blcok 
-    const equations = allCitations.filter(eq =>
-        eq.line >= sectionInfo.lineStart && eq.line <= sectionInfo.lineEnd
-    )
+    const equations = allCitations.filter(eq => eq.line >= sectionInfo.lineStart && eq.line <= sectionInfo.lineEnd)
+
+    // substitute the block with equation citation 
     if (citeSpans.length === equations.length) {
         // render equation citation for each math span
-        const fullCitationPattern = `\\\\ref\\{${escapeRegExp(plugin.settings.citationPrefix)}([^}]+)\\}`;
-        citeSpans.forEach((span, index) => {
-            const match = equations[index].fullMatch.match(fullCitationPattern);
-            if (match) {
-                const eqNumbers: string[] = match[1].split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
-                const eqNumbersAll = plugin.settings.enableContinuousCitation ?
-                    splitContinuousCitationTags(
-                        eqNumbers,
-                        plugin.settings.continuousRangeSymbol || '~',
-                        plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-                        plugin.settings.fileCiteDelimiter
-                    ) : eqNumbers; // split continuous citation tags if enabled  
+        citeSpans.forEach((span, index) => {  // no need to match for 2rd time here 
+            const eq = equations[index];
+            const eqLabel = eq.label.substring(citationPrefix.length);  // get the actual label without prefix 
+            const eqNumbers: string[] = eqLabel.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
+            const eqNumbersAll = plugin.settings.enableContinuousCitation ?
+                splitContinuousCitationTags(
+                    eqNumbers,
+                    plugin.settings.continuousRangeSymbol || '~',
+                    plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+                    plugin.settings.fileCiteDelimiter
+                ) : eqNumbers; // split continuous citation tags if enabled  
 
-                const citationWidget = renderEquationCitation(eqNumbersAll, plugin.settings);
-                addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
-                span.replaceWith(citationWidget);
-            }
+            const citationWidget = renderEquationCitation(eqNumbersAll, plugin.settings);
+            addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
+            span.replaceWith(citationWidget);
         })
     }
     else {
@@ -382,26 +308,28 @@ export async function calloutCitationPostProcessor(
     const calloutContent = el.querySelector('.callout-content');
     if (!calloutContent) return;  // no callout content found, skip rendering   
     const codeCitations = calloutContent.querySelectorAll('code');
-    if (codeCitations.length === 0) return;  // no code citation found, skip rendering
-    const citationPattern = `^\\$\\\\ref\\{${escapeRegExp(plugin.settings.citationPrefix)}([^}]+)\\}\\$$`;
-    
+    if (codeCitations.length === 0) return;  // no code citation found, skip rendering 
+
     codeCitations.forEach(code => {
         const citeContent = code.innerText.trim();
-        const match = citeContent.match(citationPattern); 
-        if (match) {
-            const eqNumbers: string[] = match[1].split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
-                const eqNumbersAll = plugin.settings.enableContinuousCitation ?
-                    splitContinuousCitationTags(
-                        eqNumbers,
-                        plugin.settings.continuousRangeSymbol || '~',
-                        plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-                        plugin.settings.fileCiteDelimiter
-                    ) : eqNumbers; // split continuous citation tags if enabled  
+        const match = citeContent.match(inlineMathPattern.source);
 
-                const citationWidget = renderEquationCitation(eqNumbersAll, plugin.settings);
-                addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
-                code.replaceWith(citationWidget);
-        }
+        if (!match) return;
+        const citation = matchNestedCitation(match[1], plugin.settings.citationPrefix);
+        if (!citation) return;  // not valid citation, skip rendering  
+        
+        // get the actual label without prefix
+        const eqNumbers: string[] = citation.label.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
+        const eqNumbersAll = plugin.settings.enableContinuousCitation ?
+            splitContinuousCitationTags(
+                eqNumbers,
+                plugin.settings.continuousRangeSymbol || '~',
+                plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+                plugin.settings.fileCiteDelimiter
+            ) : eqNumbers; // split continuous citation tags if enabled 
+        const citationWidget = renderEquationCitation(eqNumbersAll, plugin.settings);
+        addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
+        code.replaceWith(citationWidget);
     });
 }
 
@@ -420,12 +348,18 @@ async function showReadingModePopover(
     const mdView: MarkdownView | null = plugin.app.workspace.getActiveViewOfType(MarkdownView);
     const activeLeaf: WorkspaceLeaf | undefined = mdView?.leaf;
     if (!activeLeaf) return;  // no active leaf found, skip popover
-    const equations = await plugin.equationServices.getEquationsByTags(eqNumbersAll, sourcePath);
-    if (equations.length === 0) return; // no equations found for this citation, skip popover 
 
+    const equations = await plugin.equationServices.getEquationsByTags(eqNumbersAll, sourcePath);
+    const cleanedEquations = equations.filter(eq => eq.md && eq.sourcePath);
+    
+    if (cleanedEquations.length === 0) {
+        Debugger.log(`No valid equation found for citation: ${eqNumbersAll.join(', ')}`);
+        return;
+    } // no equations found for this citation, skip popover 
+    
     let popover: CitationPopover | null = new CitationPopover(
         plugin,
-        // @ts-ignore -> this can often work correctly.  
+        // @ts-ignore
         activeLeaf,
         citationEl,
         equations,

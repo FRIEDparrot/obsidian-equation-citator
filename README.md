@@ -1,17 +1,17 @@
 <h1> <center> Obsidian Equation Citator </center> </h1>
 
 <center><span>
-  <img src="https://img.shields.io/badge/Latest%20Version-1.2.1-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest%20Version-1.2.2-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></center>
 
 <center>
-    <div><small> First Release : Aug 3, 2025       Last Updated : Aug 14, 2025 </small></div>
+    <div><small> First Release : Aug 3, 2025       Last Updated : Aug 21, 2025 </small></div>
 </center>
 <p></p>
 
-**5 mins Quick Start** : see [Full Tutorial](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) 
+**5 mins Quick Start** : see [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) 
 
 **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) 
 
@@ -41,76 +41,50 @@ this will be rendered as follows (support both light and dark theme) :
   - don't want to add ugly block reference `^` in your equation blocks for reference, and make your citation more organized and clean. 
 
 ## Main Features
-1.  🚀 **Easy Citation, Preview and Rename Tags**
+### 1.  🚀 **Make citations, Preview, Easy jump and Rename Tags**
 
 Use simple inline `$\ref{eq:A}$` format to cite equation block with `\tag{A}` and preview it just as links in obsidian.  
 
-Ctrl + hover to preview the equation of following tag (just hover when in reading mode). 
+`Ctrl + hover` to preview the equation of following tag (just hover when in reading mode). `double click` to jump to location of equation, or `ctrl + double click` to open on the right and jump
 
-**Select tag (`\tag{1.2}`) and right click to edit tag**, and its **citation will be automatically updated**. 
+**Select tag (`\tag{1.2}`) and right click to rename tag**, and its **citation will be automatically updated**. 
 
 <center><img src="img\rename_tag.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px; " /></center>
 
 
+### 2.  🔗**Cross-file citation, Multi/Consecutive citation**
 
-2.  🔗**Cross-file citation, Multi/Consecutive citation and easy jump**
+- Cross-file citation is supported by **footnote format**. Citing several equations by delimiter `,` is also supported. 
 
-Support cross-file citation **by footnote format**. Citing several equations by delimiter `,` is also supported. 
-
-Consecutive citations will be automatically recognized and rendered in simple format for concise purpose, and you can also use consecutive format (`~`) to cite multiple equations. 
+- Use consecutive format (`~`) to cite multiple equations. 
 
 ```sh
 # for example
 $\ref{eq:1^1.3.1~3, 1^2.1.1~2}$
-# the above citation is same as the below :  
-$\ref{eq:1^1.1.1, 1^1.1.2, 1^1.1.3, 1^2.1.1, 1^2.1.2}$  
-# the above will be automatically combined together as continuous citation. 
+# but we recommend this nested format after version 1.2.2 : 
+$\ref{eq:1^{1.3.1~3}, 1^{2.1.1~2}}$ 
 ```
-
-This will render multiple equations in a window, and **you can use double click on an equation to jump here, or ctrl + double click to open on the right and jump** : 
 
 <center><img src="img\crossfile_jump.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px; " /></center>
 
+### 3.  ✈️ **Auto complete citations** 
 
-
-3.  ✈️ **Auto complete citations**
-
-When you are typing citation format, The plugin will suggest you the available equations and citation format and fill in the equation number as you click. Which is shown in the following picture : 
+Suggest you available equations when adding citations and fill in the equation number in 1-click : 
 
 <center><img src="img\auto-complete.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px;" /></center>
 
 
+### 4. ⚡**One-click outline-based Equation AutoNumber**
 
-4.  ⚡**One-click outline-based Equation AutoNumber**
-
-This plugin gives you full control of auto number method for equations.
-
-Customize auto-number method (absolute or relative, title level, format, chapter prefix and more). 
-
-You can auto number all the equations in your current file by command or just simply one click on the sidebar icon :
+**Auto number all the equations in by simply one click on the sidebar icon** :
 
 <center><img src="img\sidebar-autonumber.png" alt="continuous-cross-file" style="zoom:67%; max-height: 350px; " /></center>
 
+### 5.  📜**PDF export support** 
 
+Original PDF export in obsidian can fail to render citation, so a command `Make markdown copy to export PDF` is provided to make markdown for export to pdf correctly. 
 
-5.  📜**PDF export support** 
-
-Original PDF export in obsidian can fail to render citation, so a command is provided to make markdown for export to pdf correctly.  
-
-
-
-
-## Write Guidelines
-This plugin relies on text parsing, so please follow these three very simple guidelines to ensure it works correctly.
-
-1. **Always write code blocks with 3 backticks** (```) without space before at the beginning and end of the equation block. 
-
-2. **Never write any other content in the line of equation blocks** (but it support quote block).
-
-3. Avoid using `\}` in your tag or citation (this will cause the tag recognized incorrectly) 
-
-
-
+<center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:67%; max-height: 350px; " /></center>
 
 ## Bugs & Suggestions
 
@@ -125,22 +99,14 @@ If u have knowledge about plugin development, you can also find which function i
 
 Also, if u have any suggestion or question for this plugin, feel free to leave it in the issue page.
 
-
-
-
 > [!note] 
 > **Contributors and maintainers are always welcome!**
 >
 > I developed this plugin to help my daily work and follow my personal interests. It's totally free, I would be very glad if anyone can fork this repo and help me to maintain this plugin (since I'm busy during school time). 
 >
-> 
+> You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**). 
 >
-> You can contribute to this plugin by simply fork it, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**). 
->
-> 
->
-> If you find this plugin helpful, consider  and I will be very happy! 
-
+> Very appreciate for your contributions! 
 
 
 Also if you think this plugin is helpful to you, consider **starring this repo** or supporting me by :  

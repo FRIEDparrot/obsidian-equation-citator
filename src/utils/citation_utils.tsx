@@ -1,9 +1,19 @@
-import { escapeRegExp, escapeString, removeInlineCodeBlocks } from "@/utils/string_utils";
-import { isCodeBlockToggle } from "@/utils/regexp_utils";
+import { escapeString, removeBraces, removeInlineCodeBlocks } from "@/utils/string_utils";
+import { inlineMathPattern, isCodeBlockToggle, matchCitationsInLine, matchNestedCitation } from "@/utils/regexp_utils";
+
+export interface CitationRef {
+    label: string;
+    line: number;
+    fullMatch: string;
+    position: {
+        start: number;  // start index of the full match in the line (inline index)
+        end: number;  // end index of the full match in the line  (inline index) 
+    }
+}
 
 /**
  * Combines continuous equation tags with common prefixes and file citations.
- * Example: ["P1", "2^1.1.1", "2^1.1.2", "2^1.1.3"] → ["P1", "2^1.1.1~3"]
+ * Example: ["P1", "2^1.1.1", "2^1.1.2", "2^1.1.3"] → ["P1", "2^{1.1.1~3}"]
  */
 export function combineContinuousCitationTags(
     tags: string[],
@@ -11,104 +21,97 @@ export function combineContinuousCitationTags(
     validDelimiters: string[],
     fileDelimiter: string
 ): string[] {
-    if (!tags || tags.length === 0) return [];
-
-    // Create a mapping from original tags to their combined form
-    const tagMapping = new Map<string, string>();
-    const processedTags = new Set<string>();
+    const cleanedTags = (tags ?? []).filter(tag => tag.trim() !== '');
+    if (cleanedTags.length === 0) return [];
 
     // Group tags by their file citation suffix (if any)
-    const groups: Record<string, string[]> = {};
-    for (const tag of tags) {
+    const groups: Record<string, { local: string, order: number }[]> = {}; // 1 : [1.1.1, 1.1.2] 
+    let orderIdx = 0;
+    for (const tag of cleanedTags) {
         const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
         const key = crossFile ? `${crossFile}` : '';
         if (!groups[key]) groups[key] = [];
-        groups[key].push(local);
+        groups[key].push({ local, order: orderIdx++ });
     }
 
+    const result: { combinedTag: string; order: number }[] = [];
+    // record seen tags to remove duplicates  
+    const seenTags = new Set<string>();
     // Process each group separately
-    for (const [filePrefix, localTags] of Object.entries(groups)) {
+    for (const [filePrefix, tagInfos] of Object.entries(groups)) {
+        const formatTag = (local: string) =>
+            filePrefix ? `${filePrefix}${fileDelimiter}{${local}}`.trim() : local.trim();
         // Create a map of numeric tags grouped by prefix
-        const numericGroups: Record<string, { tag: string; num: number }[]> = {};
-        const nonNumericTags: string[] = [];
+        const numericGroups: Record<string, { local: string; num: number, order: number }[]> = {};
 
-        for (const tag of localTags) {
-            const num = extractLastNumberFromTag(tag, validDelimiters);
+        // extract the before part and the number part of each tag
+        for (const { local, order } of tagInfos) {
+            if (local.includes(rangeSymbol)) {
+                const formatted = formatTag(local);
+                // already Continuous range, add as it is 
+                if (!seenTags.has(formatted)) {
+                    result.push({ combinedTag: formatted, order });
+                    seenTags.add(formatted);
+                }
+                continue;  // move to next tag   
+            }
+            const num = extractLastNumberFromTag(local, validDelimiters);
             if (num !== null) {
-                const prefix = extractPrefixBeforeLastNumber(tag, validDelimiters);
+                const prefix = extractPrefixBeforeLastNumber(local, validDelimiters);
                 if (!numericGroups[prefix]) numericGroups[prefix] = [];
-                numericGroups[prefix].push({ tag, num });
+                numericGroups[prefix].push({ local, num, order });
             } else {
-                nonNumericTags.push(tag);
+                // non-numeric tag, add as is  
+                const formatted = formatTag(local);
+                if (!seenTags.has(formatted)) {
+                    result.push({ combinedTag: formatted, order });
+                    seenTags.add(formatted);
+                }
             }
         }
-
         // Process numeric groups to find continuous sequences
-        for (const [prefix, tagInfos] of Object.entries(numericGroups)) {
-            // Sort by number
-            tagInfos.sort((a, b) => a.num - b.num);
-
+        for (const [prefix, tagInfos] of Object.entries(numericGroups)) { 
+            tagInfos.sort((a, b) => a.num - b.num);  // sort tagInfos by num (not consider order)  
             let i = 0;
             while (i < tagInfos.length) {
                 const start = i;
                 let end = i;
-
-                // Find continuous sequence
+                // Find continuous sequence range (can be same) 
                 while (end + 1 < tagInfos.length &&
-                    tagInfos[end + 1].num === tagInfos[end].num + 1) {
+                    tagInfos[end + 1].num >= tagInfos[end].num  &&
+                    tagInfos[end + 1].num <= tagInfos[end].num + 1) {
                     end++;
                 }
+                const startNum = tagInfos[start].num;
+                const endNum = tagInfos[end].num; 
+                
+                const formatted = (startNum === endNum)
+                    ? formatTag(tagInfos[start].local)
+                    : formatTag(`${prefix}${startNum}${rangeSymbol}${endNum}`); 
 
-                // Create combined tag or single tag
-                let combinedTag: string;
-                if (start === end) {
-                    // Single tag
-                    combinedTag = filePrefix ? filePrefix + fileDelimiter + tagInfos[start].tag : tagInfos[start].tag;
-                } else {
-                    // Continuous sequence
-                    const startNum = tagInfos[start].num;
-                    const endNum = tagInfos[end].num;
-                    const rangeLocal = `${prefix}${startNum}${rangeSymbol}${endNum}`;
-                    combinedTag = filePrefix ? `${filePrefix}${fileDelimiter}${rangeLocal}` : rangeLocal;
+                const firstOrder = tagInfos[start].order; // use the order of the first tag as the order for the combined tag 
+                
+                if (!seenTags.has(formatted)) {
+                    result.push({ combinedTag: formatted, order: firstOrder });
+                    seenTags.add(formatted);
                 }
-
-                // Map all tags in this sequence to the combined form
-                for (let j = start; j <= end; j++) {
-                    const originalTag = filePrefix ? `${filePrefix}${fileDelimiter}${tagInfos[j].tag}` : tagInfos[j].tag;
-                    tagMapping.set(originalTag, combinedTag);
-                    processedTags.add(originalTag);
-                }
-                i = end + 1;
+                i = end + 1;  // move to next position  
             }
         }
-
-        // Add non-numeric tags to mapping (they map to themselves)
-        for (const tag of nonNumericTags) {
-            const fullTag = filePrefix ? `${filePrefix}${fileDelimiter}${tag}` : tag;
-            tagMapping.set(fullTag, fullTag);
-            processedTags.add(fullTag);
-        }
     }
-
     // Build result preserving original order, but only including each combined form once
-    const result: string[] = [];
-    const addedCombined = new Set<string>();
-
-    for (const tag of tags) {
-        const combinedForm = tagMapping.get(tag);
-        if (combinedForm && !addedCombined.has(combinedForm)) {
-            result.push(combinedForm);
-            addedCombined.add(combinedForm);
-        }
-    }
-
-    return result.map((r) => r.trim());
+    return result
+        .sort((a, b) => a.order - b.order)
+        .filter((item, index, array) =>
+            index === array.findIndex(i => i.combinedTag === item.combinedTag)
+        )
+        .map(r => r.combinedTag);
 }
 
 /**
  * Splits continuous citation tags back into individual tags.
- * Example: ["P1~2", "2^1.1.1~4", "1.3.2~3", "1^1.3.4"] 
- * → ["P1", "P2", "2^1.1.1", "2^1.1.2", "2^1.1.3", "2^1.1.4", "1.3.2", "1.3.3", "1^1.3.4"]
+ * Example: ["P1~2", "1.3.2~3",  "2^1.1.1~4", "1.3.4"] 
+ * → ["P1", "P2",  "1.3.2", "1.3.3", "2^{1.1.1}", "2^{1.1.2}", "2^{1.1.3}", "2^{1.1.4}", "1.3.4"]
  */
 export function splitContinuousCitationTags(
     tags: string[],
@@ -116,29 +119,23 @@ export function splitContinuousCitationTags(
     validDelimiters: string[],
     fileDelimiter: string
 ): string[] {
-    if (!tags || tags.length === 0) return [];
-
+    const cleanedTags = (tags ?? []).filter(tag => tag.trim() !== ''); // Filter out empty tags
+    if (cleanedTags.length === 0) return [];
     const result: string[] = [];
 
-    for (const tag of tags) {
-        // Check if tag contains range symbol
-        if (!tag.includes(rangeSymbol)) {
-            // No range - add as is
-            if (tag) {  // shouldn't be empty string 
-                result.push(tag);
+    for (const tag of cleanedTags) {
+        // Split into file citation and local parts
+        const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
+        // Check if the local part contains range symbol
+        if (!local.includes(rangeSymbol)) {
+            if (crossFile) {
+                result.push(`${crossFile}${fileDelimiter}{${local}}`);  // use new format
+            }
+            else {
+                result.push(local); // No range symbol, add as is 
             }
             continue;
         }
-
-        // Split into file citation and local parts
-        const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
-
-        // Check if the local part contains range symbol
-        if (!local.includes(rangeSymbol)) {
-            result.push(tag);
-            continue;
-        }
-
         // Extract range from local part
         const rangeIndex = local.lastIndexOf(rangeSymbol);
         const beforeRange = local.substring(0, rangeIndex); // front part
@@ -161,7 +158,7 @@ export function splitContinuousCitationTags(
         for (let num = startNum; num <= endNum; num++) {
             const individualLocal = prefix + num;
             const individualTag = crossFile ?
-                `${crossFile}${fileDelimiter}${individualLocal}` :
+                `${crossFile}${fileDelimiter}{${individualLocal}}` :
                 individualLocal;
             result.push(individualTag);
         }
@@ -172,6 +169,7 @@ export function splitContinuousCitationTags(
 
 /**
  * Extracts the last number from a tag using valid delimiters or direct letter-number pattern
+ * input : pure tag   (e.g., "1.1.1"), not contain file citation (e.g., "2^1.1.1")
  */
 function extractLastNumberFromTag(tag: string, validDelimiters: string[]): number | null {
     // Find the last delimiter
@@ -182,7 +180,6 @@ function extractLastNumberFromTag(tag: string, validDelimiters: string[]): numbe
             lastDelimiterIndex = index;
         }
     }
-
     let numStr: string;
     if (lastDelimiterIndex >= 0) {
         // Extract number after last delimiter
@@ -203,6 +200,7 @@ function extractLastNumberFromTag(tag: string, validDelimiters: string[]): numbe
 
 /**
  * Extracts the prefix before the last number
+ * e.g. EQ1 -> EQ 
  */
 function extractPrefixBeforeLastNumber(tag: string, validDelimiters: string[]): string {
     // Find the last delimiter
@@ -230,18 +228,21 @@ function extractPrefixBeforeLastNumber(tag: string, validDelimiters: string[]): 
 /**
  * Splits an equation string into local and cross-file parts.
  * Example: "2^1.3.1~3" → { local: "1.3.1~3", crossFile: "2" }
+ * Example: "2^{1.3.1~2}" → { local: "1.3.1~2", crossFile: "2" }
  */
 export function splitFileCitation(eqStr: string, fileDelimiter: string): { local: string; crossFile: string | null } {
-    const index = eqStr.indexOf(fileDelimiter); // Changed from lastIndexOf to indexOf
-    if (index >= 0) {
-        return {
-            crossFile: eqStr.substring(0, index), // Now crossFile is the prefix
-            local: eqStr.substring(index + fileDelimiter.length) // Now local is the suffix
-        };
+    if (!fileDelimiter || !eqStr.includes(fileDelimiter)) {
+        return { local: removeBraces(eqStr), crossFile: null }; // No file citation, return as is 
     }
-    return { local: eqStr, crossFile: null };
+    const index = eqStr.indexOf(fileDelimiter); // Changed from lastIndexOf to indexOf
+    const crossFile = eqStr.substring(0, index);
+    const localPart = eqStr.substring(index + fileDelimiter.length); 
+    const processedLocal = removeBraces(localPart); // Remove braces from local part 
+    return {
+        crossFile: crossFile.trim(),
+        local: processedLocal.trim() // Now local is the suffix
+    };
 }
-
 
 /**
  * Extracts the common prefix between two equation numbers.
@@ -258,7 +259,6 @@ export function extractCommonPrefix(a: string, b: string, validDelimiters: strin
             break;
         }
     }
-
     // Find the last delimiter in the common prefix
     const lastDelimiterIndex = Math.max(
         ...validDelimiters.map(d => prefix.lastIndexOf(d))
@@ -277,28 +277,16 @@ export function extractLastNumber(eq: string, prefix: string): number | null {
     return isNaN(num) ? null : num;
 }
 
-export interface CitationRef {
-    label: string;
-    line: number;
-    fullMatch: string;
-    position: {
-        start: number;  // start index of the full match in the line (inline index)
-        end: number;  // end index of the full match in the line  (inline index) 
-    }
-}
 
 /**
  * Parses all inline equation cite references in a markdown string. 
+ * Nested brace support 
  */
 export function parseCitationsInMarkdown(md: string): CitationRef[] {
     if (!md.trim()) return [];
     const result: CitationRef[] = [];
     const lines = md.split('\n');
     let inCodeBlock = false;
-
-    // Regex to match inline math with \ref{} - excludes display math $
-    // Uses negative lookbehind and lookahead to ensure single $ not preceded/followed by $
-    const inlineRefRegex = /(?<!\$)\$(?!\$)([^$]*?\\ref\{([^}]*)\}[^$]*?)\$(?!\$)/g;
 
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
         const line = lines[lineNum];
@@ -310,40 +298,23 @@ export function parseCitationsInMarkdown(md: string): CitationRef[] {
         // Remove inline code blocks (replace the code block with spaces) 
         const processedLine = removeInlineCodeBlocks(line);
 
-        // Reset regex lastIndex for each line
-        inlineRefRegex.lastIndex = 0;
-
-        // Find all inline math expressions with \ref{}
-        let match;
-        while ((match = inlineRefRegex.exec(processedLine)) !== null) {
-            const [fullMatch, content, label] = match;
-
-            // Skip if there are spaces immediately after opening $ or before closing $
-            if (content.startsWith(' ') || content.endsWith(' ')) continue;
-
-            // Skip if multiple \ref{} in same formula
-            const refCount = (content.match(/\\ref\{/g) || []).length;
-            if (refCount > 1) continue;
-
-            const startCh = match.index;
-            const endCh = startCh + fullMatch.length;
-
+        // Find all inline math expressions with \ref{} 
+        const matches = matchCitationsInLine(processedLine);
+        for (const match of matches) {
+            const { fullMatch, label, position } = match;
             result.push({
                 label: label,
                 line: lineNum,
                 fullMatch: fullMatch,
                 position: {
-                    start: startCh,
-                    end: endCh
+                    start: position.start,
+                    end: position.end
                 }
             });
         }
     }
     return result;
 }
-
-
-
 
 ////////////////////  Following Functions are for PDF export usage  ///////////////////////// 
 
@@ -426,7 +397,7 @@ function processInlineReferences(
         if (line[i] === '`' && (i === 0 || line[i - 1] !== '\\')) {
             const start = i;
             i++; // Skips opening backtick 
-            // Finds closing backtick
+            // Finds closing backtick 
             while (i < line.length) {
                 if (line[i] === '`' && line[i - 1] !== '\\') {
                     codeBlockRanges.push({ start, end: i });
@@ -453,7 +424,7 @@ function processInlineReferences(
                 i += 2;
             } else {
                 // Single dollar - inline math
-                dollarPositions.push({ pos: i, type: 'single' });
+                dollarPositions.push({ pos: i, type: 'single' }); // dollar Position  
                 i += 1;
             }
         } else {
@@ -461,50 +432,39 @@ function processInlineReferences(
         }
     }
 
-    // Finds all valid inline math patterns 
+    // Finds all valid inline math patterns by dollar positions  
     const inlineMathRanges: Array<{ start: number, end: number }> = [];
     for (let j = 0; j < dollarPositions.length - 1; j++) {
         const current = dollarPositions[j];
         const next = dollarPositions[j + 1];
-
         if (current.type === 'single' && next.type === 'single') {
             // Check if both positions are outside code blocks
-            if (!isInCodeBlock(current.pos) && !isInCodeBlock(next.pos)) {
+            if (isInCodeBlock(current.pos) || isInCodeBlock(next.pos)) continue;
+            // match the math pattern 
+            const content = line.substring(current.pos, next.pos + 1); 
+            if (content.match(inlineMathPattern)) {
+                // only add if it's a inline math pattern  
                 inlineMathRanges.push({ start: current.pos, end: next.pos });
                 j++; // Skip the next position as it's already paired
             }
         }
     }
 
-    // Find citations within valid inline math ranges 
-    const refRegex = new RegExp(`\\\\ref\\{${escapeRegExp(prefix)}([^}]*)\\}`, 'g');
+    // Find citations within valid inline math ranges
     const matches: Array<{
         mathStart: number,
         mathEnd: number,
         content: string,
         citations: string[]
     }> = [];
-
-
     for (const mathRange of inlineMathRanges) {
+        // this has been a valid math content checked
         const mathContent = line.substring(mathRange.start + 1, mathRange.end); // +1 to skip opening $
-
-        // Skip if content has leading/trailing spaces
-        if (mathContent.startsWith(' ') || mathContent.endsWith(' ')) {
-            continue;
-        }
-
+        const match = matchNestedCitation(mathContent, prefix);  
         // Check for exactly one \ref{} in this math expression
-        const refMatches = [...mathContent.matchAll(/\\ref\{/g)];
-        if (refMatches.length !== 1) {
-            continue;
-        }
-
-        // Extract the citation
-        refRegex.lastIndex = 0;
-        const refMatch = refRegex.exec(mathContent);
-        if (refMatch) {
-            const citations = refMatch[1].split(',').map(c => c.trim()).filter(c => c.length > 0);
+        
+        if (match) {
+            const citations = match.label.split(',').map(c => c.trim()).filter(c => c.length > 0);
             matches.push({
                 mathStart: mathRange.start,
                 mathEnd: mathRange.end + 1, // +1 to include closing $
