@@ -262,7 +262,7 @@ For example, enable the beta feature and change the content of following callout
 $\ref{eq:1^{1.3.1}, 1^{1.3.2}}$    # this format may be supported in future.
 ```
 
-- [ ] Insert with auto-tag : command for insert tag and auto-number at the same time for quick add equations (version 1.2.2)
+- [x] Insert with auto-tag : command for insert tag and auto-number at the same time for quick add equations (version 1.2.2)
 - [ ] **File superscript render** : file super-script will rendered as the corresponding footnote in future. 
 
 **Other features I wanna to add in future** : 
