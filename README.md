@@ -7,7 +7,7 @@
 </span></center>
 
 <center>
-    <div><small> First Release : Aug 3, 2025       Last Updated : Aug 21, 2025 </small></div>
+    <div><small> First Release : Aug 3, 2025       Last Updated : Aug 25, 2025 </small></div>
 </center>
 <p></p>
 
