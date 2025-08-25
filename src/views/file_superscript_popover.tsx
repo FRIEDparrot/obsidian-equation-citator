@@ -1,4 +1,4 @@
-import { HoverParent, HoverPopover} from "obsidian";
+import { HoverParent, HoverPopover, TFile } from "obsidian";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
 import { FootNote } from "@/utils/footnote_utils";
@@ -35,10 +35,10 @@ export class FileSuperScriptPopover extends HoverPopover {
 
         const footnoteContent: HTMLElement = container.createDiv();
         footnoteContent.addClass("em-file-superscript-popover-content");
-        
+
         if (footnote.path !== null) {
             // pure-file-link format footnote  
-            const filePath : string = footnote.path;
+            const filePath: string = footnote.path;
             const linkEl = footnoteContent.createEl("a", {
                 text: footnote.label ?? footnote.path,
             });
@@ -47,10 +47,21 @@ export class FileSuperScriptPopover extends HoverPopover {
             linkEl.addEventListener("click", (evt) => {
                 evt.preventDefault();
                 const sourceFile = this.plugin.app.metadataCache.getFirstLinkpathDest(filePath, this.sourcePath);
-                if (!sourceFile) {
+                if (!(sourceFile instanceof TFile)) {
                     Debugger.log("Invalid footnote file path: ", footnote.path);
                     return;
                 }
+                // open the file in current panel 
+                const newLeaf = (evt.ctrlKey || evt.metaKey)   // Ctrl on Windows/Linux, Cmd on macOS
+                    ? this.plugin.app.workspace.getLeaf("split", 'vertical') // split right by default
+                    : this.plugin.app.workspace.getLeaf(true); // reuse current 
+                
+                this.plugin.app.workspace.setActiveLeaf(newLeaf, { focus: true });
+                this.plugin.app.workspace.openLinkText(
+                    "",
+                    sourceFile.path,
+                    false,
+                );
             });
         }
         else if (footnote.url !== null) {
