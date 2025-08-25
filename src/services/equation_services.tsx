@@ -110,6 +110,7 @@ export class EquationServices {
             Debugger.log("Invalid footnote file path: ", match.path);
             return { path: null, filename: null };
         }
+        
         return { path: file.path, filename: match.label || null };
     }
 }

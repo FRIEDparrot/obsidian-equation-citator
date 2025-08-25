@@ -140,7 +140,7 @@ export function matchCitationsInLine(line: string): Array<RefMatch> {
         const raw = match[1];   // not processed content 
         // parse nested citation in the math block
         const refCitation = matchNestedCitation(raw, null);
-        if (refCitation !== null) {
+        if (refCitation !== null && match.index!== undefined) {
             results.push({
                 fullMatch: fullMatch,
                 content: refCitation.content,

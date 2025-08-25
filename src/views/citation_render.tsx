@@ -382,7 +382,7 @@ async function showReadingModePopover(
 
     const equations = await plugin.equationServices.getEquationsByTags(eqNumbersAll, sourcePath);
     const cleanedEquations = equations.filter(eq => eq.md && eq.sourcePath);
-
+    
     if (cleanedEquations.length === 0) {
         Debugger.log(`No valid equation found for citation: ${eqNumbersAll.join(', ')}`);
         return;

@@ -14,8 +14,7 @@ const footnoteParsers = [
         handler: (m: RegExpMatchArray) => {
             const pathWithLink = m[2];
             const path = pathWithLink.split(/[#^]/)[0];
-            const fileName = path.split('/').pop() || null;
-            const label = (m[3] && m[3].trim() !== '') ? m[3] : fileName;
+            const label = (m[3] && m[3].trim() !== '') ? m[3] : null;
             return { path, url: null, label };
         },
     },

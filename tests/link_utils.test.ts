@@ -45,8 +45,11 @@ describe('Link Resolver Functions', () => {
     });
 
     test('should handle null/undefined inputs', () => {
+      // @ts-ignore 
       expect(resolveBackLinks(null, 'file1.md')).toEqual([]);
+      // @ts-ignore
       expect(resolveBackLinks(mockResolvedLinks, null)).toEqual([]);
+      // @ts-ignore 
       expect(resolveBackLinks(undefined, 'file1.md')).toEqual([]);
     });
 
@@ -80,8 +83,11 @@ describe('Link Resolver Functions', () => {
     });
 
     test('should handle null/undefined inputs', () => {
+      // @ts-ignore
       expect(resolveForwardLinks(null, 'file1.md')).toEqual([]);
+      // @ts-ignore
       expect(resolveForwardLinks(mockResolvedLinks, null)).toEqual([]);
+      // @ts-ignore 
       expect(resolveForwardLinks(undefined, 'file1.md')).toEqual([]);
     });
 
@@ -120,9 +126,11 @@ describe('Link Resolver Functions', () => {
         'file2.md': 'invalid',
         'file3.md': { 'file4.md': 1 }
       };
-      
+      // @ts-ignore
       expect(resolveBackLinks(malformedData, 'file4.md')).toEqual(['file3.md']);
+      // @ts-ignore
       expect(resolveForwardLinks(malformedData, 'file1.md')).toEqual([]);
+      // @ts-ignore 
       expect(resolveForwardLinks(malformedData, 'file2.md')).toEqual([]);
     });
 

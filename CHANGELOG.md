@@ -108,11 +108,11 @@ Version 1.2.3 - improvements and some minor bug fixes.
 
 - [x] add how to add this plugin tutorial in readme. 
 
-- [ ] Production build Process for lighter weight and faster plugin loading. (use `npm run build` for a production build, all relevant errors are handled) 
+- [x] **(main improvement)** Build plugin using production mode((use `npm run build`) in this version, reducing the size of the plugin and improves the performance, the size of the plugin reduced from 570kb to 73kb) 
 
 ✨ New Features : 
 - [x] Citation file superscript now render the footnote in popover when hover on it. 
 
 - [x] Add support for text-only and web-link format footnote in superscript popover render  
 
-- [ ] Customize the width of equation popover in settings Tab  
+- [x] Customize the width of equation popover in settings Tab  

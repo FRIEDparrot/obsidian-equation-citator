@@ -5,7 +5,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^1]: [[some/file.md|Custom label]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: '1', path: 'some/file.md', label: 'Custom label' },
+      { num: '1', path: 'some/file.md', label: 'Custom label', text: '[[some/file.md|Custom label]]', url: null },
     ]);
   });
 
@@ -13,7 +13,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^ref]: [[other/file.md]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'ref', path: 'other/file.md', label: 'file.md' },
+      { num: 'ref', path: 'other/file.md', label: null, text: '[[other/file.md]]', url: null },
     ]);
   });
 
@@ -21,7 +21,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^test]: [[folder/document]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'test', path: 'folder/document', label: 'document' },
+      { num: 'test', path: 'folder/document', label: null, text: '[[folder/document]]', url: null },
     ]);
   });
 
@@ -29,7 +29,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^nested]: [[deep/nested/folder/file.txt]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'nested', path: 'deep/nested/folder/file.txt', label: 'file.txt' },
+      { num: 'nested', path: 'deep/nested/folder/file.txt', label: null, text: '[[deep/nested/folder/file.txt]]', url: null },
     ]);
   });
 
@@ -37,7 +37,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^single]: [[filename]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'single', path: 'filename', label: 'filename' },
+      { num: 'single', path: 'filename', label: null, text: '[[filename]]', url: null },
     ]);
   });
 
@@ -45,7 +45,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^empty]: [[path/file.md|]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'empty', path: 'path/file.md', label: 'file.md' },
+      { num: 'empty', path: 'path/file.md', label: null, text: '[[path/file.md|]]', url: null },
     ]);
   });
 
@@ -53,7 +53,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^whitespace]: [[path/file.md|   ]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'whitespace', path: 'path/file.md', label: 'file.md' },
+      { num: 'whitespace', path: 'path/file.md', label: null, text: '[[path/file.md|   ]]', url: null },
     ]);
   });
 
@@ -66,7 +66,7 @@ describe('parseFootnoteInMarkdown', () => {
     ].join('\n');
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: '3', path: 'outside/code.md', label: 'code.md' },
+      { num: '3', path: 'outside/code.md', label: null, text: '[[outside/code.md]]', url: null },
     ]);
   });
 
@@ -74,21 +74,6 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '  [^ignored]: [[file.md]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([]);
-  });
-  
-  it('should correctly parse multiple footnotes and ignore malformed ones', () => {
-    const input = [
-      '[^a]: [[valid/file.md|label A]]',
-      '[^b]: [[valid2.txt]]',
-      '[^c]: invalid format',
-      '[^d]: [[path/document.pdf|]]', // empty alias, should use filename
-    ].join('\n');
-    const result = parseFootnoteInMarkdown(input);
-    expect(result).toEqual([
-      { num: 'a', path: 'valid/file.md', label: 'label A' },
-      { num: 'b', path: 'valid2.txt', label: 'valid2.txt' },
-      { num: 'd', path: 'path/document.pdf', label: 'document.pdf' },
-    ]);
   });
 
   it('should handle multiple code blocks and still extract valid footnotes', () => {
@@ -102,8 +87,24 @@ describe('parseFootnoteInMarkdown', () => {
     ].join('\n');
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'x', path: 'outside/readme.md', label: 'Custom Label' },
-      { num: 'y', path: 'still/ok.txt', label: 'ok.txt' },
+      { num: 'x', path: 'outside/readme.md', label: 'Custom Label', text: '[[outside/readme.md|Custom Label]]', url: null },
+      { num: 'y', path: 'still/ok.txt', label: null, text: '[[still/ok.txt]]', url: null },
+    ]);
+  });
+
+  it('should correctly parse multiple footnotes and ignore malformed ones', () => {
+    const input = [
+      '[^a]: [[valid/file.md|label A]]',
+      '[^b]: [[valid2.txt]]',
+      '[^c]: invalid format',
+      '[^d]: [[path/document.pdf|]]', // empty alias, should use filename
+    ].join('\n');
+    const result = parseFootnoteInMarkdown(input);
+    expect(result).toEqual([
+      { num: 'a', path: 'valid/file.md', label: 'label A', text: '[[valid/file.md|label A]]', url: null },
+      { num: 'b', path: 'valid2.txt', label: null, text: '[[valid2.txt]]', url: null },
+      { num: 'c', path: null, label: null, text: 'invalid format', url: null },
+      { num: 'd', path: 'path/document.pdf', label: null, text: '[[path/document.pdf|]]', url: null },
     ]);
   });
 
@@ -114,7 +115,10 @@ describe('parseFootnoteInMarkdown', () => {
       '[^3]: [[file.md|label]', // missing ]]
     ].join('\n');
     const result = parseFootnoteInMarkdown(input);
-    expect(result).toEqual([]);
+    expect(result).toEqual([
+      { num: '2', path: null, label: null, text: '[file.md]]', url: null },
+      { num: '3', path: null, label: null, text: '[[file.md|label]', url: null },
+    ]);
   });
 
   it('should not be confused by backticks in lines that don\'t actually open or close a code block', () => {
@@ -125,8 +129,8 @@ describe('parseFootnoteInMarkdown', () => {
     ].join('\n');
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: '1', path: 'outside/file.md', label: 'file.md' },
-      { num: '2', path: 'also/valid.txt', label: 'Custom Yes' },
+      { num: '1', path: 'outside/file.md', label: null, text: '[[outside/file.md]]', url: null },
+      { num: '2', path: 'also/valid.txt', label: 'Custom Yes', text: '[[also/valid.txt|Custom Yes]]', url: null },
     ]);
   });
 
@@ -139,7 +143,7 @@ describe('parseFootnoteInMarkdown', () => {
     ].join('\n');
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'good', path: 'outside/visible.md', label: 'visible.md' },
+      { num: 'good', path: 'outside/visible.md', label: null, text: '[[outside/visible.md]]', url: null },
     ]);
   });
 
@@ -147,7 +151,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^complex]: [[folder/file.name.with.dots.md]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'complex', path: 'folder/file.name.with.dots.md', label: 'file.name.with.dots.md' },
+      { num: 'complex', path: 'folder/file.name.with.dots.md', label: null, text: '[[folder/file.name.with.dots.md]]', url: null },
     ]);
   });
 
@@ -160,10 +164,10 @@ describe('parseFootnoteInMarkdown', () => {
     ].join('\n');
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: '1', path: 'path1/file1.md', label: 'file1.md' },
-      { num: 'abc', path: 'path2/file2.md', label: 'file2.md' },
-      { num: '123abc', path: 'path3/file3.md', label: 'file3.md' },
-      { num: 'note-1', path: 'path4/file4.md', label: 'file4.md' },
+      { num: '1', path: 'path1/file1.md', label: null, text: '[[path1/file1.md]]', url: null },
+      { num: 'abc', path: 'path2/file2.md', label: null, text: '[[path2/file2.md]]', url: null },
+      { num: '123abc', path: 'path3/file3.md', label: null, text: '[[path3/file3.md]]', url: null },
+      { num: 'note-1', path: 'path4/file4.md', label: null, text: '[[path4/file4.md]]', url: null },
     ]);
   });
 
@@ -176,10 +180,10 @@ describe('parseFootnoteInMarkdown', () => {
     ].join('\n');
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: '1', path: 'path/file.md', label: 'Label with spaces' },
-      { num: '2', path: 'path/file.md', label: 'Label-with-dashes' },
-      { num: '3', path: 'path/file.md', label: 'Label_with_underscores' },
-      { num: '4', path: 'path/file.md', label: 'Label.with.dots' },
+      { num: '1', path: 'path/file.md', label: 'Label with spaces', text: '[[path/file.md|Label with spaces]]', url: null },
+      { num: '2', path: 'path/file.md', label: 'Label-with-dashes', text: '[[path/file.md|Label-with-dashes]]', url: null },
+      { num: '3', path: 'path/file.md', label: 'Label_with_underscores', text: '[[path/file.md|Label_with_underscores]]', url: null },
+      { num: '4', path: 'path/file.md', label: 'Label.with.dots', text: '[[path/file.md|Label.with.dots]]', url: null },
     ]);
   });
 
@@ -187,7 +191,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^folder]: [[some/path/]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'folder', path: 'some/path/', label: null },
+      { num: 'folder', path: 'some/path/', label: null, text: '[[some/path/]]', url: null },
     ]);
   });
 
@@ -195,7 +199,7 @@ describe('parseFootnoteInMarkdown', () => {
     const input = '[^slashes]: [[///]]';
     const result = parseFootnoteInMarkdown(input);
     expect(result).toEqual([
-      { num: 'slashes', path: '///', label: null },
+      { num: 'slashes', path: '///', label: null, text: '[[///]]', url: null },
     ]);
   });
 });
