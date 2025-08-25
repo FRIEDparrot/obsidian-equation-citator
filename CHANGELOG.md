@@ -91,3 +91,17 @@ Version 1.2.2 - many critical bug fixes and significant improvements for user ex
 ```markdown
 $\ref{eq:2^{1.1}}$    // inner braces in citation 
 ```
+
+### Version 1.2.3  
+Version 1.2.3 - improvements and some minor bug fixes. 
+
+🐛 Fixed Bugs : 
+- [x] Fix [Bug #24](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/24), now insert command replace selection by insert content.  
+- [x] Better footnote recognition (writing `#` and `^` in pure footnote format) is supported now. 
+
+🚀 improvements : 
+- [x] When tag is repeated, auto-number only update the citation of the first tag occurrence, which enables you to append a part with repeated tags into note and then use auto-number normally. 
+- [x] More precise tag location when inserting tag in equations. 
+
+
+- [] Production build 

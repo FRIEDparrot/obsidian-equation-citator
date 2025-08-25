@@ -60,6 +60,7 @@ export class EquationServices {
         const uniquePaths = [...new Set(equations.map(eq => eq.sourcePath))].filter(p => p !== null);
         const fileEquationsMap = new Map<string, EquationMatch[]>();
         for (const filePath of uniquePaths) {
+            if (!filePath) continue;
             const eqs = await this.plugin.equationCache.getEquationsForFile(filePath);
             if (eqs) {
                 fileEquationsMap.set(filePath, eqs);
