@@ -1,7 +1,7 @@
 import { Prec, RangeSetBuilder, StateField } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { MarkdownPostProcessorContext, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/settingsTab";
 import { editorInfoField, MarkdownView } from "obsidian";
@@ -289,11 +289,15 @@ export async function mathCitationPostProcessor(
                     plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
                     plugin.settings.fileCiteDelimiter
                 ) : eqNumbers; // split continuous citation tags if enabled  
-
+            const activeLeaf = plugin.app.workspace.getActiveViewOfType(MarkdownView) as HoverParent | null;
+            if (!activeLeaf) {
+                Debugger.error("No active leaf found, skip rendering");
+                return;
+            }
             const citationWidget = renderEquationCitation(
                 plugin,
                 ctx.sourcePath,
-                null,
+                activeLeaf,
                 eqNumbersAll,
                 true,
             );
@@ -310,8 +314,13 @@ Which is not match. this can cause rendering issue. skip rendering`);
 }
 
 function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, eqNumbersAll: string[], sourcePath: string): void {
-    citationEl.addEventListener('mouseenter', async () => {
-        await showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
+    const citationSpans = citationEl.querySelectorAll('span.em-math-citation');
+    citationSpans.forEach(span => {
+        span.addEventListener('mouseenter', async (event: MouseEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+            await showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
+        })
     })
 }
 
@@ -344,11 +353,15 @@ export async function calloutCitationPostProcessor(
                 plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
                 plugin.settings.fileCiteDelimiter
             ) : eqNumbers; // split continuous citation tags if enabled 
-
+        const activeLeaf = plugin.app.workspace.getActiveViewOfType(MarkdownView) as HoverParent | null;
+        if (!activeLeaf) {
+            Debugger.error("No active leaf found, skip rendering");
+            return;
+        }
         const citationWidget = renderEquationCitation(
             plugin,
             ctx.sourcePath,
-            null,
+            activeLeaf,
             eqNumbersAll,
             true,
         );
@@ -374,7 +387,7 @@ async function showReadingModePopover(
         Debugger.log(`No valid equation found for citation: ${eqNumbersAll.join(', ')}`);
         return;
     } // no equations found for this citation, skip popover 
-    
+
     let popover: CitationPopover | null = new CitationPopover(
         plugin,
         // @ts-ignore

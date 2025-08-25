@@ -160,9 +160,6 @@ export function renderEquationCitation(
         : citeEquationTags;
 
     const containers: HTMLElement[] = [];
-    const citationSpans: HTMLElement[] = [];
-    const fileSuperscripts: HTMLElement[] = [];
-
     // render equation parts
     for (const tag of formatedCiteEquationTags) {
         // replace # in render format with the tag number
@@ -176,7 +173,6 @@ export function renderEquationCitation(
             const localCitation = citationFormat.replace('#', local);
             citationSpanEl.textContent = localCitation;
             containerDiv.appendChild(citationSpanEl);
-            citationSpans.push(citationSpanEl);
 
             // Create superscript bracket
             const fileSuperEl = document.createElement('sup');
@@ -188,7 +184,7 @@ export function renderEquationCitation(
                     if (isInteractive || ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();  // prevent original popover from showing up  
-
+                        e.stopImmediatePropagation();    // prevent other popovers from showing up 
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const popover = new FileSuperScriptPopover(
                             plugin,
@@ -202,12 +198,10 @@ export function renderEquationCitation(
                 });
             }
             containerDiv.appendChild(fileSuperEl);
-            fileSuperscripts.push(fileSuperEl);
         } else {
             // Regular citation without cross-file reference
             citationSpanEl.textContent = citationFormat.replace('#', local);
             containerDiv.appendChild(citationSpanEl);
-            citationSpans.push(citationSpanEl);
         }
         containers.push(containerDiv);
     }
