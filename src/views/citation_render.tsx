@@ -1,7 +1,7 @@
 import { Prec, RangeSetBuilder, StateField } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { MarkdownPostProcessorContext, Notice, WorkspaceLeaf } from "obsidian";
+import { MarkdownPostProcessorContext, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/settingsTab";
 import { editorInfoField, MarkdownView } from "obsidian";
@@ -108,8 +108,9 @@ export function createMathCitationExtension(plugin: EquationCitator) {
         ViewPlugin.fromClass(class {
             decorations: DecorationSet;
             lastPrefix: string;
-            
+            view: EditorView;
             constructor(view: EditorView) {
+                this.view = view;
                 this.decorations = this.buildDecorations(view);
                 this.lastPrefix = settings.citationPrefix;
                 // this.observeCallouts(view)
@@ -119,23 +120,22 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                 if (this.lastPrefix !== settings.citationPrefix) {
                     this.lastPrefix = settings.citationPrefix;  // update the prefix
                 }
-
                 if (update.docChanged ||
                     update.viewportChanged ||
                     update.focusChanged ||
                     update.selectionSet) {
-
                     this.decorations = this.buildDecorations(update.view);
-                    // Re-decorate from DOM after changes
-                    // this.decorateFromDOM(update.view);  
                     return;
                 }
             }
 
             private buildDecorations(view: EditorView): DecorationSet {
                 const builder = new RangeSetBuilder<Decoration>();
+                const currentFile = view.state.field(editorInfoField).file;
+                if (!(currentFile instanceof TFile)) {
+                    return builder.finish();  // no file, no decorations  
+                }
                 const { state } = view;
-
                 let currentEqRange: { from: number; to: number } | null = null;
                 const cursorPos = state.selection.main.to;
                 const sel = state.selection.main;
@@ -190,7 +190,12 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                                     currentEqRange.from,
                                     currentEqRange.to,
                                     Decoration.replace({
-                                        widget: new CitationWidget(plugin, eqNumbersAll, currentEqRange),
+                                        widget: new CitationWidget(
+                                            plugin,
+                                            currentFile.path,
+                                            eqNumbersAll,
+                                            currentEqRange,
+                                        ),
                                         attributes: {
                                             "data-citation-id": citationId
                                         }
@@ -285,7 +290,13 @@ export async function mathCitationPostProcessor(
                     plugin.settings.fileCiteDelimiter
                 ) : eqNumbers; // split continuous citation tags if enabled  
 
-            const citationWidget = renderEquationCitation(eqNumbersAll, plugin.settings);
+            const citationWidget = renderEquationCitation(
+                plugin,
+                ctx.sourcePath,
+                null,
+                eqNumbersAll,
+                true,
+            );
             addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
             span.replaceWith(citationWidget);
         })
@@ -296,6 +307,12 @@ export async function mathCitationPostProcessor(
 But recognized citation count is : ${equations.length}, between line ${sectionInfo.lineStart} and ${sectionInfo.lineEnd}
 Which is not match. this can cause rendering issue. skip rendering`);
     }
+}
+
+function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, eqNumbersAll: string[], sourcePath: string): void {
+    citationEl.addEventListener('mouseenter', async () => {
+        await showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
+    })
 }
 
 export async function calloutCitationPostProcessor(
@@ -317,7 +334,7 @@ export async function calloutCitationPostProcessor(
         if (!match) return;
         const citation = matchNestedCitation(match[1], plugin.settings.citationPrefix);
         if (!citation) return;  // not valid citation, skip rendering  
-        
+
         // get the actual label without prefix
         const eqNumbers: string[] = citation.label.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
         const eqNumbersAll = plugin.settings.enableContinuousCitation ?
@@ -327,16 +344,17 @@ export async function calloutCitationPostProcessor(
                 plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
                 plugin.settings.fileCiteDelimiter
             ) : eqNumbers; // split continuous citation tags if enabled 
-        const citationWidget = renderEquationCitation(eqNumbersAll, plugin.settings);
+
+        const citationWidget = renderEquationCitation(
+            plugin,
+            ctx.sourcePath,
+            null,
+            eqNumbersAll,
+            true,
+        );
         addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
         code.replaceWith(citationWidget);
     });
-}
-
-function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, eqNumbersAll: string[], sourcePath: string): void {
-    citationEl.addEventListener('mouseenter', async () => {
-        await showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
-    })
 }
 
 async function showReadingModePopover(
@@ -351,7 +369,7 @@ async function showReadingModePopover(
 
     const equations = await plugin.equationServices.getEquationsByTags(eqNumbersAll, sourcePath);
     const cleanedEquations = equations.filter(eq => eq.md && eq.sourcePath);
-    
+
     if (cleanedEquations.length === 0) {
         Debugger.log(`No valid equation found for citation: ${eqNumbersAll.join(', ')}`);
         return;

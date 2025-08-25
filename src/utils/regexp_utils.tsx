@@ -20,7 +20,17 @@ export function isCodeBlockToggle(line: string): boolean {
     return Boolean(codeBlockMatches && codeBlockMatches.length % 2 === 1);
 }
 
-export const footnoteRegex = /^\[(\^[^\]]+)\]:\s*\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/;
+// 1 : num , 2: text  
+export const footnoteRegex = /^\[(\^[^\]]+)\]: (.*)/;
+
+// 1 : num , 2: path, 3: label(optional)  
+export const pureFlinkFootnoteRegex = /^\[(\^[^\]]+)\]:\s*\[\[([^|\]]+)(?:\|([^\]]*))?\]\]/; 
+
+// 1 : num , 2: label, 3: url 
+export const pureWeblinkFootnoteRegex = /^\[(\^[^\]]+)\]:\s*\[([^\]]+)\]\((\S+?)\)/;
+
+// 1 : num , 2: url 
+export const pureBarelinkFootnoteRegex =/^\[(\^[^\]]+)\]:\s*(https?:\/\/\S+)/; 
 
 /**
  * parse the citation with ref inside the formula 
@@ -29,7 +39,6 @@ export const footnoteRegex = /^\[(\^[^\]]+)\]:\s*\[\[([^|\]]+)(?:\|([^\]]*))?\]\
  */
 // export const inlineRefRegex = /(?<!\$)\$(?!\$)(?! )([^$]*?\\ref\{([^}]*)\}[^$]*?)(?<! )\$(?!\$)/g; 
 export const inlineMathPattern = /(?<!\\)(?<!\$)\$(?!\$)(?! )((?:\\\$|[^$])*?)(?<! )\$(?!\$)/g;
-
 export const singleLineEqBlockPattern = /^\s*\$\$(?!\$)([\s\S]*?)(?<!\$)\$\$\s*$/; 
 
 

@@ -17,6 +17,18 @@
 
 **Video Tutorial**: I'll make a video tutorial if this plugin has 5000 downloads or this repo gets 50 stars.
 
+## How to use this plugin? 
+
+You can download following 3 files in the latest release page :
+```sh
+main.js
+manifest.json
+style.css
+```
+and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault.  
+
+Also after this plugin is published in obsidian, you can download it from community plugins. 
+
 ## Introduction & Simple Examples
 Obsidian-Equation-Citator is a plugin that provides a simple and elegant way to write in-line equation citation cite equations in obsidian just like `\ref{}` label in latex.
 

@@ -98,10 +98,17 @@ Version 1.2.3 - improvements and some minor bug fixes.
 🐛 Fixed Bugs : 
 - [x] Fix [Bug #24](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/24), now insert command replace selection by insert content.  
 - [x] Better footnote recognition (writing `#` and `^` in pure footnote format) is supported now. 
+- [ ] Fix style problem []
 
 🚀 improvements : 
 - [x] When tag is repeated, auto-number only update the citation of the first tag occurrence, which enables you to append a part with repeated tags into note and then use auto-number normally. 
 - [x] More precise tag location when inserting tag in equations. 
 
+- [ ] Production build Process (use `npm run build` for a production build, all relevant errors are handled) 
 
-- [] Production build 
+- [x] add how to add this plugin tutorial in readme. 
+
+✨ New Features : 
+- [x] Citation file superscript now render the footnote in popover when hover on it. 
+
+- [x] Add support for text-only and web-link format footnote in superscript popover render  

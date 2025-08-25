@@ -32,4 +32,3 @@ export function insertTextWithCursorOffset(
         editor.setCursor(newCursorPos);
     }
 }
- 

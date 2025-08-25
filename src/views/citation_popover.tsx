@@ -68,7 +68,7 @@ export class CitationPopover extends HoverPopover {
         const header = container.createDiv();
         header.addClass("em-citation-header");
         header.createEl("h3", { text: "Referenced Equations", cls: "em-citation-title" });
-
+        
         // Create content wrapper
         const content = container.createDiv();
         content.addClass("em-citation-content");
@@ -130,10 +130,8 @@ export class CitationPopover extends HoverPopover {
     }
 }
 
-
-
 /**
- * Render the equation container 
+ * Render the equation container (shared function by reading and live preview mode)
  * @param plugin 
  * @param sourcePath 
  * @param eq 
@@ -169,7 +167,7 @@ export function renderEquationWrapper(
     const fileNameLabel = equationLabelContainer.createDiv();
     fileNameLabel.addClass("em-equation-label", "em-equation-markdown-filename");
     fileNameLabel.textContent = `${eq.filename || ""}`;
-
+    
     // Create equation content div
     const equationDiv = equationWrapper.createDiv();
     equationDiv.addClass("em-equation-content");
@@ -188,6 +186,7 @@ export function renderEquationWrapper(
         addClickLinkJump(plugin, equationWrapper, eq, leaf);
     }
 }
+
 
 function addClickEffects(equationWrapper: HTMLElement): void {
     // Add click handler for equation selection
@@ -242,7 +241,6 @@ async function scrollToTag(plugin: EquationCitator, tag: string): Promise<void> 
     };
     tryScroll();
 }
-
 
 function addClickLinkJump(
     plugin: EquationCitator, 
