@@ -5,7 +5,9 @@
     --em-math-citation-file-superscript-hover-color: #6d50e0;
     --em-math-latex-font: "Latin Modern Roman", "Latin Modern Math", "CMU Serif",
         "Computer Modern", serif;
-    
+    --em-citation-popover-container-width: 350px;
+    --em-citation-popover-container-height: 400px;
+
     /* Light theme colors */
     --em-background-primary: #ffffff;
     --em-background-secondary: #f8f9fa;
@@ -18,9 +20,7 @@
     --em-interactive-accent: #007acc;
     --em-interactive-accent-rgb: 0, 122, 204;
     --em-font-interface: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-
-
+    
     /* Dark theme colors */ 
     --em-background-primary-dark: #1e1e1e;
     --em-background-secondary-dark: #2d2d2d;

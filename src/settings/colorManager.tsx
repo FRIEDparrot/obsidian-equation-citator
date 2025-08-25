@@ -35,7 +35,7 @@ export class ColorManager {
         citationWidgetColorDark3: '--em-background-modifier-hover-dark',
         citationWidgetColorDark4: '--em-background-modifier-border-dark',
     };
-
+    
     /**
      * Initialize or update all CSS custom properties from settings
      */

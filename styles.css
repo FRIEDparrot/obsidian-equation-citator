@@ -8,6 +8,8 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   --em-math-citation-file-superscript-hover-color: #6d50e0;
   --em-math-latex-font: "Latin Modern Roman", "Latin Modern Math", "CMU Serif",
       "Computer Modern", serif;
+  --em-citation-popover-container-width: 350px;
+  --em-citation-popover-container-height: 400px;
   /* Light theme colors */
   --em-background-primary: #ffffff;
   --em-background-secondary: #f8f9fa;
@@ -49,8 +51,9 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 
 /* Main container styles */
 .em-citation-popover-container {
-  width: 320px;
-  max-height: 400px;
+  min-width: var(--em-citation-popover-container-width);
+  max-width: var(--em-citation-popover-container-width);
+  max-height: var(--em-citation-popover-container-height);
   background: var(--em-background-primary);
   border: 1px solid var(--em-background-modifier-border);
   border-radius: 8px;
@@ -58,8 +61,6 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   overflow: auto;
   font-family: var(--em-font-interface);
   animation: fadeInUp 0.2s ease-out;
-  width: auto;
-  max-width: 800px;
 }
 
 /* Header styles - more compact */

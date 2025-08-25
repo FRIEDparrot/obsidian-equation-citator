@@ -265,7 +265,7 @@ $\ref{eq:1^{1.3.1}, 1^{1.3.2}}$    # this format may be supported in future.
 ```
 
 - [x] Insert with auto-tag : command for insert tag and auto-number at the same time for quick add equations (version 1.2.2)
-- [ ] **File superscript render** : file super-script will rendered as the corresponding footnote in future. 
+- [x] **File superscript render** : file super-script will rendered as the corresponding footnote. (version 1.2.3)
 
 **Other features I wanna to add in future** : 
 - [ ] More support for figure and table citation (thanks for [Feature #7 by AliceComma](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7))

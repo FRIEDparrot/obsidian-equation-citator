@@ -5,7 +5,8 @@ import {
 import {
     EquationCitatorSettings,
     DEFAULT_SETTINGS,
-    SettingsTabView
+    SettingsTabView,
+    cleanUpStyles
 } from '@/settings/settingsTab';
 import { Extension, Compartment } from '@codemirror/state';
 import registerCommands from '@/commands/command_list';
@@ -69,7 +70,7 @@ export default class EquationCitator extends Plugin {
         this.citationCache?.destroy();
         this.equationCache?.destroy();
         this.footnoteCache?.destroy();
-        ColorManager.cleanup(); // remove the style element 
+        cleanUpStyles();
     }
 
     async loadSettings() {

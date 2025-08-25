@@ -2,8 +2,9 @@
 
 /* Main container styles */
 .em-citation-popover-container {
-    width: 320px;
-    max-height: 400px;
+    min-width: var(--em-citation-popover-container-width);
+    max-width: var(--em-citation-popover-container-width);
+    max-height: var(--em-citation-popover-container-height);
     background: var(--em-background-primary);
     border: 1px solid var(--em-background-modifier-border);
     border-radius: 8px;
@@ -11,8 +12,6 @@
     overflow: auto; // allow content to be scrolled  
     font-family: var(--em-font-interface);
     animation: fadeInUp 0.2s ease-out;
-    width: auto;
-    max-width: 800px;
 }
 
 

@@ -54,6 +54,7 @@ export class TagService {
             }
             const currentFootNoteNums = footNotes
                 .filter((ft) => {
+                    if (!ft.path) return false;
                     const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, sourceFile);
                     if (!(dstFile instanceof TFile)) {
                         return false;
@@ -221,6 +222,7 @@ export class TagService {
             // get the footnote number of current file in this file, e.g. 1, 2, .... 
             const currentFootNoteNums = footNotes
                 .filter((ft) => {
+                    if (!ft.path) return false;
                     const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, sourceFile);
                     if (!(dstFile instanceof TFile)) {
                         return false;
