@@ -8,10 +8,13 @@ import {
 } from "@/utils/string_utils";
 import { ColorManager } from "@/settings/colorManager";
 import Debugger from "@/debug/debugger";
+import { WidgetSizeManager, WidgetSizeVariable } from "./widgetSizeManager";
 
 export interface EquationCitatorSettings {
     // citation settings 
     enableCitationInSourceMode: boolean; // Enable citation in source mode 
+    citationPopoverContainerWidth: number; // Equation preview widget width in pixels
+    citationPopoverContainerHeight: number; // Equation preview widget height in pixels 
     citationPrefix: string; // Citation prefix for equations
     citationFormat: string; // Citation display format for equations 
     figCitationPrefix: string; // Figure Citation Prefix
@@ -61,6 +64,8 @@ export interface EquationCitatorSettings {
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
+    citationPopoverContainerWidth: 370,   // Default to 370px for preview widget width 
+    citationPopoverContainerHeight: 400,  // Default to 400px for preview widget height 
     citationPrefix: "eq:", // Default prefix for citations 
     citationFormat: "(#)", // Default display format for citations  
     figCitationPrefix: "fig:", // prefix for cite figures 
@@ -124,6 +129,21 @@ export class SettingsTabView extends PluginSettingTab {
                 toggle.onChange(async (value) => {
                     this.plugin.settings.enableCitationInSourceMode = value;
                     Debugger.log("Citation in source mode enabled:", value);
+                    await this.plugin.saveSettings();
+                });
+            });
+
+        const equationPreviewWidgetWidthSetting = new Setting(containerEl)
+        equationPreviewWidgetWidthSetting.setName("Equation Preview Widget Width")
+            .setDesc("Width of the equation preview widget in pixels")
+            .addSlider((slider) => {
+                slider.setLimits(200, 800, 10)
+                slider.setDynamicTooltip()
+                slider.setValue(this.plugin.settings.citationPopoverContainerWidth)
+                slider.onChange(async (value) => {
+                    this.plugin.settings.citationPopoverContainerWidth = value;
+                    WidgetSizeManager.set(WidgetSizeVariable.ContainerWidth, value);
+                    Debugger.log("Equation preview widget width changed to:", value);
                     await this.plugin.saveSettings();
                 });
             });
@@ -735,5 +755,11 @@ this will make a correctly-rendered markdown from current note to export pdf.",
 
     resetStyles(): void {
         ColorManager.resetAllColors(DEFAULT_SETTINGS);
+        WidgetSizeManager.resetAllSizes(DEFAULT_SETTINGS);
     }
+}
+
+export function cleanUpStyles() {
+    ColorManager.cleanup(); // remove the style element
+    WidgetSizeManager.cleanUp();
 }

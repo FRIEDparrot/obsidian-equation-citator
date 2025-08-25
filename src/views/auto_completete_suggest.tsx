@@ -205,7 +205,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     renderSuggestion(value: RenderedEquation, el: HTMLElement): void {
         const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || null;
         if (!sourcePath) return;
-
+        el.addClass("em-equation-option-container")
         const targetEl = el.createDiv();
         const targetComponent = new TargetElComponent(targetEl);
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);

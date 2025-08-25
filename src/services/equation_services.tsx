@@ -60,6 +60,7 @@ export class EquationServices {
         const uniquePaths = [...new Set(equations.map(eq => eq.sourcePath))].filter(p => p !== null);
         const fileEquationsMap = new Map<string, EquationMatch[]>();
         for (const filePath of uniquePaths) {
+            if (!filePath) continue;
             const eqs = await this.plugin.equationCache.getEquationsForFile(filePath);
             if (eqs) {
                 fileEquationsMap.set(filePath, eqs);
@@ -82,10 +83,10 @@ export class EquationServices {
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
         
-        const { path, filename } = crossFile ?
+        const { path, filename } = crossFile !== null ?
             this.resolveCrossFileRef(sourcePath, crossFile, footnotes) :
             { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null };
-
+        
         if (!path) return [];
         
         const equationsAll = await this.plugin.equationCache.getEquationsForFile(path);
@@ -109,6 +110,7 @@ export class EquationServices {
             Debugger.log("Invalid footnote file path: ", match.path);
             return { path: null, filename: null };
         }
+        
         return { path: file.path, filename: match.label || null };
     }
 }

@@ -54,6 +54,7 @@ export class TagService {
             }
             const currentFootNoteNums = footNotes
                 .filter((ft) => {
+                    if (!ft.path) return false;
                     const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, sourceFile);
                     if (!(dstFile instanceof TFile)) {
                         return false;
@@ -164,7 +165,7 @@ export class TagService {
         // no need to rename if old tag is the same as new tag  
         const effectivePairs = pairs.filter(pair => pair.oldTag !== pair.newTag);
         if (effectivePairs.length === 0) return;  // no effective pairs, do nothing 
-
+        
         /** record the renaming result */
         const fileChangeMap: FileCitationChangeMap = new Map<string, number>();
         // add a path-number pair to the change map 
@@ -221,6 +222,7 @@ export class TagService {
             // get the footnote number of current file in this file, e.g. 1, 2, .... 
             const currentFootNoteNums = footNotes
                 .filter((ft) => {
+                    if (!ft.path) return false;
                     const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, sourceFile);
                     if (!(dstFile instanceof TFile)) {
                         return false;

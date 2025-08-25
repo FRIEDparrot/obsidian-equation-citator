@@ -70,7 +70,7 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
     const content = editor.getValue();
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
         autoNumberNoHeadingPrefix, autoNumberPrefix, autoNumberEquationsInQuotes } = plugin.settings;
-
+        
     const autoNumberTag = getAutoNumberInCursor(
         content,
         cursorPos,

@@ -68,7 +68,7 @@ export class CitationPopover extends HoverPopover {
         const header = container.createDiv();
         header.addClass("em-citation-header");
         header.createEl("h3", { text: "Referenced Equations", cls: "em-citation-title" });
-
+        
         // Create content wrapper
         const content = container.createDiv();
         content.addClass("em-citation-content");
@@ -76,12 +76,14 @@ export class CitationPopover extends HoverPopover {
         // Create scrollable equations container
         const equationsContainer = content.createDiv();
         equationsContainer.addClass("em-equations-container");
-
+        
         // Loop and create div for each equation 
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
         if (!leaf) return ;
         this.equationsToRender.forEach((eq, index) => {
-            renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationsContainer, targetComponent, true);
+            const equationOptionContainer = equationsContainer.createDiv();
+            equationOptionContainer.addClass("em-equation-option-container");
+            renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, targetComponent, true);
         });
         
         // Add footer with equation count
@@ -130,10 +132,8 @@ export class CitationPopover extends HoverPopover {
     }
 }
 
-
-
 /**
- * Render the equation container 
+ * Render the equation container (shared function by reading and live preview mode)
  * @param plugin 
  * @param sourcePath 
  * @param eq 
@@ -169,7 +169,7 @@ export function renderEquationWrapper(
     const fileNameLabel = equationLabelContainer.createDiv();
     fileNameLabel.addClass("em-equation-label", "em-equation-markdown-filename");
     fileNameLabel.textContent = `${eq.filename || ""}`;
-
+    
     // Create equation content div
     const equationDiv = equationWrapper.createDiv();
     equationDiv.addClass("em-equation-content");
@@ -188,6 +188,7 @@ export function renderEquationWrapper(
         addClickLinkJump(plugin, equationWrapper, eq, leaf);
     }
 }
+
 
 function addClickEffects(equationWrapper: HTMLElement): void {
     // Add click handler for equation selection
@@ -242,7 +243,6 @@ async function scrollToTag(plugin: EquationCitator, tag: string): Promise<void> 
     };
     tryScroll();
 }
-
 
 function addClickLinkJump(
     plugin: EquationCitator, 

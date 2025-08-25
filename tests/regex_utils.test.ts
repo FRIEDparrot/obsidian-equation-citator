@@ -7,7 +7,7 @@ import {
   createEquationTagString,
   codeBlockStartRegex,
   isCodeBlockToggle,
-  footnoteRegex
+  pureFlinkFootnoteRegex
 } from '@/utils/regexp_utils';
 
 describe('Regexp Utils Functions', () => {
@@ -29,9 +29,9 @@ describe('Regexp Utils Functions', () => {
     });
   });
 
-  describe('footnoteRegex', () => {
+  describe('pureFileLinkFootnoteRegex', () => {
     it('should match footnote pattern', () => {
-      const match1 = '[^note]: [[target]]'.match(footnoteRegex);
+      const match1 = '[^note]: [[target]]'.match(pureFlinkFootnoteRegex);
       if (!match1) {
         throw new Error('Failed to match equation tag');
       }
@@ -39,7 +39,7 @@ describe('Regexp Utils Functions', () => {
       expect(match1[2]).toBe('target');
       expect(match1[3]).toBeUndefined();
 
-      const match2 = '[^note]: [[target|alias]]'.match(footnoteRegex);
+      const match2 = '[^note]: [[target|alias]]'.match(pureFlinkFootnoteRegex);
       if (!match2) {
         throw new Error('Failed to match equation tag');
       }

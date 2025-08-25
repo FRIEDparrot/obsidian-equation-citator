@@ -91,3 +91,28 @@ Version 1.2.2 - many critical bug fixes and significant improvements for user ex
 ```markdown
 $\ref{eq:2^{1.1}}$    // inner braces in citation 
 ```
+
+### Version 1.2.3  
+Version 1.2.3 - improvements and some minor bug fixes. 
+
+🐛 Fixed Bugs : 
+- [x] Fix [Bug #24](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/24), now insert command replace selection by insert content.  
+
+- [x] Better footnote recognition (writing `#` and `^` in pure footnote format) is supported now. 
+
+- [x] Fix style problem [glitch #23](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/23) 
+
+🚀 improvements : 
+- [x] When tag is repeated, auto-number only update the citation of the first tag occurrence, which enables you to append a part with repeated tags into note and then use auto-number normally. 
+- [x] More precise tag location when inserting tag in equations. 
+
+- [x] add how to add this plugin tutorial in readme. 
+
+- [x] **(main improvement)** Build plugin using production mode((use `npm run build`) in this version, reducing the size of the plugin and improves the performance, the size of the plugin reduced from 570kb to 73kb) 
+
+✨ New Features : 
+- [x] Citation file superscript now render the footnote in popover when hover on it. 
+
+- [x] Add support for text-only and web-link format footnote in superscript popover render  
+
+- [x] Customize the width of equation popover in settings Tab  

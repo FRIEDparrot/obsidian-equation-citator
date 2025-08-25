@@ -1,4 +1,4 @@
-import { isCodeBlockToggle as isCbToggle, headingRegex, singleLineEqBlockPattern }  from "@/utils/regexp_utils";
+import { isCodeBlockToggle as isCbToggle, headingRegex, singleLineEqBlockPattern } from "@/utils/regexp_utils";
 
 export const DISABLED_DELIMITER = `§¶∞&#&@∸∹≑≒≓≌≍≎≏⋤⋥≔≕≖≗≘≙≚≛≜≝≞≟≠≇≈≉≊≋⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱`
 
@@ -57,7 +57,7 @@ export function removeInlineCodeBlocks(line: string): string {
                 escapeCount++;
                 j--;
             }
-            
+
             // If the number of backslashes is even (including 0), the backtick is not escaped
             if (escapeCount % 2 === 0) {
                 inCodeBlock = !inCodeBlock;
@@ -93,7 +93,7 @@ export function removePairedBraces(content: string): string {
     let cnt = 0;
     const result: string[] = [];
     for (let i = 0; i < content.length; i++) {
-        const char = content[i]; 
+        const char = content[i];
         if (char === '{') {
             cnt++;
             continue;
@@ -190,8 +190,8 @@ export function isInInlineMathEnvironment(line: string, pos: number): boolean {
  * Finds all valid math environment ranges
  * Correctly handles escape characters
  */
-function findValidMathRanges(line: string): Array<{start: number, end: number}> {
-    const ranges: Array<{start: number, end: number}> = [];
+function findValidMathRanges(line: string): Array<{ start: number, end: number }> {
+    const ranges: Array<{ start: number, end: number }> = [];
     let i = 0;
 
     while (i < line.length) {
@@ -204,22 +204,22 @@ function findValidMathRanges(line: string): Array<{start: number, end: number}> 
                 escapeCount++;
                 j--;
             }
-            
+
             // If the number of backslashes is odd, the $ is escaped, skip
             if (escapeCount % 2 === 1) {
                 i++;
                 continue;
             }
-            
+
             const startPos = i;
             i++; // Skip the opening $
-            
+
             // Check if $ is immediately followed by non-whitespace character
             if (i >= line.length || /\s/.test(line[i])) {
                 // $ is followed by whitespace or end of line, not a valid math environment start
                 continue;
             }
-            
+
             // Look for matching closing $
             let foundEnd = false;
             while (i < line.length) {
@@ -231,7 +231,7 @@ function findValidMathRanges(line: string): Array<{start: number, end: number}> 
                         endEscapeCount++;
                         k--;
                     }
-                    
+
                     // If closing $ is not escaped
                     if (endEscapeCount % 2 === 0) {
                         // Check if $ is immediately preceded by non-whitespace character
@@ -249,7 +249,7 @@ function findValidMathRanges(line: string): Array<{start: number, end: number}> 
                 }
                 i++;
             }
-            
+
             if (!foundEnd) {
                 // No matching closing $ found, continue searching
                 continue;
@@ -355,7 +355,7 @@ export function parseMarkdownLine(
 
     // Handle code blocks 
     const isCodeBlockToggle = isCbToggle(processedContent);
-    
+
     // If we're in code block, return early with minimal processing
     if (inCodeBlock && !isCodeBlockToggle) {
         return {
@@ -377,17 +377,17 @@ export function parseMarkdownLine(
     // Check for heading
     const headingMatch = cleanedLine.match(headingRegex);
     const isHeading = !!headingMatch;
-    
-    
+
+
     // Check for single-line equation
     const singleLineEquationMatch = cleanedLine.match(singleLineEqBlockPattern);
     const isSingleLineEquation = Boolean(singleLineEquationMatch);
-    
+
     // Check for multi-line equation block start/end
     const trimmedLine = cleanedLine.trim();
-    const isEquationBlockStart = trimmedLine.startsWith("$$") && !trimmedLine.startsWith("$$$");
-    const isEquationBlockEnd = trimmedLine.endsWith("$$") && !trimmedLine.endsWith("$$$");
-
+    const isEquationBlockStart = /^\$\$(?!\$)/.test(trimmedLine);
+    const isEquationBlockEnd = /(?<!\\)\$\$(?!\$)$/.test(trimmedLine);
+    
     return {
         processedContent,
         inQuote,

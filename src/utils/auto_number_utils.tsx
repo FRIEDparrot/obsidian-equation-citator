@@ -12,7 +12,7 @@ export enum AutoNumberingType {
 
 export interface AutoNumberProceedResult {
     md: string;
-    tagMapping: Map<string, string>;
+    tagMapping: Map<string, string>;  // mapping to rename citations 
 }
 
 export function getHeadings(content: string): Heading[] {
@@ -116,7 +116,7 @@ export function getAutoNumberInCursor(
             const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
                 relativeHeadingLevel(headings, currentHeadingIndex) :
                 parseResult.headingMatch[1].length;
-
+            
             assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array ${headings}`);
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) {
@@ -128,15 +128,14 @@ export function getAutoNumberInCursor(
         }
 
         if (inEquationBlock) {
-            if (i === cursorPos.line) {
-                return newTag;
-            }
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
             }
-            continue;
+            else if (i === cursorPos.line) {
+                return newTag;
+            }
         }
-        if (parseResult.isSingleLineEquation) {
+        else if (parseResult.isSingleLineEquation) {
             // get an equation tag to update counters   
             newTag = getAutoNbEquationTag();
         }
@@ -151,7 +150,17 @@ export function getAutoNumberInCursor(
             if (parseResult.isSingleLineEquation || isPositionInSingleLineEquation(line, cursorPos.ch)) {
                 return newTag;
             }
-            else if (parseResult.isEquationBlockStart || parseResult.isEquationBlockEnd || inEquationBlock) {
+            if (parseResult.isEquationBlockStart || parseResult.isEquationBlockEnd) {
+                const bracketLoc = line.indexOf("$$");
+                if (bracketLoc === -1) return null;  // invalid equation block
+                const afterStart = parseResult.isEquationBlockStart && inEquationBlock &&  cursorPos.ch >= bracketLoc + 2;
+                const beforeEnd = parseResult.isEquationBlockEnd && !inEquationBlock &&  cursorPos.ch <= bracketLoc;
+                if (afterStart || beforeEnd) {
+                    return newTag;  // cursor is in equation block 
+                }
+                return null;  // cursor is not in equation block  
+            }
+            if (inEquationBlock) {
                 return newTag;  // still in equation block, return current tag 
             }
             return null;  // cursor is not in equation or equation block  
@@ -160,6 +169,17 @@ export function getAutoNumberInCursor(
     return null;
 }
 
+
+/** 
+ * @param content 
+ * @param autoNumberingType absolute or relative 
+ * @param maxDepth max level in settings   
+ * @param delimiter 
+ * @param noHeadingEquationPrefix 
+ * @param globalPrefix 
+ * @param parseQuotes 
+ * @returns 
+ */
 export function autoNumberEquations(
     content: string,
     autoNumberingType: AutoNumberingType,
@@ -263,9 +283,9 @@ export function autoNumberEquations(
                 inEquationBlock = false;
                 const { content, tag: oldTag } = parseEquationTag(equationBuffer.join("\n"));
                 const { eq, tag: newTag } = getTaggedEquation(content);
-                // add tag mapping 
-                if (oldTag) newTagMapping.set(oldTag, newTag);
-
+                // add tag mapping only when there is no old tags (only map first occurrence)
+                if (oldTag && !newTagMapping.has(oldTag)) newTagMapping.set(oldTag, newTag);
+                
                 const fullEquationLines = `$$\n${eq}\n$$`.split("\n");
                 result.push(fullEquationLines.map((c) => quotePrefix + c).join("\n"));
                 equationBuffer = [];

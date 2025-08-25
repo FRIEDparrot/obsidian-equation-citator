@@ -8,26 +8,27 @@ import {
     combineContinuousCitationTags,
     splitFileCitation,
 } from "@/utils/citation_utils";
-import { EquationCitatorSettings } from "@/settings/settingsTab";
 import { DISABLED_DELIMITER } from "@/utils/string_utils";
+import { FileSuperScriptPopover } from "@/views/file_superscript_popover";
 
 /**
  * Widget for render citation in Live Preview mode. 
  */
 export class CitationWidget extends WidgetType {
     private el: HTMLElement;
-    // private fileSuprtScriptEl: HTMLElement [] = [];
-    // private isMouseOverFileSuperscript = false;
     private view: EditorView;
     private popover: CitationPopover | null = null;
+    private parent: HoverParent | null = null;
     constructor(
         private plugin: EquationCitator,
+        private sourcePath: string, 
         private eqNumbersAll: string[],
         public range: { from: number; to: number }
     ) {
         super();
         this.plugin = plugin;
     }
+
     eq(other: CitationWidget) {
         return this.eqNumbersAll === other.eqNumbersAll &&
             this.range.from === other.range.from &&
@@ -36,7 +37,15 @@ export class CitationWidget extends WidgetType {
     // view is the editor view to create the widget in  
     toDOM(view: EditorView): HTMLElement {
         this.view = view;
-        const el = renderEquationCitation(this.eqNumbersAll, this.plugin.settings, true);
+
+        const parent = this.getActiveLeaf() as HoverParent | null; 
+        const el = renderEquationCitation(
+            this.plugin,
+            this.sourcePath,
+            parent,
+            this.eqNumbersAll,
+            false,  // need ctrl key to show popover in Live Preview mode 
+        );
         this.el = el;
         el.setAttribute('tabindex', '0');  // make it focusable
         // Add interactive behavior for Live Preview mode
@@ -69,9 +78,6 @@ export class CitationWidget extends WidgetType {
             })
         }
     }
-    // superscript preview (in development)
-    // private registerFileSuperscriptEvents() {
-    // }
     private getActiveLeaf(): WorkspaceLeaf | null {
         const mdView = this.view.state.field(editorInfoField, false) as MarkdownView | undefined;
         if (mdView && mdView.leaf) {
@@ -79,14 +85,13 @@ export class CitationWidget extends WidgetType {
         }
         return null;
     }
-
     /**
      * Show popover with equations preview content. 
      * @returns 
      */
     private async showPopover() {
-        if (this.popover !== null) return;  // already showing popover  
         const parent = this.getActiveLeaf() as HoverParent | null;
+        if (this.popover !== null) return;  // already showing popover
         if (!parent || !this.el) {
             Debugger.error(`parent is ${parent} and citationEl is ${this.el},` +
                 `some of them not found for equation citation widget, can't show popover`);
@@ -122,59 +127,81 @@ export class CitationWidget extends WidgetType {
  *    input splitted equation tags, render combined equation citation by settings 
  * @param citeEquationTags 
  * @param settings 
- * @param isInteractive 
+ * @param isInteractive if it's true, show footnote without ctrl key 
  * @returns 
  */
 export function renderEquationCitation(
+    plugin: EquationCitator,
+    sourcePath: string,
+    parent: HoverParent | null,
     citeEquationTags: string[],
-    settings: EquationCitatorSettings,
-    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-    isInteractive: boolean = false
-) : HTMLElement{
+    isInteractive = false
+): HTMLElement {
+    const {
+        enableContinuousCitation,
+        enableCrossFileCitation,
+        fileCiteDelimiter,
+        continuousRangeSymbol,
+        continuousDelimiters,
+        citationFormat,
+    } = plugin.settings;
     const el = document.createElement('span');
-    const fileCiteDelimiter = settings.enableCrossFileCitation ?
-        settings.fileCiteDelimiter || '^' :
+    const fileDelimiter = enableCrossFileCitation ?
+        fileCiteDelimiter || '^' :
         DISABLED_DELIMITER;
     // set render format for the equation
-    const formatedCiteEquationTags = settings.enableContinuousCitation ?
+    const formatedCiteEquationTags = enableContinuousCitation ?
         combineContinuousCitationTags(
             citeEquationTags,
-            settings.continuousRangeSymbol || '~',
-            settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-            fileCiteDelimiter
+            continuousRangeSymbol,
+            continuousDelimiters.split(' ').filter(d => d.trim()),
+            fileDelimiter,
         )
         : citeEquationTags;
 
     const containers: HTMLElement[] = [];
-    const citationSpans: HTMLElement[] = [];
-    const fileSuperscripts: HTMLElement[] = [];
-
     // render equation parts
     for (const tag of formatedCiteEquationTags) {
         // replace # in render format with the tag number
         const containerDiv = document.createElement('div');
         containerDiv.addClass('em-math-citation-container');
-        const { local, crossFile } = splitFileCitation(tag, fileCiteDelimiter);
+        const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
         const citationSpanEl = document.createElement('span');
         citationSpanEl.className = 'em-math-citation';
         if (crossFile) {
             // Create citation with superscript bracket for cross-file references
-            const localCitation = settings.citationFormat.replace('#', local);
+            const localCitation = citationFormat.replace('#', local);
             citationSpanEl.textContent = localCitation;
             containerDiv.appendChild(citationSpanEl);
-            citationSpans.push(citationSpanEl);
 
             // Create superscript bracket
             const fileSuperEl = document.createElement('sup');
             fileSuperEl.textContent = `[${crossFile}]`;
             fileSuperEl.className = "em-math-citation-file-superscript";
+            if (parent) {
+                fileSuperEl.addEventListener('mouseenter', (e: MouseEvent) => {
+                    const ctrlKey = e.ctrlKey || e.metaKey;
+                    if (isInteractive || ctrlKey) {
+                        e.preventDefault();
+                        e.stopPropagation();  // prevent original popover from showing up  
+                        e.stopImmediatePropagation();    // prevent other popovers from showing up 
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const popover = new FileSuperScriptPopover(
+                            plugin,
+                            parent,
+                            fileSuperEl,
+                            sourcePath,
+                            crossFile,
+                            300
+                        );
+                    }
+                });
+            }
             containerDiv.appendChild(fileSuperEl);
-            fileSuperscripts.push(fileSuperEl);
         } else {
             // Regular citation without cross-file reference
-            citationSpanEl.textContent = settings.citationFormat.replace('#', local);
+            citationSpanEl.textContent = citationFormat.replace('#', local);
             containerDiv.appendChild(citationSpanEl);
-            citationSpans.push(citationSpanEl);
         }
         containers.push(containerDiv);
     }
