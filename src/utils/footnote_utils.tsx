@@ -12,7 +12,6 @@ export function parseFootnoteInMarkdown(markdown: string): FootNote[] {
     let inCodeBlock = false;
     // Regex to match footnote pattern: [^x]: [[path|alias]] or [^x]: [[path]]
     
-    
     for (const line of lines) {
         if (!line.startsWith('[^')) {
             if (isCodeBlockToggle(line)) {
@@ -28,10 +27,9 @@ export function parseFootnoteInMarkdown(markdown: string): FootNote[] {
         const match = line.match(footnoteRegex);
         if (match) { 
             const num = match[1].substring(1);  // remove the ^
-            const path = match[2];  
-
+            const pathWithLink = match[2];
+            const path = pathWithLink.split(/[#^]/)[0];
             const fileName = path.split('/').pop() || null;
-
             const label = (match[3] && match[3].trim() !== '') ? match[3] : fileName;
             result.push({ num, path, label });
         }

@@ -164,7 +164,7 @@ export class TagService {
         // no need to rename if old tag is the same as new tag  
         const effectivePairs = pairs.filter(pair => pair.oldTag !== pair.newTag);
         if (effectivePairs.length === 0) return;  // no effective pairs, do nothing 
-
+        
         /** record the renaming result */
         const fileChangeMap: FileCitationChangeMap = new Map<string, number>();
         // add a path-number pair to the change map 

@@ -108,7 +108,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
         ViewPlugin.fromClass(class {
             decorations: DecorationSet;
             lastPrefix: string;
-
+            
             constructor(view: EditorView) {
                 this.decorations = this.buildDecorations(view);
                 this.lastPrefix = settings.citationPrefix;

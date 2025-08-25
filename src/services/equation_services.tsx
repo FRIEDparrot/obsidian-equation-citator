@@ -82,10 +82,10 @@ export class EquationServices {
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
         
-        const { path, filename } = crossFile ?
+        const { path, filename } = crossFile !== null ?
             this.resolveCrossFileRef(sourcePath, crossFile, footnotes) :
             { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null };
-
+        
         if (!path) return [];
         
         const equationsAll = await this.plugin.equationCache.getEquationsForFile(path);
