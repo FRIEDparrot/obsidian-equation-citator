@@ -116,3 +116,6 @@ Version 1.2.3 - improvements and some minor bug fixes.
 - [x] Add support for text-only and web-link format footnote in superscript popover render  
 
 - [x] Customize the width of equation popover in settings Tab  
+
+🛠️ Release Patch : 
+- [x] Now using brace `{}` as delimiter in settings is prohibited. 

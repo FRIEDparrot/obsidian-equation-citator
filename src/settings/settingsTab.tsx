@@ -224,7 +224,7 @@ export class SettingsTabView extends PluginSettingTab {
                             Debugger.log("Multi-citation delimiter changed to:", newValue);
                             await this.plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, Change not saved");
                             text.setValue(this.plugin.settings.multiCitationDelimiter);
                         }
                     }
@@ -322,7 +322,7 @@ export class SettingsTabView extends PluginSettingTab {
                             Debugger.log("Auto numbering delimiter changed to:", newValue);
                             await this.plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, Change not saved");
                             text.setValue(this.plugin.settings.autoNumberDelimiter);
                         }
                     }
@@ -626,7 +626,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                             Debugger.log("Continuous citation range symbol changed to:", newValue);
                             await this.plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, Change not saved");
                             text.setValue(this.plugin.settings.continuousRangeSymbol);
                         }
                     }
@@ -650,7 +650,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                             Debugger.log("Continuous citation delimiter changed to:", newValue);
                             await this.plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters are allowed in each delimiter, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed in each delimiter, Change not saved");
                             text.setValue(this.plugin.settings.continuousDelimiters);
                         }
                     }
@@ -674,7 +674,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                             Debugger.log("File cite delimiter changed to:", newValue);
                             await this.plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, Change not saved");
                             text.setValue(this.plugin.settings.fileCiteDelimiter);
                         }
                     }
