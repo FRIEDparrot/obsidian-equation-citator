@@ -52,6 +52,12 @@ this will be rendered as follows (support both light and dark theme) :
   - have habit of adding `\tag{}` in equation blocks, and want to have a elegant and powerful way to cite them. 
   - don't want to add ugly block reference `^` in your equation blocks for reference, and make your citation more organized and clean. 
 
+> [!warning] 
+> You should follow some very simple rules to make this plugin work properly, 
+> please check [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for details. 
+>
+> If some issues occurs because of you are not following such rules, such issues may be closed without being fixed. 
+
 ## Main Features
 ### 1.  🚀 **Make citations, Preview, Easy jump and Rename Tags**
 

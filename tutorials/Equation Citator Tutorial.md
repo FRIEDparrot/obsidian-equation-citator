@@ -186,6 +186,10 @@ Always use 3 backticks for code block :
 Code block 
 ```
 
+Note that 4 or 5 backticks is also supported, but it's not recommended (since it's not a good habit). 
+
+6 backticks may cause some issues in some cases, so you should avoid using it. 
+
 ### (2)  In Tag | citations  
 
 Avoid using `\}` in your tag or citation (this will cause the tag recognized incorrectly) 

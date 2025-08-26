@@ -24,8 +24,10 @@ export function escapeString(str: string, quoteType: '"' | "'" = '"'): string {
 }
 
 export function validateDelimiter(delimiter: string): boolean {
-    // only allow special characters as delimiters  
-    return /^[^a-zA-Z0-9\s]+$/.test(delimiter);
+    // only allow special characters as delimiters 
+    if (!(/^[^a-zA-Z0-9\s]+$/.test(delimiter))) return false;
+    if (/[{}]/.test(delimiter)) return false;
+    return true;
 }
 
 export function validLetterPrefix(prefix: string): boolean {
@@ -387,7 +389,7 @@ export function parseMarkdownLine(
     const trimmedLine = cleanedLine.trim();
     const isEquationBlockStart = /^\$\$(?!\$)/.test(trimmedLine);
     const isEquationBlockEnd = /(?<!\\)\$\$(?!\$)$/.test(trimmedLine);
-    
+
     return {
         processedContent,
         inQuote,
