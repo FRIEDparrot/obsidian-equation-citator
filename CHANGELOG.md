@@ -104,11 +104,12 @@ Version 1.2.3 - improvements and some minor bug fixes.
 
 🚀 improvements : 
 - [x] When tag is repeated, auto-number only update the citation of the first tag occurrence, which enables you to append a part with repeated tags into note and then use auto-number normally. 
+
 - [x] More precise tag location when inserting tag in equations. 
 
 - [x] add how to add this plugin tutorial in readme. 
 
-- [x] **(main improvement)** Build plugin using production mode((use `npm run build`) in this version, reducing the size of the plugin and improves the performance, the size of the plugin reduced from 570kb to 73kb) 
+- [x] **(main improvement)** Build plugin using production mode((use `npm run build`) in this version, reducing the size of the plugin and improves the performance, the size of the plugin reduced from 593kb to 73kb) 
 
 ✨ New Features : 
 - [x] Citation file superscript now render the footnote in popover when hover on it. 
