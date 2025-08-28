@@ -50,6 +50,7 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
             oldTag,
             newTag
         }));
+        // renamePairs will never repeat since we only rename first occurrence of oldTag 
         Debugger.log("auto numbering citation rename pairs :", renamePairs);
         const editor = plugin.app.workspace.activeEditor?.editor;
         citationUpdateResult = await plugin.tagService.renameTags(
