@@ -17,8 +17,10 @@ export interface EquationCitatorSettings {
     citationPopoverContainerHeight: number; // Equation preview widget height in pixels 
     citationPrefix: string; // Citation prefix for equations
     citationFormat: string; // Citation display format for equations 
+
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures 
+    
     citationColor: string; // Citation display color for equations 
     citationHoverColor: string; // Citation display hover color for equations 
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
@@ -62,7 +64,7 @@ export interface EquationCitatorSettings {
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
-    citationPopoverContainerWidth: 500,   // Default to 370px for preview widget width 
+    citationPopoverContainerWidth: 500 ,   // Default to 370px for preview widget width 
     citationPopoverContainerHeight: 400,  // Default to 400px for preview widget height 
     citationPrefix: "eq:", // Default prefix for citations 
     citationFormat: "(#)", // Default display format for citations  

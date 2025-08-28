@@ -4,6 +4,7 @@ import { resolveBackLinks } from "@/utils/link_utils";
 import { TFile, Editor } from "obsidian";
 import { CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags } from "@/utils/citation_utils";
 import { createCitationString } from "@/utils/regexp_utils";
+import Debugger from "@/debug/debugger";
 
 export interface TagRenamePair {
     oldTag: string;
@@ -164,7 +165,7 @@ export class TagService {
         }
         // no need to rename if old tag is the same as new tag  
         const effectivePairs = pairs.filter(pair => pair.oldTag !== pair.newTag);
-        if (effectivePairs.length === 0) return;  // no effective pairs, do nothing 
+        if (effectivePairs.length === 0 && !deleteUnusedCitations) return;  // no effective pairs, do nothing 
         
         /** record the renaming result */
         const fileChangeMap: FileCitationChangeMap = new Map<string, number>();
@@ -279,6 +280,7 @@ export class TagService {
         const lineMap = new Map<number, string>();
         const prefix = this.plugin.settings.citationPrefix || "eq:";  // default citation prefix 
         const citationsAll: CitationRef[] = parseCitationsInMarkdown(lines.join('\n')).filter(c => c.label.startsWith(prefix));
+        
         if (citationsAll.length === 0) return { updatedLineMap: new Map(), updatedNum: 0 };  // not do anyhing if no citations found
 
         // get the delimiter configurations 
@@ -369,8 +371,11 @@ export class TagService {
     ): string {
         const newTagName = nameMapping.get(tag) || tag;
         // if old tag has no this tag, this is a unused tag, delete it if deleteUnusedCitations is true  
-        if (deleteUnusedCitations && !nameMapping.has(tag)) {
-            return "";
+        if (deleteUnusedCitations) {
+            if (!nameMapping.has(tag)) {
+                Debugger.log(`[Equation Citator] delete unused tag: ${tag}`);
+                return "";
+            }
         }
         // The current tag will not be renamed, but it is conflict with a new tag 
         if (deleteRepeatCitations && !nameMapping.has(tag) && newTags.has(tag)) {
