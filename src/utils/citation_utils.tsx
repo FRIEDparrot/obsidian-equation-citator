@@ -416,7 +416,8 @@ function processInlineReferences(
     const dollarPositions: Array<{ pos: number, type: 'single' | 'double' }> = [];
     i = 0;
     while (i < line.length) {
-        if (line[i] === '$') {
+        // check for unescaped dollar sign 
+        if (line[i] === '$' && (i === 0 || line[i - 1] !== '\\')) {
             if (i + 1 < line.length && line[i + 1] === '$') {
                 // Double dollar - display math
                 dollarPositions.push({ pos: i, type: 'double' });
