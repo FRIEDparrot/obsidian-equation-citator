@@ -120,3 +120,19 @@ Version 1.2.3 - improvements and some minor bug fixes.
 
 🛠️ Release Patch : 
 - [x] Now using brace `{}` as delimiter in settings is prohibited. 
+
+
+### Version 1.2.4  
+Version 1.2.4 - enhancements and bug fixes. 
+
+🐛 Fixed Bugs :
+
+
+
+🚀 Enhancements : 
+- [x] add [enhancement #32](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/32), file superscripts will be rendered as footnotes in pdf export. Also change default citation color as same as file superscript color. 
+
+- set 
+
+- [x] open the exported file after export pdf command.  
+

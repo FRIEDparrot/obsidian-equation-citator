@@ -17,10 +17,6 @@ export class ColorManager {
         fileSuperScriptColor: '--em-math-file-cite-color',
         fileSuperScriptHoverColor: '--em-math-file-cite-hover-color',
 
-        // PDF colors
-        citationColorInPdf: '--em-math-citation-color-print',
-        fileSuperScriptColorInPdf: '--em-math-citation-file-superscript-color-print',
-
         // Widget colors (light theme)
         citationWidgetColor0: '--em-background-primary',
         citationWidgetColor1: '--em-background-secondary',
@@ -48,9 +44,7 @@ export class ColorManager {
         cssRules.push(`  ${this.COLOR_MAPPINGS.citationHoverColor}: ${settings.citationHoverColor};`);
         cssRules.push(`  ${this.COLOR_MAPPINGS.fileSuperScriptColor}: ${settings.fileSuperScriptColor};`);
         cssRules.push(`  ${this.COLOR_MAPPINGS.fileSuperScriptHoverColor}: ${settings.fileSuperScriptHoverColor};`);
-        cssRules.push(`  ${this.COLOR_MAPPINGS.citationColorInPdf}: ${settings.citationColorInPdf};`);
-        cssRules.push(`  ${this.COLOR_MAPPINGS.fileSuperScriptColorInPdf}: ${settings.fileSuperScriptColorInPdf};`);
-
+        
         // Add widget colors (light theme)
         for (let i = 0; i < 5; i++) {
             const key = `citationWidgetColor${i}` as keyof typeof this.COLOR_MAPPINGS;
@@ -102,12 +96,6 @@ export class ColorManager {
                 break;
             case 'fileSuperScriptHoverColor':
                 settings.fileSuperScriptHoverColor = value;
-                break;
-            case 'citationColorInPdf':
-                settings.citationColorInPdf = value;
-                break;
-            case 'fileSuperScriptColorInPdf':
-                settings.fileSuperScriptColorInPdf = value;
                 break;
             // Note: citationWidgetColor and citationWidgetColorDark are arrays
             // and should be updated using updateWidgetColor method instead

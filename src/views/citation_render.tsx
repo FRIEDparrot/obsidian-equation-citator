@@ -427,7 +427,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
         settings.continuousRangeSymbol || '~' : null;
     const fileCiteDelimiter = settings.enableCrossFileCitation ?
         settings.fileCiteDelimiter || '^' : DISABLED_DELIMITER;
-
+    const { citationColorInPdf } = settings;
     const result = replaceCitationsInMarkdownWithSpan(
         md,
         settings.citationPrefix,
@@ -437,8 +437,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
         settings.multiCitationDelimiter || ',',
         settings.citationFormat,
         {
-            citationColorInPdf: settings.citationColorInPdf,
-            superScriptColorInPdf: settings.fileSuperScriptColorInPdf,
+            citationColorInPdf
         } as SpanStyles,
     );
     return result;
