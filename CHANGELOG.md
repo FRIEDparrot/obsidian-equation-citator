@@ -139,4 +139,5 @@ Version 1.2.4 - bug fixes and minor improvements.
 
 - [x] set default equation widget width to 500px. 
 
-- [ ] better empty citation rendering 
+- [x] better empty citation rendering (now empty citations will be rendered as `()` instead of ``)
+

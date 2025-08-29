@@ -273,7 +273,7 @@ export async function mathCitationPostProcessor(
     const citations = allCitations.filter(
         eq => eq.line >= sectionInfo.lineStart && eq.line <= sectionInfo.lineEnd
     )
-
+    
     const renderCiteSpans = (citeSpans: Element[], citations: CitationRef[]) => {
         citeSpans.forEach((span, index) => {  // no need to match for 2rd time here 
             const eq = citations[index];
