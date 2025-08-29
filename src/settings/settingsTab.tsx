@@ -8,7 +8,7 @@ import {
 } from "@/utils/string_utils";
 import { ColorManager } from "@/settings/colorManager";
 import Debugger from "@/debug/debugger";
-import { WidgetSizeManager, WidgetSizeVariable } from "./widgetSizeManager";
+import { WidgetSizeManager, WidgetSizeVariable } from "@/settings/widgetSizeManager";
 
 export interface EquationCitatorSettings {
     // citation settings 
@@ -17,8 +17,10 @@ export interface EquationCitatorSettings {
     citationPopoverContainerHeight: number; // Equation preview widget height in pixels 
     citationPrefix: string; // Citation prefix for equations
     citationFormat: string; // Citation display format for equations 
+
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures 
+    
     citationColor: string; // Citation display color for equations 
     citationHoverColor: string; // Citation display hover color for equations 
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
@@ -38,9 +40,7 @@ export interface EquationCitatorSettings {
     cacheCleanTime: number; // Time to automatically clear cache 
 
     // pdf rendering settings
-    citationColorInPdf: string; // default citation color in PDF rendering  
-    fileSuperScriptColorInPdf: string; // default file citation color in PDF rendering 
-
+    citationColorInPdf: string; // default citation color in PDF rendering
     enableCiteWithCodeBlockInCallout: boolean; // Enable citation by inline code block in callout
 
     // auto numbering settings  
@@ -64,7 +64,7 @@ export interface EquationCitatorSettings {
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
-    citationPopoverContainerWidth: 370,   // Default to 370px for preview widget width 
+    citationPopoverContainerWidth: 500 ,   // Default to 370px for preview widget width 
     citationPopoverContainerHeight: 400,  // Default to 400px for preview widget height 
     citationPrefix: "eq:", // Default prefix for citations 
     citationFormat: "(#)", // Default display format for citations  
@@ -86,9 +86,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     cacheUpdateTime: 5000, // Max time for cache to refresh (5s)
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes) 
 
-    citationColorInPdf: "#000000", // black color for default citation color in PDF rendering 
-    fileSuperScriptColorInPdf: "#000000", // black color for default file citation color in PDF rendering 
-
+    citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
+    
     enableCiteWithCodeBlockInCallout: false,  // cite with inline code block in quote
 
     autoNumberDelimiter: ".", // Default delimiter for auto numbering  
@@ -543,7 +542,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
 
         // these two colors directly transfer to function `makePrintMarkdown` (so not in style variables)
         const pdfExportColorSetting = new Setting(containerEl)
-        pdfExportColorSetting.setName("Citation color in markdown for PDF")
+        pdfExportColorSetting.setName("Citation color for PDF")
             .setDesc("Citation colors in PDF export. 1: equation citations 2: superscripts")
             .addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationColorInPdf)
@@ -552,14 +551,7 @@ this will make a correctly-rendered markdown from current note to export pdf.",
                     Debugger.log("citation color in pdf changed to:", value);
                     await this.plugin.saveSettings();
                 });
-            }).addColorPicker((color) => {
-                color.setValue(this.plugin.settings.fileSuperScriptColorInPdf)
-                color.onChange(async (value) => {
-                    this.plugin.settings.fileSuperScriptColorInPdf = value;
-                    Debugger.log("file superscript color in pdf changed to:", value);
-                    await this.plugin.saveSettings();
-                });
-            });
+            })
         // ==================  Beta features settings ==========   
         containerEl.createEl("h2", { text: "Beta Features", cls: "ec-settings-header" });
 

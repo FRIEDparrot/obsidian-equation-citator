@@ -1,7 +1,7 @@
-import { Heading, relativeHeadingLevel } from "@/utils/heading";
+import { parseHeadingsInMarkdown, relativeHeadingLevel } from "@/utils/heading_utils";
 import { parseMarkdownLine } from "@/utils/string_utils";
 import { parseEquationTag } from "@/utils/equation_utils";
-import { headingRegex, codeBlockStartRegex, createEquationTagString, singleLineEqBlockPattern } from "@/utils/regexp_utils";
+import { createEquationTagString, singleLineEqBlockPattern } from "@/utils/regexp_utils";
 import assert from "assert";
 import { EditorPosition } from "obsidian";
 
@@ -15,34 +15,6 @@ export interface AutoNumberProceedResult {
     tagMapping: Map<string, string>;  // mapping to rename citations 
 }
 
-export function getHeadings(content: string): Heading[] {
-    const lines = content.split('\n');
-    // Parse all headings 
-    const headings: Heading[] = [];
-    let inCodeBlock = false;
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        // Check code block and Skip the code block content 
-        if (codeBlockStartRegex.test(line)) {
-            inCodeBlock = !inCodeBlock;
-            continue;
-        }
-        if (inCodeBlock) {
-            continue;
-        }
-        const headingMatch = line.match(headingRegex);
-        if (headingMatch) {
-            headings.push({
-                level: headingMatch[1].length,
-                line: i,
-                text: headingMatch[2]
-            });
-        }
-    }
-    return headings;
-}
-
 // check if the cursor is in a single line equation block   
 function isPositionInSingleLineEquation(line: string, ch: number): boolean {
     const match = line.match(singleLineEqBlockPattern);
@@ -53,7 +25,6 @@ function isPositionInSingleLineEquation(line: string, ch: number): boolean {
 
     return ch >= startPos && ch <= endPos;
 }
-
 
 /**
  * @todo : Remove duplicate code  
@@ -69,7 +40,7 @@ export function getAutoNumberInCursor(
     parseQuotes = false
 ): string | null {
     const lines = content.split('\n');
-    const headings = getHeadings(content);
+    const headings = parseHeadingsInMarkdown(content);
     assert(cursorPos.line >= 0 && cursorPos.line < lines.length, "Invalid cursor position " + cursorPos);
 
     let inCodeBlock = false;
@@ -116,7 +87,7 @@ export function getAutoNumberInCursor(
             const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
                 relativeHeadingLevel(headings, currentHeadingIndex) :
                 parseResult.headingMatch[1].length;
-            
+
             assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array ${headings}`);
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) {
@@ -153,8 +124,8 @@ export function getAutoNumberInCursor(
             if (parseResult.isEquationBlockStart || parseResult.isEquationBlockEnd) {
                 const bracketLoc = line.indexOf("$$");
                 if (bracketLoc === -1) return null;  // invalid equation block
-                const afterStart = parseResult.isEquationBlockStart && inEquationBlock &&  cursorPos.ch >= bracketLoc + 2;
-                const beforeEnd = parseResult.isEquationBlockEnd && !inEquationBlock &&  cursorPos.ch <= bracketLoc;
+                const afterStart = parseResult.isEquationBlockStart && inEquationBlock && cursorPos.ch >= bracketLoc + 2;
+                const beforeEnd = parseResult.isEquationBlockEnd && !inEquationBlock && cursorPos.ch <= bracketLoc;
                 if (afterStart || beforeEnd) {
                     return newTag;  // cursor is in equation block 
                 }
@@ -190,7 +161,7 @@ export function autoNumberEquations(
     parseQuotes = false
 ): AutoNumberProceedResult {
     const lines = content.split('\n');
-    const headings = getHeadings(content);
+    const headings = parseHeadingsInMarkdown(content);
 
     let inCodeBlock = false;
     let inEquationBlock = false;
@@ -285,7 +256,7 @@ export function autoNumberEquations(
                 const { eq, tag: newTag } = getTaggedEquation(content);
                 // add tag mapping only when there is no old tags (only map first occurrence)
                 if (oldTag && !newTagMapping.has(oldTag)) newTagMapping.set(oldTag, newTag);
-                
+
                 const fullEquationLines = `$$\n${eq}\n$$`.split("\n");
                 result.push(fullEquationLines.map((c) => quotePrefix + c).join("\n"));
                 equationBuffer = [];

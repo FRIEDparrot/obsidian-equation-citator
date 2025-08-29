@@ -4,6 +4,7 @@ import { resolveBackLinks } from "@/utils/link_utils";
 import { TFile, Editor } from "obsidian";
 import { CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags } from "@/utils/citation_utils";
 import { createCitationString } from "@/utils/regexp_utils";
+import Debugger from "@/debug/debugger";
 
 export interface TagRenamePair {
     oldTag: string;
@@ -162,10 +163,10 @@ export class TagService {
         if (!(file instanceof TFile)) {
             return;
         }
-        // no need to rename if old tag is the same as new tag  
-        const effectivePairs = pairs.filter(pair => pair.oldTag !== pair.newTag);
-        if (effectivePairs.length === 0) return;  // no effective pairs, do nothing 
-        
+        // no need to update if old tag is the same as new tag 
+        if (pairs.filter(pair => pair.oldTag !== pair.newTag).length === 0 &&
+            !deleteUnusedCitations) return;  // no effective pairs, do nothing  
+
         /** record the renaming result */
         const fileChangeMap: FileCitationChangeMap = new Map<string, number>();
         // add a path-number pair to the change map 
@@ -176,7 +177,7 @@ export class TagService {
 
         /********  update the citation in current file  ********/
         const currentFileTagMapping = new Map<string, string>();
-        effectivePairs.forEach(pair => {
+        pairs.forEach(pair => {
             currentFileTagMapping.set(pair.oldTag, pair.newTag);
         });
         // use read here to get strong consistency (since in many auto-number may change file lines)
@@ -237,7 +238,7 @@ export class TagService {
 
             // construct cross file tag mapping 
             const crossFileTagMapping = new Map<string, string>();
-            effectivePairs.forEach(pair => {
+            pairs.forEach(pair => {
                 for (const num of currentFootNoteNums) {
                     const oldTag = `${num}${fileCiteDelimiter}${pair.oldTag}`
                     const newTag = `${num}${fileCiteDelimiter}${pair.newTag}`
@@ -268,25 +269,30 @@ export class TagService {
      */
     async updateCitationLines(
         lines: string[],
-        // mapping from old tag to new tag (no repeat -> this is done in renameTags function) 
-        nameMapping: Map<string, string>,
+        // mapping from old tag to new tag (full -> we remove repeat internally and remove unused)
+        nameMappingFull: Map<string, string>,
         deleteRepeatCitations = false,
         deleteUnusedCitations = false
     ): Promise<{
         updatedLineMap: Map<number, string>,
         updatedNum: number
     }> {
+        // const newTags = new Set(nameMappingFull.values());
+        const nameMapping = new Map(
+            [...nameMappingFull.entries()].filter(([oldTag, newTag]) => oldTag !== newTag)
+        );
+        const oldTagsAll = new Set(nameMappingFull.keys());
+        const newTags = new Set(nameMapping.values());
         const lineMap = new Map<number, string>();
         const prefix = this.plugin.settings.citationPrefix || "eq:";  // default citation prefix 
         const citationsAll: CitationRef[] = parseCitationsInMarkdown(lines.join('\n')).filter(c => c.label.startsWith(prefix));
-        if (citationsAll.length === 0) return { updatedLineMap: new Map(), updatedNum: 0 };  // not do anyhing if no citations found
 
+        if (citationsAll.length === 0) return { updatedLineMap: new Map(), updatedNum: 0 };  // not do anyhing if no citations found
         // get the delimiter configurations 
         const multiEqDelimiter = this.plugin.settings.multiCitationDelimiter || ",";
         const rangeSymbol = this.plugin.settings.continuousRangeSymbol || "~";
         const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", "\\_"];
         const fileDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
-        const newTags = new Set(nameMapping.values());
 
         // get old tags and new tags 
         let updatedNum = 0;
@@ -302,7 +308,7 @@ export class TagService {
             ) as string[];
             // process each discrete citation 
             const processedCitations = splittedCitations.map(ct => {
-                const processedTag = this.processTag(ct, nameMapping, newTags, deleteUnusedCitations, deleteRepeatCitations)
+                const processedTag = this.processTag(ct, nameMapping, oldTagsAll, newTags, deleteUnusedCitations, deleteRepeatCitations)
                 if (ct !== processedTag) updatedNum++;  // update the number of updated citations  
 
                 return processedTag;
@@ -354,22 +360,24 @@ export class TagService {
      * Process a single tag and update it if necessary 
      * @param tag 
      * @param nameMapping 
-     * @param oldTags 
-     * @param newTags 
+     * @param oldTagsAll // all old tags in the file 
+     * @param newTags  // new tags (can both all or unique, used to check conflict) 
      * @param deleteUnusedCitations 
      * @param deleteRepeatCitations 
      * @returns 
      */
     private processTag(
         tag: string,
-        nameMapping: Map<string, string>,
-        newTags: Set<string>,
+        nameMapping: Map<string, string>, // mapping from old tag to new tag (remove repeat before that!)
+        oldTagsAll: Set<string>,  // all old tags in the file, used to check unused tag  
+        newTags: Set<string>,     // new tags (used to check conflict) 
         deleteUnusedCitations: boolean,
         deleteRepeatCitations: boolean
     ): string {
         const newTagName = nameMapping.get(tag) || tag;
         // if old tag has no this tag, this is a unused tag, delete it if deleteUnusedCitations is true  
-        if (deleteUnusedCitations && !nameMapping.has(tag)) {
+        if (deleteUnusedCitations && !oldTagsAll.has(tag)) {
+            Debugger.log(`Delete unused tag: ${tag}`);
             return "";
         }
         // The current tag will not be renamed, but it is conflict with a new tag 

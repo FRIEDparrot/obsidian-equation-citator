@@ -5,13 +5,16 @@ import { TagRenamePair, TagRenameResult } from "@/services/tag_service";
 import { Notice } from "obsidian";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
-import { insertTextWithCursorOffset } from "./insertTextOnCursor";
+import { insertTextWithCursorOffset } from "@/func/insertTextOnCursor";
 
 export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     const settings = plugin.settings;
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
         autoNumberNoHeadingPrefix, autoNumberPrefix, autoNumberEquationsInQuotes } = plugin.settings;
-    const { deleteRepeatTagsInAutoNumbering: deleteRepeatTags, deleteUnusedTagsInAutoNumbering: deleteUnusedTags } = plugin.settings;
+    const { 
+        deleteRepeatTagsInAutoNumbering: deleteRepeatTags,
+        deleteUnusedTagsInAutoNumbering: deleteUnusedTags 
+    } = plugin.settings;
     const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
     let citationUpdateResult: TagRenameResult | undefined;
     let tagMapping: Map<string, string> = new Map();
@@ -40,12 +43,14 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     );
     await processor.execute();  // process current file content 
 
-    if (settings.enableUpdateTagsInAutoNumbering && tagMapping.size > 0) {
+    // remove "tagMapping.size > 0" -> update citations also if no tags are changed
+    if (settings.enableUpdateTagsInAutoNumbering) {
         // Convert Map<string, string> to TagRenamePair[] 
         const renamePairs: TagRenamePair[] = Array.from(tagMapping.entries()).map(([oldTag, newTag]) => ({
             oldTag,
             newTag
         }));
+        // renamePairs will never repeat since we only rename first occurrence of oldTag 
         Debugger.log("auto numbering citation rename pairs :", renamePairs);
         const editor = plugin.app.workspace.activeEditor?.editor;
         citationUpdateResult = await plugin.tagService.renameTags(
@@ -70,7 +75,7 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
     const content = editor.getValue();
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
         autoNumberNoHeadingPrefix, autoNumberPrefix, autoNumberEquationsInQuotes } = plugin.settings;
-        
+
     const autoNumberTag = getAutoNumberInCursor(
         content,
         cursorPos,

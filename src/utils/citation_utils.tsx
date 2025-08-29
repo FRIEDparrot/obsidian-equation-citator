@@ -320,7 +320,6 @@ export function parseCitationsInMarkdown(md: string): CitationRef[] {
 
 export interface SpanStyles {
     citationColorInPdf: string;
-    superScriptColorInPdf: string;
 }
 
 /**
@@ -417,7 +416,8 @@ function processInlineReferences(
     const dollarPositions: Array<{ pos: number, type: 'single' | 'double' }> = [];
     i = 0;
     while (i < line.length) {
-        if (line[i] === '$') {
+        // check for unescaped dollar sign 
+        if (line[i] === '$' && (i === 0 || line[i - 1] !== '\\')) {
             if (i + 1 < line.length && line[i + 1] === '$') {
                 // Double dollar - display math
                 dollarPositions.push({ pos: i, type: 'double' });
@@ -503,8 +503,6 @@ function processInlineReferences(
  */
 const DEFAULT_CONTAINER_STYLE = 'cursor: default;';
 const DEFAULT_CITATION_STYLE = 'text-decoration: none; cursor: pointer;';
-const DEFAULT_SUPERSCRIPT_STYLE = 'font-size: 0.7em; vertical-align: super; margin-left: 1px; text-decoration: none; cursor: pointer;';
-
 
 /**
  * Generates span tags for citations
@@ -518,10 +516,7 @@ export function generateCitationSpans(
 ): string {
     const spans = citations.map((citation, index) => {
         const { local, crossFile } = splitFileCitation(citation, fileDelimiter);
-
-
         const citationColorInPdf = spanStyles.citationColorInPdf || '#000000';
-        const superScriptColorInPdf = spanStyles.superScriptColorInPdf || '#000000';
 
         // Combine default styles with color
         const containerStyle = escapeString(
@@ -533,17 +528,11 @@ export function generateCitationSpans(
             DEFAULT_CITATION_STYLE + ` color: ${citationColorInPdf};`,
             "\""
         );
-
-        const superscriptStyle = escapeString(
-            DEFAULT_SUPERSCRIPT_STYLE + ` color: ${superScriptColorInPdf};`,
-            "\""
-        );
-
         let result = `<span style="${containerStyle}">` + citationFormat.replace('#', `<span style="${citationStyle}">${local}</span>`);
-        if (crossFile) {
-            result += `<sup style="${superscriptStyle}">${'[' + crossFile + ']'}</sup>`;
-        }
         result += '</span>';
+        if (crossFile) {
+            result += `${'[^' + crossFile + ']'}`;
+        } 
 
         return result;
     });

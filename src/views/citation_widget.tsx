@@ -21,7 +21,7 @@ export class CitationWidget extends WidgetType {
     private parent: HoverParent | null = null;
     constructor(
         private plugin: EquationCitator,
-        private sourcePath: string, 
+        private sourcePath: string,
         private eqNumbersAll: string[],
         public range: { from: number; to: number }
     ) {
@@ -38,7 +38,7 @@ export class CitationWidget extends WidgetType {
     toDOM(view: EditorView): HTMLElement {
         this.view = view;
 
-        const parent = this.getActiveLeaf() as HoverParent | null; 
+        const parent = this.getActiveLeaf() as HoverParent | null;
         const el = renderEquationCitation(
             this.plugin,
             this.sourcePath,
@@ -154,11 +154,24 @@ export function renderEquationCitation(
         combineContinuousCitationTags(
             citeEquationTags,
             continuousRangeSymbol,
-            continuousDelimiters.split(' ').filter(d => d.trim()),
+            continuousDelimiters.split(' ').filter(d => d.trim()), // remove empty string
             fileDelimiter,
         )
         : citeEquationTags;
-
+    
+    // handle empty citation case 
+    if (!formatedCiteEquationTags.length) {
+        // empty equation tags
+        const containerDiv = document.createElement('div');
+        containerDiv.addClass('em-math-citation-container');
+        const emptyCitationSpanEl = document.createElement('span');
+        emptyCitationSpanEl.className = 'em-math-citation';
+        emptyCitationSpanEl.textContent = citationFormat.replace('#', '');
+        containerDiv.appendChild(emptyCitationSpanEl);
+        el.appendChild(containerDiv);
+        return el;
+    }
+    
     const containers: HTMLElement[] = [];
     // render equation parts
     for (const tag of formatedCiteEquationTags) {

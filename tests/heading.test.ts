@@ -1,4 +1,4 @@
-import { Heading, relativeHeadingLevel } from "@/utils/heading";
+import { Heading, relativeHeadingLevel } from "@/utils/heading_utils";
 
 describe("relativeHeadingLevel", () => {
   const originalConsoleError = console.error;
