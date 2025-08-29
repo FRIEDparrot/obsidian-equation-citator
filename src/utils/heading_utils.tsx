@@ -1,4 +1,5 @@
 import Debugger from "@/debug/debugger";
+import {headingRegex, codeBlockStartRegex } from "@/utils/regexp_utils";
 
 export interface Heading {
     level: number;
@@ -29,4 +30,33 @@ export function relativeHeadingLevel(headings: Heading[], currentHeadingIndex: n
         heading_arrays.push(heading.level);
     }
     return heading_arrays.length;
+}
+
+
+export function parseHeadingsInMarkdown(content: string): Heading[] {
+    const lines = content.split('\n');
+    // Parse all headings 
+    const headings: Heading[] = [];
+    let inCodeBlock = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // Check code block and Skip the code block content 
+        if (codeBlockStartRegex.test(line)) {
+            inCodeBlock = !inCodeBlock;
+            continue;
+        }
+        if (inCodeBlock) {
+            continue;
+        }
+        const headingMatch = line.match(headingRegex);
+        if (headingMatch) {
+            headings.push({
+                level: headingMatch[1].length,
+                line: i,
+                text: headingMatch[2]
+            });
+        }
+    }
+    return headings;
 }

@@ -128,7 +128,9 @@ Version 1.2.4 - bug fixes and minor improvements.
 🐛 Fixed Bugs :
 - [x] Fix [bug #34](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/34) now amrkdonw export can work correctly for escaped dollar sign. 
 
-- [x] **(Critical)** Fix [Critical #35](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/35), when no tag to rename and delete unused tags is enabled, the plugin will delete unused tags normally.  
+- [x] **(Critical)** Fix [Critical #35](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/35), when no tag to rename and delete unused tags is enabled, the plugin will delete unused tags normally😅.  
+
+- [x] Fix [bug #31](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/31), now citations can rendered correctly both in outline preview and embedded link preview. 
 
 🚀 Enhancements : 
 - [x] add [enhancement #32](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/32), file superscripts will be rendered as footnotes in pdf export. Also change default citation color as same as file superscript color. 
@@ -137,3 +139,4 @@ Version 1.2.4 - bug fixes and minor improvements.
 
 - [x] set default equation widget width to 500px. 
 
+- [ ] better empty citation rendering 

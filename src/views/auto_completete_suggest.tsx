@@ -3,7 +3,7 @@ import { RenderedEquation } from "@/services/equation_services";
 import { findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvironment, removePairedBraces } from "@/utils/string_utils";
 import { renderEquationWrapper, TargetElComponent } from "@/views/citation_popover";
 import { EditorView } from "@codemirror/view";
-import { isSourceMode } from "./citation_render";
+import { isSourceMode } from "@/views/citation_render";
 import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/regexp_utils";
 import EquationCitator from "@/main";
 import assert from "assert";

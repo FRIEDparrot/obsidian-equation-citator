@@ -1,5 +1,4 @@
 
-
 // use this.plugin.app.metadataCache.resolvedLinks; as the links parameter 
 
 /** 

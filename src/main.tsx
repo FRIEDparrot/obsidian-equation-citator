@@ -24,6 +24,7 @@ import { EquationServices } from '@/services/equation_services';
 import { TagService } from '@/services/tag_service';
 import { AutoCompleteSuggest } from '@/views/auto_completete_suggest';
 import { registerRightClickMenu } from '@/ui/rightButtonMenu';
+import { LineHashCache } from '@/cache/lineHashCache';
 
 
 export default class EquationCitator extends Plugin {
@@ -36,6 +37,7 @@ export default class EquationCitator extends Plugin {
     public citationCache: CitationCache;   // citation cache instance 
     public equationCache: EquationCache;     // equation cache instance
     public footnoteCache: FootNoteCache;     // footnote cache instance
+    public lineHashCache: LineHashCache;     // line hash cache instance 
 
     private autoCompleteSuggest: AutoCompleteSuggest;
     private mathCitationCompartment = new Compartment();
@@ -45,13 +47,11 @@ export default class EquationCitator extends Plugin {
         ColorManager.updateAllColors(this.settings);
         this.addSettingTab(new SettingsTabView(this.app, this));
         // initialize caches
-        this.citationCache = new CitationCache(this);
-        this.equationCache = new EquationCache(this);
-        this.footnoteCache = new FootNoteCache(this);
-        // load caches and register services class 
         this.loadCaches();
-        this.registerServices();
 
+        // load caches and register services class
+        this.registerServices();
+        
         // Register Live Preview extension and Reading Mode extension 
         // Register auto-complete suggestion widget
         this.autoCompleteSuggest = new AutoCompleteSuggest(this);
@@ -67,9 +67,7 @@ export default class EquationCitator extends Plugin {
     }
 
     onunload() {
-        this.citationCache?.destroy();
-        this.equationCache?.destroy();
-        this.footnoteCache?.destroy();
+        this.destroyCaches();
         cleanUpStyles();
     }
 
@@ -82,6 +80,14 @@ export default class EquationCitator extends Plugin {
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
         this.footnoteCache = new FootNoteCache(this);
+        this.lineHashCache = new LineHashCache(this);
+    }
+
+    destroyCaches() {
+        this.citationCache?.destroy();
+        this.equationCache?.destroy();
+        this.footnoteCache?.destroy();
+        this.lineHashCache?.destroy();
     }
 
     registerServices() {

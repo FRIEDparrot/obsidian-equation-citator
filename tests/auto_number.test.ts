@@ -1,5 +1,5 @@
 import { autoNumberEquations, AutoNumberingType } from '@/utils/auto_number_utils';
-import { Heading } from '@/utils/heading';
+import { Heading } from '@/utils/heading_utils';
 
 // Mock dependencies
 jest.mock('@/debug/debugger', () => ({

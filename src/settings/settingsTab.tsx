@@ -8,7 +8,7 @@ import {
 } from "@/utils/string_utils";
 import { ColorManager } from "@/settings/colorManager";
 import Debugger from "@/debug/debugger";
-import { WidgetSizeManager, WidgetSizeVariable } from "./widgetSizeManager";
+import { WidgetSizeManager, WidgetSizeVariable } from "@/settings/widgetSizeManager";
 
 export interface EquationCitatorSettings {
     // citation settings 

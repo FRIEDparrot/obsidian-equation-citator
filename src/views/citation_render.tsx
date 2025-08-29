@@ -18,6 +18,8 @@ import EquationCitator from "@/main";
 import { CitationPopover } from "@/views/citation_popover";
 import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/regexp_utils";
 import { renderEquationCitation } from "@/views/citation_widget";
+import { find_array } from "@/utils/array_utils";
+import { fastHash } from "@/utils/hash_utils";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -217,13 +219,6 @@ export function createMathCitationExtension(plugin: EquationCitator) {
 
 /////////////////////////////// Reading Mode Post-Processor ///////////////////////// 
 
-export function renderFailedCitation(citeTag: string): HTMLElement {
-    const el = document.createElement('span');
-    el.textContent = "ref{" + citeTag + "}";
-    el.className = "em-math-citation-failed";
-    return el;
-}
-
 function isErrorRenderedSpan(span: Element): boolean {
     // mark span that render failed (???) as citation span  
     const anchorTags = span.querySelectorAll('a');  // find a from span 
@@ -261,10 +256,8 @@ export async function mathCitationPostProcessor(
     citationCache: CitationCache,
 ): Promise<void> {
     const { citationPrefix } = plugin.settings;
-
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) return;
-
     // find citation spans in the section 
     const citeSpans = getCitationSpan(el);
     if (!citeSpans) return;  // no citation span found, skip rendering 
@@ -272,14 +265,18 @@ export async function mathCitationPostProcessor(
     const allCitations: CitationRef[] | undefined = await citationCache.getCitationsForFile(ctx.sourcePath)
     if (!allCitations) return; // no citations found for this file
 
-    // all equation citations in the blcok 
-    const equations = allCitations.filter(eq => eq.line >= sectionInfo.lineStart && eq.line <= sectionInfo.lineEnd)
+    const lineHash = await plugin.lineHashCache.getLineHashForFile(ctx.sourcePath);
+    if (!lineHash) return; // no line hash found for this file
 
-    // substitute the block with equation citation 
-    if (citeSpans.length === equations.length) {
-        // render equation citation for each math span
+    // all equation citations in the blcok 
+    const isFullArticle = (sectionInfo.text.split('\n').length === lineHash.length);
+    const citations = allCitations.filter(
+        eq => eq.line >= sectionInfo.lineStart && eq.line <= sectionInfo.lineEnd
+    )
+
+    const renderCiteSpans = (citeSpans: Element[], citations: CitationRef[]) => {
         citeSpans.forEach((span, index) => {  // no need to match for 2rd time here 
-            const eq = equations[index];
+            const eq = citations[index];
             const eqLabel = eq.label.substring(citationPrefix.length);  // get the actual label without prefix 
             const eqNumbers: string[] = eqLabel.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
             const eqNumbersAll = plugin.settings.enableContinuousCitation ?
@@ -303,13 +300,35 @@ export async function mathCitationPostProcessor(
             );
             addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
             span.replaceWith(citationWidget);
-        })
+        });
+    }
+    // substitute the block with equation citation 
+    if (citations.length === citeSpans.length && isFullArticle) {
+        // render equation citation for each math span
+        renderCiteSpans(citeSpans, citations);
+        return;  // finish rendering for this block 
     }
     else {
-        new Notice("Equation Citator: Block render error, trun on debug mode and reopen file for details.")
-        Debugger.warning(`Citation span number is: ${citeSpans.length},
-But recognized citation count is : ${equations.length}, between line ${sectionInfo.lineStart} and ${sectionInfo.lineEnd}
-Which is not match. this can cause rendering issue. skip rendering`);
+        // not full article, search part of the block for citations 
+        const sectionLines = sectionInfo.text.split('\n').slice(sectionInfo.lineStart, sectionInfo.lineEnd + 1);
+        const sectionHashes = sectionLines.map(line => fastHash(line));
+        const lineIndex = find_array(sectionHashes, lineHash.map(l => l.hash));
+        Debugger.log("Block rendering - find hash index at line:", lineIndex);
+        if (lineIndex === -1) {
+            new Notice("Equation Citator: Can't locate the line hash for this section, skip rendering");
+            return;
+        }
+        const lineStart = lineIndex;
+        const lineEnd = lineStart + (sectionInfo.lineEnd - sectionInfo.lineStart);
+        const newCitations = allCitations.filter(eq => eq.line >= lineStart && eq.line <= lineEnd);
+        if (newCitations.length !== citeSpans.length) {
+            new Notice("Citation block not fully matched, skip rendering (open debug mode for more information)");
+            Debugger.warning(`Citation span number is: ${citeSpans.length},
+        But recognized citation count is : ${newCitations.length}, between line ${lineStart} and ${lineEnd}
+        Which is not match. this can cause rendering issue. skip rendering`);
+            return;
+        }
+        renderCiteSpans(citeSpans, newCitations);
     }
 }
 
@@ -382,7 +401,7 @@ async function showReadingModePopover(
 
     const equations = await plugin.equationServices.getEquationsByTags(eqNumbersAll, sourcePath);
     const cleanedEquations = equations.filter(eq => eq.md && eq.sourcePath);
-    
+
     if (cleanedEquations.length === 0) {
         Debugger.log(`No valid equation found for citation: ${eqNumbersAll.join(', ')}`);
         return;
@@ -408,7 +427,6 @@ export function isSourceMode(view: EditorView): boolean {
     // @ts-ignore
     return currentMode?.sourceMode ? true : false;
 }
-
 
 //////////////////////////  Make Markdown for PDF Export  ////////////////////////  
 
