@@ -127,7 +127,4 @@ Also, if u have any suggestion or question for this plugin, feel free to leave i
 > Very appreciate for your contributions! 
 
 
-Also if you think this plugin is helpful to you, consider **starring this repo** or supporting me by :  
-
-<center><a href="https://space.bilibili.com/1185195559" target="_blank"><img src="https://img.shields.io/badge/dynamic/json?color=ff69b4&label=Follow%20me%20on%20bilibili&query=data.follower&url=https%3A%2F%2Fapi.bilibili.com%2Fx%2Frelation%2Fstat%3Fvmid%3D1185195559&logo=bilibili&logoColor=white&labelColor=fe7398&style=for-the-badge"></img></a></center>
-
+- by [@FriedParrot](https://github.com/FRIEDparrot)
