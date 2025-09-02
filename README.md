@@ -125,6 +125,3 @@ Also, if u have any suggestion or question for this plugin, feel free to leave i
 > You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**). 
 >
 > Very appreciate for your contributions! 
-
-
-- by [@FriedParrot](https://github.com/FRIEDparrot)
