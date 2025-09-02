@@ -34,6 +34,15 @@ Anything else defaults to `dev-friedparrot`.
 10. Changelog / Versioning: Pre-release identifiers (`-preview.*`, `-beta.*`, `-rc.*`) stay on `dev-friedparrot`. A clean semver (e.g. `1.3.0`) may target `master` only when explicitly requested.
 11. Changelog Attribution: Whenever Copilot adds or modifies entries in `CHANGELOG.md`, append "(By Copilot🤖)" to each affected line item so authorship is explicit and auditable.
 
+## Whenever Copilot modifies CHANGELOG.md:
+
+1. Append the marker [copilot] at the end of every newly added line item.
+2. If Copilot edits an existing line item (changes wording, version, ordering, formatting), ensure that line ends with [copilot].
+3. Do NOT duplicate the marker; if a line already ends with [copilot], leave it unchanged.
+4. Preserve any existing human attributions or other annotations; just add (or ensure) the trailing [copilot] marker.
+5. Do not reorder untouched lines solely to add attribution.
+Only touch lines that are newly added or actually modified by Copilot.
+
 ## Example Triggers (Base should be dev-friedparrot)
 - "Prepare a preview release PR"
 - "Bump version to 1.4.0-preview.1"
