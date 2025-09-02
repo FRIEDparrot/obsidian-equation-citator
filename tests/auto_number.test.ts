@@ -6,7 +6,7 @@ jest.mock('@/debug/debugger', () => ({
     Debugger: {}
 }));
 
-jest.mock('@/utils/heading', () => ({
+jest.mock('@/utils/heading_utils', () => ({
     relativeHeadingLevel: (headings: Heading[], index: number) => {
         if (headings.length === 0 || index < 0 || index >= headings.length) {
             return 0;
@@ -21,6 +21,23 @@ jest.mock('@/utils/heading', () => ({
             heading_arrays.push(heading.level);
         }
         return heading_arrays.length;
+    },
+    parseHeadingsInMarkdown: (content: string) => {
+        const headings: Heading[] = [];
+        const lines = content.split('\n');
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const match = line.match(/^(#+)\s+(.+)/);
+            if (match) {
+                headings.push({
+                    level: match[1].length,
+                    line: i,
+                    text: match[2]
+                });
+            }
+        }
+        return headings;
     }
 }));
 

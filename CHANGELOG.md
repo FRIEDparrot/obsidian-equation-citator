@@ -1,5 +1,31 @@
 ## Update Changelog for Equation Citator Plugin 
 
+### Version 1.3.0-preview.1 (Preview Release)
+Version 1.3.0-preview.1 - Preview release for extensive testing and validation
+
+⚠️ **Preview Release Notice** 
+This is a preview release for v1.3.0 that requires extensive testing before the final release. Please report any issues or unexpected behavior.
+
+🔧 **Stability Improvements**:
+- Fixed test suite compatibility issues to ensure current functions operate smoothly
+- Updated cross-file citation tests to match current footnote format implementation `[^N]`
+- Improved Jest module mapping for better development workflow
+- All 398 tests now pass successfully
+
+🧪 **Testing & Quality Assurance**:
+- Complete test suite validation for equation citation functionality
+- Cross-file citation rendering verification
+- Equation auto-numbering system validation  
+- Build system stability checks
+
+📋 **What's Being Tested**:
+- Citation rendering accuracy across different contexts
+- Cross-file citation functionality with footnote format
+- Equation auto-numbering with various heading structures
+- Plugin stability and performance
+
+**Timeline**: Several weeks to a month of testing expected before final v1.3.0 release. Additional patch versions may be released if critical issues are discovered.
+
 ### Version 1.0.0 
 Version 1.0.0 - Initial release  
 
