@@ -32,6 +32,7 @@ Anything else defaults to `dev-friedparrot`.
 8. Testing Flow: Encourage verification on `dev-friedparrot` before promotion to `master`.
 9. Conflict Handling: If preparing a master release, advise merging/rebasing latest `master` into `dev-friedparrot` first to reduce conflicts when promoting.
 10. Changelog / Versioning: Pre-release identifiers (`-preview.*`, `-beta.*`, `-rc.*`) stay on `dev-friedparrot`. A clean semver (e.g. `1.3.0`) may target `master` only when explicitly requested.
+11. Changelog Attribution: Whenever Copilot adds or modifies entries in `CHANGELOG.md`, append "(By Copilot🤖)" to each affected line item so authorship is explicit and auditable.
 
 ## Example Triggers (Base should be dev-friedparrot)
 - "Prepare a preview release PR"
