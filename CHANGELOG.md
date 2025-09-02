@@ -141,3 +141,6 @@ Version 1.2.4 - bug fixes and minor improvements.
 
 - [x] better empty citation rendering (now empty citations will be rendered as `()` instead of ``)
 
+🛠️ Tooling :
+- [x] Add Copilot instruction file for default base branch policy [copilot]
+
