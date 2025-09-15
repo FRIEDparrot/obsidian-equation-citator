@@ -174,7 +174,7 @@ export class TagService {
             const existingCount = fileChangeMap.get(filePath) || 0;
             fileChangeMap.set(filePath, existingCount + changedCount);
         };
-
+        
         /********  update the citation in current file  ********/
         const currentFileTagMapping = new Map<string, string>();
         pairs.forEach(pair => {
@@ -306,11 +306,11 @@ export class TagService {
             const splittedCitations = splitContinuousCitationTags(
                 citations, rangeSymbol, citeDelimiters, fileDelimiter
             ) as string[];
+            
             // process each discrete citation 
             const processedCitations = splittedCitations.map(ct => {
                 const processedTag = this.processTag(ct, nameMapping, oldTagsAll, newTags, deleteUnusedCitations, deleteRepeatCitations)
-                if (ct !== processedTag) updatedNum++;  // update the number of updated citations  
-
+                if (ct !== processedTag) updatedNum++;  // update the number of updated citations 
                 return processedTag;
             }).filter(s => s !== "");
 
@@ -377,7 +377,7 @@ export class TagService {
         const newTagName = nameMapping.get(tag) || tag;
         // if old tag has no this tag, this is a unused tag, delete it if deleteUnusedCitations is true  
         if (deleteUnusedCitations && !oldTagsAll.has(tag)) {
-            Debugger.log(`Delete unused tag: ${tag}`);
+            Debugger.log(`Delete unused tag: ${tag},  while old tags are:`, oldTagsAll);
             return "";
         }
         // The current tag will not be renamed, but it is conflict with a new tag 
