@@ -429,20 +429,25 @@ function processInlineReferences(
     const dollarPositions: Array<{ pos: number, type: 'single' | 'double' }> = [];
     i = 0;
     while (i < line.length) {
-        // check for unescaped dollar sign 
-        if (line[i] === '$' && (i === 0 || line[i - 1] !== '\\')) {
-            if (i + 1 < line.length && line[i + 1] === '$') {
-                // Double dollar - display math
-                dollarPositions.push({ pos: i, type: 'double' });
-                i += 2;
-            } else {
-                // Single dollar - inline math
-                dollarPositions.push({ pos: i, type: 'single' }); // dollar Position  
-                i += 1;
+        // Enhanced escaped dollar detection: count consecutive backslashes directly before '$'
+        if (line[i] === '$') {
+            let bsCount = 0;
+            let k = i - 1;
+            while (k >= 0 && line[k] === '\\') { bsCount++; k--; }
+            const isEscaped = (bsCount % 2 === 1); // odd number => escaped
+            if (!isEscaped) {
+                if (i + 1 < line.length && line[i + 1] === '$') {
+                    dollarPositions.push({ pos: i, type: 'double' });
+                    i += 2;
+                    continue;
+                } else {
+                    dollarPositions.push({ pos: i, type: 'single' });
+                    i += 1;
+                    continue;
+                }
             }
-        } else {
-            i += 1;
         }
+        i += 1;
     }
 
     // Finds all valid inline math patterns by dollar positions  

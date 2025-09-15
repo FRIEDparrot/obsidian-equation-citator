@@ -2,7 +2,7 @@
  * Static Debugger class for debugging purposes.  
  */
 export default class Debugger {
-    private static _debugMode = true; // when developing, set here to true for convenience 
+    private static _debugMode = false; // when developing, set here to true for convenience 
     public static get debugMode(): boolean {
         return Debugger._debugMode;
     }

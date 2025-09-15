@@ -144,6 +144,7 @@ export function renderEquationCitation(
         continuousRangeSymbol,
         continuousDelimiters,
         citationFormat,
+        multiCitationDelimiter
     } = plugin.settings;
     const el = document.createElement('span');
     const fileDelimiter = enableCrossFileCitation ?
@@ -173,8 +174,9 @@ export function renderEquationCitation(
     }
     
     const containers: HTMLElement[] = [];
-    // render equation parts
-    for (const tag of formatedCiteEquationTags) {
+    // render equation parts (index-based to correctly handle duplicates when deciding last element)
+    for (let idx = 0; idx < formatedCiteEquationTags.length; idx++) {
+        const tag = formatedCiteEquationTags[idx];
         // replace # in render format with the tag number
         const containerDiv = document.createElement('div');
         containerDiv.addClass('em-math-citation-container');
@@ -217,6 +219,17 @@ export function renderEquationCitation(
             containerDiv.appendChild(citationSpanEl);
         }
         containers.push(containerDiv);
+        
+        // add  multi-citation delimiter if needed 
+        if (multiCitationDelimiter && multiCitationDelimiter.trim() !== '' &&
+            formatedCiteEquationTags.length > 1 &&
+            idx < formatedCiteEquationTags.length - 1 // not last element
+        ) {
+            const multiDelimEl = document.createElement('span');
+            multiDelimEl.className = 'em-math-citation-multi-delimiter';
+            multiDelimEl.textContent = multiCitationDelimiter + ' ';
+            containers.push(multiDelimEl);
+        }
     }
 
     for (const container of containers) {
