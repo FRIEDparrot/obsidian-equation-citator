@@ -115,7 +115,7 @@ Since it's a new plugin, some bugs or issues may still exist. If you encounter a
 3.  Enable debug mode in the settings tab, and provide the console log (Ctrl + Shift + I in Obsidian). 
 
 > [!TIP] 
-> Since this plugin have cache mechanism, some problem's (like a little delay for citation update) may happens. So you may wait several seconds, or re-open file or restart obsidian to ensure your issue is not just a normal cache-related behavior.
+> Since this plugin have cache mechanism for better performance, some problems like delay or no in-time update (like a little delay for citation update) may happens. So you may wait several seconds, or re-open file or restart obsidian to ensure your issue is not just a normal cache-related behavior.
 
 If u have knowledge about plugin development, you can also find which function is causing the bug or issue, provide testing cases or make pull requests to fix the bug or issue. 
 
