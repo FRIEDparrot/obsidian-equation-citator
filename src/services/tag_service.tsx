@@ -2,7 +2,7 @@ import EquationCitator from "@/main";
 import { FootNote } from "@/utils/footnote_utils";
 import { resolveBackLinks } from "@/utils/link_utils";
 import { TFile, Editor } from "obsidian";
-import { CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags } from "@/utils/citation_utils";
+import { buildCrossFileCitation, CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags } from "@/utils/citation_utils";
 import { createCitationString } from "@/utils/regexp_utils";
 import Debugger from "@/debug/debugger";
 
@@ -71,11 +71,13 @@ export class TagService {
             const crossFileNewTags = new Set<string>();
             effectivePairs.forEach(pair => {
                 for (const num of currentFootNoteNums) {
-                    const newCrossFileTag = `${num}${fileCiteDelimiter}${pair.newTag}`;
+                    // attention -> add brace to construct new cross file tag 
+                    // **standard : old citations and new citations should all have brace**
+                    const newCrossFileTag = buildCrossFileCitation(num, pair.newTag, fileCiteDelimiter);
                     crossFileNewTags.add(newCrossFileTag);
                 }
             });
-            // check for repeated cross file citations in backlink file  
+            // check for repeated cross file citations in backlink file
             const hasRepeatedInBackLink = await this.checkRepeatedTagsInFile(backLinkPath, crossFileNewTags);
             if (hasRepeatedInBackLink) {
                 return true;
@@ -98,26 +100,24 @@ export class TagService {
         if (!(file instanceof TFile)) {
             return false;
         }
+        const { citationPrefix: prefix = "eq:", 
+                multiCitationDelimiter: multiEqDelimiter = ",", 
+                continuousRangeSymbol: rangeSymbol = "~", 
+                continuousDelimiters: citeDelimiters = "- . : \\_",
+                fileCiteDelimiter: fileDelimiter = "^" } = this.plugin.settings; 
+    
         const fileContent = await this.plugin.app.vault.cachedRead(file);
-        const prefix = this.plugin.settings.citationPrefix || "eq:";
-
+        if (targetTags.size === 0 || !fileContent.trim() || !prefix.trim()) {
+            return false;
+        }
+        
         // Parse all citations in the file
         const citationsAll: CitationRef[] = parseCitationsInMarkdown(fileContent)
             .filter(c => c.label.startsWith(prefix));
-
-        if (citationsAll.length === 0) {
-            return false;
-        }
-
-        // Get separator configurations
-        const multiEqDelimiter = this.plugin.settings.multiCitationDelimiter || ",";
-        const rangeSymbol = this.plugin.settings.continuousRangeSymbol || "~";
-        const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", "\\_"];
-        const fileDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
+        if (citationsAll.length === 0) return false;
 
         // Collect all existing tags from the file
         const existingTags = new Set<string>();
-
         for (const citation of citationsAll) {
             // Get all tags in the citation group
             const citations = citation.label.substring(prefix.length)
@@ -126,9 +126,8 @@ export class TagService {
 
             // Split continuous citation tags into discrete tags
             const splittedCitations = splitContinuousCitationTags(
-                citations, rangeSymbol, citeDelimiters, fileDelimiter
+                citations, rangeSymbol, citeDelimiters.split(" "), fileDelimiter
             ) as string[];
-
             // Add to existing tags set
             splittedCitations.forEach(tag => existingTags.add(tag));
         }
@@ -146,7 +145,7 @@ export class TagService {
     /**
      * rename tag in current file and its backlinks 
      * @param sourceFile 
-     * @param pairs 
+     * @param tagPairs 
      * @param deleteRepeatCitations 
      * @param deleteUnusedCitations 
      * @param editor optional current editor instance, prevent lose focus of cursor 
@@ -154,7 +153,7 @@ export class TagService {
      */
     public async renameTags(
         sourceFile: string,
-        pairs: TagRenamePair[],
+        tagPairs: TagRenamePair[],
         deleteRepeatCitations = false,
         deleteUnusedCitations = false,
         editor?: Editor
@@ -164,9 +163,9 @@ export class TagService {
             return;
         }
         // no need to update if old tag is the same as new tag 
-        if (pairs.filter(pair => pair.oldTag !== pair.newTag).length === 0 &&
+        if (tagPairs.filter(pair => pair.oldTag !== pair.newTag).length === 0 &&
             !deleteUnusedCitations) return;  // no effective pairs, do nothing  
-
+        
         /** record the renaming result */
         const fileChangeMap: FileCitationChangeMap = new Map<string, number>();
         // add a path-number pair to the change map 
@@ -177,7 +176,7 @@ export class TagService {
         
         /********  update the citation in current file  ********/
         const currentFileTagMapping = new Map<string, string>();
-        pairs.forEach(pair => {
+        tagPairs.forEach(pair => {
             currentFileTagMapping.set(pair.oldTag, pair.newTag);
         });
         // use read here to get strong consistency (since in many auto-number may change file lines)
@@ -207,7 +206,6 @@ export class TagService {
         }
         addToChangeMap(sourceFile, currentFileUpdatedNum);  // add the current file to the change map
 
-        /***  update the citation in backlink files ******/
         /****  update the citation in backlink files ******/
         const linksAll = this.plugin.app.metadataCache.resolvedLinks;
         const backLinks = resolveBackLinks(linksAll, sourceFile);
@@ -235,13 +233,15 @@ export class TagService {
                 addToChangeMap(link, 0);  // no footnote of current file in this file
                 continue; // no footnote of current file in this file
             }
-
+            
             // construct cross file tag mapping 
             const crossFileTagMapping = new Map<string, string>();
-            pairs.forEach(pair => {
+
+            // standard : old citations and new citations should all have brace  
+            tagPairs.forEach(pair => {
                 for (const num of currentFootNoteNums) {
-                    const oldTag = `${num}${fileCiteDelimiter}${pair.oldTag}`
-                    const newTag = `${num}${fileCiteDelimiter}${pair.newTag}`
+                    const oldTag = buildCrossFileCitation(num, pair.oldTag, fileCiteDelimiter);
+                    const newTag = buildCrossFileCitation(num, pair.newTag, fileCiteDelimiter);
                     crossFileTagMapping.set(oldTag, newTag);
                 }
             });

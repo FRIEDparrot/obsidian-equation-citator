@@ -12,6 +12,19 @@ export interface CitationRef {
 }
 
 /**
+ * Construct the standard crossfile citation : <file><delimiter>{<local>}
+ */
+export function buildCrossFileCitation(
+    filePart: string,
+    localPart: string,
+    fileDelimiter: string
+): string {
+    const f = (filePart || '').trim();
+    const l = removeBraces((localPart || '').trim());
+    return `${f}${fileDelimiter}{${l}}`;
+}
+
+/**
  * Combines continuous equation tags with common prefixes and file citations.
  * Example: ["P1", "2^1.1.1", "2^1.1.2", "2^1.1.3"] → ["P1", "2^{1.1.1~3}"]
  */
@@ -40,7 +53,7 @@ export function combineContinuousCitationTags(
     // Process each group separately
     for (const [filePrefix, tagInfos] of Object.entries(groups)) {
         const formatTag = (local: string) =>
-            filePrefix ? `${filePrefix}${fileDelimiter}{${local}}`.trim() : local.trim();
+            filePrefix ? buildCrossFileCitation(filePrefix, local, fileDelimiter) : local.trim();
         // Create a map of numeric tags grouped by prefix
         const numericGroups: Record<string, { local: string; num: number, order: number }[]> = {};
 
@@ -158,7 +171,7 @@ export function splitContinuousCitationTags(
         for (let num = startNum; num <= endNum; num++) {
             const individualLocal = prefix + num;
             const individualTag = crossFile ?
-                `${crossFile}${fileDelimiter}{${individualLocal}}` :
+                buildCrossFileCitation(crossFile, individualLocal, fileDelimiter) :
                 individualLocal;
             result.push(individualTag);
         }
