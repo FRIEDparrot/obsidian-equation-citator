@@ -152,5 +152,5 @@ Version 1.2.5 - bug fixes and improvements.
 - [x] Fix auto-number function: In 1.2.4 Auto-number still may incorrectly pushes the second and third tag renaming case, Now it will always correctly update only the first occurrence of tag.
 - [x] (**Critical**) Fix citation update issue [bug #53](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/53), now citations in the current file will be updated correctly after auto-numbering.    
 - [x] (**Critical**) Fix problem in citations updating[bug #54](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/54), delete unused citations now only affect citations of the same file. 
-- [ ] Press `enter` key will accept renaming tag 
-- [ ] Prefix settings check  
+- [x] Press `enter` key in renaming tag widget will now accept renaming tag. 
+- [x] Better prefix settings check (not allow brace and dollar or leave it blank), also dollar is now prohibited in delimiter since its unsafe. 

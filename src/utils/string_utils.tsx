@@ -26,7 +26,7 @@ export function escapeString(str: string, quoteType: '"' | "'" = '"'): string {
 export function validateDelimiter(delimiter: string): boolean {
     // only allow special characters as delimiters 
     if (!(/^[^a-zA-Z0-9\s]+$/.test(delimiter))) return false;
-    if (/[{}]/.test(delimiter)) return false;
+    if (/[{}$]/.test(delimiter)) return false;
     return true;
 }
 

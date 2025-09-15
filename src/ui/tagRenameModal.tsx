@@ -24,6 +24,14 @@ export class TagRenameModal extends Modal {
         this.titleEl.setText("Rename Tag");
         this.contentEl.addClass("ec-tag-rename-modal");
         this.newTag = this.oldTag;
+        // helper to perform rename (shared by button & Enter key)
+        const triggerRename = async () => {
+            const pair: TagRenamePair = { oldTag: this.oldTag, newTag: this.newTag };
+            const filePath = this.app.workspace.getActiveFile()?.path;
+            if (!filePath) return;
+            await this.renameTag(filePath, pair);
+            this.close();
+        };
         new Setting(this.contentEl)
             .setName(this.heading)
             .addText((text) => {
@@ -34,23 +42,26 @@ export class TagRenameModal extends Modal {
                 text.onChange((value) => {
                     this.newTag = value;
                 })
+                // Press Enter inside input to trigger rename
+                text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        triggerRename();
+                    }
+                });
             });
 
         new Setting(this.contentEl)
             .addButton((button) => {
-                button.setButtonText("Rename Tag");
+                button.setButtonText("Confirm");
                 button.setCta();
-                button.onClick(async () => {
-                    const pair: TagRenamePair = {
-                        oldTag: this.oldTag,
-                        newTag: this.newTag,
+                button.onClick(triggerRename);
+                // Allow Enter when button focused (some Obsidian themes may swallow it)
+                (button.buttonEl as HTMLButtonElement).addEventListener('keydown', (e: KeyboardEvent) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        triggerRename();
                     }
-                    const filePath = this.app.workspace.getActiveFile()?.path;
-                    if (!filePath) {
-                        return
-                    }
-                    await this.renameTag(filePath, pair);
-                    this.close();
                 });
             })
             .addButton((button) => {

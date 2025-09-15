@@ -9,6 +9,7 @@ import {
 import { ColorManager } from "@/settings/colorManager";
 import Debugger from "@/debug/debugger";
 import { WidgetSizeManager, WidgetSizeVariable } from "@/settings/widgetSizeManager";
+import { containSafeCharAndNotBlank } from "./settingsCommCheck";
 
 export interface EquationCitatorSettings {
     // citation settings 
@@ -156,7 +157,13 @@ export class SettingsTabView extends PluginSettingTab {
                 text.setValue(this.plugin.settings.citationPrefix)
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
-                    if (newValue !== this.plugin.settings.citationPrefix) {
+                    const valid = containSafeCharAndNotBlank(newValue);
+                    if (!valid) {
+                        new Notice("Invalid prefix, {}, $ or blank prefix are not allowed");
+                        text.setValue(this.plugin.settings.citationPrefix);
+                        return;
+                    }
+                    if (newValue !== this.plugin.settings.citationPrefix && valid) {
                         this.plugin.settings.citationPrefix = newValue;
                         Debugger.log("Citation prefix changed to:", newValue);
                         await this.plugin.saveSettings();
