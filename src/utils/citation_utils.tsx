@@ -427,27 +427,33 @@ function processInlineReferences(
     };
     // Find all potential inline math expressions first
     const dollarPositions: Array<{ pos: number, type: 'single' | 'double' }> = [];
+    // Single-pass scan: track consecutive backslashes so we don't backward-scan per '$'
     i = 0;
+    let backslashRun = 0; // count of consecutive backslashes immediately before current index
     while (i < line.length) {
-        // Enhanced escaped dollar detection: count consecutive backslashes directly before '$'
-        if (line[i] === '$') {
-            let bsCount = 0;
-            let k = i - 1;
-            while (k >= 0 && line[k] === '\\') { bsCount++; k--; }
-            const isEscaped = (bsCount % 2 === 1); // odd number => escaped
+        const ch = line[i];
+        if (ch === '\\') {
+            backslashRun++;
+            i++;
+            continue;
+        }
+        if (ch === '$') {
+            const isEscaped = (backslashRun % 2 === 1);
             if (!isEscaped) {
                 if (i + 1 < line.length && line[i + 1] === '$') {
                     dollarPositions.push({ pos: i, type: 'double' });
-                    i += 2;
-                    continue;
+                    i += 2; // skip the second '$'
                 } else {
                     dollarPositions.push({ pos: i, type: 'single' });
                     i += 1;
-                    continue;
                 }
+                backslashRun = 0;
+                continue;
             }
         }
-        i += 1;
+        // Any non-backslash, non-handled character resets the run
+        backslashRun = 0;
+        i++;
     }
 
     // Finds all valid inline math patterns by dollar positions  
@@ -482,7 +488,7 @@ function processInlineReferences(
         // Check for exactly one \ref{} in this math expression
         
         if (match) {
-            const citations = match.label.split(',').map(c => c.trim()).filter(c => c.length > 0);
+            const citations = match.label.split(multiCitationDelimiter).map(c => c.trim()).filter(c => c.length > 0);
             matches.push({
                 mathStart: mathRange.start,
                 mathEnd: mathRange.end + 1, // +1 to include closing $

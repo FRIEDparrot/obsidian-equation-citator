@@ -25,6 +25,7 @@ export interface EquationCitatorSettings {
     citationColor: string; // Citation display color for equations 
     citationHoverColor: string; // Citation display hover color for equations 
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
+    multiCitationDelimiterRender: string; // Rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: boolean; // Render continuous citations in compat format 
     renderLocalFileName: boolean; // Render local file name for citations
 
@@ -74,6 +75,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationColor: "#a288f9",
     citationHoverColor: "#c5b6fc",
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
+    multiCitationDelimiterRender: ", ", // Default rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: true, // Default to true for convenience 
     continuousDelimiters: ". - : \\_", // Default delimiter for continuous citations in a single cite
     continuousRangeSymbol: "~", // Default range symbol for continuous citations in a single cite 
@@ -235,6 +237,24 @@ export class SettingsTabView extends PluginSettingTab {
                         }
                     }
                 }
+            });
+        
+        // Render delimiter (display only, no validation required)
+        new Setting(containerEl)
+            .setName("Multi-Citation Render Delimiter")
+            .setDesc("Delimiter shown between citations when rendered (purely visual, e.g. ', ').")
+            .addText((text) => {
+                text.inputEl.classList.add("ec-delimiter-input");
+                text.setPlaceholder(", ");
+                text.setValue(this.plugin.settings.multiCitationDelimiterRender);
+                text.inputEl.onblur = async () => {
+                    const newValue = text.getValue();
+                    if (newValue !== this.plugin.settings.multiCitationDelimiterRender) {
+                        this.plugin.settings.multiCitationDelimiterRender = newValue;
+                        Debugger.log("Multi-citation render delimiter changed to:", newValue);
+                        await this.plugin.saveSettings();
+                    }
+                };
             });
 
         // ==================  File citation settings ==========  

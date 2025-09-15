@@ -160,4 +160,4 @@ Version 1.2.5 - bug fixes and a bit improvements.
 
 
 🚀 Enhancements: 
-- [x] add enhancement [#52](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/52), now will use mutli-citaion-delimiter + space for better render. 
+- [x] add enhancement [#52](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/52), now will use mutli-citaion-delimiter + space by default (set in settings tab) for better render. 
