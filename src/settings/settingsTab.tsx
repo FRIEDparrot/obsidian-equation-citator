@@ -9,7 +9,7 @@ import {
 import { ColorManager } from "@/settings/colorManager";
 import Debugger from "@/debug/debugger";
 import { WidgetSizeManager, WidgetSizeVariable } from "@/settings/widgetSizeManager";
-import { containSafeCharAndNotBlank } from "./settingsCommCheck";
+import { containSafeCharAndNotBlank } from "@/settings/settingsCommChecks";
 
 export interface EquationCitatorSettings {
     // citation settings 
@@ -543,14 +543,15 @@ export class SettingsTabView extends PluginSettingTab {
         containerEl.createEl("p", {
             text: "⚠️WARNING: original pdf export would failed to render citations, please \
 use plugin command `Make markdown copy to export PDF`, \
-this will make a correctly-rendered markdown from current note to export pdf.",
+this will make a correctly-rendered markdown from current note to export pdf.\
+(superscripts will also be converted to normal superscript grammar)",
             cls: "ec-settings-warning"
         });
 
         // these two colors directly transfer to function `makePrintMarkdown` (so not in style variables)
         const pdfExportColorSetting = new Setting(containerEl)
         pdfExportColorSetting.setName("Citation color for PDF")
-            .setDesc("Citation colors in PDF export. 1: equation citations 2: superscripts")
+            .setDesc("Citation color for PDF export")
             .addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationColorInPdf)
                 color.onChange(async (value) => {

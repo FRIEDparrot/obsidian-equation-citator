@@ -119,6 +119,18 @@
 
 .em-equation-number {
     text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.em-equation-markdown-filename{
+    font-size: 9px;
+    color: var(--em-text-faint);
+    margin-left: 5px;
+    max-width: 300px;          // limit visible width
+    display: inline-block;     // needed for ellipsis inside flex/inline contexts
+    overflow: hidden;          // hide overflow
+    text-overflow: ellipsis;   // show ellipsis
+    white-space: nowrap;       // prevent wrapping
 }
 
 /* Equation content */

@@ -154,4 +154,6 @@ Version 1.2.5 - bug fixes and improvements.
 - [x] (**Critical**) Fix problem in citations updating[bug #54](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/54), delete unused citations now only affect citations of the same file. 
 - [x] Press `enter` key in renaming tag widget will now accept renaming tag. 
 - [x] Better prefix settings check (not allow brace and dollar or leave it blank), also dollar is now prohibited in delimiter since its unsafe. 
+- [x] Fix style problem [#51](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/51), add margin and now limit the maximum alias rending width to 380 px. 
+- [x] Fix description for PDF citation color [#49](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/49) 
 
