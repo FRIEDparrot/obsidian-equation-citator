@@ -2,7 +2,7 @@ import EquationCitator from "@/main";
 import { FootNote } from "@/utils/footnote_utils";
 import { resolveBackLinks } from "@/utils/link_utils";
 import { TFile, Editor } from "obsidian";
-import { CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags } from "@/utils/citation_utils";
+import { buildCrossFileCitation, CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags, splitFileCitation } from "@/utils/citation_utils";
 import { createCitationString } from "@/utils/regexp_utils";
 import Debugger from "@/debug/debugger";
 
@@ -71,11 +71,13 @@ export class TagService {
             const crossFileNewTags = new Set<string>();
             effectivePairs.forEach(pair => {
                 for (const num of currentFootNoteNums) {
-                    const newCrossFileTag = `${num}${fileCiteDelimiter}${pair.newTag}`;
+                    // attention -> add brace to construct new cross file tag 
+                    // **standard : old citations and new citations should all have brace**
+                    const newCrossFileTag = buildCrossFileCitation(num, pair.newTag, fileCiteDelimiter);
                     crossFileNewTags.add(newCrossFileTag);
                 }
             });
-            // check for repeated cross file citations in backlink file  
+            // check for repeated cross file citations in backlink file
             const hasRepeatedInBackLink = await this.checkRepeatedTagsInFile(backLinkPath, crossFileNewTags);
             if (hasRepeatedInBackLink) {
                 return true;
@@ -98,26 +100,24 @@ export class TagService {
         if (!(file instanceof TFile)) {
             return false;
         }
+        const { citationPrefix: prefix = "eq:", 
+                multiCitationDelimiter: multiEqDelimiter = ",", 
+                continuousRangeSymbol: rangeSymbol = "~", 
+                continuousDelimiters: citeDelimiters = "- . : \\_",
+                fileCiteDelimiter: fileDelimiter = "^" } = this.plugin.settings; 
+    
         const fileContent = await this.plugin.app.vault.cachedRead(file);
-        const prefix = this.plugin.settings.citationPrefix || "eq:";
-
+        if (targetTags.size === 0 || !fileContent.trim() || !prefix.trim()) {
+            return false;
+        }
+        
         // Parse all citations in the file
         const citationsAll: CitationRef[] = parseCitationsInMarkdown(fileContent)
             .filter(c => c.label.startsWith(prefix));
-
-        if (citationsAll.length === 0) {
-            return false;
-        }
-
-        // Get separator configurations
-        const multiEqDelimiter = this.plugin.settings.multiCitationDelimiter || ",";
-        const rangeSymbol = this.plugin.settings.continuousRangeSymbol || "~";
-        const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", "\\_"];
-        const fileDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
+        if (citationsAll.length === 0) return false;
 
         // Collect all existing tags from the file
         const existingTags = new Set<string>();
-
         for (const citation of citationsAll) {
             // Get all tags in the citation group
             const citations = citation.label.substring(prefix.length)
@@ -126,9 +126,8 @@ export class TagService {
 
             // Split continuous citation tags into discrete tags
             const splittedCitations = splitContinuousCitationTags(
-                citations, rangeSymbol, citeDelimiters, fileDelimiter
+                citations, rangeSymbol, citeDelimiters.split(" "), fileDelimiter
             ) as string[];
-
             // Add to existing tags set
             splittedCitations.forEach(tag => existingTags.add(tag));
         }
@@ -146,7 +145,7 @@ export class TagService {
     /**
      * rename tag in current file and its backlinks 
      * @param sourceFile 
-     * @param pairs 
+     * @param tagPairs 
      * @param deleteRepeatCitations 
      * @param deleteUnusedCitations 
      * @param editor optional current editor instance, prevent lose focus of cursor 
@@ -154,7 +153,7 @@ export class TagService {
      */
     public async renameTags(
         sourceFile: string,
-        pairs: TagRenamePair[],
+        tagPairs: TagRenamePair[],
         deleteRepeatCitations = false,
         deleteUnusedCitations = false,
         editor?: Editor
@@ -164,9 +163,9 @@ export class TagService {
             return;
         }
         // no need to update if old tag is the same as new tag 
-        if (pairs.filter(pair => pair.oldTag !== pair.newTag).length === 0 &&
+        if (tagPairs.filter(pair => pair.oldTag !== pair.newTag).length === 0 &&
             !deleteUnusedCitations) return;  // no effective pairs, do nothing  
-
+        
         /** record the renaming result */
         const fileChangeMap: FileCitationChangeMap = new Map<string, number>();
         // add a path-number pair to the change map 
@@ -174,10 +173,10 @@ export class TagService {
             const existingCount = fileChangeMap.get(filePath) || 0;
             fileChangeMap.set(filePath, existingCount + changedCount);
         };
-
+        
         /********  update the citation in current file  ********/
         const currentFileTagMapping = new Map<string, string>();
-        pairs.forEach(pair => {
+        tagPairs.forEach(pair => {
             currentFileTagMapping.set(pair.oldTag, pair.newTag);
         });
         // use read here to get strong consistency (since in many auto-number may change file lines)
@@ -207,7 +206,6 @@ export class TagService {
         }
         addToChangeMap(sourceFile, currentFileUpdatedNum);  // add the current file to the change map
 
-        /***  update the citation in backlink files ******/
         /****  update the citation in backlink files ******/
         const linksAll = this.plugin.app.metadataCache.resolvedLinks;
         const backLinks = resolveBackLinks(linksAll, sourceFile);
@@ -235,13 +233,15 @@ export class TagService {
                 addToChangeMap(link, 0);  // no footnote of current file in this file
                 continue; // no footnote of current file in this file
             }
-
+            
             // construct cross file tag mapping 
             const crossFileTagMapping = new Map<string, string>();
-            pairs.forEach(pair => {
+
+            // standard : old citations and new citations should all have brace  
+            tagPairs.forEach(pair => {
                 for (const num of currentFootNoteNums) {
-                    const oldTag = `${num}${fileCiteDelimiter}${pair.oldTag}`
-                    const newTag = `${num}${fileCiteDelimiter}${pair.newTag}`
+                    const oldTag = buildCrossFileCitation(num, pair.oldTag, fileCiteDelimiter);
+                    const newTag = buildCrossFileCitation(num, pair.newTag, fileCiteDelimiter);
                     crossFileTagMapping.set(oldTag, newTag);
                 }
             });
@@ -277,59 +277,66 @@ export class TagService {
         updatedLineMap: Map<number, string>,
         updatedNum: number
     }> {
-        // const newTags = new Set(nameMappingFull.values());
         const nameMapping = new Map(
             [...nameMappingFull.entries()].filter(([oldTag, newTag]) => oldTag !== newTag)
-        );
-        const oldTagsAll = new Set(nameMappingFull.keys());
-        const newTags = new Set(nameMapping.values());
-        const lineMap = new Map<number, string>();
-        const prefix = this.plugin.settings.citationPrefix || "eq:";  // default citation prefix 
-        const citationsAll: CitationRef[] = parseCitationsInMarkdown(lines.join('\n')).filter(c => c.label.startsWith(prefix));
+        ); // remove pairs whose old/new are identical
 
-        if (citationsAll.length === 0) return { updatedLineMap: new Map(), updatedNum: 0 };  // not do anyhing if no citations found
-        // get the delimiter configurations 
+        const lineMap = new Map<number, string>();
+        const prefix = this.plugin.settings.citationPrefix || "eq:";
+        const citationsAll: CitationRef[] = parseCitationsInMarkdown(lines.join('\n')).filter(c => c.label.startsWith(prefix));
+        if (citationsAll.length === 0) return { updatedLineMap: new Map(), updatedNum: 0 };
+
+        // delimiter configuration
         const multiEqDelimiter = this.plugin.settings.multiCitationDelimiter || ",";
         const rangeSymbol = this.plugin.settings.continuousRangeSymbol || "~";
         const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", "\\_"];
         const fileDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
 
-        // get old tags and new tags 
+        // Collect ALL existing discrete citations in file (for unused check grouping)
+        const allExistingDiscrete: string[] = [];
+        for (const c of citationsAll) {
+            const citations = c.label.substring(prefix.length).split(multiEqDelimiter).map(t => t.trim());
+            const splitted = splitContinuousCitationTags(citations, rangeSymbol, citeDelimiters, fileDelimiter) as string[];
+            allExistingDiscrete.push(...splitted);
+        }
+        const oldTagsByCrossFile = this.groupCitationsByCrossFile(allExistingDiscrete, fileDelimiter);
+        const newTagsByCrossFile = this.groupCitationsByCrossFile(nameMapping.values(), fileDelimiter);
+
         let updatedNum = 0;
         for (const c of citationsAll.reverse() as CitationRef[]) {
-            // citations in 1 group 
             const citations = c.label.substring(prefix.length).split(multiEqDelimiter).map(t => t.trim());
-            // replace the corresponding line with the new citation text 
             const before = lines[c.line].substring(0, c.position.start);
             const after = lines[c.line].substring(c.position.end);
-            // split all citations into discrete citations  
             const splittedCitations = splitContinuousCitationTags(
                 citations, rangeSymbol, citeDelimiters, fileDelimiter
             ) as string[];
-            // process each discrete citation 
-            const processedCitations = splittedCitations.map(ct => {
-                const processedTag = this.processTag(ct, nameMapping, oldTagsAll, newTags, deleteUnusedCitations, deleteRepeatCitations)
-                if (ct !== processedTag) updatedNum++;  // update the number of updated citations  
 
-                return processedTag;
+            const processedCitations = splittedCitations.map(ct => {
+                const pc = this.processCitation(
+                    ct,
+                    nameMapping,
+                    oldTagsByCrossFile,
+                    newTagsByCrossFile,
+                    deleteUnusedCitations,
+                    deleteRepeatCitations,
+                    fileDelimiter
+                );
+                if (ct !== pc) updatedNum++;
+                return pc;
             }).filter(s => s !== "");
 
             // no citations found, delete the citation
             if (processedCitations.length === 0) {
-                lineMap.set(c.line, before + after);  // delete the citation if no valid citations found 
+                lineMap.set(c.line, before + after);
                 continue;
             }
-            // combine the citations to continuous form.  
             const newCitations = combineContinuousCitationTags(
                 processedCitations, rangeSymbol, citeDelimiters, fileDelimiter
             );
             const newCitationRaw = createCitationString(prefix, newCitations.join(multiEqDelimiter));
-            lineMap.set(c.line, before + newCitationRaw + after);  // update the citation with new tag 
+            lineMap.set(c.line, before + newCitationRaw + after);
         }
-        return {
-            updatedLineMap: lineMap,
-            updatedNum
-        }
+        return { updatedLineMap: lineMap, updatedNum };
     }
 
     async updateCitations(md: string,
@@ -340,7 +347,8 @@ export class TagService {
         {
             updatedContent: string,
             updatedNum: number
-        }> {
+        }> 
+    {
         if (!md.trim()) return { updatedContent: md, updatedNum: 0 };  // not do anyhing if md is empty 
         const lines = md.split('\n');  // split the markdown into lines 
         const { updatedLineMap, updatedNum } = await this.updateCitationLines(
@@ -349,7 +357,7 @@ export class TagService {
         // for Map.forEach, it use map.forEach(value, key)
         updatedLineMap.forEach((newLine: string, lineNum: number) => {
             lines[lineNum] = newLine;
-        })
+        });
         return {
             updatedContent: lines.join('\n'),
             updatedNum
@@ -358,7 +366,7 @@ export class TagService {
 
     /**
      * Process a single tag and update it if necessary 
-     * @param tag 
+     * @param ct 
      * @param nameMapping 
      * @param oldTagsAll // all old tags in the file 
      * @param newTags  // new tags (can both all or unique, used to check conflict) 
@@ -366,24 +374,57 @@ export class TagService {
      * @param deleteRepeatCitations 
      * @returns 
      */
-    private processTag(
-        tag: string,
-        nameMapping: Map<string, string>, // mapping from old tag to new tag (remove repeat before that!)
-        oldTagsAll: Set<string>,  // all old tags in the file, used to check unused tag  
-        newTags: Set<string>,     // new tags (used to check conflict) 
+    private processCitation(
+        ct: string,
+        nameMapping: Map<string, string>,
+        oldTagsByCrossFile: Map<string, Set<string>>,
+        newTagsByCrossFile: Map<string, Set<string>>,
         deleteUnusedCitations: boolean,
-        deleteRepeatCitations: boolean
+        deleteRepeatCitations: boolean,
+        fileDelimiter: string
     ): string {
-        const newTagName = nameMapping.get(tag) || tag;
-        // if old tag has no this tag, this is a unused tag, delete it if deleteUnusedCitations is true  
-        if (deleteUnusedCitations && !oldTagsAll.has(tag)) {
-            Debugger.log(`Delete unused tag: ${tag}`);
-            return "";
+        const original = ct;
+        const newTagName = nameMapping.get(ct) || ct;
+        const { local: newLocal, crossFile: newCrossFile } = splitFileCitation(newTagName, fileDelimiter);
+        const { local: originalLocal, crossFile: originalCrossFile } = splitFileCitation(original, fileDelimiter);
+        const originalKey = originalCrossFile || "";
+        const newKey = newCrossFile || "";
+
+        if (deleteUnusedCitations) {
+            const oldLocalSet = oldTagsByCrossFile.get(originalKey);
+            if (!oldLocalSet || !oldLocalSet.has(originalLocal)) {
+                Debugger.log(`Delete unused tag (group=${originalKey}): ${original}`);
+                return "";
+            }
         }
-        // The current tag will not be renamed, but it is conflict with a new tag 
-        if (deleteRepeatCitations && !nameMapping.has(tag) && newTags.has(tag)) {
-            return ""; // delete it if deleteRepeatCitations is true  
+        if (deleteRepeatCitations) {
+            const newLocalSet = newTagsByCrossFile.get(newKey);
+            const wasRenamed = nameMapping.has(ct);
+            if (!wasRenamed && newLocalSet && newLocalSet.has(newLocal)) {
+                return ""; // duplicate in same cross-file group
+            }
         }
         return newTagName;
+    }
+
+    /**
+     * Group citation strings by cross-file prefix.
+     * @param tags iterable of discrete citation tags (already split, e.g. "12^{1.2.3}" or "1.2.3")
+     * @param fileDelimiter delimiter between crossFile and local (e.g. '^')
+     */
+    private groupCitationsByCrossFile(tags: Iterable<string>, fileDelimiter: string): Map<string, Set<string>> {
+        const map = new Map<string, Set<string>>();
+        for (const t of tags) {
+            if (!t) continue;
+            const { local, crossFile } = splitFileCitation(t, fileDelimiter);
+            const key = crossFile || "";
+            let set = map.get(key);
+            if (!set) {
+                set = new Set<string>();
+                map.set(key, set);
+            }
+            set.add(local);
+        }
+        return map;
     }
 }

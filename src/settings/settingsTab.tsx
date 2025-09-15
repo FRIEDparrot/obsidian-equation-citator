@@ -9,6 +9,7 @@ import {
 import { ColorManager } from "@/settings/colorManager";
 import Debugger from "@/debug/debugger";
 import { WidgetSizeManager, WidgetSizeVariable } from "@/settings/widgetSizeManager";
+import { containSafeCharAndNotBlank } from "@/settings/settingsCommChecks";
 
 export interface EquationCitatorSettings {
     // citation settings 
@@ -24,6 +25,7 @@ export interface EquationCitatorSettings {
     citationColor: string; // Citation display color for equations 
     citationHoverColor: string; // Citation display hover color for equations 
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
+    multiCitationDelimiterRender: string; // Rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: boolean; // Render continuous citations in compat format 
     renderLocalFileName: boolean; // Render local file name for citations
 
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationColor: "#a288f9",
     citationHoverColor: "#c5b6fc",
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
+    multiCitationDelimiterRender: ", ", // Default rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: true, // Default to true for convenience 
     continuousDelimiters: ". - : \\_", // Default delimiter for continuous citations in a single cite
     continuousRangeSymbol: "~", // Default range symbol for continuous citations in a single cite 
@@ -156,7 +159,13 @@ export class SettingsTabView extends PluginSettingTab {
                 text.setValue(this.plugin.settings.citationPrefix)
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
-                    if (newValue !== this.plugin.settings.citationPrefix) {
+                    const valid = containSafeCharAndNotBlank(newValue);
+                    if (!valid) {
+                        new Notice("Invalid prefix, {}, $ or blank prefix are not allowed");
+                        text.setValue(this.plugin.settings.citationPrefix);
+                        return;
+                    }
+                    if (newValue !== this.plugin.settings.citationPrefix && valid) {
                         this.plugin.settings.citationPrefix = newValue;
                         Debugger.log("Citation prefix changed to:", newValue);
                         await this.plugin.saveSettings();
@@ -228,6 +237,24 @@ export class SettingsTabView extends PluginSettingTab {
                         }
                     }
                 }
+            });
+        
+        // Render delimiter (display only, no validation required)
+        new Setting(containerEl)
+            .setName("Multi-Citation Render Delimiter")
+            .setDesc("Delimiter shown between citations when rendered (purely visual, e.g. ', ').")
+            .addText((text) => {
+                text.inputEl.classList.add("ec-delimiter-input");
+                text.setPlaceholder(", ");
+                text.setValue(this.plugin.settings.multiCitationDelimiterRender);
+                text.inputEl.onblur = async () => {
+                    const newValue = text.getValue();
+                    if (newValue !== this.plugin.settings.multiCitationDelimiterRender) {
+                        this.plugin.settings.multiCitationDelimiterRender = newValue;
+                        Debugger.log("Multi-citation render delimiter changed to:", newValue);
+                        await this.plugin.saveSettings();
+                    }
+                };
             });
 
         // ==================  File citation settings ==========  
@@ -536,14 +563,15 @@ export class SettingsTabView extends PluginSettingTab {
         containerEl.createEl("p", {
             text: "⚠️WARNING: original pdf export would failed to render citations, please \
 use plugin command `Make markdown copy to export PDF`, \
-this will make a correctly-rendered markdown from current note to export pdf.",
+this will make a correctly-rendered markdown from current note to export pdf.\
+(superscripts will also be converted to normal superscript grammar)",
             cls: "ec-settings-warning"
         });
 
         // these two colors directly transfer to function `makePrintMarkdown` (so not in style variables)
         const pdfExportColorSetting = new Setting(containerEl)
         pdfExportColorSetting.setName("Citation color for PDF")
-            .setDesc("Citation colors in PDF export. 1: equation citations 2: superscripts")
+            .setDesc("Citation color for PDF export")
             .addColorPicker((color) => {
                 color.setValue(this.plugin.settings.citationColorInPdf)
                 color.onChange(async (value) => {

@@ -8,17 +8,17 @@ import EquationCitator from "@/main";
 import { insertTextWithCursorOffset } from "@/func/insertTextOnCursor";
 
 export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
-    const settings = plugin.settings;
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
         autoNumberNoHeadingPrefix, autoNumberPrefix, autoNumberEquationsInQuotes } = plugin.settings;
     const { 
         deleteRepeatTagsInAutoNumbering: deleteRepeatTags,
-        deleteUnusedTagsInAutoNumbering: deleteUnusedTags 
+        deleteUnusedTagsInAutoNumbering: deleteUnusedTags,
+        enableUpdateTagsInAutoNumbering: enableUpdateTags
     } = plugin.settings;
     const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
     let citationUpdateResult: TagRenameResult | undefined;
     let tagMapping: Map<string, string> = new Map();
-
+    
     if (!sourceFile) {
         new Notice("Auto number is not supported in reading mode");
         return;
@@ -44,7 +44,7 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     await processor.execute();  // process current file content 
 
     // remove "tagMapping.size > 0" -> update citations also if no tags are changed
-    if (settings.enableUpdateTagsInAutoNumbering) {
+    if (enableUpdateTags) {
         // Convert Map<string, string> to TagRenamePair[] 
         const renamePairs: TagRenamePair[] = Array.from(tagMapping.entries()).map(([oldTag, newTag]) => ({
             oldTag,

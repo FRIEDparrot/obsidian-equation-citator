@@ -1,6 +1,6 @@
 {
 	"name": "equation_citator",
-	"version": "1.2.4",
+	"version": "1.2.5",
 	"description": "An Equation Citator Allows you to cite equations in your Obsidian notes.",
 	"main": "main.js",
 	"scripts": {
@@ -21,6 +21,7 @@
 		"@codemirror/language": "^6.11.2",
 		"@codemirror/state": "^6.5.2",
 		"@codemirror/view": "^6.38.1",
+		"@eslint/config-array": "^0.21.0",
 		"@lezer/markdown": "^1.4.3",
 		"@types/jest": "^30.0.0",
 		"@types/markdown-it": "^14.1.2",

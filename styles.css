@@ -167,6 +167,18 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 
 .em-equation-number {
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.em-equation-markdown-filename {
+  font-size: 9px;
+  color: var(--em-text-faint);
+  margin-left: 5px;
+  max-width: 300px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Equation content */
@@ -351,6 +363,11 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   padding: 1px 2px;
   pointer-events: auto;
   user-select: none;
+  display: inline-block;
+  color: var(--em-math-citation-color);
+}
+
+.em-math-citation-multi-delimiter {
   display: inline-block;
   color: var(--em-math-citation-color);
 }

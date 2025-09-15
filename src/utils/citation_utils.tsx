@@ -12,6 +12,19 @@ export interface CitationRef {
 }
 
 /**
+ * Construct the standard crossfile citation : <file><delimiter>{<local>}
+ */
+export function buildCrossFileCitation(
+    filePart: string,
+    localPart: string,
+    fileDelimiter: string
+): string {
+    const f = (filePart || '').trim();
+    const l = removeBraces((localPart || '').trim());
+    return `${f}${fileDelimiter}{${l}}`;
+}
+
+/**
  * Combines continuous equation tags with common prefixes and file citations.
  * Example: ["P1", "2^1.1.1", "2^1.1.2", "2^1.1.3"] → ["P1", "2^{1.1.1~3}"]
  */
@@ -40,7 +53,7 @@ export function combineContinuousCitationTags(
     // Process each group separately
     for (const [filePrefix, tagInfos] of Object.entries(groups)) {
         const formatTag = (local: string) =>
-            filePrefix ? `${filePrefix}${fileDelimiter}{${local}}`.trim() : local.trim();
+            filePrefix ? buildCrossFileCitation(filePrefix, local, fileDelimiter) : local.trim();
         // Create a map of numeric tags grouped by prefix
         const numericGroups: Record<string, { local: string; num: number, order: number }[]> = {};
 
@@ -158,7 +171,7 @@ export function splitContinuousCitationTags(
         for (let num = startNum; num <= endNum; num++) {
             const individualLocal = prefix + num;
             const individualTag = crossFile ?
-                `${crossFile}${fileDelimiter}{${individualLocal}}` :
+                buildCrossFileCitation(crossFile, individualLocal, fileDelimiter) :
                 individualLocal;
             result.push(individualTag);
         }
@@ -414,22 +427,33 @@ function processInlineReferences(
     };
     // Find all potential inline math expressions first
     const dollarPositions: Array<{ pos: number, type: 'single' | 'double' }> = [];
+    // Single-pass scan: track consecutive backslashes so we don't backward-scan per '$'
     i = 0;
+    let backslashRun = 0; // count of consecutive backslashes immediately before current index
     while (i < line.length) {
-        // check for unescaped dollar sign 
-        if (line[i] === '$' && (i === 0 || line[i - 1] !== '\\')) {
-            if (i + 1 < line.length && line[i + 1] === '$') {
-                // Double dollar - display math
-                dollarPositions.push({ pos: i, type: 'double' });
-                i += 2;
-            } else {
-                // Single dollar - inline math
-                dollarPositions.push({ pos: i, type: 'single' }); // dollar Position  
-                i += 1;
-            }
-        } else {
-            i += 1;
+        const ch = line[i];
+        if (ch === '\\') {
+            backslashRun++;
+            i++;
+            continue;
         }
+        if (ch === '$') {
+            const isEscaped = (backslashRun % 2 === 1);
+            if (!isEscaped) {
+                if (i + 1 < line.length && line[i + 1] === '$') {
+                    dollarPositions.push({ pos: i, type: 'double' });
+                    i += 2; // skip the second '$'
+                } else {
+                    dollarPositions.push({ pos: i, type: 'single' });
+                    i += 1;
+                }
+                backslashRun = 0;
+                continue;
+            }
+        }
+        // Any non-backslash, non-handled character resets the run
+        backslashRun = 0;
+        i++;
     }
 
     // Finds all valid inline math patterns by dollar positions  
@@ -464,7 +488,7 @@ function processInlineReferences(
         // Check for exactly one \ref{} in this math expression
         
         if (match) {
-            const citations = match.label.split(',').map(c => c.trim()).filter(c => c.length > 0);
+            const citations = match.label.split(multiCitationDelimiter).map(c => c.trim()).filter(c => c.length > 0);
             matches.push({
                 mathStart: mathRange.start,
                 mathEnd: mathRange.end + 1, // +1 to include closing $

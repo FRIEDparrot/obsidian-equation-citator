@@ -144,3 +144,20 @@ Version 1.2.4 - bug fixes and minor improvements.
 🛠️ Tooling :
 - [x] Add Copilot instruction file for default base branch policy [copilot]
 
+
+### Version 1.2.5  
+Version 1.2.5 - bug fixes and a bit improvements.
+
+🐛 Fixed Bugs :
+- [x] Fix auto-number function: In 1.2.4 Auto-number still may incorrectly pushes the second and third tag renaming case, Now it will always correctly update only the first occurrence of tag.
+- [x] (**Critical**) Fix citation update issue [bug #53](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/53), now citations in the current file will be updated correctly after auto-numbering.    
+- [x] (**Critical**) Fix problem in citations updating[bug #54](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/54), delete unused citations now only affect citations of the same file. 
+- [x] Press `enter` key in renaming tag widget will now accept renaming tag. 
+- [x] Better prefix settings check (not allow brace and dollar or leave it blank), also dollar is now prohibited in delimiter since its unsafe. 
+- [x] Fix style problem [#51](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/51), add margin and now limit the maximum alias rending width to 380 px. 
+- [x] Fix description for PDF citation color [#49](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/49) 
+- [x] Fix escaped dollar problem [#40](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/40) 
+
+
+🚀 Enhancements: 
+- [x] add enhancement [#52](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/52), now will use mutli-citaion-delimiter + space by default (set in settings tab) for better render. 

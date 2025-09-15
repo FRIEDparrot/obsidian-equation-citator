@@ -27,7 +27,7 @@ function isPositionInSingleLineEquation(line: string, ch: number): boolean {
 }
 
 /**
- * @todo : Remove duplicate code  
+ * @todo : Remove duplicate code  (getAutoNbEquationTag)
  */
 export function getAutoNumberInCursor(
     content: string,
@@ -74,7 +74,6 @@ export function getAutoNumberInCursor(
             }
         }
     };
-
     for (let i = 0; i <= cursorPos.line; i++) {
         const line = lines[i];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
@@ -139,7 +138,6 @@ export function getAutoNumberInCursor(
     }
     return null;
 }
-
 
 /** 
  * @param content 
@@ -215,19 +213,23 @@ export function autoNumberEquations(
             }
         }
     }
-
+    const addTagMapping = (oldTag: string | undefined, newTag: string) => {
+        // add tag mapping only when there is no old tags (only map first occurrence)
+        if (oldTag && !newTagMapping.has(oldTag)) {
+            newTagMapping.set(oldTag, newTag);
+        }
+    }
     let quotePrefix = "";
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
-
+        
         // Update code block state
         if (parseResult.isCodeBlockToggle) inCodeBlock = !inCodeBlock;
         if (inCodeBlock) {
             result.push(line);
             continue;
         }
-
         // Handle headings
         if (parseResult.isHeading && parseResult.headingMatch) {
             const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
@@ -236,10 +238,7 @@ export function autoNumberEquations(
 
             assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array ${headings}`);
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
-            if (headingLevel <= maxDepth - 1) {
-                equationNumber = 0;
-            }
-
+            if (headingLevel <= maxDepth - 1) equationNumber = 0;
             currentDepth = Math.min(headingLevel, maxDepth);
             result.push(line);
             currentHeadingIndex++;
@@ -253,17 +252,14 @@ export function autoNumberEquations(
                 quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
                 inEquationBlock = false;
                 const { content, tag: oldTag } = parseEquationTag(equationBuffer.join("\n"));
-                const { eq, tag: newTag } = getTaggedEquation(content);
-                // add tag mapping only when there is no old tags (only map first occurrence)
-                if (oldTag && !newTagMapping.has(oldTag)) newTagMapping.set(oldTag, newTag);
-
+                const { eq, tag: newTag } = getTaggedEquation(content); 
+                addTagMapping(oldTag, newTag);
                 const fullEquationLines = `$$\n${eq}\n$$`.split("\n");
                 result.push(fullEquationLines.map((c) => quotePrefix + c).join("\n"));
                 equationBuffer = [];
             }
             continue;
         }
-
         // Handle single-line equations
         if (parseResult.isSingleLineEquation && parseResult.singleLineEquationMatch) {
             const rawEquationContent = parseResult.singleLineEquationMatch[1].trim();
@@ -272,8 +268,7 @@ export function autoNumberEquations(
             const { content, tag: oldTag } = parseEquationTag(rawEquationContent);
             const { eq, tag: newTag } = getTaggedEquation(content);
             // add tag mapping 
-            if (oldTag) newTagMapping.set(oldTag, newTag);
-
+            addTagMapping(oldTag, newTag);
             result.push(`${quotePrefix}$$ ${eq} $$`);
             continue;
         }
@@ -292,9 +287,9 @@ export function autoNumberEquations(
         const equation_raw = equationBuffer.join("\n");
         const { content, tag: oldTag } = parseEquationTag(equation_raw);
         const { eq, tag: NewTag } = getTaggedEquation(content);
+        
         // add tag mapping 
-        if (oldTag) newTagMapping.set(oldTag, NewTag);
-
+        addTagMapping(oldTag, NewTag);
         const fullEquationLines = `$$\n${eq}\n$$`.split("\n");
         result.push(fullEquationLines.map((c) => quotePrefix + c).join("\n"));
         equationBuffer = [];

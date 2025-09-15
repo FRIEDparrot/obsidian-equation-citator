@@ -73,6 +73,11 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
     color: var(--em-math-citation-color);
 }
 
+.em-math-citation-multi-delimiter{
+    display: inline-block;
+    color: var(--em-math-citation-color);
+}
+
 .em-math-citation:hover {
     cursor: pointer;
     color: var(--em-math-citation-hover-color);
