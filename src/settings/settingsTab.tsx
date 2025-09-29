@@ -319,7 +319,7 @@ export class SettingsTabView extends PluginSettingTab {
         });
         
         const enableLocalFileNameSetting = new Setting(containerEl)
-        enableLocalFileNameSetting.setName("Render Local file name in Equation Preview")
+        enableLocalFileNameSetting.setName("Render Local File Name in Equation Preview")
             .setDesc("Render local file name for citations")
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.renderLocalFileName);
