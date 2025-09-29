@@ -22,9 +22,10 @@ import { FootNoteCache } from '@/cache/footnoteCache';
 import { ColorManager } from '@/settings/colorManager';
 import { EquationServices } from '@/services/equation_services';
 import { TagService } from '@/services/tag_service';
-import { AutoCompleteSuggest } from '@/views/auto_completete_suggest';
+import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
 import { registerRightClickMenu } from '@/ui/rightButtonMenu';
 import { LineHashCache } from '@/cache/lineHashCache';
+import { WidgetSizeManager } from './settings/widgetSizeManager';
 
 
 export default class EquationCitator extends Plugin {
@@ -45,6 +46,7 @@ export default class EquationCitator extends Plugin {
     async onload() {
         await this.loadSettings();
         ColorManager.updateAllColors(this.settings);
+        WidgetSizeManager.updateAllSizes(this.settings);
         this.addSettingTab(new SettingsTabView(this.app, this));
         // initialize caches
         this.loadCaches();
@@ -59,7 +61,7 @@ export default class EquationCitator extends Plugin {
         this.loadEditorExtensions();
         this.loadReadingModeExtensions();
         this.registerEditorSuggest(this.autoCompleteSuggest);
-        
+
         // register ribbon button and commands 
         registerRibbonButton(this);
         registerRightClickMenu(this);
@@ -81,6 +83,13 @@ export default class EquationCitator extends Plugin {
         this.equationCache = new EquationCache(this);
         this.footnoteCache = new FootNoteCache(this);
         this.lineHashCache = new LineHashCache(this);
+    }
+
+    clearCaches() {
+        this.citationCache.clear();
+        this.equationCache.clear();
+        this.footnoteCache.clear();
+        this.lineHashCache.clear();
     }
 
     destroyCaches() {

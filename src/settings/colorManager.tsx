@@ -38,7 +38,7 @@ export class ColorManager {
     static updateAllColors(settings: EquationCitatorSettings): void {
         this.ensureStyleElement();
         const cssRules: string[] = [':root {'];
-
+        
         // Add individual color properties
         cssRules.push(`  ${this.COLOR_MAPPINGS.citationColor}: ${settings.citationColor};`);
         cssRules.push(`  ${this.COLOR_MAPPINGS.citationHoverColor}: ${settings.citationHoverColor};`);
@@ -50,7 +50,7 @@ export class ColorManager {
             const key = `citationWidgetColor${i}` as keyof typeof this.COLOR_MAPPINGS;
             cssRules.push(`  ${this.COLOR_MAPPINGS[key]}: ${settings.citationWidgetColor[i]};`);
         }
-
+        
         // Add widget colors (dark theme)
         for (let i = 0; i < 5; i++) {
             const key = `citationWidgetColorDark${i}` as keyof typeof this.COLOR_MAPPINGS;

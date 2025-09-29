@@ -7,6 +7,11 @@ import { isSourceMode } from "@/views/citation_render";
 import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/regexp_utils";
 import EquationCitator from "@/main";
 import assert from "assert";
+import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/equation_utils";
+import { splitFileCitation } from "@/utils/citation_utils";
+
+
+const CITATION_PADDING = 5; // \\ref{ is 5 characters  
 
 interface MathEnvironmentInfo {
     line: string;        // line content
@@ -82,9 +87,16 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         };
     }
 
+    
     /**
-     * Parse the citation information from the math equation content
-     * including full label, current label, full tags, and current tags. 
+     * Parses citation information from the provided equation content string, extracting details
+     * about the citation label and tags at the current cursor position.
+     *
+     * @param eqContent - The equation content string to parse for citation information.
+     * @param cursorCh - The character index of the cursor within the equation content.
+     * @param eqStart - The starting character index of the equation within the document.
+     * @returns An object containing the validity of the citation, citation index, full and current labels,
+     *          and arrays of full and current tags.
      */
     private parseCitationInfo(
         eqContent: string,
@@ -96,8 +108,12 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (!check.valid) {
             return { valid: false, citationIndex: -1, fullLabel: "", currentLabel: "", fullTags: [], currentTags: [] };
         }
-        const fullLabel = eqContent.substring(check.index + 5, eqContent.length - 1).trim().substring(citationPrefix.length);
-        const currentLabel = eqContent.substring(check.index + 5, cursorCh - eqStart).trim().substring(citationPrefix.length);
+        // skip the "\\ref{" prefix length using CITATION_PADDING constant
+        let fullLabel = eqContent.substring(check.index + CITATION_PADDING, eqContent.length).trim().substring(citationPrefix.length);
+        if (fullLabel.endsWith("}")) {
+            fullLabel = fullLabel.slice(0, -1).trim(); // remove trailing } if exists
+        }
+        const currentLabel = eqContent.substring(check.index + CITATION_PADDING, cursorCh - eqStart).trim().substring(citationPrefix.length);
 
         const delimiter = multiCitationDelimiter || ",";
         const fullTags = fullLabel.split(delimiter).map(tag => tag.trim()).filter(tag => tag);
@@ -105,8 +121,8 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
 
         assert(
             fullTags.length >= currentTags.length,
-            `Invalid current label length ${currentTags.length} is bigger than full tags length ${fullTags.length};` + 
-            `Current label: ${currentLabel}, Full label: ${fullLabel}` 
+            `Invalid current label length ${currentTags.length} is bigger than full tags length ${fullTags.length};` +
+            `Current label: ${currentLabel}, Full label: ${fullLabel}`
         );   // current label should be a subset of full label 
 
         return {
@@ -167,10 +183,11 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         // get the equation content before cursor  and check validity by add end } to citation
         const eqContent = line.substring(mathInfo.lastDollarIndex + 1, cursor.ch);
         const check = isValidCitationForm(eqContent + "}", citationPrefix);
+
         if (!check.valid) return null;  // invalid citation form  
 
         // get the last tag for suggestion 
-        const eqLabel = eqContent.substring(check.index + 5, eqContent.length).substring(citationPrefix.length);
+    const eqLabel = eqContent.substring(check.index + CITATION_PADDING, eqContent.length).substring(citationPrefix.length);
         const isNewTag = eqLabel.trim().endsWith(multiCitationDelimiter);
         const lastTag = isNewTag ? "" : (eqLabel.split(multiCitationDelimiter || ",").pop() ?? "");
 
@@ -190,16 +207,37 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
 
     async getSuggestions(context: EditorSuggestContext): Promise<RenderedEquation[]> {
         const lastTag = context.query;  // last tag for suggestion 
-        const cleanedTag = removePairedBraces(lastTag)
+        const cleanedTag = removePairedBraces(lastTag); // remove paired braces and trim space  
+
         if (cleanedTag.contains("}")) return [];  // closed citation, do not suggest 
         const sourcePath = context.file?.path || null;
         if (!sourcePath) return [];
-
-        const equations = await this.plugin.equationServices.getEquationsForAutocomplete(
-            lastTag.trim(),   // last tag may contain space, remove it 
-            sourcePath
-        );
-        return equations;
+        
+        const { enableContinuousCitation, continuousRangeSymbol, continuousDelimiters } = this.plugin.settings;
+        
+        if (enableContinuousCitation && cleanedTag.endsWith(continuousRangeSymbol) && cleanedTag.length > 1) {
+            const validDelimiters = continuousDelimiters.split(" ").filter(d => d); // split by space and remove empty string
+            const tagPrev = cleanedTag.slice(0, -continuousRangeSymbol.length).trim();
+            // then get the prefix before last number 
+            const prefix = extractPrefixBeforeLastNumber(tagPrev, validDelimiters);
+            const lastNumber = extractLastNumberFromTag(tagPrev, validDelimiters);
+            if (prefix === "" || lastNumber === null) return []; // no valid prefix, do not suggest anything 
+            const equations = await this.plugin.equationServices.getEquationsForAutocomplete(
+                prefix,   // last tag may contain space, remove it 
+                sourcePath
+            );
+            return equations.filter(eq => {
+                const eqLastNumber = extractLastNumberFromTag(eq.tag, validDelimiters);
+                return eqLastNumber !== null && eqLastNumber > lastNumber;
+            });
+        }
+        else {
+            const equations = await this.plugin.equationServices.getEquationsForAutocomplete(
+                cleanedTag.trim(),   // last tag may contain space, remove it 
+                sourcePath
+            );
+            return equations;
+        }
     }
 
     renderSuggestion(value: RenderedEquation, el: HTMLElement): void {
@@ -215,7 +253,17 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     }
 
     selectSuggestion(value: RenderedEquation, evt: MouseEvent | KeyboardEvent): void {
-        const { multiCitationDelimiter, fileCiteDelimiter, citationPrefix } = this.plugin.settings;
+        const {
+            multiCitationDelimiter,
+            enableCrossFileCitation,
+            fileCiteDelimiter,
+            citationPrefix,
+            enableContinuousCitation,
+            continuousRangeSymbol,
+            continuousDelimiters,
+        } = this.plugin.settings;
+        const validDelimiters = continuousDelimiters.split(" ").filter(d => d); // split by space and remove empty string 
+
         const editor = this.context?.editor;
         if (!this.context || !editor) return;
 
@@ -223,18 +271,30 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
 
         const mathInfo = this.getMathEnvironmentInfo(editor, cursor);
         if (!mathInfo) return;
-
         const citationInfo = this.parseCitationInfo(mathInfo.eqContent, cursor.ch, mathInfo.eqStart);
         if (!citationInfo.valid) return;
         
-        // create new tags for citation complete 
+        // ======== begin creating new tags for citation complete ====================== 
         const lastTag = this.context.query;  // last tag for suggestion 
-        const newTag = value.footnoteIndex ?
-            `${value.footnoteIndex}${fileCiteDelimiter}{${value.tag}}` :
-            `${value.tag}`;
-        
+        const isRangeContinuation = lastTag.endsWith(continuousRangeSymbol) && lastTag.length > 1;
+        let newTag: string;
+        if (isRangeContinuation && enableContinuousCitation) {
+            // infer next number from chosen equation
+            const basePart = lastTag.slice(0, -continuousRangeSymbol.length);
+            const nextNum = extractLastNumberFromTag(value.tag, validDelimiters); 
+            if (nextNum === null) return; // should not happen 
+            // parse local part 
+            const local = enableCrossFileCitation ? splitFileCitation(basePart, fileCiteDelimiter).local : value.tag;
+            newTag = value.footnoteIndex
+                ? `${value.footnoteIndex}${fileCiteDelimiter}{${local}${continuousRangeSymbol}${nextNum}}`
+                : `${local}${continuousRangeSymbol}${nextNum}`;
+        } else {
+            newTag = value.footnoteIndex
+                ? `${value.footnoteIndex}${fileCiteDelimiter}{${value.tag}}`
+                : value.tag;
+        }
         const newTagIdx = lastTag ? citationInfo.currentTags.length - 1 : citationInfo.currentTags.length;
-        
+
         if (lastTag === "") {
             // if last tag is empty, insert new tag at correct position; or replace last tag(on cursor) with new tag
             citationInfo.currentTags.splice(newTagIdx, 0, newTag);
@@ -253,7 +313,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         }
         const replaceEnd = {
             line: cursor.line,
-            ch: mathInfo.eqEnd 
+            ch: mathInfo.eqEnd
         };
 
         editor.replaceRange(newContent, replaceStart, replaceEnd);

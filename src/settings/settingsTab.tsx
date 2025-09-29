@@ -317,9 +317,9 @@ export class SettingsTabView extends PluginSettingTab {
                 updateFileSettingsContainer(value);
             });
         });
-
+        
         const enableLocalFileNameSetting = new Setting(containerEl)
-        enableLocalFileNameSetting.setName("Render Local File Name in Citation")
+        enableLocalFileNameSetting.setName("Render Local File Name in Equation Preview")
             .setDesc("Render local file name for citations")
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.renderLocalFileName);
@@ -557,6 +557,17 @@ export class SettingsTabView extends PluginSettingTab {
                 });
             });
 
+        new Setting(containerEl)
+            .setName("Clear Cache")
+            .setDesc("Manually clear the cache, useful if you suspect the cache is out of date")
+            .addButton((button) => {
+                button.setIcon("trash");
+                button.setTooltip("Clear Cache");
+                button.onClick(async () => {
+                    await this.plugin.clearCaches();
+                    new Notice("All caches cleared");
+                });
+            });
 
         // ================== PDF export settings ================ 
         containerEl.createEl("h2", { text: "PDF Export Settings", cls: "ec-settings-header" });

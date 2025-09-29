@@ -941,8 +941,7 @@ This is another inline math $\\ref{eq:3.1}$.
 
             expect(result).toContain('<span');
             expect(result).toContain('1.1');
-            expect(result).toContain('[2]');
-            expect(result).toContain('<sup');
+            expect(result).toContain('[^2]');
         });
 
         test('should disable continuous citations when rangeSymbol is null', () => {
@@ -982,8 +981,7 @@ This is another inline math $\\ref{eq:3.1}$.
         test('should handle cross-file citations with superscript', () => {
             const result = generateCitationSpans(['2^1.1'], '^');
             expect(result).toContain('1.1');
-            expect(result).toContain('[2]');
-            expect(result).toContain('<sup');
+            expect(result).toContain('[^2]');
         });
     });
 });

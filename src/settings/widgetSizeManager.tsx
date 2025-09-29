@@ -87,4 +87,11 @@ export class WidgetSizeManager {
             [WidgetSizeVariable.ContainerHeight]: defaultSettings.citationPopoverContainerHeight,
         });
     }
+
+    public static updateAllSizes(settings: EquationCitatorSettings): void {
+        this.setMultiple({
+            [WidgetSizeVariable.ContainerWidth]: settings.citationPopoverContainerWidth,
+            [WidgetSizeVariable.ContainerHeight]: settings.citationPopoverContainerHeight,
+        });
+    }
 }
