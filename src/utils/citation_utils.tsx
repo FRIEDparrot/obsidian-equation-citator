@@ -1,5 +1,6 @@
 import { escapeString, removeBraces, removeInlineCodeBlocks } from "@/utils/string_utils";
 import { inlineMathPattern, isCodeBlockToggle, matchCitationsInLine, matchNestedCitation } from "@/utils/regexp_utils";
+import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/equation_utils";
 
 export interface CitationRef {
     label: string;
@@ -180,63 +181,7 @@ export function splitContinuousCitationTags(
     return result.map((r) => r.trim());
 }
 
-/**
- * Extracts the last number from a tag using valid delimiters or direct letter-number pattern
- * input : pure tag   (e.g., "1.1.1"), not contain file citation (e.g., "2^1.1.1")
- */
-function extractLastNumberFromTag(tag: string, validDelimiters: string[]): number | null {
-    // Find the last delimiter
-    let lastDelimiterIndex = -1;
-    for (const delimiter of validDelimiters) {
-        const index = tag.lastIndexOf(delimiter);
-        if (index > lastDelimiterIndex) {
-            lastDelimiterIndex = index;
-        }
-    }
-    let numStr: string;
-    if (lastDelimiterIndex >= 0) {
-        // Extract number after last delimiter
-        numStr = tag.substring(lastDelimiterIndex + 1);
-    } else {
-        // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = tag.match(/^(.+?)(\d+)$/);
-        if (match) {
-            numStr = match[2];
-        } else {
-            numStr = tag;
-        }
-    }
 
-    const num = parseInt(numStr, 10);
-    return isNaN(num) ? null : num;
-}
-
-/**
- * Extracts the prefix before the last number
- * e.g. EQ1 -> EQ 
- */
-function extractPrefixBeforeLastNumber(tag: string, validDelimiters: string[]): string {
-    // Find the last delimiter
-    let lastDelimiterIndex = -1;
-    for (const delimiter of validDelimiters) {
-        const index = tag.lastIndexOf(delimiter);
-        if (index > lastDelimiterIndex) {
-            lastDelimiterIndex = index;
-        }
-    }
-
-    if (lastDelimiterIndex >= 0) {
-        return tag.substring(0, lastDelimiterIndex + 1);
-    } else {
-        // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = tag.match(/^(.+?)(\d+)$/);
-        if (match) {
-            return match[1]; // Return the letter part (e.g., "EQ")
-        } else {
-            return '';
-        }
-    }
-}
 
 /**
  * Splits an equation string into local and cross-file parts.
