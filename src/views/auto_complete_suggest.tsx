@@ -10,6 +10,9 @@ import assert from "assert";
 import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/equation_utils";
 import { splitFileCitation } from "@/utils/citation_utils";
 
+
+const CITATION_PADDING = 5; // \\ref{ is 5 characters  
+
 interface MathEnvironmentInfo {
     line: string;        // line content
     lastDollarIndex: number;
@@ -84,9 +87,16 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         };
     }
 
+    
     /**
-     * Parse the citation information from the math equation content
-     * including full label, current label, full tags, and current tags. 
+     * Parses citation information from the provided equation content string, extracting details
+     * about the citation label and tags at the current cursor position.
+     *
+     * @param eqContent - The equation content string to parse for citation information.
+     * @param cursorCh - The character index of the cursor within the equation content.
+     * @param eqStart - The starting character index of the equation within the document.
+     * @returns An object containing the validity of the citation, citation index, full and current labels,
+     *          and arrays of full and current tags.
      */
     private parseCitationInfo(
         eqContent: string,
@@ -98,11 +108,12 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (!check.valid) {
             return { valid: false, citationIndex: -1, fullLabel: "", currentLabel: "", fullTags: [], currentTags: [] };
         }
-        let fullLabel = eqContent.substring(check.index + 5, eqContent.length).trim().substring(citationPrefix.length);
+        // skip the "\\ref{" prefix length using CITATION_PADDING constant
+        let fullLabel = eqContent.substring(check.index + CITATION_PADDING, eqContent.length).trim().substring(citationPrefix.length);
         if (fullLabel.endsWith("}")) {
             fullLabel = fullLabel.slice(0, -1).trim(); // remove trailing } if exists
         }
-        const currentLabel = eqContent.substring(check.index + 5, cursorCh - eqStart).trim().substring(citationPrefix.length);
+        const currentLabel = eqContent.substring(check.index + CITATION_PADDING, cursorCh - eqStart).trim().substring(citationPrefix.length);
 
         const delimiter = multiCitationDelimiter || ",";
         const fullTags = fullLabel.split(delimiter).map(tag => tag.trim()).filter(tag => tag);
@@ -176,7 +187,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (!check.valid) return null;  // invalid citation form  
 
         // get the last tag for suggestion 
-        const eqLabel = eqContent.substring(check.index + 5, eqContent.length).substring(citationPrefix.length);
+    const eqLabel = eqContent.substring(check.index + CITATION_PADDING, eqContent.length).substring(citationPrefix.length);
         const isNewTag = eqLabel.trim().endsWith(multiCitationDelimiter);
         const lastTag = isNewTag ? "" : (eqLabel.split(multiCitationDelimiter || ",").pop() ?? "");
 
