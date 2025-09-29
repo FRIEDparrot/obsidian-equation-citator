@@ -172,5 +172,5 @@ Version 1.2.6 - bug fixes
 - [x] Fix bug [#64](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/64) Auto complelte will also parse unclosed citation, and complete it now. 
 
 🚀 Enhancements: 
-- [ ] Add enhancement [#61](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/61), enhancement when autocomplete in continuous citations. 
+- [x] Add enhancement [#61](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/61), enhancement when autocomplete in continuous citations. 
 - [x] Add enhancement [#62](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/62), add option to manually clear cache in settings tab. 

@@ -201,10 +201,10 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (cleanedTag.contains("}")) return [];  // closed citation, do not suggest 
         const sourcePath = context.file?.path || null;
         if (!sourcePath) return [];
-
-        const { continuousRangeSymbol, continuousDelimiters } = this.plugin.settings;
-
-        if (cleanedTag.endsWith(continuousRangeSymbol) && cleanedTag.length > 1) {
+        
+        const { enableContinuousCitation, continuousRangeSymbol, continuousDelimiters } = this.plugin.settings;
+        
+        if (enableContinuousCitation && cleanedTag.endsWith(continuousRangeSymbol) && cleanedTag.length > 1) {
             const validDelimiters = continuousDelimiters.split(" ").filter(d => d); // split by space and remove empty string
             const tagPrev = cleanedTag.slice(0, -continuousRangeSymbol.length).trim();
             // then get the prefix before last number 
@@ -274,7 +274,6 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
             if (nextNum === null) return; // should not happen 
             // parse local part 
             const local = enableCrossFileCitation ? splitFileCitation(basePart, fileCiteDelimiter).local : value.tag;
-            
             newTag = value.footnoteIndex
                 ? `${value.footnoteIndex}${fileCiteDelimiter}{${local}${continuousRangeSymbol}${nextNum}}`
                 : `${local}${continuousRangeSymbol}${nextNum}`;
