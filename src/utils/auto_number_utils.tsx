@@ -344,7 +344,7 @@ function updateLevelCounters(
     headingLevel: number,
     maxDepth: number,
     type: AutoNumberingType
-): number {
+): void {
     const maxAllowedLevel = maxDepth - 1;
     const effectiveLevel = Math.min(headingLevel, maxAllowedLevel);
 
@@ -363,10 +363,8 @@ function updateLevelCounters(
         if (type === AutoNumberingType.Absolute && levelCounters[effectiveLevel - 1] === 0) {
             levelCounters[effectiveLevel - 1] = 1;
         }
-        return effectiveLevel;
     }
     // Increment current level and reset deeper levels 
     levelCounters[effectiveLevel - 1]++;
     levelCounters.fill(0, effectiveLevel);
-    return effectiveLevel; 
 }

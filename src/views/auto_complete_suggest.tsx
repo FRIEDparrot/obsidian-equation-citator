@@ -270,7 +270,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (isRangeContinuation && enableContinuousCitation) {
             // infer next number from chosen equation
             const basePart = lastTag.slice(0, -continuousRangeSymbol.length);
-            const nextNum = extractLastNumberFromTag(value.tag,validDelimiters); 
+            const nextNum = extractLastNumberFromTag(value.tag, validDelimiters); 
             if (nextNum === null) return; // should not happen 
             // parse local part 
             const local = enableCrossFileCitation ? splitFileCitation(basePart, fileCiteDelimiter).local : value.tag;

@@ -22,7 +22,7 @@ import { FootNoteCache } from '@/cache/footnoteCache';
 import { ColorManager } from '@/settings/colorManager';
 import { EquationServices } from '@/services/equation_services';
 import { TagService } from '@/services/tag_service';
-import { AutoCompleteSuggest } from '@/views/auto_completete_suggest';
+import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
 import { registerRightClickMenu } from '@/ui/rightButtonMenu';
 import { LineHashCache } from '@/cache/lineHashCache';
 import { WidgetSizeManager } from './settings/widgetSizeManager';
