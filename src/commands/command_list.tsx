@@ -4,6 +4,7 @@ import { MarkdownView } from 'obsidian';
 import { exportCurrentMarkdown } from '@/func/exportMarkdown';
 import { insertTextWithCursorOffset } from '@/func/insertTextOnCursor';
 import { createCitationString, createEquationTagString } from '@/utils/regexp_utils';
+import { Notice } from 'obsidian';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
@@ -60,6 +61,16 @@ export default function registerCommands(plugin: EquationCitator) {
         name: 'Insert tag on cursor position with auto-number',
         callback: async () => {
             await insertAutoNumberTag(plugin);
+        }
+    })
+
+    
+    plugin.addCommand({
+        id: 'clear-cache',
+        name: 'Clear plugin cache', 
+        callback: async () => {
+            await plugin.clearCaches();
+            new Notice("All caches cleared"); 
         }
     })
 }

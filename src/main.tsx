@@ -83,6 +83,13 @@ export default class EquationCitator extends Plugin {
         this.lineHashCache = new LineHashCache(this);
     }
 
+    clearCaches() {
+        this.citationCache.clear();
+        this.equationCache.clear();
+        this.footnoteCache.clear();
+        this.lineHashCache.clear();
+    }
+
     destroyCaches() {
         this.citationCache?.destroy();
         this.equationCache?.destroy();

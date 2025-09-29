@@ -557,6 +557,17 @@ export class SettingsTabView extends PluginSettingTab {
                 });
             });
 
+        new Setting(containerEl)
+            .setName("Clear Cache")
+            .setDesc("Manually clear the cache, useful if you suspect the cache is out of date")
+            .addButton((button) => {
+                button.setIcon("trash");
+                button.setTooltip("Clear Cache");
+                button.onClick(async () => {
+                    await this.plugin.clearCaches();
+                    new Notice("All caches cleared");
+                });
+            });
 
         // ================== PDF export settings ================ 
         containerEl.createEl("h2", { text: "PDF Export Settings", cls: "ec-settings-header" });
