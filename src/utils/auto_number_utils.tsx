@@ -345,6 +345,8 @@ function updateLevelCounters(
     maxDepth: number,
     type: AutoNumberingType
 ): void {
+    // maxDepth is the total number of heading levels, but since heading levels are 1-based
+    // and levelCounters is 0-based, we subtract 1 to get the maximum allowed index.
     const maxAllowedLevel = maxDepth - 1;
     const effectiveLevel = Math.min(headingLevel, maxAllowedLevel);
 
