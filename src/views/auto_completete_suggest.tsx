@@ -72,7 +72,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const eqContent = match[1];
         const eqStart = lastDollarIndex + 1;
         const eqEnd = eqStart + eqContent.length;
-
+        
         return {
             lastDollarIndex,
             eqContent,
@@ -96,7 +96,10 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (!check.valid) {
             return { valid: false, citationIndex: -1, fullLabel: "", currentLabel: "", fullTags: [], currentTags: [] };
         }
-        const fullLabel = eqContent.substring(check.index + 5, eqContent.length - 1).trim().substring(citationPrefix.length);
+        let fullLabel = eqContent.substring(check.index + 5, eqContent.length).trim().substring(citationPrefix.length);
+        if (fullLabel.endsWith("}")) {
+            fullLabel = fullLabel.slice(0, -1).trim(); // remove trailing } if exists
+        }
         const currentLabel = eqContent.substring(check.index + 5, cursorCh - eqStart).trim().substring(citationPrefix.length);
 
         const delimiter = multiCitationDelimiter || ",";
@@ -163,10 +166,11 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
 
         const mathInfo = this.getMathEnvironmentInfo(editor, cursor);
         if (!mathInfo) return null;
-
+        
         // get the equation content before cursor  and check validity by add end } to citation
         const eqContent = line.substring(mathInfo.lastDollarIndex + 1, cursor.ch);
         const check = isValidCitationForm(eqContent + "}", citationPrefix);
+        
         if (!check.valid) return null;  // invalid citation form  
 
         // get the last tag for suggestion 
@@ -223,8 +227,8 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
 
         const mathInfo = this.getMathEnvironmentInfo(editor, cursor);
         if (!mathInfo) return;
-
         const citationInfo = this.parseCitationInfo(mathInfo.eqContent, cursor.ch, mathInfo.eqStart);
+        console.log(citationInfo);
         if (!citationInfo.valid) return;
         
         // create new tags for citation complete 
