@@ -304,7 +304,7 @@ export class TagService {
         const newTagsByCrossFile = this.groupCitationsByCrossFile(nameMapping.values(), fileDelimiter);
 
         let updatedNum = 0;
-        for (const c of [...citationsAll].reverse() as CitationRef[]) {
+        for (const c of citationsAll.slice().reverse() as CitationRef[]) {
             const currentLine = lineMap.get(c.line) ?? lines[c.line];
             const before = currentLine.substring(0, c.position.start);
             const after = currentLine.substring(c.position.end);
