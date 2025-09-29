@@ -163,7 +163,10 @@ Version 1.2.5 - bug fixes and a bit improvements.
 - [x] add enhancement [#52](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/52), now will use mutli-citaion-delimiter + space by default (set in settings tab) for better render. 
 
 ### Version 1.2.6
-Version 1.2.6 - bug fixes and minor improvements. 
+Version 1.2.6 - bug fixes
 
 🐛 Fixed Bugs : 
-- [x] (Critical) Fix Bug [#63](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/63), Now multiple citations in a row can update correctly 
+- [x] (Critical) Fix Bug [#63](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/63), Now multiple citations in a row can update correctly  
+- [x] Add enhancement [#62](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/62), add option to manually clear cache in settings tab. 
+- [x] Fix bug  [#60](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/60), auto-number now correctly number with not enough depth in absolute numbering method. 
+

@@ -1,27 +1,8 @@
 import { autoNumberEquations, AutoNumberingType } from '@/utils/auto_number_utils';
-import { Heading } from '@/utils/heading_utils';
 
 // Mock dependencies
 jest.mock('@/debug/debugger', () => ({
     Debugger: {}
-}));
-
-jest.mock('@/utils/heading', () => ({
-    relativeHeadingLevel: (headings: Heading[], index: number) => {
-        if (headings.length === 0 || index < 0 || index >= headings.length) {
-            return 0;
-        }
-
-        const heading_arrays: number[] = [];
-        for (let i = 0; i <= index; i++) {
-            const heading = headings[i];
-            while (heading_arrays.length > 0 && heading.level <= heading_arrays[heading_arrays.length - 1]) {
-                heading_arrays.pop();
-            }
-            heading_arrays.push(heading.level);
-        }
-        return heading_arrays.length;
-    }
 }));
 
 describe('autoNumberEquations', () => {
@@ -236,6 +217,43 @@ $$ F = ma \\tag{another} $$`;
 
             expect(result).toContain('$$ E = mc^2 \\tag{1.1} $$');
             expect(result).toContain('$$ F = ma \\tag{1.2} $$');
+        });
+
+        test('should collapse equations under headings deeper than maxDepth (Relative)', () => {
+            const content = `# H1
+## H2
+### H3
+#### H4 (too deep)
+#### H5 (too deep)
+$$ e1 $$
+#### H6 (too deep)
+$$ e2 $$`;
+            // maxDepth = 3 => levels beyond 3rd logical numbering part collapse; counters length = 3
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 3, '.', 'P', '').md;
+            // Expect both equations stay within 1.1.* series (no new deeper segment)
+            expect(result).toMatch(/\$\$ e1 \\tag{1\.1\.1} \$\$/);
+            expect(result).toMatch(/\$\$ e2 \\tag{1\.1\.2} \$\$/);
+        });
+
+        test('should fix malformed existing tags like .1 .2 .3 (Relative)', () => {
+            const content = `### 1 Test
+$$
+Test \\tag{.1}
+$$
+$$
+asdfasdf \\tag{.2}
+$$
+
+$$ qewrq 1 \\tag{.3} $$`;
+            const result = autoNumberEquations(content, AutoNumberingType.Relative, 7, '.', 'P', '').md;
+            // Expect proper sequence under first relative heading (level becomes 1): 1.1, 1.2, 1.3
+            expect(result).toContain('\\tag{1.1}');
+            expect(result).toContain('\\tag{1.2}');
+            expect(result).toContain('\\tag{1.3}');
+            // Old malformed tags removed
+            expect(result).not.toContain('\\tag{.1}');
+            expect(result).not.toContain('\\tag{.2}');
+            expect(result).not.toContain('\\tag{.3}');
         });
     });
 
@@ -538,6 +556,41 @@ $$ eq2 $$`;
 
             expect(prefixEQResult).toContain('$$ eq1 \\tag{EQ1} $$');
             expect(prefixEQResult).toContain('$$ eq2 \\tag{1.1} $$');
+        });
+
+        test('should collapse equations under headings deeper than maxDepth (Absolute)', () => {
+            const content = `# A
+## B
+### C
+#### D (too deep)
+#### E (too deep)
+$$ e1 $$
+#### F (too deep)
+$$ e2 $$`;
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 3, '.', 'P', '').md;
+            // Expect equations to continue at capped depth: 1.1.1, 1.1.2
+            expect(result).toMatch(/\$\$ e1 \\tag{1\.1\.1} \$\$/);
+            expect(result).toMatch(/\$\$ e2 \\tag{1\.1\.2} \$\$/);
+        });
+
+        test('should fix malformed existing tags like .1 .2 .3 (Absolute)', () => {
+            const content = `### 1 Test
+$$
+Test \\tag{.1}
+$$
+$$
+asdfasdf \\tag{.2}
+$$
+
+$$ qewrq 1 \\tag{.3} $$`;
+            const result = autoNumberEquations(content, AutoNumberingType.Absolute, 3, '.', 'P', '').md;
+            // Absolute mode with first heading at level 3 -> numbering path 1.1.1, 1.1.2, 1.1.3
+            expect(result).toContain('\\tag{1.1.1}');
+            expect(result).toContain('\\tag{1.1.2}');
+            expect(result).toContain('\\tag{1.1.3}');
+            expect(result).not.toContain('\\tag{.1}');
+            expect(result).not.toContain('\\tag{.2}');
+            expect(result).not.toContain('\\tag{.3}');
         });
     });
 });

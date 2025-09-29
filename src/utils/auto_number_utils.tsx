@@ -140,7 +140,7 @@ export function getAutoNumberInCursor(
 }
 
 /** 
- * @param content 
+ * @param content markdown content 
  * @param autoNumberingType absolute or relative 
  * @param maxDepth max level in settings   
  * @param delimiter 
@@ -305,20 +305,29 @@ function updateLevelCounters(
     headingLevel: number,
     maxDepth: number,
     type: AutoNumberingType
-): void {
+): number {
     const maxAllowedLevel = maxDepth - 1;
-    if (headingLevel > maxAllowedLevel) return;
+    const effectiveLevel = Math.min(headingLevel, maxAllowedLevel);
 
     // Handle absolute numbering case (title level jumps) 
     if (type === AutoNumberingType.Absolute) {
-        // Find the last non-zero level
-        for (let i = 0; i < headingLevel - 1; i++) {
+        // Find the parent level (not include current level)
+        for (let i = 0; i < effectiveLevel - 1; i++) {
             if (levelCounters[i] === 0) {
                 levelCounters[i] = 1;
             }
         }
     }
+    // keep all levels unchanged to autonumber correctly 
+    if (headingLevel > maxAllowedLevel) {
+        // keep the last level at least 1 for absolute numbering 
+        if (type === AutoNumberingType.Absolute && levelCounters[effectiveLevel - 1] === 0) {
+            levelCounters[effectiveLevel - 1] = 1;
+        }
+        return effectiveLevel;
+    }
     // Increment current level and reset deeper levels 
-    levelCounters[headingLevel - 1]++;
-    levelCounters.fill(0, headingLevel);
+    levelCounters[effectiveLevel - 1]++;
+    levelCounters.fill(0, effectiveLevel);
+    return effectiveLevel; 
 }
