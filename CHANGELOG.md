@@ -169,4 +169,5 @@ Version 1.2.6 - bug fixes
 - [x] (Critical) Fix Bug [#63](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/63), Now multiple citations in a row can update correctly  
 - [x] Add enhancement [#62](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/62), add option to manually clear cache in settings tab. 
 - [x] Fix bug  [#60](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/60), auto-number now correctly number with not enough depth in absolute numbering method. 
-- [ ] Fix bug [#56](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/56), width settings will be kept after restart. 
+- [x] Fix bug [#56](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/56),  width settings will be correctly rendered. 
+ 
