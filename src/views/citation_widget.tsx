@@ -142,7 +142,7 @@ export function renderEquationCitation(
         enableCrossFileCitation,
         fileCiteDelimiter,
         continuousRangeSymbol,
-        continuousDelimiters: continuousDelimiters,
+        continuousDelimiters,
         citationFormat,
         multiCitationDelimiterRender,
     } = plugin.settings;
