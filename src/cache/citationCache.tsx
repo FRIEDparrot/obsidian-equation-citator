@@ -1,4 +1,4 @@
-import { parseCitationsInMarkdown, CitationRef } from '@/utils/citation_utils';
+import { parseCitationsInMarkdown, CitationRef } from '@/utils/core/citation_utils';
 import { BaseCache } from '@/cache/baseCache';
 
 export class CitationCache extends BaseCache<CitationRef> {

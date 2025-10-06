@@ -18,8 +18,8 @@ export class TargetElComponent extends Component {
 }
 
 import { RenderedEquation } from "@/services/equation_services";
-import { EquationMatch, parseFirstEquationInMarkdown } from "@/utils/equation_utils";
-import { getLeafByElement } from "@/utils/workspace_utils";
+import { EquationMatch, parseFirstEquationInMarkdown } from "@/utils/parsers/equation_parser";
+import { getLeafByElement } from "@/utils/misc/workspace_utils";
 
 /**
  * Citaton Popover Class, render the equations in the popover 

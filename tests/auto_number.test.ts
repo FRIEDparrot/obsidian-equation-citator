@@ -1,4 +1,4 @@
-import { autoNumberEquations, AutoNumberingType } from '@/utils/auto_number_utils';
+import { autoNumberEquations, AutoNumberingType } from '@/utils/core/auto_number_utils';
 
 // Mock dependencies
 jest.mock('@/debug/debugger', () => ({

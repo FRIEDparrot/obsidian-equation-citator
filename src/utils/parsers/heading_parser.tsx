@@ -1,5 +1,5 @@
 import Debugger from "@/debug/debugger";
-import {headingRegex, codeBlockStartRegex } from "@/utils/regexp_utils";
+import {headingRegex, codeBlockStartRegex } from "@/utils/string_processing/regexp_utils";
 
 export interface Heading {
     level: number;

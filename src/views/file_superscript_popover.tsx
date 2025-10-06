@@ -1,7 +1,7 @@
 import { HoverParent, HoverPopover, TFile } from "obsidian";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
-import { FootNote } from "@/utils/footnote_utils";
+import { FootNote } from "@/utils/parsers/footnote_parser";
 
 export class FileSuperScriptPopover extends HoverPopover {
     constructor(

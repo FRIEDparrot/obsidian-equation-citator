@@ -3,7 +3,7 @@ import { autoNumberCurrentFileEquations, insertAutoNumberTag } from '@/func/auto
 import { MarkdownView } from 'obsidian';
 import { exportCurrentMarkdown } from '@/func/exportMarkdown';
 import { insertTextWithCursorOffset } from '@/func/insertTextOnCursor';
-import { createCitationString, createEquationTagString } from '@/utils/regexp_utils';
+import { createCitationString, createEquationTagString } from '@/utils/string_processing/regexp_utils';
 import { Notice } from 'obsidian';
 
 export default function registerCommands(plugin: EquationCitator) {

@@ -3,23 +3,23 @@ import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@
 import { syntaxTree } from "@codemirror/language";
 import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import Debugger from "@/debug/debugger";
-import { EquationCitatorSettings } from "@/settings/settingsTab";
+import { EquationCitatorSettings } from "@/settings/defaultSettings";
 import { editorInfoField, MarkdownView } from "obsidian";
 import {
     CitationRef,
     replaceCitationsInMarkdownWithSpan,
     SpanStyles,
     splitContinuousCitationTags
-} from "@/utils/citation_utils";
+} from "@/utils/core/citation_utils";
 import { CitationWidget } from "@/views/citation_widget";
 import { CitationCache } from "@/cache/citationCache";
-import { DISABLED_DELIMITER } from "@/utils/string_utils";
+import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
 import EquationCitator from "@/main";
 import { CitationPopover } from "@/views/citation_popover";
-import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/regexp_utils";
+import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/string_processing/regexp_utils";
 import { renderEquationCitation } from "@/views/citation_widget";
-import { find_array } from "@/utils/array_utils";
-import { fastHash } from "@/utils/hash_utils";
+import { find_array } from "@/utils/misc/array_utils";
+import { fastHash } from "@/utils/misc/hash_utils";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 

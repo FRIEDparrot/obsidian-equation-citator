@@ -1,4 +1,4 @@
-import { parseFootnoteInMarkdown } from '@/utils/footnote_utils';
+import { parseFootnoteInMarkdown } from '@/utils/parsers/footnote_parser';
 
 describe('parseFootnoteInMarkdown', () => {
   it('should parse a single valid footnote with custom label', () => {

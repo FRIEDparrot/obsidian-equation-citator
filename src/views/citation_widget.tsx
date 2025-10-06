@@ -7,8 +7,8 @@ import Debugger from "@/debug/debugger";
 import {
     combineContinuousCitationTags,
     splitFileCitation,
-} from "@/utils/citation_utils";
-import { DISABLED_DELIMITER } from "@/utils/string_utils";
+} from "@/utils/core/citation_utils";
+import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
 import { FileSuperScriptPopover } from "@/views/file_superscript_popover";
 
 /**

@@ -5,7 +5,7 @@ import {
   isInInlineMathEnvironment,
   findLastUnescapedDollar,
   removePairedBraces
-} from "@/utils/string_utils";
+} from "@/utils/string_processing/string_utils";
 
 describe('escapeString', () => {
   it('should escape backslashes', () => {

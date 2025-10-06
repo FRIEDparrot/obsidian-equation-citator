@@ -1,4 +1,4 @@
-import { pureFlinkFootnoteRegex, isCodeBlockToggle, footnoteRegex, pureWeblinkFootnoteRegex, pureBarelinkFootnoteRegex } from "@/utils/regexp_utils";
+import { pureFlinkFootnoteRegex, isCodeBlockToggle, footnoteRegex, pureWeblinkFootnoteRegex, pureBarelinkFootnoteRegex } from "@/utils/string_processing/regexp_utils";
 
 export interface FootNote {
     num: string;  // footnote number

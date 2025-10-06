@@ -1,4 +1,6 @@
-## Update Changelog for Equation Citator Plugin 
+# Update Changelog for Equation Citator Plugin 
+
+## 1.0 - 1.1 Version Series  
 
 ### Version 1.0.0 
 Version 1.0.0 - Initial release  
@@ -23,13 +25,13 @@ Other Fixes ([Pull Request #7298](https://github.com/obsidianmd/obsidian-release
 1. Fix: Use `app.fileManager.trashFile(file: TAbstractFile)` instead of `delete()` to delete files. 
 2. Change Color Setting Mechanisms to avoid directly setting style by Javascipt. All `setProperty()` are now removed. 
 3. All the setting callback functions are used `async` to ensure the settings save correctly. and add `Debugger.log` For Debugging. 
-4. Remove unsaft `innerHTML` operations  
+4. Remove unsafe `innerHTML` operations  
 
 ✨ New Features :  
 1. Auto-Complete Feature is now available! 
 2. Preview for Equations is now available in Reading mode!
 
-
+## 1.2 - 1.2.x Version Series 
 ### Version 1.2.0  
 Version 1.2.0 - functionally improvements.  
 
@@ -174,3 +176,25 @@ Version 1.2.6 - bug fixes
 🚀 Enhancements: 
 - [x] Add enhancement [#61](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/61), enhancement when autocomplete in continuous citations. 
 - [x] Add enhancement [#62](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/62), add option to manually clear cache in settings tab. 
+
+
+## 1.3 - 1.3.x Version Series
+### Version 1.3.0 
+
+Version 1.3.0 - New features, Refactors and main improvements.
+
+⭐ New Features :
+- [ ] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before.
+- [ ] **Citation for figures and tables** (from [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7) by Akucecomma) are now supported, titles, numbers and descriptions.  
+- [ ] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
+
+🏗️ Refactors : 
+- [ ] For settings part, refactor code and split it into mutlitple modules, now .
+
+🚀Enhancements : 
+- [ ] Add [enhancement #50](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/50), better behavior for relocating cursor after auto-number equations. 
+
+### 🚢 Comming Soon : 
+1. add citations of tables and figures with auto-number feature.
+2. auto-number for tables and figures.
+3. Check citations of figures and tables, all in one 😄

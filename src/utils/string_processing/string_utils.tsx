@@ -1,4 +1,4 @@
-import { isCodeBlockToggle as isCbToggle, headingRegex, singleLineEqBlockPattern } from "@/utils/regexp_utils";
+import { isCodeBlockToggle as isCbToggle, headingRegex, singleLineEqBlockPattern } from "@/utils/string_processing/regexp_utils";
 
 export const DISABLED_DELIMITER = `§¶∞&#&@∸∹≑≒≓≌≍≎≏⋤⋥≔≕≖≗≘≙≚≛≜≝≞≟≠≇≈≉≊≋⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱`
 
@@ -403,4 +403,8 @@ export function parseMarkdownLine(
         isEquationBlockEnd,
         cleanedLine
     };
+}export function containSafeCharAndNotBlank(s: string): boolean {
+    // disallow unsafe characters { }, $  and white space
+    return !(s.includes("{") || s.includes("}") || s.includes("$")) && s.trim().length > 0;
 }
+

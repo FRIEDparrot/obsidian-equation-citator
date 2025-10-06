@@ -1,6 +1,6 @@
 import { MarkdownView } from "obsidian";
-import { MarkdownFileProcessor } from '@/utils/fileProcessor';
-import { autoNumberEquations, getAutoNumberInCursor } from "@/utils/auto_number_utils";
+import { MarkdownFileProcessor } from '@/utils/misc/fileProcessor';
+import { autoNumberEquations, getAutoNumberInCursor } from "@/utils/core/auto_number_utils";
 import { TagRenamePair, TagRenameResult } from "@/services/tag_service";
 import { Notice } from "obsidian";
 import Debugger from "@/debug/debugger";

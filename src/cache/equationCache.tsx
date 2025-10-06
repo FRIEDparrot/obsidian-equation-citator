@@ -1,4 +1,4 @@
-import { EquationMatch, parseEquationsInMarkdown } from "@/utils/equation_utils";
+import { EquationMatch, parseEquationsInMarkdown } from "@/utils/parsers/equation_parser";
 import { BaseCache } from '@/cache/baseCache';
 
 export class EquationCache extends BaseCache<EquationMatch> {

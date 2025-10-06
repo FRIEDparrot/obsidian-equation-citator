@@ -1,9 +1,9 @@
 import EquationCitator from "@/main";
-import { FootNote } from "@/utils/footnote_utils";
-import { resolveBackLinks } from "@/utils/link_utils";
+import { FootNote } from "@/utils/parsers/footnote_parser";
+import { resolveBackLinks } from "@/utils/misc/fileLink_utils";
 import { TFile, Editor } from "obsidian";
-import { buildCrossFileCitation, CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags, splitFileCitation } from "@/utils/citation_utils";
-import { createCitationString } from "@/utils/regexp_utils";
+import { buildCrossFileCitation, CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags, splitFileCitation } from "@/utils/core/citation_utils";
+import { createCitationString } from "@/utils/string_processing/regexp_utils";
 import Debugger from "@/debug/debugger";
 
 export interface TagRenamePair {

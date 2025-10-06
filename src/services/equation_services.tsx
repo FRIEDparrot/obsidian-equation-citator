@@ -1,8 +1,8 @@
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
-import { FootNote } from "@/utils/footnote_utils";
-import { splitFileCitation } from "@/utils/citation_utils";
-import { EquationMatch } from "@/utils/equation_utils";
+import { FootNote } from "@/utils/parsers/footnote_parser";
+import { splitFileCitation } from "@/utils/core/citation_utils";
+import { EquationMatch } from "@/utils/parsers/equation_parser";
 
 export interface RenderedEquation {
     tag: string;  // tag of the equation 

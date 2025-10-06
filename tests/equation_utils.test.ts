@@ -2,7 +2,7 @@ import {
     parseEquationsInMarkdown,
     isValidEquationPart, 
     parseFirstEquationInMarkdown 
-} from "@/utils/equation_utils";
+} from "@/utils/parsers/equation_parser";
 
 describe('isValidEquationPart', () => {
     const validDelimiters = ['.', '-', ':', '_'];

@@ -1,6 +1,6 @@
-import { escapeString, removeBraces, removeInlineCodeBlocks } from "@/utils/string_utils";
-import { inlineMathPattern, isCodeBlockToggle, matchCitationsInLine, matchNestedCitation } from "@/utils/regexp_utils";
-import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/equation_utils";
+import { escapeString, removeBraces, removeInlineCodeBlocks } from "@/utils/string_processing/string_utils";
+import { inlineMathPattern, isCodeBlockToggle, matchCitationsInLine, matchNestedCitation } from "@/utils/string_processing/regexp_utils";
+import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/parsers/equation_parser";
 
 export interface CitationRef {
     label: string;

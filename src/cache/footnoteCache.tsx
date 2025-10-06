@@ -1,4 +1,4 @@
-import { FootNote, parseFootnoteInMarkdown } from "@/utils/footnote_utils";
+import { FootNote, parseFootnoteInMarkdown } from "@/utils/parsers/footnote_parser";
 import { BaseCache } from "@/cache/baseCache";
 
 export class FootNoteCache extends BaseCache<FootNote> {

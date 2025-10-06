@@ -3,11 +3,11 @@ import {
     MarkdownPostProcessorContext
 } from 'obsidian';
 import {
-    EquationCitatorSettings,
-    DEFAULT_SETTINGS,
     SettingsTabView,
     cleanUpStyles
-} from '@/settings/settingsTab';
+} from '@/settings/pages/settingsTab';
+import { DEFAULT_SETTINGS } from "./settings/defaultSettings";
+import { EquationCitatorSettings } from "./settings/defaultSettings";
 import { Extension, Compartment } from '@codemirror/state';
 import registerCommands from '@/commands/command_list';
 import registerRibbonButton from '@/ui/ribbon';
@@ -19,13 +19,13 @@ import {
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
 import { FootNoteCache } from '@/cache/footnoteCache';
-import { ColorManager } from '@/settings/colorManager';
+import { ColorManager } from '@/settings/styleManagers/colorManager';
 import { EquationServices } from '@/services/equation_services';
 import { TagService } from '@/services/tag_service';
 import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
 import { registerRightClickMenu } from '@/ui/rightButtonMenu';
 import { LineHashCache } from '@/cache/lineHashCache';
-import { WidgetSizeManager } from './settings/widgetSizeManager';
+import { WidgetSizeManager } from '@/settings/styleManagers/widgetSizeManager';
 
 
 export default class EquationCitator extends Plugin {

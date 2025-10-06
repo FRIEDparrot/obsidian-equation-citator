@@ -8,7 +8,7 @@ import {
   codeBlockStartRegex,
   isCodeBlockToggle,
   pureFlinkFootnoteRegex
-} from '@/utils/regexp_utils';
+} from '@/utils/string_processing/regexp_utils';
 
 describe('Regexp Utils Functions', () => {
   describe('codeBlockStartRegex', () => {

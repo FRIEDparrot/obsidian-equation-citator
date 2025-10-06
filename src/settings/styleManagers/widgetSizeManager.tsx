@@ -1,4 +1,4 @@
-import { EquationCitatorSettings } from "@/settings/settingsTab";
+import { EquationCitatorSettings } from "@/settings/defaultSettings";
 
 export enum WidgetSizeVariable {
     ContainerWidth = '--em-citation-popover-container-width',

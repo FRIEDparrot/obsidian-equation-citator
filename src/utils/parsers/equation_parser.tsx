@@ -1,5 +1,5 @@
-import { parseMarkdownLine } from "@/utils/string_utils";
-import { escapeRegExp, createEquationTagRegex, isCodeBlockToggle } from "@/utils/regexp_utils";
+import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
+import { escapeRegExp, createEquationTagRegex, isCodeBlockToggle } from "@/utils/string_processing/regexp_utils";
 
 /// This file contains utility functions for working with equations tag 
 /// and also process equation blocks 

@@ -8,7 +8,7 @@ import {
     replaceCitationsInMarkdownWithSpan,
     generateCitationSpans,
     extractAutoCompleteInputTag,
-} from '@/utils/citation_utils';
+} from '@/utils/core/citation_utils';
 
 describe('combineContinuousCitationTags', () => {
     const rangeSymbol = '~';

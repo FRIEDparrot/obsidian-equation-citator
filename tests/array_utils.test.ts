@@ -1,4 +1,4 @@
-import { find_array } from "@/utils/array_utils";
+import { find_array } from "@/utils/misc/array_utils";
 
 describe('find_array KMP Algorithm', () => {
     describe('Basic functionality', () => {

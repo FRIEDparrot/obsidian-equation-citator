@@ -28,6 +28,21 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
     padding-top: 0px;
 }
 
+.ec-settings-subpanel{
+    margin-left: 2px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    border-left: 3px solid var(--interactive-hover);
+    border-top: none;
+    border-bottom: none;
+    padding-top: 0px;
+}
+
+.ec-settings-subpanel hr {
+    display: none;
+}
+
 .ec-delimiter-input,
 .ec-multi-delimiter-input {
     height: 20px;

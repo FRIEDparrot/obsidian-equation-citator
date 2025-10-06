@@ -1,14 +1,14 @@
 import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView } from "obsidian";
 import { RenderedEquation } from "@/services/equation_services";
-import { findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvironment, removePairedBraces } from "@/utils/string_utils";
+import { findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvironment, removePairedBraces } from "@/utils/string_processing/string_utils";
 import { renderEquationWrapper, TargetElComponent } from "@/views/citation_popover";
 import { EditorView } from "@codemirror/view";
 import { isSourceMode } from "@/views/citation_render";
-import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/regexp_utils";
+import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/string_processing/regexp_utils";
 import EquationCitator from "@/main";
 import assert from "assert";
-import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/equation_utils";
-import { splitFileCitation } from "@/utils/citation_utils";
+import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/parsers/equation_parser";
+import { splitFileCitation } from "@/utils/core/citation_utils";
 
 
 const CITATION_PADDING = 5; // \\ref{ is 5 characters  

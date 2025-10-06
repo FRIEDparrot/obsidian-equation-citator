@@ -1,4 +1,4 @@
-import { resolveBackLinks, resolveForwardLinks } from "@/utils/link_utils";
+import { resolveBackLinks, resolveForwardLinks } from "@/utils/misc/fileLink_utils";
 
 describe('Link Resolver Functions', () => {
   // Mocked data structure for resolvedLinks
