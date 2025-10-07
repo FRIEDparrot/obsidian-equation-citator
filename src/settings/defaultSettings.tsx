@@ -54,7 +54,12 @@ export interface EquationCitatorSettings {
     citationWidgetColor: string[]; // Citation widget color for different types of citations  
     citationWidgetColorDark: string[]; // Citation widget color for different types of citations in dark mode 
     debugMode: boolean; // Optional setting for debug mode
-}export const DEFAULT_SETTINGS: EquationCitatorSettings = {
+    // settings UI
+    settingsDisplayMode?: "categorical" | "concise"; // settings tab display mode
+    basicSettingsKeys?: string[]; // keys shown in Basic section for concise mode
+    colorfulTitleEnabled?: boolean; // colorful gradient title
+}
+export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
     citationPopoverContainerWidth: 500, // Default to 370px for preview widget width 
     citationPopoverContainerHeight: 400, // Default to 400px for preview widget height 
@@ -96,6 +101,14 @@ export interface EquationCitatorSettings {
 
     citationWidgetColor: ["#ffffff", "#f8f9fa", "#f5f6f7", "#e9ecef", "#dee2e6"],
     citationWidgetColorDark: ["#1e1e1e", "#2d2d2d", "#252525", "#3a3a3a", "#404040"],
-    debugMode: false // debug mode is off by default (for set default, see debugger.tsx)
+    debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
+    // settings UI defaults
+    settingsDisplayMode: "concise",
+    basicSettingsKeys: [
+        "autoNumberDepth",
+        "citationPopoverContainerWidth",
+        "autoNumberNoHeadingPrefix",
+        "resetSettings"
+    ]
 };
 

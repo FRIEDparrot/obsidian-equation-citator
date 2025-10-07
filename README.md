@@ -1,7 +1,21 @@
-<h1> <center> Obsidian Equation Citator </center> </h1>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jersey+25&family=Knewave&family=Londrina+Outline&family=Special+Elite&family=Vast+Shadow&display=swap" rel="stylesheet">
+<h1> <center><div style="
+  font-size: 1.25em;
+  font-weight: bold;
+  background: linear-gradient(90deg, #ff7a7a, #ffd36b, #8be28b, #6bc1ff, #b68bff);
+  -webkit-background-clip: text;
+  font-family:  'Londrina Outline', sans-serif;
+  color: black;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+">
+  Obsidian Equation Citator 
+</div> </center> </h1>
 
 <center><span>
-  <img src="https://img.shields.io/badge/Latest%20Version-1.2.6-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest%20Version-1.3.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></center>
@@ -104,11 +118,13 @@ Suggest you available equations when adding citations and fill in the equation n
 
 Original PDF export in obsidian can fail to render citation, so a command `Make markdown copy to export PDF` is provided to make markdown for export to pdf correctly. 
 
-<center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:67%; max-height: 350px; " /></center>
+The cross-file citations will be rendered as normal cross-file link format, which ensures the citation sequence in PDF to be neat and correct. Following is the exporting result shown by foxit pdf reader😄
+
+<center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:100%; max-height: 350px; " /></center>
 
 ## Bugs & Suggestions
 
-Since it's a new plugin, some bugs or issues may still exist. If you encounter any, please provide the following information on the issue page (if this is a feature coming soon, please not comment on the issue page, but wait for the release update) : 
+Since it's a new plugin, but some bugs or issues may still exist. If you encounter any, please provide the following information on the issue page (if this is a feature coming soon, please not comment on the issue page, but wait for the release update) : 
 
 1.  A description of the bug or issue, along with steps to reproduce it.
 2.  The relevant markdown text that triggers the issue.  
@@ -123,6 +139,7 @@ Also, if u have any suggestion or question for this plugin, feel free to leave i
 
 > [!note] 
 > **Contributors and maintainers are always welcome!**
+> 
 >
 > I developed this plugin to help my daily work and follow my personal interests. It's totally free, I would be very glad if anyone can fork this repo and help me to maintain this plugin (since I'm busy during school time). 
 >

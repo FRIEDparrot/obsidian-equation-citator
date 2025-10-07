@@ -2,12 +2,9 @@ import {
     Plugin, MarkdownView,
     MarkdownPostProcessorContext
 } from 'obsidian';
-import {
-    SettingsTabView,
-    cleanUpStyles
-} from '@/settings/pages/settingsTab';
-import { DEFAULT_SETTINGS } from "./settings/defaultSettings";
-import { EquationCitatorSettings } from "./settings/defaultSettings";
+import { cleanUpStyles, SettingsTabView } from "@/settings/SettingsTab";
+import { DEFAULT_SETTINGS } from "@/settings/defaultSettings";
+import { EquationCitatorSettings } from "@/settings/defaultSettings";
 import { Extension, Compartment } from '@codemirror/state';
 import registerCommands from '@/commands/command_list';
 import registerRibbonButton from '@/ui/ribbon';
@@ -69,8 +66,8 @@ export default class EquationCitator extends Plugin {
     }
 
     onunload() {
-        this.destroyCaches();
         cleanUpStyles();
+        this.destroyCaches();
     }
 
     async loadSettings() {
@@ -134,6 +131,18 @@ export default class EquationCitator extends Plugin {
         await this.saveData(this.settings);
         this.upDateEditorExtensions();
     }
+    /**
+     * Updates the CodeMirror editor extensions for all open views in the workspace.
+     *
+     * This method creates a new math citation extension using the current settings,
+     * then iterates over all workspace leaves to update their CodeMirror instances
+     * with the new extension. It also dispatches an empty change to trigger a refresh
+     * of each editor.
+     *
+     * @remarks
+     * - Assumes that each view's editor exposes a `cm` property referencing the CodeMirror instance.
+     * - Uses a compartment to reconfigure the extension dynamically.
+     */
     upDateEditorExtensions() {
         // create a new extension with the new settings
         const newExt = createMathCitationExtension(this);

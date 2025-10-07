@@ -302,6 +302,7 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 /* element styles  in settings tab */
 .ec-settings-title,
 .ec-settings-header {
+  font-size: 20px;
   margin-top: 15px;
   margin-bottom: 10px;
   font-weight: bold;
@@ -309,11 +310,65 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 
 .ec-settings-title {
-  font-size: 25px;
+  font-size: 28px;
+}
+
+/* Colorful gradient title (overridable) */
+.ec-title-colorful {
+  position: relative;
+  display: inline-block;
+  font-weight: bold;
+  font-size: 2.5em;
+  text-align: center;
+  color: transparent;
+  background: none;
+}
+
+.ec-header-container {
+  position: relative;
+  width: 100%;
+  height: 3em;
+  margin-bottom: 8px;
+  background-color: inherit;
+  overflow: hidden;
 }
 
 .ec-settings-header {
-  font-size: 20px;
+  font-size: 10px;
+  width: 100%;
+}
+
+.ec-header-background, .ec-header-foreground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  font-weight: bold;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.ec-header-background {
+  /* Colorful text as background */
+  background: linear-gradient(90deg, #ff7a7a, #ffd36b, #8be28b, #6bc1ff, #b68bff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -moz-background-clip: text;
+  -moz-text-fill-color: transparent;
+  z-index: 1;
+}
+
+.ec-header-background .theme-dark {
+  background: linear-gradient(90deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee, #d4fc79);
 }
 
 .ec-settings-nodelimter {
@@ -355,6 +410,123 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 
 .ec-multi-delimiter-input {
   width: 120px;
+}
+
+.ec-settings-tip {
+  font-size: 14px;
+  color: var(--interactive-accent);
+  margin-top: -8px;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+/* Settings toolbar */
+.ec-settings-toolbar {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 0 6px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 12px;
+}
+
+/* Group selector chips */
+.ec-settings-group-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+}
+
+.ec-chip:hover {
+  background: var(--background-secondary-alt);
+}
+
+.ec-chip .ec-chip-text {
+  display: none;
+}
+
+.ec-chip.is-active .ec-chip-text {
+  display: inline;
+}
+
+.ec-chip .ec-chip-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.ec-chip .ec-chip-text {
+  font-size: 12px;
+}
+
+/* Expandable categories */
+.ec-settings-category {
+  margin: 10px 0 14px 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ec-settings-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--background-secondary);
+  cursor: pointer;
+}
+
+.ec-settings-category-header.is-collapsed {
+  opacity: 0.85;
+}
+
+.ec-settings-category-title {
+  font-weight: 600;
+}
+
+.ec-settings-category-content {
+  padding: 8px 10px 10px 10px;
+}
+
+.ec-settings-category-content.is-collapsed {
+  display: none;
+}
+
+/* Concise customize area */
+.ec-settings-customize {
+  border: 1px dashed var(--background-modifier-border);
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+/* Concise titles with theme-aware color */
+.theme-light .ec-concise-title {
+  color: orange;
+}
+
+.theme-dark .ec-concise-title {
+  color: var(--interactive-accent);
+}
+
+/* Single-category content wrapper */
+.ec-category-content-holder {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 8px 10px;
 }
 
 .ec-settings-warning {

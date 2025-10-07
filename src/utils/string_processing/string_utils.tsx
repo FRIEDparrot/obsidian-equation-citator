@@ -30,7 +30,7 @@ export function validateDelimiter(delimiter: string): boolean {
     return true;
 }
 
-export function validLetterPrefix(prefix: string): boolean {
+export function validateLetterPrefix(prefix: string): boolean {
     return /^[a-zA-Z]+$/.test(prefix);
 }
 
