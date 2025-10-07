@@ -1,18 +1,5 @@
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jersey+25&family=Knewave&family=Londrina+Outline&family=Special+Elite&family=Vast+Shadow&display=swap" rel="stylesheet">
-<h1> <center><div style="
-  font-size: 1.25em;
-  font-weight: bold;
-  background: linear-gradient(90deg, #ff7a7a, #ffd36b, #8be28b, #6bc1ff, #b68bff);
-  -webkit-background-clip: text;
-  font-family:  'Londrina Outline', sans-serif;
-  color: black;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-">
-  Obsidian Equation Citator 
-</div> </center> </h1>
+
+<center><img src="./img/Equation_Citator_header.png" width="65%"></center>
 
 <center><span>
   <img src="https://img.shields.io/badge/Latest%20Version-1.3.0-blue" alt="Release">
