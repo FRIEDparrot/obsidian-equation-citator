@@ -1,16 +1,16 @@
+<span width="100%"><center><img src="./img/Equation_Citator_header.png" width="65%"></center></span>
 
-<center><img src="./img/Equation_Citator_header.png" width="65%"></center>
-
-<center><span>
+<span width="100%"><center><span>
   <img src="https://img.shields.io/badge/Latest%20Version-1.3.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
-</span></center>
+</span></center></span>
 
-<center>
+<span width="100%"><center>
     <div><small> First Release : Aug 3, 2025       Last Updated : Sep 30, 2025 </small></div>
-</center>
-<p></p>
+</center></span>
+
+---
 
 **5 mins Quick Start** : see [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) 
 
