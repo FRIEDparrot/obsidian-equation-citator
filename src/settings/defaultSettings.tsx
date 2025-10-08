@@ -1,4 +1,15 @@
 import { AutoNumberingType } from "@/utils/core/auto_number_utils";
+import { CitationSettingsTab } from "./pages/citationSettingsTab";
+import EquationCitator from "@/main";
+
+export interface SettingsMetadata {
+    name: string;
+    desc: string; // description 
+    type: "string" | "number" | "boolean" | "select" | "color" | "array";
+    isSubPanel?: boolean; // itmay be a subpanel  
+    renderCallback?: (el: HTMLElement, plugin : EquationCitator) => void; // optional callback to render the value in the UI
+    favoriate?: boolean; // whether to show this setting in the basic section 
+}
 
 export interface EquationCitatorSettings {
     // citation settings 
@@ -16,7 +27,7 @@ export interface EquationCitatorSettings {
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
     multiCitationDelimiterRender: string; // Rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: boolean; // Render continuous citations in compat format 
-    renderLocalFileName: boolean; // Render local file name for citations
+    enableRenderLocalFileName: boolean; // Render local file name for citations
 
     continuousRangeSymbol: string; // Range symbol for continuous citations in a single cite 
     continuousDelimiters: string; // Delimiter for continuous citations in a single cite 
@@ -55,10 +66,11 @@ export interface EquationCitatorSettings {
     citationWidgetColorDark: string[]; // Citation widget color for different types of citations in dark mode 
     debugMode: boolean; // Optional setting for debug mode
     // settings UI
-    settingsDisplayMode?: "categorical" | "concise"; // settings tab display mode
+    settingsDisplayMode: "categorical" | "concise"; // settings tab display mode
     basicSettingsKeys?: string[]; // keys shown in Basic section for concise mode
     colorfulTitleEnabled?: boolean; // colorful gradient title
 }
+
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
     citationPopoverContainerWidth: 500, // Default to 370px for preview widget width 
@@ -74,7 +86,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableContinuousCitation: true, // Default to true for convenience 
     continuousDelimiters: ". - : \\_", // Default delimiter for continuous citations in a single cite
     continuousRangeSymbol: "~", // Default range symbol for continuous citations in a single cite 
-    renderLocalFileName: true, // Default to true 
+    enableRenderLocalFileName: true, // Default to true 
 
     enableCrossFileCitation: true, // Default to true
     fileCiteDelimiter: "^", // Default delimiter for file citations 
@@ -112,3 +124,53 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     ]
 };
 
+export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
+    enableCitationInSourceMode : {
+        name: "Enable in Source Mode",
+        desc: "Enable citation in source mode",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.enableCitationInSourceMode(el, plugin);
+        }
+    },
+    enableRenderLocalFileName: {
+        name: "Render Local File Name in Equation Preview",
+        desc: "Render local file name for citations",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.enableRenderLocalFileName(el, plugin);
+        }
+    },
+    citationPrefix : {
+        name: "Citation Prefix",
+        desc: "Prefix used for citations, e.g. 'eq:' means use `\\ref{eq:1.1}` for citation",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.citationPrefix(el, plugin);
+        }
+    },
+    citationFormat : {
+        name: "Citation Display Format",
+        desc: "Display format for citations, use '#' for equation number",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.citationFormat(el, plugin);
+        }
+    },
+    multiCitationDelimiter : {
+        name: "Multiple Citation Delimiter",
+        desc: "Delimiter used for multiple citations, e.g. comma for '\\ref{1.2, 1.3}'",
+        type: "string",
+        renderCallback: (el, plugin) => { 
+            CitationSettingsTab.multiCitationDelimiter(el, plugin);
+        }
+    },
+    multiCitationDelimiterRender : {
+        name: "Multiple Citation Delimiter Render",
+        desc: "Delimiter shown between citations when rendered (purely visual)",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.multiCitationDelimiterRender(el, plugin);
+        }
+    },
+}

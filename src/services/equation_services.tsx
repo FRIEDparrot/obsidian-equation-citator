@@ -36,7 +36,7 @@ export class EquationServices {
                 ? this.resolveCrossFileRef(sourcePath, crossFile, footnotes)
                 : {
                     path: sourcePath,
-                    filename: this.plugin.settings.renderLocalFileName ?
+                    filename: this.plugin.settings.enableRenderLocalFileName ?
                         this.plugin.app.workspace.getActiveFile()?.name || null : null
                 };
             return {

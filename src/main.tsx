@@ -23,6 +23,7 @@ import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
 import { registerRightClickMenu } from '@/ui/rightButtonMenu';
 import { LineHashCache } from '@/cache/lineHashCache';
 import { WidgetSizeManager } from '@/settings/styleManagers/widgetSizeManager';
+import { isUpdateAvailable } from './api/updateChecking';
 
 
 export default class EquationCitator extends Plugin {
@@ -39,7 +40,12 @@ export default class EquationCitator extends Plugin {
 
     private autoCompleteSuggest: AutoCompleteSuggest;
     private mathCitationCompartment = new Compartment();
-
+    
+    async loadSettings() {
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        this.upDateEditorExtensions();
+    }
+    
     async onload() {
         await this.loadSettings();
         ColorManager.updateAllColors(this.settings);
@@ -69,12 +75,7 @@ export default class EquationCitator extends Plugin {
         cleanUpStyles();
         this.destroyCaches();
     }
-
-    async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-        this.upDateEditorExtensions();
-    }
-
+    
     loadCaches() {
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
@@ -131,6 +132,7 @@ export default class EquationCitator extends Plugin {
         await this.saveData(this.settings);
         this.upDateEditorExtensions();
     }
+
     /**
      * Updates the CodeMirror editor extensions for all open views in the workspace.
      *
@@ -164,4 +166,7 @@ export default class EquationCitator extends Plugin {
         });
     }
 
+    async checkForUpdates(showNotice: boolean) {
+        await isUpdateAvailable(this, showNotice);
+    }
 }

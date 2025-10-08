@@ -12,11 +12,11 @@
 
 ---
 
-**5 mins Quick Start** : see [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) 
+🚀 **5 mins Quick Start** : see [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) 
 
-**Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) 
+✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) 
 
-**Video Tutorial**: I'll make a video tutorial if this plugin has 5000 downloads or this repo gets 50 stars.
+**Video Tutorial**: Will coming if this plugin has 5000 downloads or this repo gets 50 stars.
 
 ## How to use this plugin? 
 

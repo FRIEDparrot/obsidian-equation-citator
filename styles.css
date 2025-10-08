@@ -303,14 +303,22 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 .ec-settings-title,
 .ec-settings-header {
   font-size: 20px;
-  margin-top: 15px;
-  margin-bottom: 10px;
+  margin-top: 0px;
+  margin-bottom: 5px;
   font-weight: bold;
-  color: orange;
 }
 
-.ec-settings-title {
-  font-size: 28px;
+/* Concise titles with theme-aware color */
+.ec-concise-title {
+  color: orange;
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 10px;
+  display: flex;
+}
+
+.theme-dark .ec-concise-title {
+  color: var(--interactive-accent);
 }
 
 /* Colorful gradient title (overridable) */
@@ -324,7 +332,7 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   background: none;
 }
 
-.ec-header-container {
+.ec-settings-header-container {
   position: relative;
   width: 100%;
   height: 3em;
@@ -338,7 +346,8 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   width: 100%;
 }
 
-.ec-header-background, .ec-header-foreground {
+.ec-settings-header-background,
+.ec-settings-header-foreground {
   position: absolute;
   top: 0;
   left: 0;
@@ -355,9 +364,9 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   pointer-events: none;
 }
 
-.ec-header-background {
+.ec-settings-header-background {
   /* Colorful text as background */
-  background: linear-gradient(90deg, #ff7a7a, #ffd36b, #8be28b, #6bc1ff, #b68bff);
+  background: linear-gradient(45deg, #7a1fff, #1f6bff, #1fc1a6, #ffd36b, #ff7a7a);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -367,8 +376,10 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   z-index: 1;
 }
 
-.ec-header-background .theme-dark {
-  background: linear-gradient(90deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee, #d4fc79);
+.theme-dark .ec-settings-header-background {
+  background: linear-gradient(45deg, #b68bff, #6bc1ff, #ff7a7a, #ffd36b, #8be28b);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .ec-settings-nodelimter {
@@ -420,16 +431,56 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   font-style: italic;
 }
 
-/* Settings toolbar */
-.ec-settings-toolbar {
+.ec-settings-toolbar-wrapper {
   display: flex;
   width: 100%;
   align-items: center;
   justify-content: center;
+}
+
+/* Settings toolbar */
+.ec-settings-toolbar {
+  display: flex;
+  width: 90%;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
   gap: 20px;
-  padding: 10px 0 6px 0;
-  border-bottom: 1px solid var(--background-modifier-border);
-  margin-bottom: 12px;
+  padding: 8px 0 6px 0;
+  margin-bottom: 0px;
+}
+
+.ec-settings-search-textbox-wrapper {
+  display: flex;
+  flex-direction: row;
+}
+.ec-settings-search-textbox-wrapper .ec-settings-search-textbox {
+  position: relative;
+  border-top: none;
+  display: flex;
+  align-items: center;
+  margin-left: 0px;
+  width: 100%;
+  height: 33px;
+}
+.ec-settings-search-textbox-wrapper .ec-search-icon {
+  position: absolute;
+  margin-left: 23px;
+  margin-top: 8px;
+  pointer-events: none;
+  font-size: 1.1em;
+  color: var(--text-muted);
+}
+
+.ec-settings-icon {
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  margin-left: 5px;
+  margin-top: 2.5px;
+}
+.ec-settings-icon :hover {
+  color: rgb(136, 135, 235);
 }
 
 /* Group selector chips */
@@ -449,6 +500,10 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   border: 1px solid var(--background-modifier-border);
   background: var(--background-secondary);
   color: var(--text-normal);
+}
+
+.ec-settings-basic-settings-panel {
+  background-color: yellow;
 }
 
 .ec-chip:hover {
@@ -511,15 +566,6 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   padding: 8px;
   border-radius: 6px;
   margin-bottom: 10px;
-}
-
-/* Concise titles with theme-aware color */
-.theme-light .ec-concise-title {
-  color: orange;
-}
-
-.theme-dark .ec-concise-title {
-  color: var(--interactive-accent);
 }
 
 /* Single-category content wrapper */

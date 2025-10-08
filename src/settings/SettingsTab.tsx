@@ -1,5 +1,5 @@
 import EquationCitator from "@/main";
-import { PluginSettingTab, App, Setting, Notice } from "obsidian";
+import { PluginSettingTab, App, Setting, Notice, setIcon} from "obsidian";
 import { DEFAULT_SETTINGS } from "./defaultSettings";
 import { ColorManager } from "./styleManagers/colorManager";
 import { WidgetSizeManager, WidgetSizeVariable } from "./styleManagers/widgetSizeManager";
@@ -10,11 +10,17 @@ import { addStyleSettingsTab } from "./pages/styleSettingsTab";
 import { addOtherSettingsTab } from "./pages/OtherSettingsTab";
 import { addCacheSettingsTab } from "./pages/cacheSettingsTab";
 import { validateLetterPrefix } from "@/utils/string_processing/string_utils";
+import { createFoldablePanel } from "./extensions/foldablePanel";
 
 //#region Style Settings Utilities
 export function resetStyles(): void {
     ColorManager.resetAllColors(DEFAULT_SETTINGS);
     WidgetSizeManager.resetAllSizes(DEFAULT_SETTINGS);
+}
+
+export interface UserSettingGroupConfig {
+    basic ?: string[];
+    advanced?: string[];
 }
 
 /**
@@ -42,33 +48,54 @@ export class SettingsTabView extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        // const divLine = containerEl.createDiv({cls:"ec-settings-title ec-title-colorful"});
-        // const colorfulBackground = divLine.createDiv()
-        const titleContainer = containerEl.createDiv({ cls: "ec-header-container" });
+        // render title 
+        const titleContainer = containerEl.createDiv({ cls: "ec-settings-header-container" });
         const settingsTitleText = `Equation Citator v${this.plugin.manifest.version}`;
 
-        titleContainer.createEl("span", { text: settingsTitleText, cls: "ec-header-background" });
-        titleContainer.createEl("span", { text: settingsTitleText, cls: "ec-header-foreground" });
-        
+        titleContainer.createEl("span", { text: settingsTitleText, cls: "ec-settings-header-background" });
+        titleContainer.createEl("span", { text: settingsTitleText, cls: "ec-settings-header-foreground" });
+
         // Toolbar with mode toggle and group selector placeholder
-        const toolbar = containerEl.createEl("div", { cls: "ec-settings-toolbar" });
-    
+        const toolbar_wrapper = containerEl.createDiv({ cls: "ec-settings-toolbar-wrapper" })
+        const toolbar = toolbar_wrapper.createEl("div", { cls: "ec-settings-toolbar" });
+
         // Mode toggle
-        new Setting(toolbar)
-            .setName("Settings Display Mode")
+        const modeDiv = toolbar.createDiv({ cls: "ec-settings-mode-toggle" });
+        new Setting(modeDiv)
+            .setName("Display")
             .addDropdown((dd) => {
-                dd.addOption("concise", "Concise");
-                dd.addOption("categorical", "Categorical");
-                dd.setValue(this.plugin.settings.settingsDisplayMode ?? "categorical");
+                dd.addOption(SettingsDisplayMode.Concise, "Concise");
+                dd.addOption(SettingsDisplayMode.Categorical, "Categorical");
+                dd.setValue(this.plugin.settings.settingsDisplayMode ?? SettingsDisplayMode.Concise);
                 dd.onChange(async (value) => {
-                    this.plugin.settings.settingsDisplayMode = value as "categorical" | "concise";
+                    this.plugin.settings.settingsDisplayMode = value as SettingsDisplayMode.Concise | SettingsDisplayMode.Categorical;
                     await this.plugin.saveSettings();
                     this.display();
                 });
             });
 
-        const mode = this.plugin.settings.settingsDisplayMode ?? "categorical";
+        // Update check button 
+        const updateDiv = toolbar.createDiv({ cls: "ec-settings-update-check" });
+        new Setting(updateDiv)
+            .setName("Check Updates")
+            .addButton((btn) => {
+                btn.setButtonText("Check Now");
+                btn.setIcon("refresh-cw");
+                btn.onClick(async () => {
+                    await this.plugin.checkForUpdates(true);
+                });
+            });
 
+        const searchDiv = toolbar.createDiv({ cls: "ec-settings-search-textbox-wrapper" })
+        const searchSetting = new Setting(searchDiv)
+        const searchIcon = searchDiv.createDiv({cls: "ec-search-icon"})
+        setIcon(searchIcon, 'search')
+        searchSetting.addSearch((text) => {
+            text.inputEl.classList.add("ec-settings-search-textbox")
+            text.setPlaceholder("Search settings")
+
+        })
+        const mode = this.plugin.settings.settingsDisplayMode ?? "concise";
         if (mode === "categorical") {
             this.renderCategorical(containerEl);
         } else {
@@ -115,7 +142,7 @@ export class SettingsTabView extends PluginSettingTab {
             if ((this.activeCategoryId ?? groups[0].id) === g.id) chip.classList.add("is-active");
         });
     }
-
+    
     private renderCategorical(containerEl: HTMLElement) {
         const groups = [
             { id: "ec-group-citation", title: "Citation", icon: "rocket" },
@@ -147,12 +174,8 @@ export class SettingsTabView extends PluginSettingTab {
         // initial render
         renderActive();
     }
-
-    private renderConcise(containerEl: HTMLElement) {
-        // Basic Section
-        containerEl.createEl("h2", { text: "Basic Settings", cls: "ec-settings-title ec-concise-title" });
-
-        // Auto Numbering Depth
+    
+    private renderConcideBasicSettings(containerEl: HTMLElement){
         new Setting(containerEl)
             .setName("Auto Numbering Depth")
             .setDesc("Maximum depth for equation numbers")
@@ -180,7 +203,7 @@ export class SettingsTabView extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 });
             });
-        
+
         // Auto-number No Heading Prefix
         new Setting(containerEl)
             .setName("Auto Numbering No Heading Prefix")
@@ -220,28 +243,36 @@ export class SettingsTabView extends PluginSettingTab {
                 });
             });
 
+    }
+
+    private renderConcise(containerEl: HTMLElement) {
+        createFoldablePanel(containerEl, "Basic Settings", (panel) => { this.renderConcideBasicSettings(panel) }, true);
+        createFoldablePanel(containerEl, "Advanced Settings", (panel) => { /* placeholder for future behavior */ }, false);
+        
         // Advanced Section
-        containerEl.createEl("h2", { text: "Advanced Settings", cls: "ec-settings-title ec-concise-title" });
-
+        // const advancedPanel = containerEl.createDiv({ cls: "ec-settings-advanced-settings-panel" });
+        // createFoldablePanel(advancedPanel, "Advanced Settings", () => { /* placeholder for future behavior */ }, false);
+ 
+        
         // Simple selector to promote settings (placeholder for future drag/drop)
-        const customize = containerEl.createEl("div", { cls: "ec-settings-customize" });
-        new Setting(customize)
-            .setName("Customize Basic Settings")
-            .setDesc("Select categories to include in Basic section (future: drag & drop)")
-            .addDropdown((dd) => {
-                dd.addOption("none", "None");
-                dd.addOption("citation", "Citation");
-                dd.addOption("auto", "Auto Numbering");
-                dd.addOption("style", "Style");
-                dd.onChange(async () => { /* placeholder for future behavior */ });
-            });
+        // const customize = containerEl.createEl("div", { cls: "ec-settings-customize" });
+        // new Setting(customize)
+        //     .setName("Customize Basic Settings")
+        //     .setDesc("Select categories to include in Basic section (future: drag & drop)")
+        //     .addDropdown((dd) => {
+        //         dd.addOption("none", "None");
+        //         dd.addOption("citation", "Citation");
+        //         dd.addOption("auto", "Auto Numbering");
+        //         dd.addOption("style", "Style");
+        //         dd.onChange(async () => { /* placeholder for future behavior */ });
+        //     });
 
-        // Render all settings below as advanced
-        addBasicCitationSettingsTab(containerEl, this.plugin);
-        addAutoNumberSettingsTab(containerEl, this.plugin);
-        addStyleSettingsTab(containerEl, this.plugin);
-        addPdfExportSettingsTab(containerEl, this.plugin);
-        addCacheSettingsTab(containerEl, this.plugin);
-        addOtherSettingsTab(containerEl, this.plugin, this);
+        // // Render all settings below as advanced
+        // addBasicCitationSettingsTab(containerEl, this.plugin);
+        // addAutoNumberSettingsTab(containerEl, this.plugin);
+        // addStyleSettingsTab(containerEl, this.plugin);
+        // addPdfExportSettingsTab(containerEl, this.plugin);
+        // addCacheSettingsTab(containerEl, this.plugin);
+        // addOtherSettingsTab(containerEl, this.plugin, this);
     }
 }
