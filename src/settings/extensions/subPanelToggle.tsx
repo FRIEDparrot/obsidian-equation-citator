@@ -1,12 +1,24 @@
 import { Setting } from "obsidian";
 
-export  function addSubPanelToggle(
+
+/**
+ * 
+ * @param setting 
+ * @param initVal 
+ * @param onToggleChange 
+ * @param subPanelCreationCallback 
+ * @param reverse 
+ * @param insertAfter 
+ * @param renderPanel when set to false, the option is used as a common toggle without subpanels 
+ */
+export function addSubPanelToggle(
     setting: Setting,
     initVal: boolean,
     onToggleChange: (value: boolean) => void,
     subPanelCreationCallback: (panel: HTMLElement) => void,
+    renderPanel = true, // optional: render subpanel initially 
     reverse = false,
-    insertAfter = true // optional: place subpanel after settingEl
+    insertAfter = true, // optional: place subpanel after settingEl
 ) {
     let subPanel : HTMLElement| null = null;
     
@@ -14,7 +26,7 @@ export  function addSubPanelToggle(
     setting.addToggle((toggle) => {
         const parent = setting.settingEl.parentElement;
         const createSubPanel = (value: boolean) => {
-            if (value && parent) {
+            if (renderPanel && value && parent && !subPanel) {
                 subPanel = document.createElement("div");
                 subPanel.classList.add("ec-settings-subpanel");
                 if (insertAfter) {

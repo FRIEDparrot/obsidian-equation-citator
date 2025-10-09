@@ -24,6 +24,7 @@ import { registerRightClickMenu } from '@/ui/rightButtonMenu';
 import { LineHashCache } from '@/cache/lineHashCache';
 import { WidgetSizeManager } from '@/settings/styleManagers/widgetSizeManager';
 import { isUpdateAvailable } from './api/updateChecking';
+import Debugger from './debug/debugger';
 
 
 export default class EquationCitator extends Plugin {
@@ -43,6 +44,7 @@ export default class EquationCitator extends Plugin {
     
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        Debugger.debugMode = this.settings.debugMode;  // set debug mode from settings 
         this.upDateEditorExtensions();
     }
     

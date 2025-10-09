@@ -3,14 +3,15 @@ import { PluginSettingTab, App, Setting, Notice, setIcon} from "obsidian";
 import { DEFAULT_SETTINGS } from "./defaultSettings";
 import { ColorManager } from "./styleManagers/colorManager";
 import { WidgetSizeManager, WidgetSizeVariable } from "./styleManagers/widgetSizeManager";
-import { addBasicCitationSettingsTab } from "./pages/citationSettingsTab";
-import { addAutoNumberSettingsTab } from "./pages/autoNumberingSettingsTab";
+
 import { addPdfExportSettingsTab } from "./pages/pdfExportSettingsTab";
 import { addStyleSettingsTab } from "./pages/styleSettingsTab";
 import { addOtherSettingsTab } from "./pages/OtherSettingsTab";
 import { addCacheSettingsTab } from "./pages/cacheSettingsTab";
 import { validateLetterPrefix } from "@/utils/string_processing/string_utils";
 import { createFoldablePanel } from "./extensions/foldablePanel";
+import { addCitationSettingsTab } from "./pages/citationSettingsTab";
+import { addAutoNumberSettingsTab } from "./pages/autoNumberSettingsTab";
 
 //#region Style Settings Utilities
 export function resetStyles(): void {
@@ -163,14 +164,14 @@ export class SettingsTabView extends PluginSettingTab {
         const renderActive = () => {
             content.empty();
             const activeId = this.activeCategoryId ?? groups[0].id;
-            if (activeId === "ec-group-citation") addBasicCitationSettingsTab(content, this.plugin);
+            if (activeId === "ec-group-citation") addCitationSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-auto") addAutoNumberSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-style") addStyleSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-pdf") addPdfExportSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-cache") addCacheSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-other") addOtherSettingsTab(content, this.plugin, this);
         };
-
+        
         // initial render
         renderActive();
     }

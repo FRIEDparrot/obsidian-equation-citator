@@ -1,26 +1,8 @@
 import { Notice, Setting } from "obsidian";
 import { addSubPanelToggle } from "@/settings/extensions/subPanelToggle";
 import { validateDelimiter, validateEquationDisplayFormat, containSafeCharAndNotBlank } from "@/utils/string_processing/string_utils";
-import { WidgetSizeManager, WidgetSizeVariable } from "../styleManagers/widgetSizeManager";
 import EquationCitator from "@/main";
 import { SETTINGS_METADATA } from "../defaultSettings";
-
-
-export const CITATION_SETTINGS_NAMES = {
-    EnableCitationInSourceMode: "Enable in Source Mode",
-    CitationPrefix: "Citation Prefix",
-    CitationFormat: "Citation Display Format",
-    MultiCitationDelimiter: "Multi-Citation Delimiter",
-    MultiCitationRenderDelimiter: "Multi-Citation Render Delimiter",
-    EnableContinuousCitation: "Enable Continuous Citation",
-    ContinuousRangeSymbol: "Continuous Range Symbol",
-    ContinuousDelimiters: "Continuous Delimiters",
-    EnableCrossFileCitation: "Enable Cross-File Citation",
-    FileCiteDelimiter: "File Citation Delimiter",
-    FileSuperScriptColor: "File SuperScript Color",
-    FileSuperScriptHoverColor: "File SuperScript Hover Color",
-    CitationColorInPdf: "Citation Color in PDF"
-}
 
 /**
  * All render functions for each setting in the citation settings tab.  
@@ -125,8 +107,8 @@ export const CitationSettingsTab = {
 
     multiCitationDelimiterRender(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
-            .setName("Multi-Citation Render Delimiter")
-            .setDesc("Delimiter shown between citations when rendered (purely visual, e.g. ', ').")
+            .setName(SETTINGS_METADATA.multiCitationDelimiterRender.name)
+            .setDesc(SETTINGS_METADATA.multiCitationDelimiterRender.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder(", ");
@@ -141,10 +123,31 @@ export const CitationSettingsTab = {
             });
     },
 
+    //#region  Continuous citation settings Groups  
+    enableContinuousCitation(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = true) {
+        const renderContinuousCitationSetting = new Setting(containerEl);
+        renderContinuousCitationSetting.setName(SETTINGS_METADATA.enableContinuousCitation.name)
+            .setDesc(SETTINGS_METADATA.enableContinuousCitation.desc);
+
+        addSubPanelToggle(
+            renderContinuousCitationSetting,
+            plugin.settings.enableContinuousCitation,
+            async (value) => {
+                plugin.settings.enableContinuousCitation = value;
+                await plugin.saveSettings();
+            },
+            (panel) => {
+                CitationSettingsTab.continuousRangeSymbol(panel, plugin);
+                CitationSettingsTab.continuousDelimiters(panel, plugin);
+            },
+            renderSubpanel
+        );
+    },
+
     continuousRangeSymbol(panel: HTMLElement, plugin: EquationCitator) {
         new Setting(panel)
-            .setName("Continuous Citation Range Symbol")
-            .setDesc("Range symbol for continuous citations in a single cite")
+            .setName(SETTINGS_METADATA.continuousRangeSymbol.name)
+            .setDesc(SETTINGS_METADATA.continuousRangeSymbol.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder("~");
@@ -163,11 +166,11 @@ export const CitationSettingsTab = {
                 };
             });
     },
-
-    continuousRangeDelimiters(panel: HTMLElement, plugin: EquationCitator) {
+    
+    continuousDelimiters(panel: HTMLElement, plugin: EquationCitator) {
         new Setting(panel)
-            .setName("Continuous Citation Delimiter")
-            .setDesc("Delimiter for recognition of continuous citations, split by space")
+            .setName(SETTINGS_METADATA.continuousDelimiters.name)
+            .setDesc(SETTINGS_METADATA.continuousDelimiters.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-multi-delimiter-input");
                 text.setPlaceholder("e.g. '. - : \\_'");
@@ -188,24 +191,50 @@ export const CitationSettingsTab = {
                 };
             });
     },
+    //#endregion 
 
-    enableContinuousCitation(containerEl: HTMLElement, plugin: EquationCitator) {
-        const renderContinuousCitationSetting = new Setting(containerEl);
-        renderContinuousCitationSetting.setName("Enable Continuous Citations")
-            .setDesc("Enable continuous  citation format, also render citations in continuous format");
+    //#region  Cross-file citation settings Groups
+    enableCrossFileCitation(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = true) {
+        const crossFileSetting = new Setting(containerEl)
+            .setName(SETTINGS_METADATA.enableCrossFileCitation.name)
+            .setDesc(SETTINGS_METADATA.enableCrossFileCitation.desc);
         addSubPanelToggle(
-            renderContinuousCitationSetting,
-            plugin.settings.enableContinuousCitation,
+            crossFileSetting,
+            plugin.settings.enableCrossFileCitation,
             async (value) => {
-                plugin.settings.enableContinuousCitation = value;
-                await plugin.saveSettings();
+                plugin.settings.enableCrossFileCitation = value,
+                    await plugin.saveSettings();
             },
             (panel) => {
-                CitationSettingsTab.continuousRangeSymbol(panel, plugin);
-                CitationSettingsTab.continuousRangeDelimiters(panel, plugin);
-            }
+                CitationSettingsTab.fileCiteDelimiter(panel, plugin); // Render child setting
+            },
+            renderSubpanel
         );
+    },
+
+    fileCiteDelimiter(panel: HTMLElement, plugin: EquationCitator) {
+        new Setting(panel)
+            .setName(SETTINGS_METADATA.fileCiteDelimiter.name)
+            .setDesc(SETTINGS_METADATA.fileCiteDelimiter.desc)
+            .addText((text) => {
+                text.inputEl.classList.add("ec-delimiter-input");
+                text.setPlaceholder("^");
+                text.setValue(plugin.settings.fileCiteDelimiter);
+                text.inputEl.onblur = async () => {
+                    const newValue = text.getValue();
+                    if (newValue !== plugin.settings.fileCiteDelimiter) {
+                        if (validateDelimiter(newValue)) {
+                            plugin.settings.fileCiteDelimiter = newValue;
+                            await plugin.saveSettings();
+                        } else {
+                            new Notice("Only special characters (not brace) are allowed, Change not saved");
+                            text.setValue(plugin.settings.fileCiteDelimiter);
+                        }
+                    }
+                };
+            });
     }
+    //#endregion  
 }
 
 /**
@@ -220,41 +249,6 @@ export function addCitationSettingsTab(containerEl: HTMLElement, plugin: Equatio
     CitationSettingsTab.citationFormat(containerEl, plugin);
     CitationSettingsTab.multiCitationDelimiter(containerEl, plugin);
     CitationSettingsTab.multiCitationDelimiterRender(containerEl, plugin);
-    // ==================  Continuous citation settings ========== 
-    const crossFileSetting = new Setting(containerEl)
-        .setName("Enable Cross-File Citations")
-        .setDesc("Use pure footnote style citations to cite equations across files");
-
-    addSubPanelToggle(
-        crossFileSetting,
-        plugin.settings.enableCrossFileCitation,
-        async (value) => {
-            plugin.settings.enableCrossFileCitation = value,
-                await plugin.saveSettings();
-        },
-        (panel) => {
-            new Setting(panel)
-                .setName("Cite File Delimiter")
-                .setDesc("Delimiter after equation number for footnote file citations")
-                .addText((text) => {
-                    text.inputEl.classList.add("ec-delimiter-input");
-                    text.setPlaceholder("^");
-                    text.setValue(plugin.settings.fileCiteDelimiter);
-                    text.inputEl.onblur = async () => {
-                        const newValue = text.getValue();
-                        if (newValue !== plugin.settings.fileCiteDelimiter) {
-                            if (validateDelimiter(newValue)) {
-                                plugin.settings.fileCiteDelimiter = newValue;
-                                await plugin.saveSettings();
-                            } else {
-                                new Notice("Only special characters (not brace) are allowed, Change not saved");
-                                text.setValue(plugin.settings.fileCiteDelimiter);
-                            }
-                        }
-                    };
-                });
-        }
-    );
+    CitationSettingsTab.enableContinuousCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
+    CitationSettingsTab.enableCrossFileCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)    
 }
-
-

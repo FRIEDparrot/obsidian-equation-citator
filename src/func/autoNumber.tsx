@@ -9,11 +9,11 @@ import { insertTextWithCursorOffset } from "@/func/insertTextOnCursor";
 
 export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
-        autoNumberNoHeadingPrefix, autoNumberPrefix, autoNumberEquationsInQuotes } = plugin.settings;
+        autoNumberNoHeadingPrefix, autoNumberGlobalPrefix: autoNumberPrefix, enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes } = plugin.settings;
     const { 
-        deleteRepeatTagsInAutoNumbering: deleteRepeatTags,
-        deleteUnusedTagsInAutoNumbering: deleteUnusedTags,
-        enableUpdateTagsInAutoNumbering: enableUpdateTags
+        deleteRepeatTagsInAutoNumber: deleteRepeatTags,
+        deleteUnusedTagsInAutoNumber: deleteUnusedTags,
+        enableUpdateTagsInAutoNumber: enableUpdateTags
     } = plugin.settings;
     const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
     let citationUpdateResult: TagRenameResult | undefined;
@@ -74,7 +74,7 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
     const cursorPos = editor.getCursor();
     const content = editor.getValue();
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
-        autoNumberNoHeadingPrefix, autoNumberPrefix, autoNumberEquationsInQuotes } = plugin.settings;
+        autoNumberNoHeadingPrefix, autoNumberGlobalPrefix: autoNumberPrefix, enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes } = plugin.settings;
 
     const autoNumberTag = getAutoNumberInCursor(
         content,

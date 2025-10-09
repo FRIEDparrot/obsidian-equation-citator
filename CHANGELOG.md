@@ -194,6 +194,8 @@ Version 1.3.0 - New features, Refactors and main improvements.
 
 🚀Enhancements : 
 - [ ] Add [enhancement #50](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/50), better behavior for relocating cursor after auto-number equations. 
+- [ ] Now debugging mode config will be saved after restarting Obsidian. 
+
 
 ### 🚢 Comming Soon : 
 1. add citations of tables and figures with auto-number feature.
