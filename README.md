@@ -18,7 +18,7 @@
 
 **Video Tutorial**: Will coming if this plugin has 5000 downloads or this repo gets 50 stars.
 
-## How to use this plugin? 
+## Install & Usage 
 
 You can download following 3 files in the latest release page :
 ```sh
@@ -30,29 +30,6 @@ and put them in `.obsidian/plugins/equation-citator` folder under your obsidian 
 
 Also after this plugin is published in obsidian, you can download it from community plugins. 
 
-## Introduction & Simple Examples
-Obsidian-Equation-Citator is a plugin that provides a simple and elegant way to write in-line equation citation cite equations in obsidian just like `\ref{}` label in latex.
-
-Here is a simple examples to show how it works.
-```
-$$ E = mc^2 \tag{A} $$
-
-This is an equation $\ref{eq:A}$.
-```
-
-this will be rendered as follows (support both light and dark theme) : 
-
-
-<center><img src="img\most-simple-equation.png" alt="most-simple-equation" style="zoom:67%; max-height: 350px; " /></center>
-
-
-- Why this plugin?
-  - While the existing plugin [Math Booster](<https://www.obsidianstats.com/plugins/math-booster>) (or `LaTeX-like Theorem & Equation Referencer` now) also provides equation citation in obsidian (since it's based on latex, it can't do cross-file citation and outline-based equation autonumber). Equation citator is focused on providing an **easy-to-use, light-weight but more powerful, elegant, and full customizable citation experience**. 
-
-- This plugin would be very helpful if you : 
-  - have habit of adding `\tag{}` in equation blocks, and want to have a elegant and powerful way to cite them. 
-  - don't want to add ugly block reference `^` in your equation blocks for reference, and make your citation more organized and clean. 
-
 > [!warning] 
 > You should follow some very simple rules to make this plugin work properly, 
 > please check [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for details. 
@@ -60,7 +37,7 @@ this will be rendered as follows (support both light and dark theme) :
 > If an issue occurs because of you are not following such rules, such issue may be closed without being fixed. 
 
 ## Main Features
-### 1.  🚀 **Make citations, Preview, Easy jump and Rename Tags**
+### 1.  🚀 **Make citations, Preview, Easy jump and Rename Tags**  
 
 Use simple inline `$\ref{eq:A}$` format to cite equation block with `\tag{A}` and preview it just as links in obsidian.  
 
