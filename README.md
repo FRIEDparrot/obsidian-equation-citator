@@ -129,4 +129,9 @@ Also, if u have any suggestion or question for this plugin, feel free to leave i
 >
 > You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**). 
 >
-> Very appreciate for your contributions! 
+> Very appreciate for your contributions!
+> 
+
+You can also :  
+
+<center><a href='https://ko-fi.com/Z8Z81N7CMO' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a></center>
