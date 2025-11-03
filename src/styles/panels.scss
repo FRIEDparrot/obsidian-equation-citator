@@ -1,0 +1,17 @@
+.ec-manage-panel-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px 5px;
+}
+
+.ec-manage-panel-toolbar {
+    display: flex;
+    max-width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 15px;
+    align-items: center;
+    margin: 5px 20px 10px;
+}

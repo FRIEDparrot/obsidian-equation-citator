@@ -5,7 +5,7 @@ export class EquationCache extends BaseCache<EquationMatch> {
     protected parseMarkdown(markdown: string): EquationMatch[] {
         return parseEquationsInMarkdown(markdown, true); 
     }
-
+    
     protected getCacheTypeName(): string {
         return 'equation';
     }

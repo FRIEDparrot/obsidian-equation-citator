@@ -1,4 +1,4 @@
-import { EquationCitatorSettings } from "./defaultSettings";
+import { EquationCitatorSettings } from "@/settings/defaultSettings";
 
 /**
  * Color Manager class for using CSS variables to manage colors in the plugin.

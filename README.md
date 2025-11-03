@@ -3,6 +3,7 @@
 <span width="100%"><center><span>
   <img src="https://img.shields.io/badge/Latest%20Version-1.3.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
+  <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></center></span>
 
@@ -110,3 +111,8 @@ Also, if u have any suggestion or question for this plugin, feel free to leave i
 > You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**). 
 >
 > Very appreciate for your contributions! 
+
+
+You can also support me by ☕️:
+
+<center><a href='https://ko-fi.com/Z8Z81N7CMO' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a></center>

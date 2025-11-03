@@ -1,5 +1,5 @@
 import {
-    Plugin, MarkdownView,
+    Plugin, MarkdownView, WorkspaceLeaf,
     MarkdownPostProcessorContext
 } from 'obsidian';
 import { cleanUpStyles, SettingsTabView } from "@/settings/SettingsTab";
@@ -24,8 +24,8 @@ import { registerRightClickMenu } from '@/ui/rightButtonMenu';
 import { LineHashCache } from '@/cache/lineHashCache';
 import { WidgetSizeManager } from '@/settings/styleManagers/widgetSizeManager';
 import { isUpdateAvailable } from './api/updateChecking';
+import { EquationArrangePanel, EQUATION_ARRANGE_PANEL_TYPE } from '@/ui/equationArrangePanel';
 import Debugger from './debug/debugger';
-
 
 export default class EquationCitator extends Plugin {
     settings: EquationCitatorSettings;
@@ -55,7 +55,8 @@ export default class EquationCitator extends Plugin {
         this.addSettingTab(new SettingsTabView(this.app, this));
         // initialize caches
         this.loadCaches();
-
+        
+        this.registerViews();  
         // load caches and register services class
         this.registerServices();
         
@@ -66,7 +67,7 @@ export default class EquationCitator extends Plugin {
         this.loadEditorExtensions();
         this.loadReadingModeExtensions();
         this.registerEditorSuggest(this.autoCompleteSuggest);
-
+        
         // register ribbon button and commands 
         registerRibbonButton(this);
         registerRightClickMenu(this);
@@ -97,6 +98,15 @@ export default class EquationCitator extends Plugin {
         this.equationCache?.destroy();
         this.footnoteCache?.destroy();
         this.lineHashCache?.destroy();
+    }
+
+    registerViews(){
+        this.registerView(
+            EQUATION_ARRANGE_PANEL_TYPE,
+            (leaf: WorkspaceLeaf) => {
+                return new EquationArrangePanel(this, leaf);
+            }
+        )
     }
 
     registerServices() {
