@@ -6,7 +6,7 @@ import { EquationCitatorSettings } from "@/settings/defaultSettings";
 export class ColorManager {
     private static styleElement: HTMLStyleElement | null = null;
     private static readonly STYLE_ID = 'equation-citator-colors';
-
+    
     // Define all CSS variable mappings
     private static readonly COLOR_MAPPINGS = {
         // Citation colors
@@ -97,12 +97,13 @@ export class ColorManager {
             case 'fileSuperScriptHoverColor':
                 settings.fileSuperScriptHoverColor = value;
                 break;
+            
             // Note: citationWidgetColor and citationWidgetColorDark are arrays
             // and should be updated using updateWidgetColor method instead
             default:
                 console.warn(`ColorManager: Unsupported color property: ${colorKey}`);
                 return;
-        }   
+        }
         // Update all colors to maintain consistency
         this.updateAllColors(settings);
     }
@@ -111,8 +112,7 @@ export class ColorManager {
      * Update widget color at specific index
      */
     static updateWidgetColor(index: number, value: string, isDark: boolean, settings: EquationCitatorSettings): void {
-        if (index < 0 || index >= 5) return;
-
+        if (index < 0 || index >= 5) return; // Invalid index 
         if (isDark) {
             settings.citationWidgetColorDark[index] = value;
         } else {

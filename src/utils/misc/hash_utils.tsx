@@ -1,3 +1,5 @@
+import { EquationMatch } from "@/utils/parsers/equation_parser";
+
 export function fnv1aHash(str: string): number {
     let hash = 0x811c9dc5; // FNV offset basis
     for (let i = 0; i < str.length; i++) {
@@ -30,3 +32,16 @@ export function fastHash(str: string): number {
 }
 
 
+export function hashEquations(equations: EquationMatch[]): string {
+    const str = equations.map(eq =>
+        `${eq.raw}|${eq.lineStart}|${eq.lineEnd}|${eq.inQuote}`
+    ).join(";");
+    // simple hash function for browsers:
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const chr = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0; // convert to 32bit int
+    }
+    return hash.toString();
+}
