@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, setIcon, setTooltip, MarkdownRenderer } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, setTooltip, MarkdownRenderer, Modal, App, MarkdownView } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
@@ -28,10 +28,12 @@ export class EquationArrangePanel extends ItemView {
     private searchInput!: HTMLInputElement;
     private quitSearchButton!: HTMLElement;
     private toggleTagShowButton: HTMLElement;
+    private filterEmptyHeadingsButton: HTMLElement;
 
     private showEquationTags = false;
     private isSearchMode = false;
     private searchQuery = "";
+    private filterEmptyHeadings = true; // Default to filter empty headings
     private collapsedHeadings: Set<number> = new Set();
     private updateHandler: () => void;
     private currentEquationHash = "";
@@ -40,6 +42,8 @@ export class EquationArrangePanel extends ItemView {
     private currentViewMode = "";    // current display mode (used for fast refresh)
     private currentCollapseHeadings: Set<number> = new Set();
     private currentSortMode = "";    // current sort mode (used for fast refresh)
+    private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
+    private dropHandler: (evt: DragEvent) => void;
 
     constructor(private plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
@@ -118,16 +122,29 @@ export class EquationArrangePanel extends ItemView {
             this.handleCollapseAll();
         });
 
-        // hide tag button 
+        // hide tag button
         this.toggleTagShowButton = toolbar.createEl("button", {
             cls: "clickable-icon ec-mode-button ec-tag-hide-button",
             attr: { "aria-label": "Hide tag button" },
-        });  // placeholder for tag button 
+        });  // placeholder for tag button
         this.toggleTagShowButton.addEventListener("click", () => {
             const mode = this.showEquationTags ? false : true;
             this.toggleTagShow(mode);
             this.refreshView();
         });
+
+        // Filter empty headings button (only visible in outline mode)
+        this.filterEmptyHeadingsButton = toolbar.createEl("button", {
+            cls: "clickable-icon ec-mode-button",
+            attr: { "aria-label": "Filter empty headings" },
+        });
+        this.filterEmptyHeadingsButton.addEventListener("click", () => {
+            this.filterEmptyHeadings = !this.filterEmptyHeadings;
+            this.updateFilterButton();
+            this.refreshView();
+        });
+        this.updateFilterButton(); // Set initial state
+        this.filterEmptyHeadingsButton.hide();
 
         this.viewPanel = panelWrapper.createDiv("ec-equation-list-panel");
 
@@ -181,6 +198,164 @@ export class EquationArrangePanel extends ItemView {
         this.registerEvent(
             this.app.vault.on('modify', this.updateHandler)
         );
+
+        // Register drop handler for editors
+        this.setupDropHandler();
+    }
+
+    private setupDropHandler(): void {
+        this.dropHandler = async (evt: DragEvent) => {
+            // Try to get equation data from different MIME types
+            let data = evt.dataTransfer?.getData('application/json');
+            if (!data) {
+                data = evt.dataTransfer?.getData('text/plain');
+            }
+            if (!data) {
+                console.log('No data in drop event');
+                return;
+            }
+
+            try {
+                const equationData = JSON.parse(data);
+                console.log('Drop event received with data:', equationData);
+
+                // Only handle our equation drops (must have content field)
+                if (!equationData.content) {
+                    console.log('No content field, ignoring');
+                    return;
+                }
+
+                // Check if dropping on editor
+                const target = evt.target as HTMLElement;
+                const editorContent = target.closest('.cm-content');
+                if (!editorContent) {
+                    console.log('Not dropping on editor');
+                    return;
+                }
+
+                evt.preventDefault();
+                evt.stopPropagation();
+
+                console.log('Handling equation drop');
+                await this.handleEquationDrop(equationData, evt);
+            } catch (error) {
+                console.error('Failed to parse equation data:', error);
+            }
+        };
+
+        // Use capture phase to intercept before other handlers
+        document.addEventListener('drop', this.dropHandler, true);
+        document.addEventListener('dragover', (evt) => {
+            // Check if we're dragging equation data
+            const types = evt.dataTransfer?.types || [];
+            if (types.includes('application/json')) {
+                const target = evt.target as HTMLElement;
+                if (target.closest('.cm-content')) {
+                    evt.preventDefault();
+                    evt.dataTransfer!.dropEffect = 'copy';
+                }
+            }
+        }, true);
+    }
+
+    private async handleEquationDrop(equationData: { tag: string; content: string; sourcePath: string }, evt: DragEvent): Promise<void> {
+        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!activeView) {
+            console.log('No active markdown view');
+            return;
+        }
+
+        const editor = activeView.editor;
+        const targetFile = activeView.file;
+        if (!targetFile) {
+            console.log('No target file');
+            return;
+        }
+
+        let tag = equationData.tag;
+
+        // If no tag, prompt user to add one
+        if (!tag) {
+            const userTag = await this.promptForTag();
+            if (!userTag) return; // User cancelled
+            tag = userTag;
+            // TODO: Add tag to the source equation
+        }
+
+        const citationPrefix = this.plugin.settings.citationPrefix;
+        const isTargetSameAsSource = targetFile.path === equationData.sourcePath;
+
+        // Build the citation string
+        let citation: string;
+        if (!isTargetSameAsSource) {
+            const footnoteResult = await this.ensureFootnoteExists(targetFile.path, equationData.sourcePath);
+            if (footnoteResult) {
+                // Cross-file citation with footnote
+                const delimiter = this.plugin.settings.fileCiteDelimiter;
+                citation = `$\\ref{${citationPrefix}${footnoteResult}${delimiter}${tag}}$`;
+            } else {
+                // Could not create footnote, fallback to local citation
+                citation = `$\\ref{${citationPrefix}${tag}}$`;
+            }
+        } else {
+            // Same file citation
+            citation = `$\\ref{${citationPrefix}${tag}}$`;
+        }
+
+        // Insert citation at cursor position
+        const cursor = editor.getCursor();
+        editor.replaceRange(citation, cursor);
+
+        // Move cursor after the citation
+        const newCursor = {
+            line: cursor.line,
+            ch: cursor.ch + citation.length
+        };
+        editor.setCursor(newCursor);
+
+        console.log('Citation inserted:', citation);
+    }
+
+    private async promptForTag(): Promise<string | null> {
+        return new Promise((resolve) => {
+            const modal = new TagInputModal(this.app, (tag) => {
+                resolve(tag);
+            });
+            modal.open();
+        });
+    }
+
+    private async ensureFootnoteExists(targetFilePath: string, sourceFilePath: string): Promise<string | null> {
+        // Get existing footnotes in target file
+        const existingFootnotes = await this.plugin.footnoteCache.getFootNotesFromFile(targetFilePath);
+
+        // Check if footnote for this source file already exists
+        const existingFootnote = existingFootnotes?.find(fn => fn.path === sourceFilePath);
+        if (existingFootnote) {
+            return existingFootnote.num;
+        }
+
+        // Need to create a new footnote
+        const sourceFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
+        if (!sourceFile) return null;
+
+        // Find next available footnote number
+        const maxNum = existingFootnotes?.reduce((max, fn) => {
+            const num = parseInt(fn.num);
+            return isNaN(num) ? max : Math.max(max, num);
+        }, 0) || 0;
+        const newNum = (maxNum + 1).toString();
+
+        // Append footnote to target file
+        const targetFileContent = await this.app.vault.adapter.read(targetFilePath);
+        const footnoteText = `[^${newNum}]: [[${sourceFilePath}]]`;
+        const newContent = targetFileContent + '\n' + footnoteText;
+        await this.app.vault.adapter.write(targetFilePath, newContent);
+
+        // Refresh cache
+        await this.plugin.footnoteCache.updateFileFootnotes(targetFilePath);
+
+        return newNum;
     }
 
     private toggleSearchMode(enable: boolean): void {
@@ -189,13 +364,14 @@ export class EquationArrangePanel extends ItemView {
         this.searchInput.toggle(enable);
         this.quitSearchButton.toggle(enable);
 
-        // hide other buttons when search mode is enabled 
+        // hide other buttons when search mode is enabled
         this.searchButton.toggle(!enable);
         this.viewModeButton.toggle(!enable);
         this.sortButton.toggle(!enable);
         this.expandButton.toggle(!enable);
         this.collapseButton.toggle(!enable);
         this.toggleTagShowButton.toggle(!enable);
+        this.filterEmptyHeadingsButton.toggle(!enable);
 
         if (enable) {
             this.searchInput.focus();
@@ -219,6 +395,14 @@ export class EquationArrangePanel extends ItemView {
 
         this.collapseButton.toggle(!listMode);
         this.expandButton.toggle(!listMode);
+        this.filterEmptyHeadingsButton.toggle(!listMode);
+    }
+
+    private updateFilterButton(): void {
+        const iconName = this.filterEmptyHeadings ? "filter-x" : "filter";
+        const tooltipText = this.filterEmptyHeadings ? "Show all headings" : "Show only headings with equations";
+        setIcon(this.filterEmptyHeadingsButton, iconName);
+        setTooltip(this.filterEmptyHeadingsButton, tooltipText);
     }
 
     private handleCollapseAll(): void {
@@ -272,6 +456,7 @@ export class EquationArrangePanel extends ItemView {
             equationsHash === this.currentEquationHash &&
             this.viewMode === this.currentViewMode &&
             this.sortMode === this.currentSortMode &&
+            this.filterEmptyHeadings === this.currentFilterEmptyHeadings &&
             setsEqual
         );
         if (viewStateEqual) return;
@@ -281,6 +466,7 @@ export class EquationArrangePanel extends ItemView {
         this.currentViewMode = this.viewMode;
         this.currentCollapseHeadings = new Set(this.collapsedHeadings);
         this.currentSortMode = this.sortMode;
+        this.currentFilterEmptyHeadings = this.filterEmptyHeadings;
 
         this.viewPanel.empty();
 
@@ -341,12 +527,12 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private async renderOutlineView(equations: EquationMatch[]): Promise<void> {
-        // parse headings in the file 
+        // parse headings in the file
         const currentFile = this.app.workspace.getActiveFile();
         if (!currentFile) return;
         const fileContent = await this.app.vault.cachedRead(currentFile);
         const headings = parseHeadingsInMarkdown(fileContent);
-        
+
         if (headings.length === 0) {
             // No headings, render as flat list
             await this.renderRowsView(equations);
@@ -354,48 +540,56 @@ export class EquationArrangePanel extends ItemView {
         }
         // Group equations by headings
         const groups = this.groupEquationsByHeadings(equations, headings);
-        
+
+        // Filter groups if filter is enabled
+        const filteredGroups = this.filterEmptyHeadings
+            ? groups.filter(group => group.equations.length > 0)
+            : groups;
+
         const outlineContainer = this.viewPanel.createDiv("ec-outline-view");
 
-        for (const group of groups) {
+        for (const group of filteredGroups) {
             await this.renderHeadingGroup(outlineContainer, group);
         }
     }
 
     private groupEquationsByHeadings(equations: EquationMatch[], headings: Heading[]): EquationGroup[] {
         const groups: EquationGroup[] = [];
-        const eqs_sorted = equations.sort((a, b) => a.lineStart - b.lineStart); 
-        
-        // Group non-heading equations first 
-        const nonHeadingEquations = eqs_sorted.filter(eq => eq.lineStart < headings[0].line); 
+        const eqs_sorted = equations.sort((a, b) => a.lineStart - b.lineStart);
+
+        // Group non-heading equations first (if any exist before first heading)
+        const nonHeadingEquations = headings.length > 0
+            ? eqs_sorted.filter(eq => eq.lineStart < headings[0].line)
+            : eqs_sorted; // If no headings at all, all equations are non-heading
+
         if (nonHeadingEquations.length > 0) {
             const group: EquationGroup = {
                 heading: null,
                 equations: nonHeadingEquations,
-                absoluteLevel: 0,
-                relativeLevel: 0
+                absoluteLevel: 7, // Use level 7 to prevent any heading as subheading
+                relativeLevel: 7
             };
             groups.push(group);
         }
-        
+
+        // Process ALL headings, not just those with equations
         for (let i = 0; i < headings.length; i++) {
-            // const heading = headings[i];
-            // const nextHeadingLine = i < headings.length - 1 ? headings[i + 1].line : Infinity;
-            
-            // // Find equations that belong to this heading
-            // const headingEquations = equations.filter(eq =>
-            //     eq.lineStart >= heading.line && eq.lineStart < nextHeadingLine
-            // );
-            
-            // if (headingEquations.length > 0) {
-            //     const relLevel = relativeHeadingLevel(headings, i);
-            //     groups.push({
-            //         heading,
-            //         equations: headingEquations,
-            //         absoluteLevel: heading.level,
-            //         relativeLevel: relLevel
-            //     });
-            // } 
+            const heading = headings[i];
+            const nextHeadingLine = i < headings.length - 1 ? headings[i + 1].line : Infinity;
+
+            // Find equations that belong to this heading
+            const headingEquations = eqs_sorted.filter(eq =>
+                eq.lineStart > heading.line && eq.lineStart < nextHeadingLine
+            );
+
+            // Add all headings, regardless of whether they have equations
+            const relLevel = relativeHeadingLevel(headings, i);
+            groups.push({
+                heading,
+                equations: headingEquations,
+                absoluteLevel: heading.level,
+                relativeLevel: relLevel
+            });
         }
 
         return groups;
@@ -405,74 +599,138 @@ export class EquationArrangePanel extends ItemView {
         container: HTMLElement,
         group: EquationGroup
     ): Promise<void> {
-        const isCollapsed = this.collapsedHeadings.has(group.heading.line);
+        // Determine if this heading should have a chevron (has equations or subheadings will be checked)
+        const hasContent = group.equations.length > 0;
+
+        // Use a special key for non-heading groups
+        const headingKey = group.heading ? group.heading.line : -1;
+        const isNoHeadingGroup = group.heading === null;
+
+        // Check if collapsed (no-heading group can be collapsed too)
+        const isCollapsed = this.collapsedHeadings.has(headingKey);
+
+        // Use special class for no-heading group
+        const headingClasses = isNoHeadingGroup
+            ? "ec-heading-item ec-no-heading-group"
+            : `ec-heading-item ec-heading-level-${group.absoluteLevel}`;
+
         const headingDiv = container.createDiv({
-            cls: `ec-heading-item ec-heading-level-${group.relativeLevel}`,
-            attr: { 'data-line': group.heading.line.toString() }
+            cls: headingClasses,
+            attr: { 'data-line': headingKey.toString() }
         });
-        const headingHeader = headingDiv.createDiv("ec-heading-header");
-        
-        // Collapse/expand icon
-        const collapseIcon = headingHeader.createSpan(`ec-collapse-icon ec-heading-collapse-icon-${group.relativeLevel}`);
-        setIcon(collapseIcon, isCollapsed ? "chevron-right" : "chevron-down");
+
+        // Header is non-clickable by default (we'll add click handlers to specific elements)
+        const headingHeader = headingDiv.createDiv("ec-heading-header ec-non-clickable");
+
+        // Collapse/expand icon - only show if has content
+        let collapseIcon: HTMLElement | null = null;
+        if (hasContent) {
+            collapseIcon = headingHeader.createSpan(`ec-collapse-icon ec-heading-collapse-icon-${group.absoluteLevel}`);
+            setIcon(collapseIcon, isCollapsed ? "chevron-right" : "chevron-down");
+            collapseIcon.addClass('ec-clickable');
+        } else {
+            // Add empty space to align text properly
+            headingHeader.createSpan({ cls: "ec-collapse-icon-placeholder" });
+        }
 
         // Heading text
-        headingHeader.createSpan({
-            cls: `ec-heading-text ec-heading-text-${group.relativeLevel}`,
-            text: group.heading.text
+        const headingText = group.heading ? group.heading.text : "Equations without heading";
+        const headingTextSpan = headingHeader.createSpan({
+            cls: `ec-heading-text ec-heading-text-${group.absoluteLevel}`,
+            text: headingText
         });
 
-        // Equation count badge
-        headingHeader.createSpan({
-            cls: "ec-equation-count",
-            text: group.equations.length.toString()
-        });
+        // Make heading text clickable if it's a real heading (not no-heading group)
+        if (group.heading) {
+            headingTextSpan.addClass('ec-clickable');
+        }
+        
+        // Equation count badge - only show if has equations
+        if (group.equations.length > 0) {
+            headingHeader.createSpan({
+                cls: "ec-equation-count",
+                text: group.equations.length.toString()
+            });
+        }
 
         // function to render equations for this group
         const renderGroupEquations = async () => {
-            const headingLine = group.heading.line;
             const headingDiv = headingHeader.parentElement as HTMLElement;
             const equationsContainer = headingDiv.querySelector('.ec-heading-equations') as HTMLElement | null;
-            const isCollapsed = this.collapsedHeadings.has(headingLine);
+            const isCollapsed = this.collapsedHeadings.has(headingKey);
 
             if (isCollapsed) {
-                this.collapsedHeadings.add(headingLine);
-                setIcon(collapseIcon, "chevron-right");
+                this.collapsedHeadings.add(headingKey);
+                if (collapseIcon) setIcon(collapseIcon, "chevron-right");
                 if (equationsContainer) {
                     equationsContainer.toggle(false); // hide
                 }
             }
             else { // Render equations if not collapsed
-                this.collapsedHeadings.delete(headingLine);
-                setIcon(collapseIcon, "chevron-down");
+                this.collapsedHeadings.delete(headingKey);
+                if (collapseIcon) setIcon(collapseIcon, "chevron-down");
                 if (!equationsContainer) {
                     const newContainer = headingDiv.createDiv("ec-heading-equations");
                     for (const eq of group.equations) {
-                        this.renderEquationItem(newContainer, eq);
+                        await this.renderEquationItem(newContainer, eq);
                     }
                 } else {
                     equationsContainer.toggle(true); // show again
                 }
             }
         }
-        // Render equations if not collapsed
-        renderGroupEquations();
 
-        // Click handler for collapse/expand
-        headingHeader.addEventListener('click', () => {
-            const headingLine = group.heading.line;
-            const isCollapsed = this.collapsedHeadings.has(headingLine);
-            if (isCollapsed) {
-                this.collapsedHeadings.delete(headingLine);
-            } else {
-                this.collapsedHeadings.add(headingLine);
-            }
-            renderGroupEquations();
-        });
+        // Render equations if not collapsed
+        if (hasContent) {
+            await renderGroupEquations();
+        }
+
+        // Click handler for chevron - collapse/expand
+        if (hasContent && collapseIcon) {
+            collapseIcon.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                const isCollapsed = this.collapsedHeadings.has(headingKey);
+                if (isCollapsed) {
+                    this.collapsedHeadings.delete(headingKey);
+                } else {
+                    this.collapsedHeadings.add(headingKey);
+                }
+                renderGroupEquations();
+            });
+        }
+
+        // Click handler for heading text - jump to heading location
+        if (group.heading) {
+            headingTextSpan.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                this.jumpToHeading(group.heading);
+            });
+        }
+    }
+
+    private jumpToHeading(heading: Heading): void {
+        const currentFile = this.app.workspace.getActiveFile();
+        if (!currentFile) return;
+
+        // Open the file and jump to the heading line
+        const leaf = this.app.workspace.getLeaf(false);
+        if (leaf) {
+            leaf.openFile(currentFile, {
+                eState: {
+                    line: heading.line,
+                    cursor: { from: { line: heading.line, ch: 0 } }
+                }
+            });
+        }
     }
 
     private async renderEquationItem(container: HTMLElement, equation: EquationMatch): Promise<void> {
         const eqDiv = container.createDiv("ec-equation-item");
+        
+        // Make equation draggable
+        eqDiv.draggable = true;
+        eqDiv.setAttribute('data-equation-tag', equation.tag || '');
+        eqDiv.setAttribute('data-equation-content', equation.content);
 
         // Tag section (if exists)
         if (equation.tag) {
@@ -502,9 +760,34 @@ export class EquationArrangePanel extends ItemView {
             this.jumpToEquation(equation);
         });
 
-        // eqDiv.addEventListener('drag', (event) => {
-        //     event.dataTransfer.setData('text/plain', equation.content);
-        // })
+        // Drag start event
+        eqDiv.addEventListener('dragstart', (event) => {
+            if (!event.dataTransfer) return;
+
+            // Change cursor to grabbing hand
+            document.body.style.cursor = 'grabbing';
+            eqDiv.style.opacity = '0.5';
+
+            // Store equation data
+            const equationData = {
+                tag: equation.tag || '',
+                content: equation.content,
+                sourcePath: currentFile?.path || ''
+            };
+
+            const dataString = JSON.stringify(equationData);
+            event.dataTransfer.setData('application/json', dataString);
+            event.dataTransfer.setData('text/plain', dataString); // Fallback
+            event.dataTransfer.effectAllowed = 'copy';
+
+            console.log('Drag started with data:', equationData);
+        });
+
+        // Drag end event
+        eqDiv.addEventListener('dragend', () => {
+            document.body.style.cursor = '';
+            eqDiv.style.opacity = '1';
+        });
     }
 
     private jumpToEquation(equation: EquationMatch): void {
@@ -527,5 +810,77 @@ export class EquationArrangePanel extends ItemView {
         // Clean up event listeners
         this.app.workspace.off('active-leaf-change', this.updateHandler);
         this.app.vault.off('modify', this.updateHandler);
+
+        // Remove drop handler
+        if (this.dropHandler) {
+            document.removeEventListener('drop', this.dropHandler, true);
+        }
+    }
+}
+
+// Modal for tag input
+class TagInputModal extends Modal {
+    private onSubmit: (tag: string | null) => void;
+    private inputEl: HTMLInputElement;
+
+    constructor(app: App, onSubmit: (tag: string | null) => void) {
+        super(app);
+        this.onSubmit = onSubmit;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+
+        contentEl.createEl('h3', { text: 'Enter equation tag' });
+        contentEl.createEl('p', {
+            text: 'This equation does not have a tag. Please enter a tag to cite it:',
+            cls: 'ec-modal-description'
+        });
+
+        this.inputEl = contentEl.createEl('input', {
+            type: 'text',
+            placeholder: 'e.g., eq:1.2.3',
+            cls: 'ec-tag-input-modal'
+        });
+
+        const buttonContainer = contentEl.createDiv({ cls: 'ec-modal-buttons' });
+
+        const submitBtn = buttonContainer.createEl('button', { text: 'Submit', cls: 'mod-cta' });
+        submitBtn.addEventListener('click', () => {
+            const tag = this.inputEl.value.trim();
+            if (tag) {
+                this.onSubmit(tag);
+                this.close();
+            }
+        });
+
+        const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
+        cancelBtn.addEventListener('click', () => {
+            this.onSubmit(null);
+            this.close();
+        });
+
+        // Focus input
+        this.inputEl.focus();
+
+        // Submit on Enter
+        this.inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const tag = this.inputEl.value.trim();
+                if (tag) {
+                    this.onSubmit(tag);
+                    this.close();
+                }
+            } else if (e.key === 'Escape') {
+                this.onSubmit(null);
+                this.close();
+            }
+        });
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
     }
 }

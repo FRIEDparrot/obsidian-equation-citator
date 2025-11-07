@@ -354,7 +354,7 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 .ec-outline-view {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 .ec-heading-item {
@@ -367,12 +367,83 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.2s;
 }
-.ec-heading-header:hover {
+.ec-heading-header.ec-clickable {
+  cursor: pointer;
+}
+.ec-heading-header.ec-clickable:hover {
   background-color: var(--background-modifier-hover);
+}
+.ec-heading-header.ec-non-clickable {
+  cursor: default;
+}
+
+.ec-heading-level-1 .ec-heading-header {
+  padding-left: calc(8px + 0px);
+}
+
+.ec-heading-level-1 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-2 .ec-heading-header {
+  padding-left: calc(8px + 16px);
+}
+
+.ec-heading-level-2 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-3 .ec-heading-header {
+  padding-left: calc(8px + 32px);
+}
+
+.ec-heading-level-3 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-4 .ec-heading-header {
+  padding-left: calc(8px + 48px);
+}
+
+.ec-heading-level-4 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-5 .ec-heading-header {
+  padding-left: calc(8px + 64px);
+}
+
+.ec-heading-level-5 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-6 .ec-heading-header {
+  padding-left: calc(8px + 80px);
+}
+
+.ec-heading-level-6 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-no-heading-group .ec-heading-header {
+  padding-left: 8px;
+}
+.ec-no-heading-group .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+.ec-no-heading-group .ec-heading-text {
+  font-style: italic;
+  color: var(--text-muted);
 }
 
 .ec-heading-text-1:hover::after,
@@ -419,12 +490,36 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   justify-content: center;
   color: var(--text-muted);
 }
+.ec-collapse-icon.ec-clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+.ec-collapse-icon.ec-clickable:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.ec-collapse-icon-placeholder {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
 
 .ec-heading-text {
   flex: 1;
   font-weight: 600;
   color: var(--text-normal);
   font-size: 14px;
+}
+.ec-heading-text.ec-clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: background-color 0.2s;
+}
+.ec-heading-text.ec-clickable:hover {
+  background-color: var(--background-modifier-hover);
 }
 
 .ec-equation-count {
@@ -456,7 +551,7 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
   background-color: var(--background-primary);
-  cursor: pointer;
+  cursor: grab;
   transition: all 0.2s;
   position: relative;
 }
@@ -464,6 +559,12 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   background-color: var(--background-modifier-hover);
   border-color: var(--interactive-accent);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.ec-equation-item:active {
+  cursor: grabbing;
+}
+.ec-equation-item[draggable=true] {
+  user-select: none;
 }
 
 .ec-equation-tag {
@@ -506,6 +607,32 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 .ec-equation-math mjx-container {
   margin: 0;
+}
+
+/* Tag Input Modal Styles */
+.ec-modal-description {
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.ec-tag-input-modal {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+.ec-tag-input-modal:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.ec-modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 /* element styles  in settings tab */
