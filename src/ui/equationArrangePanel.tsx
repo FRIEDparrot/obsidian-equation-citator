@@ -10,8 +10,9 @@ type ViewMode = "outline" | "list";
 type SortType = "tag" | "seq";
 
 interface EquationGroup {
-    heading: Heading;
+    heading: Heading | null;  // null for no heading 
     equations: EquationMatch[];
+    absoluteLevel: number;
     relativeLevel: number;
 }
 
@@ -96,7 +97,6 @@ export class EquationArrangePanel extends ItemView {
             this.updateSortMode(sortMode);
             this.refreshView();
         });
-
 
         this.expandButton = toolbar.createEl("button", {
             cls: "clickable-icon ec-mode-button",
@@ -346,7 +346,7 @@ export class EquationArrangePanel extends ItemView {
         if (!currentFile) return;
         const fileContent = await this.app.vault.cachedRead(currentFile);
         const headings = parseHeadingsInMarkdown(fileContent);
-
+        
         if (headings.length === 0) {
             // No headings, render as flat list
             await this.renderRowsView(equations);
@@ -354,7 +354,7 @@ export class EquationArrangePanel extends ItemView {
         }
         // Group equations by headings
         const groups = this.groupEquationsByHeadings(equations, headings);
-
+        
         const outlineContainer = this.viewPanel.createDiv("ec-outline-view");
 
         for (const group of groups) {
@@ -364,39 +364,56 @@ export class EquationArrangePanel extends ItemView {
 
     private groupEquationsByHeadings(equations: EquationMatch[], headings: Heading[]): EquationGroup[] {
         const groups: EquationGroup[] = [];
-
+        const eqs_sorted = equations.sort((a, b) => a.lineStart - b.lineStart); 
+        
+        // Group non-heading equations first 
+        const nonHeadingEquations = eqs_sorted.filter(eq => eq.lineStart < headings[0].line); 
+        if (nonHeadingEquations.length > 0) {
+            const group: EquationGroup = {
+                heading: null,
+                equations: nonHeadingEquations,
+                absoluteLevel: 0,
+                relativeLevel: 0
+            };
+            groups.push(group);
+        }
+        
         for (let i = 0; i < headings.length; i++) {
-            const heading = headings[i];
-            const nextHeadingLine = i < headings.length - 1 ? headings[i + 1].line : Infinity;
-
-            // Find equations that belong to this heading
-            const headingEquations = equations.filter(eq =>
-                eq.lineStart >= heading.line && eq.lineStart < nextHeadingLine
-            );
-
-            if (headingEquations.length > 0) {
-                const relLevel = relativeHeadingLevel(headings, i);
-                groups.push({
-                    heading,
-                    equations: headingEquations,
-                    relativeLevel: relLevel
-                });
-            }
+            // const heading = headings[i];
+            // const nextHeadingLine = i < headings.length - 1 ? headings[i + 1].line : Infinity;
+            
+            // // Find equations that belong to this heading
+            // const headingEquations = equations.filter(eq =>
+            //     eq.lineStart >= heading.line && eq.lineStart < nextHeadingLine
+            // );
+            
+            // if (headingEquations.length > 0) {
+            //     const relLevel = relativeHeadingLevel(headings, i);
+            //     groups.push({
+            //         heading,
+            //         equations: headingEquations,
+            //         absoluteLevel: heading.level,
+            //         relativeLevel: relLevel
+            //     });
+            // } 
         }
 
         return groups;
     }
 
-    private async renderHeadingGroup(container: HTMLElement, group: EquationGroup): Promise<void> {
+    private async renderHeadingGroup(
+        container: HTMLElement,
+        group: EquationGroup
+    ): Promise<void> {
         const isCollapsed = this.collapsedHeadings.has(group.heading.line);
         const headingDiv = container.createDiv({
             cls: `ec-heading-item ec-heading-level-${group.relativeLevel}`,
             attr: { 'data-line': group.heading.line.toString() }
         });
         const headingHeader = headingDiv.createDiv("ec-heading-header");
-
+        
         // Collapse/expand icon
-        const collapseIcon = headingHeader.createSpan("ec-collapse-icon");
+        const collapseIcon = headingHeader.createSpan(`ec-collapse-icon ec-heading-collapse-icon-${group.relativeLevel}`);
         setIcon(collapseIcon, isCollapsed ? "chevron-right" : "chevron-down");
 
         // Heading text
@@ -424,8 +441,8 @@ export class EquationArrangePanel extends ItemView {
                 if (equationsContainer) {
                     equationsContainer.toggle(false); // hide
                 }
-            } 
-            else{ // Render equations if not collapsed
+            }
+            else { // Render equations if not collapsed
                 this.collapsedHeadings.delete(headingLine);
                 setIcon(collapseIcon, "chevron-down");
                 if (!equationsContainer) {
@@ -481,9 +498,13 @@ export class EquationArrangePanel extends ItemView {
         );
 
         // Add click handler to jump to equation in the editor
-        eqDiv.addEventListener('click', () => {
+        eqDiv.addEventListener('dblclick', () => {
             this.jumpToEquation(equation);
         });
+
+        // eqDiv.addEventListener('drag', (event) => {
+        //     event.dataTransfer.setData('text/plain', equation.content);
+        // })
     }
 
     private jumpToEquation(equation: EquationMatch): void {
