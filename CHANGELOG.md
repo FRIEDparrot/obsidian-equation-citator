@@ -186,7 +186,9 @@ Version 1.3.0 - New features, Refactors and main improvements.
 ⭐ New Features :
 - [ ] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before. **No more annoying scrolling**. 
 - [ ] **Citation for figures and tables** (from [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7) by Akucecomma) are now supported, titles, numbers and descriptions.  
-- [ ] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
+- [x] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
+- [ ] **Drag-and Drop to citation** You can now drag-and-drop equation from equations management panel to cite it.
+
 
 🏗️ Refactors : 
 - [ ] For settings part, refactor code and split it into mutlitple modules, now.
@@ -194,6 +196,7 @@ Version 1.3.0 - New features, Refactors and main improvements.
 
 🚀Enhancements : 
 - [ ] Add [enhancement #50](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/50), better behavior for relocating cursor after auto-number equations. 
+- [ ] When jump to equations in another panel now check if there already a panel of this file, and jump in this panel if there is. 
 - [ ] Now debugging mode config will be saved after restarting Obsidian. 
 
 

@@ -8,7 +8,7 @@
 </span></center></span>
 
 <span width="100%"><center>
-    <div><small> First Release : Aug 3, 2025       Last Updated : Sep 30, 2025 </small></div>
+    <div><small> First Release : Aug 3, 2025       Last Updated : Nov 8, 2025 </small></div>
 </center></span>
 
 ---
@@ -17,9 +17,15 @@
 
 ✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) 
 
-**Video Tutorial**: Will coming if this plugin has 5000 downloads or this repo gets 50 stars.
+**Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
-## Install & Usage 
+
+> [!warning] 
+> Before using this plugin, you should follow some very simple rules to ensure this plugin work properly, Check [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for details. 
+>
+> Issues caused by not following such rules might be closed without being fixed.     
+
+## 🛠️ Installation 
 
 You can download following 3 files in the latest release page :
 ```sh
@@ -29,16 +35,28 @@ style.css
 ```
 and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault.  
 
-Also after this plugin is published in obsidian, you can download it from community plugins. 
+After this plugin is published in obsidian, you can download it from community plugins. 
 
-> [!warning] 
-> You should follow some very simple rules to make this plugin work properly, 
-> please check [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for details. 
->
-> If an issue occurs because of you are not following such rules, such issue may be closed without being fixed. 
+## ✨ What this plugin do for you
 
-## Main Features
+### 1. ⚡ **Auto-number equations by heading level** 
+
+**Auto number all the equations in by simply 1 click on the sidebar icon**  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-function-icon lucide-square-function"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 17c2 0 2.8-1 2.8-2.8V10c0-2 1-3.3 3.2-3"/><path d="M9 11.2h5.7"/></svg> 
+, making them to be super easy to manage and cite. 
+
+
+When you insert an equation and click auto number, citaitons will be automatically updated according to original equation number. 
+
+<center><img src="img\auto_number_vid.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 550px; " /></center>
+
+### 2. **Manage Equations and Drag-Drop for easy citation**
+
+
+
+
 ### 1.  🚀 **Make citations, Preview, Easy jump and Rename Tags**  
+
+<center><img src="img\auto-complete.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px;" /></center>
 
 Use simple inline `$\ref{eq:A}$` format to cite equation block with `\tag{A}` and preview it just as links in obsidian.  
 
@@ -66,18 +84,11 @@ $\ref{eq:1^{1.3.1~3}, 1^{2.1.1~2}}$
 
 ### 3.  ✈️ **Auto complete citations** 
 
-Suggest you available equations when adding citations and fill in the equation number in 1-click : 
-
-<center><img src="img\auto-complete.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px;" /></center>
+Suggest you available equations when adding citations and fill in the equation number 
 
 
-### 4. ⚡**One-click outline-based Equation AutoNumber**
+### 4. **One-click outline-based Equation AutoNumber**
 
-**Auto number all the equations in by one click on the sidebar icon**  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-function-icon lucide-square-function"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 17c2 0 2.8-1 2.8-2.8V10c0-2 1-3.3 3.2-3"/><path d="M9 11.2h5.7"/></svg> 
- :
-
-
-<center><img src="img\auto_number_vid.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 500px; " /></center>
 
 ### 5.  📜**PDF export support** 
 
@@ -87,32 +98,29 @@ The cross-file citations will be rendered as normal cross-file link format, whic
 
 <center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:100%; max-height: 350px; " /></center>
 
-## Bugs & Suggestions
+##  🐛 If you find any bug ... 
 
-Since it's a new plugin, but some bugs or issues may still exist. If you encounter any, please provide the following information on the issue page (if this is a feature coming soon, please not comment on the issue page, but wait for the release update) : 
+We have released many versions, made a lot bug fixes to ensure this plugin runs smoothly, but some bugs or issues may still exist or not fully tested.
 
+If you encounter any bug, please **provide the following information** on the issue page : 
 1.  A description of the bug or issue, along with steps to reproduce it.
 2.  The relevant markdown text that triggers the issue.  
 3.  Enable debug mode in the settings tab, and provide the console log (Ctrl + Shift + I in Obsidian). 
 
 > [!TIP] 
-> Since this plugin have cache mechanism for better performance, some problems like delay or no in-time update (like a little delay for citation update) may happens. So you may wait several seconds, or re-open file or restart obsidian to ensure your issue is not just a normal cache-related behavior.
-
-If u have knowledge about plugin development, you can also find which function is causing the bug or issue, provide testing cases or make pull requests to fix the bug or issue. 
-
-Also, if u have any suggestion or question for this plugin, feel free to leave it in the issue page.
-
-> [!note] 
-> **Contributors and maintainers are always welcome!**
-> 
->
-> I developed this plugin to help my daily work and follow my personal interests. It's totally free, I would be very glad if anyone can fork this repo and help me to maintain this plugin (since I'm busy during school time). 
->
-> You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**). 
->
-> Very appreciate for your contributions! 
+> Since this plugin have cache mechanism for better performance, some problems like normal delay or no in-time update (like a little delay for citation update) may happens. So you may wait several seconds, or re-open file or restart obsidian to ensure your issue is not just a normal cache-related behavior.
 
 
-You can also support me by ☕️:
+## 💖 Support and Collaboration 
 
-<center><a href='https://ko-fi.com/Z8Z81N7CMO' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a></center>
+I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. 
+
+**Contributors and maintainers are always welcome** :
+- You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**).   
+- I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
+
+Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
+
+Finally, if you find this plugin helpful, consider buy me a cup of ☕️:
+
+<center><a href='https://ko-fi.com/Z8Z81N7CMO'  target='_blank'><img src="./img/friedparrot-kofi.jpg" width="350px" style="border-radius:15px"></img></a></center>

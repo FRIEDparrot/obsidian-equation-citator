@@ -299,6 +299,17 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   display: inline-block;
 }
 
+/* Cursor feedback when dragging equations */
+body.ec-equation-dragging {
+  cursor: grabbing !important;
+}
+
+/* Visual cue on the dragged equation */
+.ec-is-dragging {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
 .ec-manage-panel-wrapper {
   position: relative;
   display: flex;
@@ -429,6 +440,10 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 .ec-heading-level-6 .ec-heading-equations {
   padding-left: 4px;
   padding-right: 4px;
+}
+
+.ec-heading-level-7 {
+  padding-left: 8px; /* no-heading level */
 }
 
 .ec-no-heading-group .ec-heading-header {

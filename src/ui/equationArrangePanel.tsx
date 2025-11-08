@@ -1,8 +1,10 @@
-import { ItemView, WorkspaceLeaf, setIcon, setTooltip, MarkdownRenderer, Modal, App, MarkdownView } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, setTooltip, MarkdownRenderer, Modal, App, MarkdownView, Notice } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
 import { parseHeadingsInMarkdown, Heading, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
+import Debugger from "@/debug/debugger";
+import { getMarkdownViewFromEvent } from "@/utils/misc/get_evt_view";
 
 export const EQUATION_ARRANGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -17,8 +19,8 @@ interface EquationGroup {
 }
 
 export class EquationArrangePanel extends ItemView {
-    private viewMode: ViewMode = "outline";
-    private sortMode: SortType = "tag";
+    private viewMode: ViewMode = "list";
+    private sortMode: SortType = "seq";
     private viewModeButton!: HTMLElement;
     private viewPanel!: HTMLElement;
     private sortButton!: HTMLElement;
@@ -67,13 +69,13 @@ export class EquationArrangePanel extends ItemView {
     updateViewMode(mode: ViewMode): void {
         this.viewMode = mode;
         setIcon(this.viewModeButton, mode === "outline" ? "list" : "rows-4");
-        setTooltip(this.viewModeButton, `${mode === "outline" ? "outline" : "list"} view Mode`);
+        setTooltip(this.viewModeButton, `View Mode : ${mode === "outline" ? "outline" : "list"}`);
     }
 
     updateSortMode(mode: SortType): void {
         this.sortMode = mode;
         setIcon(this.sortButton, mode === "tag" ? "tag" : "list-ordered");
-        setTooltip(this.sortButton, `sort by ${mode == "tag" ? "tag" : "line number"}`);
+        setTooltip(this.sortButton, `Sort mode : ${mode == "tag" ? "tag" : "line number"}`);
     }
 
     async onOpen(): Promise<void> {
@@ -188,8 +190,8 @@ export class EquationArrangePanel extends ItemView {
 
         ///////////////////////////////   Render view   ////////// 
 
-        this.updateViewMode("outline");   // default view mode is list
-        this.updateSortMode("tag");
+        this.updateViewMode("list");   // default view mode is list
+        this.updateSortMode("seq");
         this.updateModeButtons();      // update mode buttons after that
         this.toggleTagShow(true);
         this.refreshView();
@@ -206,22 +208,16 @@ export class EquationArrangePanel extends ItemView {
     private setupDropHandler(): void {
         this.dropHandler = async (evt: DragEvent) => {
             // Try to get equation data from different MIME types
-            let data = evt.dataTransfer?.getData('application/json');
-            if (!data) {
-                data = evt.dataTransfer?.getData('text/plain');
-            }
-            if (!data) {
-                console.log('No data in drop event');
-                return;
-            }
-
+            const data = evt.dataTransfer?.getData('application/json');
+            if (!data) return;   // no data to drop 
             try {
+                evt.preventDefault();
+                evt.stopPropagation();
                 const equationData = JSON.parse(data);
-                console.log('Drop event received with data:', equationData);
 
                 // Only handle our equation drops (must have content field)
                 if (!equationData.content) {
-                    console.log('No content field, ignoring');
+                    Debugger.log('No content field, ignoring');
                     return;
                 }
 
@@ -229,17 +225,13 @@ export class EquationArrangePanel extends ItemView {
                 const target = evt.target as HTMLElement;
                 const editorContent = target.closest('.cm-content');
                 if (!editorContent) {
-                    console.log('Not dropping on editor');
+                    Debugger.log('Not dropping on editor');
                     return;
                 }
 
-                evt.preventDefault();
-                evt.stopPropagation();
-
-                console.log('Handling equation drop');
                 await this.handleEquationDrop(equationData, evt);
             } catch (error) {
-                console.error('Failed to parse equation data:', error);
+                Debugger.error(`Failed to parse equation data: ${error}`);
             }
         };
 
@@ -258,20 +250,20 @@ export class EquationArrangePanel extends ItemView {
         }, true);
     }
 
-    private async handleEquationDrop(equationData: { tag: string; content: string; sourcePath: string }, evt: DragEvent): Promise<void> {
-        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (!activeView) {
-            console.log('No active markdown view');
-            return;
-        }
+    private async handleEquationDrop(
+        equationData: { tag: string; content: string; sourcePath: string },
+        evt: DragEvent
+    ): Promise<void> {
+        const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt); 
+        if (!targetView) return; 
 
-        const editor = activeView.editor;
-        const targetFile = activeView.file;
+        const editor = targetView.editor;
+        const targetFile = targetView.file;
         if (!targetFile) {
-            console.log('No target file');
+            new Notice('No target file');
             return;
         }
-
+        
         let tag = equationData.tag;
 
         // If no tag, prompt user to add one
@@ -280,6 +272,7 @@ export class EquationArrangePanel extends ItemView {
             if (!userTag) return; // User cancelled
             tag = userTag;
             // TODO: Add tag to the source equation
+            return; 
         }
 
         const citationPrefix = this.plugin.settings.citationPrefix;
@@ -385,7 +378,7 @@ export class EquationArrangePanel extends ItemView {
     private toggleTagShow(mode: boolean) {
         this.showEquationTags = mode;
         setIcon(this.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");
-        setTooltip(this.toggleTagShowButton, mode ? "tag: show" : "tag: hidden");
+        setTooltip(this.toggleTagShowButton, mode ? "tags: show" : "tags: hidden");
         document.body.classList.toggle("ec-tag-show", mode);
     }
 
@@ -400,7 +393,7 @@ export class EquationArrangePanel extends ItemView {
 
     private updateFilterButton(): void {
         const iconName = this.filterEmptyHeadings ? "filter" : "filter-x";
-        const tooltipText = this.filterEmptyHeadings ? "Hide empty headings" : "Show all headings";
+        const tooltipText = this.filterEmptyHeadings ? "Headings: Only Show not empty" : "Headings: Show All";
         setIcon(this.filterEmptyHeadingsButton, iconName);
         setTooltip(this.filterEmptyHeadingsButton, tooltipText);
     }
@@ -541,9 +534,22 @@ export class EquationArrangePanel extends ItemView {
         // Group equations by headings
         const groups = this.groupEquationsByHeadings(equations, headings);
 
-        // Filter groups if filter is enabled
+        // Filter groups if filter is enabled - need to check total equations including subheadings
         const filteredGroups = this.filterEmptyHeadings
-            ? groups.filter(group => group.equations.length > 0)
+            ? groups.filter((group, index) => {
+                // Include if has direct equations
+                if (group.equations.length > 0) return true;
+
+                // Include if has equations in subheadings
+                if (group.heading) {
+                    const headingIndexInAll = headings.findIndex(h => h.line === group.heading?.line);
+                    if (headingIndexInAll >= 0) {
+                        const totalCount = this.getTotalEquationsForHeading(equations, headings, headingIndexInAll);
+                        return totalCount > 0;
+                    }
+                }
+                return false;
+            })
             : groups;
 
         const outlineContainer = this.viewPanel.createDiv("ec-outline-view");
@@ -712,7 +718,7 @@ export class EquationArrangePanel extends ItemView {
         // Use special class for no-heading group
         const headingClasses = isNoHeadingGroup
             ? "ec-heading-item ec-no-heading-group"
-            : `ec-heading-item ec-heading-level-${group.absoluteLevel}`;
+            : `ec-heading-item ec-heading-level-${group.relativeLevel}`;
 
         const headingDiv = container.createDiv({
             cls: headingClasses,
@@ -735,7 +741,7 @@ export class EquationArrangePanel extends ItemView {
         // Heading text
         const headingText = group.heading ? group.heading.text : "Equations without heading";
         const headingTextSpan = headingHeader.createSpan({
-            cls: `ec-heading-text ec-heading-text-${group.absoluteLevel}`,
+            cls: `ec-heading-text ec-heading-text-${group.absoluteLevel}`,  // here we use absolute level
             text: headingText
         });
 
@@ -761,16 +767,15 @@ export class EquationArrangePanel extends ItemView {
 
         // Create a content container that will hold subheadings and equations
         const contentContainer = headingDiv.createDiv("ec-heading-content");
+
+        // Hide content container BEFORE rendering if collapsed (better UX - no flash)
         if (isCollapsed) {
-            contentContainer.hide(); // Hide content initially before expanding
-        }
-        else {
-            contentContainer.show(); // Show content initially
+            contentContainer.hide();
         }
 
         // Get DIRECT subheading indices only (not all nested levels)
         const directSubheadingIndices = this.getDirectSubheadingIndices(allGroups, currentIndex);
-        
+
         // First, render ONLY direct subheadings (they will recursively render their own children)
         for (const subIndex of directSubheadingIndices) {
             await this.renderHeadingGroup(
@@ -782,15 +787,8 @@ export class EquationArrangePanel extends ItemView {
             );
         }
         // Then, render direct equations (not in subheadings)
-
         if (hasDirectEquations) {
             const directEquationsContainer = contentContainer.createDiv("ec-heading-equations");
-            if (isCollapsed) {
-                directEquationsContainer.hide();
-            }
-            else {
-                directEquationsContainer.show();
-            }
             for (const eq of group.equations) {
                 await this.renderEquationItem(directEquationsContainer, eq);
             }
@@ -798,17 +796,18 @@ export class EquationArrangePanel extends ItemView {
 
         // Click handler for chevron - collapse/expand
         if (hasContent && collapseIcon) {
+            const iconElement = collapseIcon;
             collapseIcon.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent event bubbling 
+                e.stopPropagation(); // Prevent event bubbling
                 const isCurrentlyCollapsed = this.collapsedHeadings.has(headingKey);
 
                 if (isCurrentlyCollapsed) {
                     this.collapsedHeadings.delete(headingKey);
-                    setIcon(collapseIcon, "chevron-down");
+                    setIcon(iconElement, "chevron-down");
                     contentContainer.show();
                 } else {
                     this.collapsedHeadings.add(headingKey);
-                    setIcon(collapseIcon, "chevron-right");
+                    setIcon(iconElement, "chevron-right");
                     contentContainer.hide();
                 }
             });
@@ -874,8 +873,11 @@ export class EquationArrangePanel extends ItemView {
             if (!event.dataTransfer) return;
 
             // Change cursor to grabbing hand
-            document.body.style.cursor = 'grabbing';
-            eqDiv.style.opacity = '0.5';
+            document.body.classList.add('ec-equation-dragging');
+            eqDiv.classList.add('ec-is-dragging');
+
+            // document.body.style.cursor = 'grabbing';
+            // eqDiv.style.opacity = '0.5';
 
             // Store equation data
             const equationData = {
@@ -888,14 +890,12 @@ export class EquationArrangePanel extends ItemView {
             event.dataTransfer.setData('application/json', dataString);
             event.dataTransfer.setData('text/plain', dataString); // Fallback
             event.dataTransfer.effectAllowed = 'copy';
-
-            console.log('Drag started with data:', equationData);
         });
 
         // Drag end event
         eqDiv.addEventListener('dragend', () => {
-            document.body.style.cursor = '';
-            eqDiv.style.opacity = '1';
+            document.body.classList.remove('equation-dragging');
+            eqDiv.classList.remove('ec-is-dragging');
         });
     }
 
