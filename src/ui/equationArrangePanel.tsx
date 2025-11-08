@@ -33,7 +33,7 @@ export class EquationArrangePanel extends ItemView {
     private showEquationTags = false;
     private isSearchMode = false;
     private searchQuery = "";
-    private filterEmptyHeadings = true; // Default to filter empty headings
+    private filterEmptyHeadings = false; // Default to outline view (show all headings)
     private collapsedHeadings: Set<number> = new Set();
     private updateHandler: () => void;
     private currentEquationHash = "";
@@ -250,9 +250,9 @@ export class EquationArrangePanel extends ItemView {
             const types = evt.dataTransfer?.types || [];
             if (types.includes('application/json')) {
                 const target = evt.target as HTMLElement;
-                if (target.closest('.cm-content')) {
+                if (target.closest('.cm-content') && evt.dataTransfer) {
                     evt.preventDefault();
-                    evt.dataTransfer!.dropEffect = 'copy';
+                    evt.dataTransfer.dropEffect = 'copy';
                 }
             }
         }, true);
@@ -399,8 +399,8 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private updateFilterButton(): void {
-        const iconName = this.filterEmptyHeadings ? "filter-x" : "filter";
-        const tooltipText = this.filterEmptyHeadings ? "Show all headings" : "Show only headings with equations";
+        const iconName = this.filterEmptyHeadings ? "filter" : "filter-x";
+        const tooltipText = this.filterEmptyHeadings ? "Hide empty headings" : "Show all headings";
         setIcon(this.filterEmptyHeadingsButton, iconName);
         setTooltip(this.filterEmptyHeadingsButton, tooltipText);
     }
@@ -548,9 +548,70 @@ export class EquationArrangePanel extends ItemView {
 
         const outlineContainer = this.viewPanel.createDiv("ec-outline-view");
 
-        for (const group of filteredGroups) {
-            await this.renderHeadingGroup(outlineContainer, group);
+        // Render only top-level headings; subheadings will be rendered recursively
+        for (let i = 0; i < filteredGroups.length; i++) {
+            // Check if this is a top-level heading (no parent with lower relative level before it)
+            const isTopLevel = i === 0 || !this.hasParentHeading(filteredGroups, i);
+
+            if (isTopLevel || filteredGroups[i].heading === null) {
+                await this.renderHeadingGroup(outlineContainer, filteredGroups, i, equations, headings);
+            }
         }
+    }
+
+    private hasParentHeading(groups: EquationGroup[], currentIndex: number): boolean {
+        // Check if this heading has a parent (a heading with lower relative level before it)
+        const currentGroup = groups[currentIndex];
+        const currentLevel = currentGroup.relativeLevel;
+
+        for (let i = currentIndex - 1; i >= 0; i--) {
+            const prevGroup = groups[i];
+            if (prevGroup.relativeLevel < currentLevel) {
+                return true; // Found a parent
+            }
+        }
+
+        return false;
+    }
+
+    private getEndLineForHeading(headings: Heading[], currentIndex: number): number {
+        // Find the end line for this heading, which is the line before the next sibling or parent heading
+        const currentHeading = headings[currentIndex];
+        const currentLevel = currentHeading.level;
+
+        // Look for the next heading that is at the same level or higher (sibling or parent)
+        for (let i = currentIndex + 1; i < headings.length; i++) {
+            if (headings[i].level <= currentLevel) {
+                return headings[i].line;
+            }
+        }
+
+        // No sibling or parent found, this heading extends to the end of the file
+        return Infinity;
+    }
+
+    private getDirectEquationsForHeading(equations: EquationMatch[], headings: Heading[], currentIndex: number): EquationMatch[] {
+        // Get only the equations directly under this heading (not in any subheading)
+        const heading = headings[currentIndex];
+        const nextHeadingLine = currentIndex < headings.length - 1 ? headings[currentIndex + 1].line : Infinity;
+
+        // Find equations between this heading and the next heading
+        const directEquations = equations.filter(eq =>
+            eq.lineStart > heading.line && eq.lineStart < nextHeadingLine
+        );
+
+        return directEquations;
+    }
+
+    private getTotalEquationsForHeading(equations: EquationMatch[], headings: Heading[], currentIndex: number): number {
+        // Get total count of equations in this heading including all subheadings
+        const endLine = this.getEndLineForHeading(headings, currentIndex);
+        const heading = headings[currentIndex];
+
+        const totalEquations = equations.filter(eq =>
+            eq.lineStart > heading.line && eq.lineStart < endLine
+        );
+        return totalEquations.length;
     }
 
     private groupEquationsByHeadings(equations: EquationMatch[], headings: Heading[]): EquationGroup[] {
@@ -575,18 +636,15 @@ export class EquationArrangePanel extends ItemView {
         // Process ALL headings, not just those with equations
         for (let i = 0; i < headings.length; i++) {
             const heading = headings[i];
-            const nextHeadingLine = i < headings.length - 1 ? headings[i + 1].line : Infinity;
 
-            // Find equations that belong to this heading
-            const headingEquations = eqs_sorted.filter(eq =>
-                eq.lineStart > heading.line && eq.lineStart < nextHeadingLine
-            );
+            // Get only direct equations (not in subheadings) for rendering
+            const directEquations = this.getDirectEquationsForHeading(eqs_sorted, headings, i);
 
             // Add all headings, regardless of whether they have equations
             const relLevel = relativeHeadingLevel(headings, i);
             groups.push({
                 heading,
-                equations: headingEquations,
+                equations: directEquations, // Only store direct equations for rendering
                 absoluteLevel: heading.level,
                 relativeLevel: relLevel
             });
@@ -595,12 +653,54 @@ export class EquationArrangePanel extends ItemView {
         return groups;
     }
 
+    private hasSubheadings(groups: EquationGroup[], currentIndex: number): boolean {
+        // Check if this heading has any direct subheadings
+        return this.getDirectSubheadingIndices(groups, currentIndex).length > 0;
+    }
+
+    private getDirectSubheadingIndices(groups: EquationGroup[], currentIndex: number): number[] {
+        // Get only DIRECT children subheading indices (not grandchildren)
+        const subheadingIndices: number[] = [];
+        if (currentIndex >= groups.length - 1) return subheadingIndices;
+
+        const currentGroup = groups[currentIndex];
+        const currentLevel = currentGroup.relativeLevel;
+
+        // Collect only direct subheadings (exactly one level higher)
+        for (let i = currentIndex + 1; i < groups.length; i++) {
+            const nextGroup = groups[i];
+
+            if (nextGroup.relativeLevel <= currentLevel) {
+                break; // Found a sibling or parent heading, stop
+            }
+
+            // Only include direct children (one level deeper)
+            if (nextGroup.relativeLevel === currentLevel + 1) {
+                subheadingIndices.push(i);
+            }
+        }
+
+        return subheadingIndices;
+    }
+
     private async renderHeadingGroup(
         container: HTMLElement,
-        group: EquationGroup
+        allGroups: EquationGroup[],
+        currentIndex: number,
+        allEquations: EquationMatch[],
+        allHeadings: Heading[]
     ): Promise<void> {
-        // Determine if this heading should have a chevron (has equations or subheadings will be checked)
-        const hasContent = group.equations.length > 0;
+        const group = allGroups[currentIndex];
+        // Determine if this heading should have a chevron (has equations or subheadings)
+        const hasDirectEquations = group.equations.length > 0;
+        const hasSubheadings = this.hasSubheadings(allGroups, currentIndex);
+        const hasContent = hasDirectEquations || hasSubheadings;
+
+        // Calculate total equation count (including subheadings) for display
+        const headingIndexInAll = group.heading ? allHeadings.findIndex(h => h.line === group.heading?.line) : -1;
+        const totalEquationCount = headingIndexInAll >= 0
+            ? this.getTotalEquationsForHeading(allEquations, allHeadings, headingIndexInAll)
+            : group.equations.length;
 
         // Use a special key for non-heading groups
         const headingKey = group.heading ? group.heading.line : -1;
@@ -616,18 +716,17 @@ export class EquationArrangePanel extends ItemView {
 
         const headingDiv = container.createDiv({
             cls: headingClasses,
-            attr: { 'data-line': headingKey.toString() }
+            attr: { 'data-line': headingKey.toString() }   // Store the line number as data attribute 
         });
 
-        // Header is non-clickable by default (we'll add click handlers to specific elements)
-        const headingHeader = headingDiv.createDiv("ec-heading-header ec-non-clickable");
+        // click to jump to heading location 
+        const headingHeader = headingDiv.createDiv("ec-heading-header ec-clickable");
 
         // Collapse/expand icon - only show if has content
         let collapseIcon: HTMLElement | null = null;
         if (hasContent) {
             collapseIcon = headingHeader.createSpan(`ec-collapse-icon ec-heading-collapse-icon-${group.absoluteLevel}`);
             setIcon(collapseIcon, isCollapsed ? "chevron-right" : "chevron-down");
-            collapseIcon.addClass('ec-clickable');
         } else {
             // Add empty space to align text properly
             headingHeader.createSpan({ cls: "ec-collapse-icon-placeholder" });
@@ -643,69 +742,79 @@ export class EquationArrangePanel extends ItemView {
         // Make heading text clickable if it's a real heading (not no-heading group)
         if (group.heading) {
             headingTextSpan.addClass('ec-clickable');
-        }
-        
-        // Equation count badge - only show if has equations
-        if (group.equations.length > 0) {
-            headingHeader.createSpan({
-                cls: "ec-equation-count",
-                text: group.equations.length.toString()
+            // Click handler for heading text - jump to heading location
+            headingTextSpan.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                if (group.heading) {
+                    this.jumpToHeading(group.heading);
+                }
             });
         }
 
-        // function to render equations for this group
-        const renderGroupEquations = async () => {
-            const headingDiv = headingHeader.parentElement as HTMLElement;
-            const equationsContainer = headingDiv.querySelector('.ec-heading-equations') as HTMLElement | null;
-            const isCollapsed = this.collapsedHeadings.has(headingKey);
-
-            if (isCollapsed) {
-                this.collapsedHeadings.add(headingKey);
-                if (collapseIcon) setIcon(collapseIcon, "chevron-right");
-                if (equationsContainer) {
-                    equationsContainer.toggle(false); // hide
-                }
-            }
-            else { // Render equations if not collapsed
-                this.collapsedHeadings.delete(headingKey);
-                if (collapseIcon) setIcon(collapseIcon, "chevron-down");
-                if (!equationsContainer) {
-                    const newContainer = headingDiv.createDiv("ec-heading-equations");
-                    for (const eq of group.equations) {
-                        await this.renderEquationItem(newContainer, eq);
-                    }
-                } else {
-                    equationsContainer.toggle(true); // show again
-                }
-            }
+        // Equation count badge - show total count (including subheadings)
+        if (totalEquationCount > 0) {
+            headingHeader.createSpan({
+                cls: "ec-equation-count",
+                text: totalEquationCount.toString()
+            });
         }
 
-        // Render equations if not collapsed
-        if (hasContent) {
-            await renderGroupEquations();
+        // Create a content container that will hold subheadings and equations
+        const contentContainer = headingDiv.createDiv("ec-heading-content");
+        if (isCollapsed) {
+            contentContainer.hide(); // Hide content initially before expanding
+        }
+        else {
+            contentContainer.show(); // Show content initially
+        }
+
+        // Get DIRECT subheading indices only (not all nested levels)
+        const directSubheadingIndices = this.getDirectSubheadingIndices(allGroups, currentIndex);
+        
+        // First, render ONLY direct subheadings (they will recursively render their own children)
+        for (const subIndex of directSubheadingIndices) {
+            await this.renderHeadingGroup(
+                contentContainer,
+                allGroups,
+                subIndex,
+                allEquations,
+                allHeadings
+            );
+        }
+        // Then, render direct equations (not in subheadings)
+
+        if (hasDirectEquations) {
+            const directEquationsContainer = contentContainer.createDiv("ec-heading-equations");
+            if (isCollapsed) {
+                directEquationsContainer.hide();
+            }
+            else {
+                directEquationsContainer.show();
+            }
+            for (const eq of group.equations) {
+                await this.renderEquationItem(directEquationsContainer, eq);
+            }
         }
 
         // Click handler for chevron - collapse/expand
         if (hasContent && collapseIcon) {
             collapseIcon.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent event bubbling
-                const isCollapsed = this.collapsedHeadings.has(headingKey);
-                if (isCollapsed) {
+                e.stopPropagation(); // Prevent event bubbling 
+                const isCurrentlyCollapsed = this.collapsedHeadings.has(headingKey);
+
+                if (isCurrentlyCollapsed) {
                     this.collapsedHeadings.delete(headingKey);
+                    setIcon(collapseIcon, "chevron-down");
+                    contentContainer.show();
                 } else {
                     this.collapsedHeadings.add(headingKey);
+                    setIcon(collapseIcon, "chevron-right");
+                    contentContainer.hide();
                 }
-                renderGroupEquations();
             });
         }
 
-        // Click handler for heading text - jump to heading location
-        if (group.heading) {
-            headingTextSpan.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent event bubbling
-                this.jumpToHeading(group.heading);
-            });
-        }
+        return;
     }
 
     private jumpToHeading(heading: Heading): void {
@@ -726,7 +835,7 @@ export class EquationArrangePanel extends ItemView {
 
     private async renderEquationItem(container: HTMLElement, equation: EquationMatch): Promise<void> {
         const eqDiv = container.createDiv("ec-equation-item");
-        
+
         // Make equation draggable
         eqDiv.draggable = true;
         eqDiv.setAttribute('data-equation-tag', equation.tag || '');

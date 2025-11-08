@@ -367,7 +367,7 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border-radius: 4px;
+  border-radius: 5px;
   transition: background-color 0.2s;
 }
 .ec-heading-header.ec-clickable {
@@ -375,9 +375,6 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 .ec-heading-header.ec-clickable:hover {
   background-color: var(--background-modifier-hover);
-}
-.ec-heading-header.ec-non-clickable {
-  cursor: default;
 }
 
 .ec-heading-level-1 .ec-heading-header {
@@ -484,7 +481,7 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 .ec-collapse-icon {
   flex-shrink: 0;
   width: 16px;
-  height: 16px;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -507,19 +504,8 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 
 .ec-heading-text {
   flex: 1;
-  font-weight: 600;
   color: var(--text-normal);
   font-size: 14px;
-}
-.ec-heading-text.ec-clickable {
-  cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: -2px -4px;
-  transition: background-color 0.2s;
-}
-.ec-heading-text.ec-clickable:hover {
-  background-color: var(--background-modifier-hover);
 }
 
 .ec-equation-count {
