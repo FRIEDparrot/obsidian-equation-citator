@@ -5,7 +5,7 @@ import { EditorState } from "@codemirror/state";
 import Debugger from "@/debug/debugger";
 import { TagRenameModal } from "@/ui/tagRenameModal";
 
-export function registerRightClickMenu(plugin: EquationCitator) {
+export function registerRightClickHandler(plugin: EquationCitator) {
     const app: App = plugin.app;
     plugin.registerEvent(
         //  right click menu for tag rename 

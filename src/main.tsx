@@ -20,12 +20,13 @@ import { ColorManager } from '@/settings/styleManagers/colorManager';
 import { EquationServices } from '@/services/equation_services';
 import { TagService } from '@/services/tag_service';
 import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
-import { registerRightClickMenu } from '@/ui/rightButtonMenu';
+import { registerRightClickHandler } from '@/handlers/rightButtonHandler';
 import { LineHashCache } from '@/cache/lineHashCache';
 import { WidgetSizeManager } from '@/settings/styleManagers/widgetSizeManager';
 import { isUpdateAvailable } from './api/updateChecking';
 import { EquationArrangePanel, EQUATION_ARRANGE_PANEL_TYPE } from '@/ui/equationArrangePanel';
 import Debugger from './debug/debugger';
+import { dropCursorField } from '@/utils/workspace/drag_drop_event';
 
 export default class EquationCitator extends Plugin {
     settings: EquationCitatorSettings;
@@ -53,6 +54,7 @@ export default class EquationCitator extends Plugin {
         ColorManager.updateAllColors(this.settings);
         WidgetSizeManager.updateAllSizes(this.settings);
         this.addSettingTab(new SettingsTabView(this.app, this));
+        
         // initialize caches
         this.loadCaches();
         
@@ -70,7 +72,7 @@ export default class EquationCitator extends Plugin {
         
         // register ribbon button and commands 
         registerRibbonButton(this);
-        registerRightClickMenu(this);
+        registerRightClickHandler(this);
         registerCommands(this);
     }
 
@@ -120,7 +122,9 @@ export default class EquationCitator extends Plugin {
             this.mathCitationCompartment.of(
                 createMathCitationExtension(this)
             )
-        )
+        );
+        // Register drag cursor field for equation drag-drop visual feedback
+        this.registerEditorExtension(dropCursorField);
     }
 
     loadReadingModeExtensions() {

@@ -15,10 +15,11 @@ export const OtherSettingsTab = {
             .addToggle((toggle) => {
                 toggle.setValue(Debugger.debugMode);
                 plugin.settings.debugMode = Debugger.debugMode;
-
-                toggle.onChange((value) => {
+                
+                toggle.onChange(async (value) => {
                     Debugger.debugMode = toggle.getValue();
                     plugin.settings.debugMode = Debugger.debugMode;
+                    await plugin.saveSettings();
                     new Notice("Equation Citator : Debug mode" + (value ? " enabled" : " disabled"));
                 });
             });

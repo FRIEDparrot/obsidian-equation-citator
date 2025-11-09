@@ -1,10 +1,11 @@
-import { ItemView, WorkspaceLeaf, setIcon, setTooltip, MarkdownRenderer, Modal, App, MarkdownView, Notice } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, setTooltip, MarkdownRenderer, Modal, App, Notice, MarkdownView } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
 import { parseHeadingsInMarkdown, Heading, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
-import Debugger from "@/debug/debugger";
-import { getMarkdownViewFromEvent } from "@/utils/misc/get_evt_view";
+import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
+import { updateCursorToDragPosition, clearDragCursor } from "@/utils/workspace/drag_drop_event";
+
 
 export const EQUATION_ARRANGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -46,6 +47,8 @@ export class EquationArrangePanel extends ItemView {
     private currentSortMode = "";    // current sort mode (used for fast refresh)
     private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
     private dropHandler: (evt: DragEvent) => void;
+    private dragoverHandler: (evt: DragEvent) => void;
+    private dragendHandler: () => void;
 
     constructor(private plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
@@ -201,112 +204,165 @@ export class EquationArrangePanel extends ItemView {
             this.app.vault.on('modify', this.updateHandler)
         );
 
-        // Register drop handler for editors
-        this.setupDropHandler();
+        // Register drop handler for equation drag-drop
+        this.registerDropEquationHandler();
     }
+    onunload(): void {
+        // Clean up event listeners
+        this.app.workspace.off('active-leaf-change', this.updateHandler);
+        this.app.vault.off('modify', this.updateHandler);
 
-    private setupDropHandler(): void {
-        this.dropHandler = async (evt: DragEvent) => {
-            // Try to get equation data from different MIME types
-            const data = evt.dataTransfer?.getData('application/json');
-            if (!data) return;   // no data to drop 
-            try {
-                evt.preventDefault();
-                evt.stopPropagation();
-                const equationData = JSON.parse(data);
+        // Remove drop handlers
+        if (this.dropHandler) {
+            document.removeEventListener('drop', this.dropHandler, true);
+        }
+        if (this.dragoverHandler) {
+            document.removeEventListener('dragover', this.dragoverHandler, true);
+        }
+        if (this.dragendHandler) {
+            document.removeEventListener('dragend', this.dragendHandler, true);
+        }
+    }
+    private registerDropEquationHandler(): void {
+        // Dragover handler - show visual cursor and allow drop
+        this.dragoverHandler = (evt: DragEvent) => {
+            // Check if we're dragging equation data
+            const types = evt.dataTransfer?.types || [];
 
-                // Only handle our equation drops (must have content field)
-                if (!equationData.content) {
-                    Debugger.log('No content field, ignoring');
-                    return;
+            if (evt.dataTransfer && types.includes('ec-equations/drop-citaions')) {
+                // show different type of cursor according to if its editor 
+                const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
+
+                if (!targetView || !targetView.editor) {
+                    evt.dataTransfer.dropEffect = 'none';
+                } else {
+                    evt.preventDefault();
+                    evt.dataTransfer.dropEffect = 'copy';
+                    // Move the actual editor cursor to the drag position
+                    updateCursorToDragPosition(evt, targetView);
                 }
-
-                // Check if dropping on editor
-                const target = evt.target as HTMLElement;
-                const editorContent = target.closest('.cm-content');
-                if (!editorContent) {
-                    Debugger.log('Not dropping on editor');
-                    return;
-                }
-
-                await this.handleEquationDrop(equationData, evt);
-            } catch (error) {
-                Debugger.error(`Failed to parse equation data: ${error}`);
             }
         };
 
-        // Use capture phase to intercept before other handlers
-        document.addEventListener('drop', this.dropHandler, true);
-        document.addEventListener('dragover', (evt) => {
-            // Check if we're dragging equation data
-            const types = evt.dataTransfer?.types || [];
-            if (types.includes('application/json')) {
-                const target = evt.target as HTMLElement;
-                if (target.closest('.cm-content') && evt.dataTransfer) {
-                    evt.preventDefault();
-                    evt.dataTransfer.dropEffect = 'copy';
-                }
+        // Drop handler
+        this.dropHandler = async (evt: DragEvent) => {
+            // Try to get equation data
+            const data = evt.dataTransfer?.getData('ec-equations/drop-citaions');
+            if (!data) return;   // no data to drop
+
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            const equationData = JSON.parse(data);
+
+            // Only handle our equation drops (must have content field)
+            if (!equationData.content) {
+                return;
             }
-        }, true);
+
+            // Get the target view to insert citation
+            const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
+            if (!targetView) return;
+
+            await this.handleEquationDrop(equationData, evt);
+
+            // Clear the drag cursor after drop
+            clearDragCursor(targetView);
+        };
+
+
+
+        // Dragend handler - clean up cursor
+        this.dragendHandler = () => {
+            const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (activeView) {
+                clearDragCursor(activeView);
+            }
+        };
+        // Register all handlers with capture phase to intercept before other handlers
+        document.addEventListener('drop', this.dropHandler, true);
+        document.addEventListener('dragover', this.dragoverHandler, true);
+        document.addEventListener('dragend', this.dragendHandler, true);
     }
 
     private async handleEquationDrop(
         equationData: { tag: string; content: string; sourcePath: string },
         evt: DragEvent
     ): Promise<void> {
-        const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt); 
-        if (!targetView) return; 
+        const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
+        if (!targetView) return;
 
         const editor = targetView.editor;
         const targetFile = targetView.file;
-        if (!targetFile) {
-            new Notice('No target file');
+        if (!targetFile || !editor) {
+            new Notice('Cannot drop equation here');
             return;
         }
-        
+
         let tag = equationData.tag;
 
-        // If no tag, prompt user to add one
+        // If no tag, show notice and return
         if (!tag) {
-            const userTag = await this.promptForTag();
-            if (!userTag) return; // User cancelled
-            tag = userTag;
-            // TODO: Add tag to the source equation
-            return; 
+            new Notice('This equation has no tag. Please add a tag to the equation first.');
+            return;
         }
 
-        const citationPrefix = this.plugin.settings.citationPrefix;
+        // Only handle same-file citations for now
         const isTargetSameAsSource = targetFile.path === equationData.sourcePath;
+        if (!isTargetSameAsSource) {
+            new Notice('Cross-file citation not supported yet via drag-drop');
+            return;
+        }
 
         // Build the citation string
-        let citation: string;
-        if (!isTargetSameAsSource) {
-            const footnoteResult = await this.ensureFootnoteExists(targetFile.path, equationData.sourcePath);
-            if (footnoteResult) {
-                // Cross-file citation with footnote
-                const delimiter = this.plugin.settings.fileCiteDelimiter;
-                citation = `$\\ref{${citationPrefix}${footnoteResult}${delimiter}${tag}}$`;
-            } else {
-                // Could not create footnote, fallback to local citation
-                citation = `$\\ref{${citationPrefix}${tag}}$`;
+        const citationPrefix = this.plugin.settings.citationPrefix;
+        const citation = `$\\ref{${citationPrefix}${tag}}$`;
+
+        // Get drop position from the event
+        // @ts-ignore
+        const cm6View = editor.cm;
+        let dropPosition = null;
+
+        if (cm6View) {
+            const pos = cm6View.posAtCoords({ x: evt.clientX, y: evt.clientY });
+            if (pos) {
+                const lineInfo = cm6View.state.doc.lineAt(pos);
+                const line = lineInfo.number - 1; // CM6 uses 1-based line numbers
+                const ch = pos - lineInfo.from;
+                dropPosition = { line, ch };
             }
-        } else {
-            // Same file citation
-            citation = `$\\ref{${citationPrefix}${tag}}$`;
         }
 
-        // Insert citation at cursor position
-        const cursor = editor.getCursor();
-        editor.replaceRange(citation, cursor);
+        if (!dropPosition) {
+            // fallback to current cursor
+            dropPosition = editor.getCursor();
+            Debugger.log('No drop position found, using current cursor position');
+        }
+
+        // Insert citation at drop position
+        editor.replaceRange(citation, dropPosition);
 
         // Move cursor after the citation
         const newCursor = {
-            line: cursor.line,
-            ch: cursor.ch + citation.length
+            line: dropPosition.line,
+            ch: dropPosition.ch + citation.length
         };
         editor.setCursor(newCursor);
 
-        console.log('Citation inserted:', citation);
+        // Focus the editor to ensure it's active
+        targetView.leaf.setViewState({
+            ...targetView.leaf.getViewState(),
+            active: true
+        });
+
+        // Trigger decoration rebuild to render citation widget
+        if (cm6View) {
+            setTimeout(() => {
+                cm6View.requestMeasure();
+            }, 10);
+        }
+
+        Debugger.log('Citation inserted at drop position:', citation);
     }
 
     private async promptForTag(): Promise<string | null> {
@@ -869,32 +925,26 @@ export class EquationArrangePanel extends ItemView {
         });
 
         // Drag start event
-        eqDiv.addEventListener('dragstart', (event) => {
+        eqDiv.addEventListener('dragstart', (event: DragEvent) => {
             if (!event.dataTransfer) return;
 
             // Change cursor to grabbing hand
             document.body.classList.add('ec-equation-dragging');
             eqDiv.classList.add('ec-is-dragging');
-
-            // document.body.style.cursor = 'grabbing';
-            // eqDiv.style.opacity = '0.5';
-
             // Store equation data
             const equationData = {
                 tag: equation.tag || '',
                 content: equation.content,
                 sourcePath: currentFile?.path || ''
             };
-
             const dataString = JSON.stringify(equationData);
-            event.dataTransfer.setData('application/json', dataString);
-            event.dataTransfer.setData('text/plain', dataString); // Fallback
+            event.dataTransfer.setData('ec-equations/drop-citaions', dataString);
             event.dataTransfer.effectAllowed = 'copy';
         });
 
         // Drag end event
         eqDiv.addEventListener('dragend', () => {
-            document.body.classList.remove('equation-dragging');
+            document.body.classList.remove('ec-equation-dragging');
             eqDiv.classList.remove('ec-is-dragging');
         });
     }
@@ -915,16 +965,7 @@ export class EquationArrangePanel extends ItemView {
         }
     }
 
-    onunload(): void {
-        // Clean up event listeners
-        this.app.workspace.off('active-leaf-change', this.updateHandler);
-        this.app.vault.off('modify', this.updateHandler);
 
-        // Remove drop handler
-        if (this.dropHandler) {
-            document.removeEventListener('drop', this.dropHandler, true);
-        }
-    }
 }
 
 // Modal for tag input

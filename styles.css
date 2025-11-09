@@ -299,17 +299,6 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   display: inline-block;
 }
 
-/* Cursor feedback when dragging equations */
-body.ec-equation-dragging {
-  cursor: grabbing !important;
-}
-
-/* Visual cue on the dragged equation */
-.ec-is-dragging {
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
-}
-
 .ec-manage-panel-wrapper {
   position: relative;
   display: flex;
@@ -443,7 +432,8 @@ body.ec-equation-dragging {
 }
 
 .ec-heading-level-7 {
-  padding-left: 8px; /* no-heading level */
+  padding-left: 8px;
+  /* no-heading level */
 }
 
 .ec-no-heading-group .ec-heading-header {
@@ -567,7 +557,38 @@ body.ec-equation-dragging {
 .ec-equation-item[draggable=true] {
   user-select: none;
 }
+.ec-equation-item {
+  /* Visual cue on the dragged equation */
+}
+.ec-equation-item.ec-is-dragging {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.ec-equation-item.ec-is-dragging:hover {
+  cursor: grabbing;
+}
 
+/* drag cursor rendered at drop location as CM6 widget */
+.ec-drag-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background-color: var(--em-text-normal, #2f3133);
+  border-radius: 1px;
+  pointer-events: none;
+  vertical-align: text-bottom;
+  animation: ec-cursor-blink 1s step-end infinite;
+}
+
+/* Blinking animation for drag cursor */
+@keyframes ec-cursor-blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.3;
+  }
+}
 .ec-equation-tag {
   position: absolute;
   display: none;

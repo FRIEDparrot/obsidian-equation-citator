@@ -16,6 +16,7 @@ export interface SettingsMetadata {
     hasSubPanel?: boolean; // whether this setting can have a subpanel to render
 }
 
+
 export interface EquationCitatorSettings {
     //#region citation settings 
     enableCitationInSourceMode: boolean; // Enable citation in source mode 

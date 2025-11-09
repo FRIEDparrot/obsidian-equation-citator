@@ -197,7 +197,8 @@ Version 1.3.0 - New features, Refactors and main improvements.
 🚀Enhancements : 
 - [ ] Add [enhancement #50](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/50), better behavior for relocating cursor after auto-number equations. 
 - [ ] When jump to equations in another panel now check if there already a panel of this file, and jump in this panel if there is. 
-- [ ] Now debugging mode config will be saved after restarting Obsidian. 
+- [x] Now debugging mode configurations will be saved after restarting Obsidian, so you needn't toggle debug mode every time. 
+- [ ] Remake a brand-new and more concise tutorial. 
 
 
 ### 🚢 Comming Soon : 

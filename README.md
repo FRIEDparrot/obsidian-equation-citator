@@ -7,23 +7,15 @@
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></center></span>
 
-<span width="100%"><center>
-    <div><small> First Release : Aug 3, 2025       Last Updated : Nov 8, 2025 </small></div>
-</center></span>
+<center><h4>A Powerful, Convenient & Elegant Academic citation Tool</h4> </center> 
 
 ---
 
-🚀 **5 mins Quick Start** : see [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) 
+🚀 **Quick Start** : see [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for basic rules and syntax. It only takes you < 5 mins but help everything goes smoothly.
 
-✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) 
+✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details. 
 
-**Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
-
-
-> [!warning] 
-> Before using this plugin, you should follow some very simple rules to ensure this plugin work properly, Check [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for details. 
->
-> Issues caused by not following such rules might be closed without being fixed.     
+📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
 ## 🛠️ Installation 
 
