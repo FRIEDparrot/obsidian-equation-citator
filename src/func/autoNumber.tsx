@@ -5,7 +5,7 @@ import { TagRenamePair, TagRenameResult } from "@/services/tag_service";
 import { Notice } from "obsidian";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
-import { insertTextWithCursorOffset } from "@/func/insertTextOnCursor";
+import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
 
 export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,

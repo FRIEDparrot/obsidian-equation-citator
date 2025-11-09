@@ -2,7 +2,7 @@ import EquationCitator from '@/main';
 import { autoNumberCurrentFileEquations, insertAutoNumberTag } from '@/func/autoNumber';
 import { MarkdownView } from 'obsidian';
 import { exportCurrentMarkdown } from '@/func/exportMarkdown';
-import { insertTextWithCursorOffset } from '@/func/insertTextOnCursor';
+import { insertTextWithCursorOffset } from '@/utils/workspace/insertTextOnCursor';
 import { createCitationString, createEquationTagString } from '@/utils/string_processing/regexp_utils';
 import { Notice } from 'obsidian';
 

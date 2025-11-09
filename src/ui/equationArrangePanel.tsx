@@ -4,8 +4,9 @@ import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
 import { parseHeadingsInMarkdown, Heading, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
 import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
-import { updateCursorToDragPosition, clearDragCursor } from "@/utils/workspace/drag_drop_event";
-
+import { drawCursorAtDragPosition, clearDragCursor, getEditorDropLocation } from "@/utils/workspace/drag_drop_event";
+import Debugger from "@/debug/debugger";
+import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
 
 export const EQUATION_ARRANGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -40,6 +41,7 @@ export class EquationArrangePanel extends ItemView {
     private collapsedHeadings: Set<number> = new Set();
     private updateHandler: () => void;
     private currentEquationHash = "";
+    private lastDragTargetView: MarkdownView | null = null;
 
     private currentActiveFile = "";      // current active file path (used for fast refresh)
     private currentViewMode = "";    // current display mode (used for fast refresh)
@@ -49,6 +51,7 @@ export class EquationArrangePanel extends ItemView {
     private dropHandler: (evt: DragEvent) => void;
     private dragoverHandler: (evt: DragEvent) => void;
     private dragendHandler: () => void;
+
 
     constructor(private plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
@@ -187,7 +190,7 @@ export class EquationArrangePanel extends ItemView {
         });
         this.searchInput.addEventListener("input", () => {
             this.searchQuery = this.searchInput.value;
-            this.refreshView();
+            this.scheduleRefreshView();
         });
         this.searchInput.hide();
 
@@ -232,20 +235,29 @@ export class EquationArrangePanel extends ItemView {
             if (evt.dataTransfer && types.includes('ec-equations/drop-citaions')) {
                 // show different type of cursor according to if its editor 
                 const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
-
+                if (this.lastDragTargetView && targetView !== this.lastDragTargetView) {
+                    clearDragCursor(this.lastDragTargetView);  // clear previous drag cursor
+                }
+                this.lastDragTargetView = targetView;
                 if (!targetView || !targetView.editor) {
                     evt.dataTransfer.dropEffect = 'none';
                 } else {
                     evt.preventDefault();
                     evt.dataTransfer.dropEffect = 'copy';
                     // Move the actual editor cursor to the drag position
-                    updateCursorToDragPosition(evt, targetView);
+                    drawCursorAtDragPosition(evt, targetView);
                 }
             }
         };
 
         // Drop handler
         this.dropHandler = async (evt: DragEvent) => {
+            // Get the target view to insert citation
+            const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
+            if (!targetView) return;
+            // Clear the drag cursor after drop
+            clearDragCursor(targetView);
+
             // Try to get equation data
             const data = evt.dataTransfer?.getData('ec-equations/drop-citaions');
             if (!data) return;   // no data to drop
@@ -254,20 +266,13 @@ export class EquationArrangePanel extends ItemView {
             evt.stopPropagation();
 
             const equationData = JSON.parse(data);
-
+            // Also move the editor cursor for visual feedback
             // Only handle our equation drops (must have content field)
             if (!equationData.content) {
                 return;
             }
 
-            // Get the target view to insert citation
-            const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
-            if (!targetView) return;
-
             await this.handleEquationDrop(equationData, evt);
-
-            // Clear the drag cursor after drop
-            clearDragCursor(targetView);
         };
 
 
@@ -286,7 +291,11 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private async handleEquationDrop(
-        equationData: { tag: string; content: string; sourcePath: string },
+        equationData: {
+            tag: string;
+            content: string;
+            sourcePath: string;
+        },
         evt: DragEvent
     ): Promise<void> {
         const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
@@ -295,11 +304,10 @@ export class EquationArrangePanel extends ItemView {
         const editor = targetView.editor;
         const targetFile = targetView.file;
         if (!targetFile || !editor) {
-            new Notice('Cannot drop equation here');
             return;
         }
 
-        let tag = equationData.tag;
+        const tag = equationData.tag;
 
         // If no tag, show notice and return
         if (!tag) {
@@ -318,51 +326,21 @@ export class EquationArrangePanel extends ItemView {
         const citationPrefix = this.plugin.settings.citationPrefix;
         const citation = `$\\ref{${citationPrefix}${tag}}$`;
 
-        // Get drop position from the event
-        // @ts-ignore
-        const cm6View = editor.cm;
-        let dropPosition = null;
+        let dropPosition = getEditorDropLocation(editor, evt);
 
-        if (cm6View) {
-            const pos = cm6View.posAtCoords({ x: evt.clientX, y: evt.clientY });
-            if (pos) {
-                const lineInfo = cm6View.state.doc.lineAt(pos);
-                const line = lineInfo.number - 1; // CM6 uses 1-based line numbers
-                const ch = pos - lineInfo.from;
-                dropPosition = { line, ch };
-            }
-        }
-
-        if (!dropPosition) {
+        if (dropPosition === null) {
             // fallback to current cursor
             dropPosition = editor.getCursor();
-            Debugger.log('No drop position found, using current cursor position');
+            Debugger.log('No drop position found, fall back to current cursor position');
         }
 
-        // Insert citation at drop position
-        editor.replaceRange(citation, dropPosition);
-
-        // Move cursor after the citation
-        const newCursor = {
-            line: dropPosition.line,
-            ch: dropPosition.ch + citation.length
-        };
-        editor.setCursor(newCursor);
-
+        editor.setCursor(dropPosition);
+        insertTextWithCursorOffset(editor, citation, citation.length);
         // Focus the editor to ensure it's active
         targetView.leaf.setViewState({
             ...targetView.leaf.getViewState(),
             active: true
         });
-
-        // Trigger decoration rebuild to render citation widget
-        if (cm6View) {
-            setTimeout(() => {
-                cm6View.requestMeasure();
-            }, 10);
-        }
-
-        Debugger.log('Citation inserted at drop position:', citation);
     }
 
     private async promptForTag(): Promise<string | null> {
@@ -486,6 +464,20 @@ export class EquationArrangePanel extends ItemView {
             return [];
         }
         return filteredEquations;
+    }
+
+    /**
+     * schedule refresh the equations render view (500ms now)
+     */
+    private scheduleRefreshView(timeout = 500) {
+        let timeoutId: number | null = null;
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+        }
+        timeoutId = window.setTimeout(() => {
+            this.refreshView();
+        }, timeout); // adjust delay as needed
     }
 
     /**
