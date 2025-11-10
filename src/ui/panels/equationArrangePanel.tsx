@@ -9,7 +9,7 @@ import Debugger from "@/debug/debugger";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
 import TagInputModal from "@/ui/modals/tagInputModal";
 import { checkFootnoteExists } from "@/utils/core/footnote_utils";
-import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigation";
+import { scrollToEquationByTag } from "@/utils/workspace/equation_navigation";
 
 export const EQUATION_ARRANGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -45,7 +45,6 @@ export class EquationArrangePanel extends ItemView {
     private updateHandler: () => void;
     private currentEquationHash = "";
     private lastDragTargetView: MarkdownView | null = null;
-    private lastActiveMarkdownLeaf: WorkspaceLeaf | null = null;  // Track last active markdown leaf
     private refreshDebounceTimer: number | null = null;
     private searchDebounceTimer: number | null = null;
     private fileCheckInterval: number | null = null;
@@ -234,12 +233,6 @@ export class EquationArrangePanel extends ItemView {
             this.currentActiveFile = activeFile.path;
         }
 
-        // Initialize last active markdown leaf
-        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (activeView?.leaf) {
-            this.lastActiveMarkdownLeaf = activeView.leaf;
-        }
-
         this.refreshView();
         
         // Register event listeners for dynamic updates
@@ -252,12 +245,6 @@ export class EquationArrangePanel extends ItemView {
         this.fileCheckInterval = window.setInterval(() => {
             const currentFile = this.app.workspace.getActiveFile();
             const currentPath = currentFile?.path || "";
-
-            // Track last active markdown view's leaf
-            const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-            if (activeView?.leaf) {
-                this.lastActiveMarkdownLeaf = activeView.leaf;
-            }
 
             // Only refresh if file changed
             if (currentPath !== this.currentActiveFile) {
@@ -991,21 +978,26 @@ export class EquationArrangePanel extends ItemView {
         );
 
         // Add click handler to jump to equation in the editor
-        // Ctrl/Cmd + double click opens in right panel with smart reuse
+        // Ctrl/Cmd + double click always creates new panel on right
         eqDiv.addEventListener('dblclick', async (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
-            if (ctrlKey && equation.tag) {
-                // Use tracked last active markdown leaf (works even when panel is active)
-                const currentLeaf = this.lastActiveMarkdownLeaf;
+            if (ctrlKey && equation.tag && currentFile) {
+                // Always create a new split panel on the right
+                console.log("Ctrl/Cmd + double click: Opening new split panel");
+                const newLeaf = this.app.workspace.getLeaf("split");
+                if (newLeaf) {
+                    this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
+                    await this.app.workspace.openLinkText("", currentFile.path, false);
 
-                // Open in split panel with smart reuse (excluding current leaf)
-                await openFileAndScrollToEquation(
-                    this.plugin,
-                    currentFile?.path || '',
-                    equation.tag,
-                    true,  // open in split
-                    currentLeaf || undefined  // exclude current leaf when searching for existing panels
-                );
+                    // Scroll to the equation after layout is ready
+                    this.app.workspace.onLayoutReady(async () => {
+                        setTimeout(async () => {
+                            if (equation.tag) {
+                                await scrollToEquationByTag(this.plugin, equation.tag, currentFile.path);
+                            }
+                        }, 50);
+                    });
+                }
             } else {
                 // Normal double click - jump in current view
                 this.jumpToEquation(equation);

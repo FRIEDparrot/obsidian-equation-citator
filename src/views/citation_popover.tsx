@@ -5,9 +5,7 @@ import {
     Component,
     HoverPopover,
     HoverParent,
-    TFile,
     MarkdownView,
-    EditorRange,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
 
@@ -18,7 +16,6 @@ export class TargetElComponent extends Component {
 }
 
 import { RenderedEquation } from "@/services/equation_services";
-import { EquationMatch, parseFirstEquationInMarkdown } from "@/utils/parsers/equation_parser";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigation";
 

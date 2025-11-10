@@ -2,7 +2,7 @@ import { MarkdownView } from 'obsidian';
 import { autoNumberCurrentFileEquations } from '@/func/autoNumber';
 import EquationCitator from '@/main';
 import { EQUATION_ARRANGE_PANEL_TYPE } from '@/ui/panels/equationArrangePanel';
-import { invokeView } from '@/ui/invokePanelView';
+import { invokeView } from '@/utils/workspace/invokePanelView';
 
 
 export default function registerRibbonButton(plugin: EquationCitator) {
