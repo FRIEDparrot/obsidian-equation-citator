@@ -94,7 +94,6 @@ export class SettingsTabView extends PluginSettingTab {
         searchSetting.addSearch((text) => {
             text.inputEl.classList.add("ec-settings-search-textbox")
             text.setPlaceholder("Search settings")
-
         })
         const mode = this.plugin.settings.settingsDisplayMode ?? "concise";
         if (mode === "categorical") {

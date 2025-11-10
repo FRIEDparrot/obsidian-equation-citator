@@ -75,13 +75,15 @@ export interface EquationCitatorSettings {
     debugMode: boolean; // Optional setting for debug mode
     enableCiteWithCodeBlockInCallout: boolean; // Enable citation by inline code block in callout 
 
+    
+    // equation management panel Settings 
+    equationManagePanelLazyUpdateTime: number,
+    equationManagePanelfileCheckInterval: number,
+    equationManagePanelDefaultViewType: "outline" | "list",
+
     // settings UI
     settingsDisplayMode: "categorical" | "concise"; // settings tab display mode
     basicSettingsKeys?: string[]; // keys shown in Basic section for concise mode
-
-    // equation management panel Settings 
-    equationManagePanelLazyUpdateTime: number,
-    equationManagePanelfileCheckInterval: number,   
 }
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
@@ -136,7 +138,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "resetSettings"
     ],
     equationManagePanelLazyUpdateTime: 5000,
-    equationManagePanelfileCheckInterval: 1000
+    equationManagePanelfileCheckInterval: 1000,
+    equationManagePanelDefaultViewType: "list",
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
@@ -451,5 +454,13 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         renderCallback: (el, plugin) => {
             // now we not render that 
         }
-    }
+    },
+    equationManagePanelDefaultViewType : {
+        name: "Equation Manage Panel Default View Type",
+        desc: "Default view type for equation manage panel",
+        type: "select",
+        renderCallback: (el, plugin) => {
+            // now we not render that 
+        }
+    },
 }
