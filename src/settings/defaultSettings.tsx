@@ -6,6 +6,7 @@ import { StyleSettingsTab } from "./pages/styleSettingsTab";
 import { CacheSettingsTab } from "./pages/cacheSettingsTab";
 import { PdfExportSettingsTab } from "./pages/pdfExportSettingsTab";
 import { OtherSettingsTab } from "./pages/OtherSettingsTab";
+import { EquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
 
 export interface SettingsMetadata {
     name: string;
@@ -440,27 +441,27 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     equationManagePanelfileCheckInterval : {
-        name: "Equation Manage Panel File Check Interval",
-        desc: "Time interval to check the new file open and refresh equation panel (in ms)",
+        name: "Equation Panel File Check Interval",
+        desc: "Time interval to check for newly opened files and refresh the equation panel (in ms)",
         type: "number",
         renderCallback: (el, plugin) => {
-            // now we not render that 
+            EquationPanelSettingsTab.equationManagePanelFileCheckInterval(el, plugin);
         }
     },
     equationManagePanelLazyUpdateTime : {
-        name: "Equation Manage Panel Lazy Update Time",
-        desc: "Time interval to update the equation manage panel while editing (in ms)",
+        name: "Equation Panel Lazy Update Time",
+        desc: "Time interval to update the equation panel while editing (in ms)",
         type: "number",
         renderCallback: (el, plugin) => {
-            // now we not render that 
+            EquationPanelSettingsTab.equationManagePanelLazyUpdateTime(el, plugin);
         }
     },
     equationManagePanelDefaultViewType : {
-        name: "Equation Manage Panel Default View Type",
-        desc: "Default view type for equation manage panel",
+        name: "Equation Panel Default View Type",
+        desc: "Default view type for the equation panel (outline or list)",
         type: "select",
         renderCallback: (el, plugin) => {
-            // now we not render that 
+            EquationPanelSettingsTab.equationManagePanelDefaultViewType(el, plugin);
         }
     },
 }

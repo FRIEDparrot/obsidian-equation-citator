@@ -859,35 +859,55 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   color: rgb(136, 135, 235);
 }
 
+/* Categorical wrapper - merged container */
+.ec-categorical-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  overflow: hidden;
+}
+
 /* Group selector chips */
 .ec-settings-group-selector {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
 }
 
 .ec-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: 16px;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
   border: 1px solid var(--background-modifier-border);
-  background: var(--background-secondary);
-  color: var(--text-normal);
-}
-
-.ec-settings-basic-settings-panel {
-  background-color: yellow;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
 }
 
 .ec-chip:hover {
-  background: var(--background-secondary-alt);
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+  border-color: var(--text-muted);
+}
+
+.ec-chip.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
 }
 
 .ec-chip .ec-chip-text {
   display: none;
+  white-space: nowrap;
 }
 
 .ec-chip.is-active .ec-chip-text {
@@ -895,12 +915,12 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 
 .ec-chip .ec-chip-icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .ec-chip .ec-chip-text {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 /* Expandable categories */
@@ -946,11 +966,18 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 
 /* Single-category content wrapper */
 .ec-category-content-holder {
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
-  padding: 8px 10px;
+  padding: 16px 16px 20px 16px;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeInUp 0.3s ease-out forwards;
 }
 
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .ec-settings-warning {
   color: red;
   font-weight: bold;

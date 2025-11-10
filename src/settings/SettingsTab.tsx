@@ -12,6 +12,7 @@ import { validateLetterPrefix } from "@/utils/string_processing/string_utils";
 import { createFoldablePanel } from "./extensions/foldablePanel";
 import { addCitationSettingsTab } from "./pages/citationSettingsTab";
 import { addAutoNumberSettingsTab } from "./pages/autoNumberSettingsTab";
+import { addEquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
 
 //#region Style Settings Utilities
 export function resetStyles(): void {
@@ -124,7 +125,7 @@ export class SettingsTabView extends PluginSettingTab {
     }
 
     private renderGroupSelector(containerEl: HTMLElement, groups: { id: string; title: string; icon: string }[], onSelect: (id: string) => void) {
-        const selector = containerEl.createEl("div", { cls: "ec-settings-group-selector" });
+        const selector = containerEl.createEl("div", { cls: "ec-settings-group-selector" });    
         const setActive = (id: string) => {
             selector.querySelectorAll(".ec-chip").forEach((el) => el.classList.remove("is-active"));
             const activeEl = selector.querySelector(`.ec-chip[data-target='${id}']`);
@@ -133,7 +134,8 @@ export class SettingsTabView extends PluginSettingTab {
         groups.forEach((g, idx) => {
             const chip = selector.createEl("button", { cls: "ec-chip", attr: { 'data-target': g.id, title: g.title } });
             chip.setAttr("aria-label", g.title);
-            chip.createDiv({ cls: `ec-chip-icon lucide-${g.icon}` });
+            const iconContainer = chip.createDiv({ cls: "ec-chip-icon" });
+            setIcon(iconContainer, g.icon);
             chip.createSpan({ text: g.title, cls: "ec-chip-text" });
             chip.onclick = () => {
                 onSelect(g.id);
@@ -145,32 +147,38 @@ export class SettingsTabView extends PluginSettingTab {
     
     private renderCategorical(containerEl: HTMLElement) {
         const groups = [
-            { id: "ec-group-citation", title: "Citation", icon: "rocket" },
+            { id: "ec-group-citation", title: "Citation", icon: "feather" },
             { id: "ec-group-auto", title: "Auto Numbering", icon: "hash" },
+            { id: "ec-group-panel", title: "Equation Panel", icon: "layout-panel-left" },
             { id: "ec-group-style", title: "Style", icon: "palette" },
             { id: "ec-group-pdf", title: "PDF Export", icon: "file-down" },
             { id: "ec-group-cache", title: "Cache", icon: "database" },
             { id: "ec-group-other", title: "Other / Beta", icon: "settings" }
         ];
+
+        // Create a wrapper container for both selector and content
+        const wrapper = this.containerEl.createEl("div", { cls: "ec-categorical-wrapper" });
+
         // group selector controls active category
-        this.renderGroupSelector(this.containerEl, groups, (id) => {
+        this.renderGroupSelector(wrapper, groups, (id) => {
             this.activeCategoryId = id;
             renderActive();
         });
 
-        const content = this.containerEl.createEl("div", { cls: "ec-category-content-holder" });
+        const content = wrapper.createEl("div", { cls: "ec-category-content-holder" });
 
         const renderActive = () => {
             content.empty();
             const activeId = this.activeCategoryId ?? groups[0].id;
             if (activeId === "ec-group-citation") addCitationSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-auto") addAutoNumberSettingsTab(content, this.plugin);
+            else if (activeId === "ec-group-panel") addEquationPanelSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-style") addStyleSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-pdf") addPdfExportSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-cache") addCacheSettingsTab(content, this.plugin);
             else if (activeId === "ec-group-other") addOtherSettingsTab(content, this.plugin, this);
         };
-        
+
         // initial render
         renderActive();
     }
@@ -242,9 +250,8 @@ export class SettingsTabView extends PluginSettingTab {
                     new Notice("Settings have been restored to defaults");
                 });
             });
-
     }
-
+    
     private renderConcise(containerEl: HTMLElement) {
         createFoldablePanel(containerEl, "Basic Settings", (panel) => { this.renderConcideBasicSettings(panel) }, true);
         createFoldablePanel(containerEl, "Advanced Settings", (panel) => { /* placeholder for future behavior */ }, false);
