@@ -78,6 +78,10 @@ export interface EquationCitatorSettings {
     // settings UI
     settingsDisplayMode: "categorical" | "concise"; // settings tab display mode
     basicSettingsKeys?: string[]; // keys shown in Basic section for concise mode
+
+    // equation management panel Settings 
+    equationManagePanelLazyUpdateTime: number,
+    equationManagePanelfileCheckInterval: number,   
 }
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
@@ -130,7 +134,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "citationPopoverContainerWidth",
         "autoNumberNoHeadingPrefix",
         "resetSettings"
-    ]
+    ],
+    equationManagePanelLazyUpdateTime: 5000,
+    equationManagePanelfileCheckInterval: 1000
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
@@ -430,4 +436,20 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             OtherSettingsTab.enableCiteWithCodeBlockInCallout(el, plugin);
         }
     },
+    equationManagePanelfileCheckInterval : {
+        name: "Equation Manage Panel File Check Interval",
+        desc: "Time interval to check the new file open and refresh equation panel (in ms)",
+        type: "number",
+        renderCallback: (el, plugin) => {
+            // now we not render that 
+        }
+    },
+    equationManagePanelLazyUpdateTime : {
+        name: "Equation Manage Panel Lazy Update Time",
+        desc: "Time interval to update the equation manage panel while editing (in ms)",
+        type: "number",
+        renderCallback: (el, plugin) => {
+            // now we not render that 
+        }
+    }
 }

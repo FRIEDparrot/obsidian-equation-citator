@@ -23,6 +23,24 @@ export class EquationServices {
         private plugin: EquationCitator
     ) { }
 
+    /**
+     * Retrieves equations by their tags from a specified source file. 
+     * Used in rename tags 
+     * 
+     * This method processes both local and cross-file equation references based on plugin settings.
+     * For cross-file references, it resolves the actual file path using footnotes.
+     * It filters out invalid equations and fills in the equation content for valid ones.
+     * 
+     * @param eqNumbersAll - An array of equation tags to retrieve
+     * @param sourcePath - The path of the source file where the equations are referenced
+     * @returns A promise that resolves to an array of RenderedEquation objects containing equation details
+     * 
+     * @remarks
+     * - Uses footnote information to resolve cross-file references when enabled in settings
+     * - Filters out equations with invalid source paths
+     * - Populates equation content by matching tags with cached equation data
+     * - Returns an empty array if no valid equations are found
+     */
     public async getEquationsByTags(eqNumbersAll: string[], sourcePath: string): Promise<RenderedEquation[]> {
         const settings = this.plugin.settings;
         const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);
@@ -31,7 +49,7 @@ export class EquationServices {
             const { local, crossFile } = settings.enableCrossFileCitation
                 ? splitFileCitation(tag, settings.fileCiteDelimiter)
                 : { local: tag, crossFile: null };
-            
+
             const { path, filename } = crossFile
                 ? this.resolveCrossFileRef(sourcePath, crossFile, footnotes)
                 : {
@@ -76,19 +94,19 @@ export class EquationServices {
             };
         });
     }
-    
+
     public async getEquationsForAutocomplete(tag: string, sourcePath: string): Promise<RenderedEquation[]> {
         const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);
         const { local, crossFile } = this.plugin.settings.enableCrossFileCitation ?
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
-        
+
         const { path, filename } = crossFile !== null ?
             this.resolveCrossFileRef(sourcePath, crossFile, footnotes) :
             { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null };
-        
+
         if (!path) return [];
-        
+
         const equationsAll = await this.plugin.equationCache.getEquationsForFile(path);
         const equations = equationsAll?.filter(eq => eq.tag && eq.tag.startsWith(local)) || [];
         if (equations.length === 0) return [];
@@ -101,7 +119,7 @@ export class EquationServices {
             footnoteIndex: crossFile
         }) as RenderedEquation);
     }
-    
+
     private resolveCrossFileRef(sourcePath: string, crossFile: string, footnotes: FootNote[] | undefined) {
         const match = footnotes?.find(f => f.num === crossFile);
         if (!match?.path) return { path: null, filename: null };
@@ -110,7 +128,7 @@ export class EquationServices {
             Debugger.log("Invalid footnote file path: ", match.path);
             return { path: null, filename: null };
         }
-        
+
         return { path: file.path, filename: match.label || null };
     }
 }

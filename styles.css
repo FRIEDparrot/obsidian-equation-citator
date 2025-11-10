@@ -70,10 +70,25 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   border-bottom: 1px solid var(--em-background-modifier-border);
 }
 
+.em-citation-title-note {
+  height: 0.35em;
+  margin: 0.5px 5px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.em-citation-title-note-text {
+  font-size: x-small;
+  color: var(--em-text-muted);
+}
+
 .em-citation-title {
   width: 100%;
   text-align: center;
   margin: 2px;
+  margin-bottom: 0px;
   font-size: 13px;
   font-weight: 600;
   color: var(--em-text-normal);

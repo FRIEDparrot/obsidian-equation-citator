@@ -67,8 +67,17 @@ export class CitationPopover extends HoverPopover {
         // Create header
         const header = container.createDiv();
         header.addClass("em-citation-header");
+
         header.createEl("h3", { text: "Referenced Equations", cls: "em-citation-title" });
-        
+        const footerSpan = header.createEl("div", {
+            cls: "em-citation-title-note",
+        });
+
+        footerSpan.createDiv(); // placeholder  
+        footerSpan.createDiv({
+            text: "shift + scroll to scroll horizontally",
+            cls: "em-citation-title-note-text",
+        })
         // Create content wrapper
         const content = container.createDiv();
         content.addClass("em-citation-content");

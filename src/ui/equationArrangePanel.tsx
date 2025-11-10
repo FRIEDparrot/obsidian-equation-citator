@@ -58,6 +58,8 @@ export class EquationArrangePanel extends ItemView {
 
     constructor(private plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
+        const { equationManagePanelLazyUpdateTime} = this.plugin.settings
+        
         // Debounced handler for file modifications (5s delay)
         this.updateHandler = () => {
             const activeFile = this.app.workspace.getActiveFile();
@@ -66,7 +68,7 @@ export class EquationArrangePanel extends ItemView {
             // Only schedule refresh if the active file is a markdown file
             const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (!activeView) return;
-
+            
             // Clear existing timer
             if (this.refreshDebounceTimer !== null) {
                 clearTimeout(this.refreshDebounceTimer);
@@ -76,7 +78,7 @@ export class EquationArrangePanel extends ItemView {
             this.refreshDebounceTimer = window.setTimeout(() => {
                 this.refreshView();
                 this.refreshDebounceTimer = null;
-            }, 5000); // 5 seconds delay
+            }, equationManagePanelLazyUpdateTime); // 5 seconds delay
         };
     }
 
@@ -107,6 +109,7 @@ export class EquationArrangePanel extends ItemView {
     async onOpen(): Promise<void> {
         const { containerEl } = this;
         containerEl.empty();
+        const {equationManagePanelfileCheckInterval: equationManagePanelfileCheckInterval} = this.plugin.settings;
 
         const panelWrapper = containerEl.createDiv("ec-manage-panel-wrapper");
         const toolbar = panelWrapper.createDiv("ec-manage-panel-toolbar");
@@ -118,7 +121,7 @@ export class EquationArrangePanel extends ItemView {
             this.updateModeButtons();
             this.refreshView();
         });
-
+        
         this.sortButton = toolbar.createEl("button", {
             cls: "clickable-icon ec-mode-button",
             attr: { "aria-label": "Sort equations" },
@@ -228,10 +231,10 @@ export class EquationArrangePanel extends ItemView {
         }
 
         this.refreshView();
-
+        
         // Register event listeners for dynamic updates
-        // File modification: debounced refresh (5s delay)
         this.registerEvent(
+            // File modification: debounced refresh (5s delay) 
             this.app.vault.on('modify', this.updateHandler)
         );
 
@@ -252,7 +255,7 @@ export class EquationArrangePanel extends ItemView {
 
                 this.refreshView();
             }
-        }, 1000); // Check every second
+        }, equationManagePanelfileCheckInterval); // Check every second
 
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
@@ -369,12 +372,18 @@ export class EquationArrangePanel extends ItemView {
             return;
         }
 
-        const tag = equationData.tag;
-
+        let tag = equationData.tag; 
         // If no tag, show notice and return
         if (!tag) {
-            new Notice('This equation has no tag. Please add a tag to the equation first.');
-            return;
+            // drag equation with no tag 
+            const newTag = await this.promptForTag();
+            if (!newTag) return;
+            // add tag to equation
+            
+            tag = newTag;
+
+            // TODO: add tag to equation, and use it normally
+            return 
         }
 
         // Only handle same-file citations for now
@@ -886,7 +895,15 @@ export class EquationArrangePanel extends ItemView {
         // Get DIRECT subheading indices only (not all nested levels)
         const directSubheadingIndices = this.getDirectSubheadingIndices(allGroups, currentIndex);
 
-        // First, render ONLY direct subheadings (they will recursively render their own children)
+        // First, render direct equations (not in subheadings)
+        if (hasDirectEquations) {
+            const directEquationsContainer = contentContainer.createDiv("ec-heading-equations");
+            for (const eq of group.equations) {
+                await this.renderEquationItem(directEquationsContainer, eq);
+            }
+        }
+
+        // Then, render ONLY direct subheadings (they will recursively render their own children)
         for (const subIndex of directSubheadingIndices) {
             await this.renderHeadingGroup(
                 contentContainer,
@@ -896,14 +913,7 @@ export class EquationArrangePanel extends ItemView {
                 allHeadings
             );
         }
-        // Then, render direct equations (not in subheadings)
-        if (hasDirectEquations) {
-            const directEquationsContainer = contentContainer.createDiv("ec-heading-equations");
-            for (const eq of group.equations) {
-                await this.renderEquationItem(directEquationsContainer, eq);
-            }
-        }
-
+        
         // Click handler for chevron - collapse/expand
         if (hasContent && collapseIcon) {
             const iconElement = collapseIcon;
