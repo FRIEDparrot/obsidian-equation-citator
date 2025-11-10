@@ -379,6 +379,11 @@ export class SettingsTabView extends PluginSettingTab {
 
             // Render the actual setting
             metadata.renderCallback(settingContent, this.plugin, true);
+
+            // Add divider after each setting except the last one
+            if (index < filteredKeys.length - 1) {
+                containerEl.createEl("hr", { cls: "ec-settings-divider" });
+            }
         });
 
         // Add reset settings button at the end for basic panel

@@ -552,3 +552,12 @@
         justify-content: center;
     }
 }
+
+/* Divider line between settings in basic/advanced panels */
+.ec-settings-divider {
+    border: none;
+    border-top: 1px solid var(--background-modifier-border);
+    margin-top: 0px;
+    margin-bottom: 8px;
+    opacity: 0.6;
+}

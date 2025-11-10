@@ -1210,6 +1210,15 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   justify-content: center;
 }
 
+/* Divider line between settings in basic/advanced panels */
+.ec-settings-divider {
+  border: none;
+  border-top: 1px solid var(--background-modifier-border);
+  margin-top: 0px;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
 /* Regular citation styles for live preview and reading mode */
 .em-math-citation-container {
   position: relative;
