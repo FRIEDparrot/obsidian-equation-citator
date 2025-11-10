@@ -1,4 +1,4 @@
-import { Notice, Setting } from "obsidian";
+import { Setting } from "obsidian";
 import EquationCitator from "@/main";
 import { SETTINGS_METADATA } from "../defaultSettings";
 

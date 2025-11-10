@@ -642,9 +642,6 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 .ec-equation-math .math {
   font-size: 1em;
 }
-.ec-equation-math {
-  /* Ensure proper rendering */
-}
 .ec-equation-math mjx-container {
   margin: 0;
 }

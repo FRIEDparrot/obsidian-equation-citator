@@ -5,6 +5,8 @@ import { exportCurrentMarkdown } from '@/func/exportMarkdown';
 import { insertTextWithCursorOffset } from '@/utils/workspace/insertTextOnCursor';
 import { createCitationString, createEquationTagString } from '@/utils/string_processing/regexp_utils';
 import { Notice } from 'obsidian';
+import { invokeView } from '@/utils/workspace/invokePanelView';
+import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
@@ -71,6 +73,14 @@ export default function registerCommands(plugin: EquationCitator) {
         callback: async () => {
             await plugin.clearCaches();
             new Notice("All caches cleared"); 
+        }
+    })
+
+    plugin.addCommand({
+        id: 'open-equation-manage-panel',
+        name: 'Open equation manage panel',
+        callback: async () => {
+            await invokeView(plugin, EQUATION_MANAGE_PANEL_TYPE)
         }
     })
 }

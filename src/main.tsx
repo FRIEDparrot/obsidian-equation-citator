@@ -24,7 +24,7 @@ import { registerRightClickHandler } from '@/handlers/rightButtonHandler';
 import { LineHashCache } from '@/cache/lineHashCache';
 import { WidgetSizeManager } from '@/settings/styleManagers/widgetSizeManager';
 import { isUpdateAvailable } from './api/updateChecking';
-import { EquationArrangePanel, EQUATION_ARRANGE_PANEL_TYPE } from '@/ui/panels/equationArrangePanel';
+import { EquationArrangePanel, EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
 import Debugger from './debug/debugger';
 import { dropCursorField } from '@/utils/workspace/drag_drop_event';
 
@@ -104,7 +104,7 @@ export default class EquationCitator extends Plugin {
 
     registerViews(){
         this.registerView(
-            EQUATION_ARRANGE_PANEL_TYPE,
+            EQUATION_MANAGE_PANEL_TYPE,
             (leaf: WorkspaceLeaf) => {
                 return new EquationArrangePanel(this, leaf);
             }

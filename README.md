@@ -1,4 +1,4 @@
-<center><span width="100%"><img src="./img/Equation_Citator_header.png" width="65%"></span></center>
+<center><div width="100%"><img src="./img/Equation_Citator_header.png" width="65%"></div></center>
 
 <center><span width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.0-blue" alt="Release">

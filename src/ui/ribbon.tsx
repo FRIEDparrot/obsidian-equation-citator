@@ -1,7 +1,7 @@
 import { MarkdownView } from 'obsidian';
 import { autoNumberCurrentFileEquations } from '@/func/autoNumber';
 import EquationCitator from '@/main';
-import { EQUATION_ARRANGE_PANEL_TYPE } from '@/ui/panels/equationArrangePanel';
+import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
 import { invokeView } from '@/utils/workspace/invokePanelView';
 
 
@@ -17,7 +17,7 @@ export default function registerRibbonButton(plugin: EquationCitator) {
         }, 50); // delay to allow the editor to update the scroll position
     });
 
-    plugin.addRibbonIcon('rocket', 'Equation Citator', () => {
-        invokeView(plugin, EQUATION_ARRANGE_PANEL_TYPE);        
+    plugin.addRibbonIcon('square-pi', 'Open Equation Arrange Panel', () => {
+        invokeView(plugin, EQUATION_MANAGE_PANEL_TYPE);       
     });
 }

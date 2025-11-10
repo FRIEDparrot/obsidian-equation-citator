@@ -2,7 +2,7 @@ import EquationCitator from "@/main";
 import { PluginSettingTab, App, Setting, Notice, setIcon } from "obsidian";
 import { DEFAULT_SETTINGS } from "./defaultSettings";
 import { ColorManager } from "./styleManagers/colorManager";
-import { WidgetSizeManager, WidgetSizeVariable } from "./styleManagers/widgetSizeManager";
+import { WidgetSizeManager } from "./styleManagers/widgetSizeManager";
 
 import { addPdfExportSettingsTab } from "@/settings/pages/pdfExportSettingsTab";
 import { addStyleSettingsTab } from "@/settings/pages/styleSettingsTab";

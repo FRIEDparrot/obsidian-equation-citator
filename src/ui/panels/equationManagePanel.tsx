@@ -11,7 +11,7 @@ import TagInputModal from "@/ui/modals/tagInputModal";
 import { checkFootnoteExists } from "@/utils/core/footnote_utils";
 import { scrollToEquationByTag } from "@/utils/workspace/equation_navigation";
 
-export const EQUATION_ARRANGE_PANEL_TYPE = "equation-arrange-panel";
+export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
 type ViewMode = "outline" | "list";
 type SortType = "tag" | "seq";
@@ -57,13 +57,11 @@ export class EquationArrangePanel extends ItemView {
     private dropHandler: (evt: DragEvent) => void;
     private dragoverHandler: (evt: DragEvent) => void;
     private dragendHandler: () => void;
-
-
+    
     constructor(private plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
-        const { equationManagePanelLazyUpdateTime} = this.plugin.settings
-        
-        // Debounced handler for file modifications (5s delay)
+
+        // Debounced handler for file modifications
         this.updateHandler = () => {
             const activeFile = this.app.workspace.getActiveFile();
             if (!activeFile) return;
@@ -71,22 +69,22 @@ export class EquationArrangePanel extends ItemView {
             // Only schedule refresh if the active file is a markdown file
             const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (!activeView) return;
-            
+
             // Clear existing timer
             if (this.refreshDebounceTimer !== null) {
                 clearTimeout(this.refreshDebounceTimer);
             }
 
-            // Schedule refresh after 5 seconds
+            // Schedule refresh using current setting value
             this.refreshDebounceTimer = window.setTimeout(() => {
                 this.refreshView();
                 this.refreshDebounceTimer = null;
-            }, equationManagePanelLazyUpdateTime); // 5 seconds delay
+            }, 5000);
         };
     }
 
     getViewType(): string {
-        return EQUATION_ARRANGE_PANEL_TYPE;
+        return EQUATION_MANAGE_PANEL_TYPE;
     }
 
     getDisplayText(): string {
@@ -112,11 +110,6 @@ export class EquationArrangePanel extends ItemView {
     async onOpen(): Promise<void> {
         const { containerEl } = this;
         containerEl.empty();
-        const {
-            equationManagePanelfileCheckInterval
-        } = this.plugin.settings;
-
-        const { equationManagePanelDefaultViewType } = this.plugin.settings;
         const panelWrapper = containerEl.createDiv("ec-manage-panel-wrapper");
         const toolbar = panelWrapper.createDiv("ec-manage-panel-toolbar");
 
@@ -223,9 +216,9 @@ export class EquationArrangePanel extends ItemView {
         });
         this.searchInput.hide();
 
-        ///////////////////////////////   Render view   ////////// 
+        ///////////////////////////////   Render view   //////////
 
-        this.updateViewMode(equationManagePanelDefaultViewType);   // default view mode is list
+        this.updateViewMode(this.plugin.settings.equationManagePanelDefaultViewType);   // default view mode is list
         this.updateSortMode("seq");
         this.updateModeButtons();      // update mode buttons after that
         this.toggleTagShow(true);
@@ -244,7 +237,7 @@ export class EquationArrangePanel extends ItemView {
             this.app.vault.on('modify', this.updateHandler)
         );
 
-        // Poll every second to check if active file changed
+        // Poll to check if active file changed (using current setting value)
         this.fileCheckInterval = window.setInterval(() => {
             const currentFile = this.app.workspace.getActiveFile();
             const currentPath = currentFile?.path || "";
@@ -252,16 +245,15 @@ export class EquationArrangePanel extends ItemView {
             // Only refresh if file changed
             if (currentPath !== this.currentActiveFile) {
                 this.currentActiveFile = currentPath;
-
+                
+                this.refreshView(); 
                 // Cancel pending debounced refresh since we're switching files
                 if (this.refreshDebounceTimer !== null) {
                     clearTimeout(this.refreshDebounceTimer);
                     this.refreshDebounceTimer = null;
                 }
-
-                this.refreshView();
             }
-        }, equationManagePanelfileCheckInterval); // Check every second
+        }, 1000);
 
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
@@ -515,12 +507,12 @@ export class EquationArrangePanel extends ItemView {
         this.refreshView();
     }
     
-    private async getEquationsToRender(): Promise<EquationMatch[]> {
+    private async getEquationsToRender(): Promise<EquationMatch[] | null> {
         const currentFile = this.app.workspace.getActiveFile();
         if (!currentFile) {
             this.viewPanel.empty();
             this.viewPanel.createDiv({ text: "No active file", cls: "ec-empty-message" });
-            return [];
+            return null;
         }
         const equations = await this.getAllEquations()
         const filteredEquations = this.filterEquations(equations);
@@ -530,7 +522,7 @@ export class EquationArrangePanel extends ItemView {
                 text: this.searchQuery ? "No equation match your search" : "No equation found in current file",
                 cls: "ec-empty-message"
             });
-            return [];
+            return null;
         }
         return filteredEquations;
     }
@@ -543,8 +535,8 @@ export class EquationArrangePanel extends ItemView {
             clearTimeout(this.searchDebounceTimer);
             this.searchDebounceTimer = null;
         }
-        this.searchDebounceTimer = window.setTimeout(() => {
-            this.refreshView();
+        this.searchDebounceTimer = window.setTimeout(async() => {
+            await this.refreshView();
             this.searchDebounceTimer = null;
         }, timeout); // adjust delay as needed
     }
@@ -554,7 +546,18 @@ export class EquationArrangePanel extends ItemView {
      */
     private async refreshView(): Promise<void> {
         const equations = await this.getEquationsToRender();
-        if (!equations || equations.length === 0) return;
+
+        // Handle null case (no file or no equations) - update hash to ensure next transition works
+        if (equations === null) {
+            Debugger.log('No equations to render (no file or no equations)');
+            // Set a special hash for empty state to distinguish from previous state
+            const emptyHash = "EMPTY_STATE";
+            if (this.currentEquationHash !== emptyHash) {
+                this.currentEquationHash = emptyHash;
+                Debugger.log('Updated hash to empty state');
+            }
+            return;
+        }
 
         const equationsHash = hashEquations(equations);
 
@@ -569,7 +572,10 @@ export class EquationArrangePanel extends ItemView {
             this.filterEmptyHeadings === this.currentFilterEmptyHeadings &&
             setsEqual
         );
-        if (viewStateEqual) return;
+        if (viewStateEqual) {
+            Debugger.log("View state equal, no need to refresh");
+            return;
+        }
 
         // no need to empty view every time, clean it only when the hash changes
         this.currentEquationHash = equationsHash;
