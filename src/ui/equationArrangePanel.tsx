@@ -403,7 +403,7 @@ export class EquationArrangePanel extends ItemView {
             new Notice('Cross-file citation is not supported yet');
             return;
         }
-        
+
         // Build the citation string
         const citationPrefix = this.plugin.settings.citationPrefix;
         const citation = `$\\ref{${citationPrefix}${tag}}$`;
@@ -433,40 +433,7 @@ export class EquationArrangePanel extends ItemView {
             modal.open();
         });
     }
-
-    private async ensureFootnoteExists(targetFilePath: string, sourceFilePath: string): Promise<string | null> {
-        // Get existing footnotes in target file
-        const existingFootnotes = await this.plugin.footnoteCache.getFootNotesFromFile(targetFilePath);
-
-        // Check if footnote for this source file already exists
-        const existingFootnote = existingFootnotes?.find(fn => fn.path === sourceFilePath);
-        if (existingFootnote) {
-            return existingFootnote.num;
-        }
-
-        // Need to create a new footnote
-        const sourceFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-        if (!sourceFile) return null;
-
-        // Find next available footnote number
-        const maxNum = existingFootnotes?.reduce((max, fn) => {
-            const num = parseInt(fn.num);
-            return isNaN(num) ? max : Math.max(max, num);
-        }, 0) || 0;
-        const newNum = (maxNum + 1).toString();
-
-        // Append footnote to target file
-        const targetFileContent = await this.app.vault.adapter.read(targetFilePath);
-        const footnoteText = `[^${newNum}]: [[${sourceFilePath}]]`;
-        const newContent = targetFileContent + '\n' + footnoteText;
-        await this.app.vault.adapter.write(targetFilePath, newContent);
-
-        // Refresh cache
-        await this.plugin.footnoteCache.updateFileFootnotes(targetFilePath);
-
-        return newNum;
-    }
-
+    
     private toggleSearchMode(enable: boolean): void {
         this.isSearchMode = enable;
 
