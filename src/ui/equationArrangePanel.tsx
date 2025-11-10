@@ -361,6 +361,8 @@ export class EquationArrangePanel extends ItemView {
             tag: string;
             content: string;
             sourcePath: string;
+            lineStart: number;
+            lineEnd: number;
         },
         evt: DragEvent
     ): Promise<void> {
@@ -373,18 +375,26 @@ export class EquationArrangePanel extends ItemView {
             return;
         }
 
-        let tag = equationData.tag; 
-        // If no tag, show notice and return
+        let tag = equationData.tag;
+        // If no tag, prompt for tag and add it to the equation
         if (!tag) {
-            // drag equation with no tag 
             const newTag = await this.promptForTag();
             if (!newTag) return;
-            // add tag to equation
-            
+
             tag = newTag;
 
-            // TODO: add tag to equation, and use it normally
-            return 
+            // Add tag to equation using the service
+            const success = this.plugin.equationServices.addTagToEquation(
+                equationData.sourcePath,
+                equationData.lineStart,
+                equationData.lineEnd,
+                tag
+            );
+
+            if (!success) {
+                new Notice('Failed to add tag to equation. Make sure the source file is open.');
+                return;
+            }
         }
 
         // Only handle same-file citations for now
@@ -480,7 +490,7 @@ export class EquationArrangePanel extends ItemView {
             this.updateModeButtons();
         }
     }
-
+    
     private toggleTagShow(mode: boolean) {
         this.showEquationTags = mode;
         setIcon(this.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");
@@ -996,11 +1006,13 @@ export class EquationArrangePanel extends ItemView {
             // Change cursor to grabbing hand
             document.body.classList.add('ec-equation-dragging');
             eqDiv.classList.add('ec-is-dragging');
-            // Store equation data
+            // Store equation data including line range for tag insertion
             const equationData = {
                 tag: equation.tag || '',
                 content: equation.content,
-                sourcePath: currentFile?.path || ''
+                sourcePath: currentFile?.path || '',
+                lineStart: equation.lineStart,
+                lineEnd: equation.lineEnd
             };
             const dataString = JSON.stringify(equationData);
             event.dataTransfer.setData('ec-equations/drop-citaions', dataString);

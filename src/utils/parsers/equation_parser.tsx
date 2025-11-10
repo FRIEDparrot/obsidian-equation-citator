@@ -10,7 +10,7 @@ interface EquationParseResult {
     tag?: string;
 }
 
-/// !TODO: REFACTOR CLASS  
+/// the matched equation information 
 export interface EquationMatch extends EquationParseResult {
     raw: string;
     lineStart: number;

@@ -13,7 +13,7 @@ export default class TagInputModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-
+        
         contentEl.createEl('h3', { text: 'Enter equation tag' });
         contentEl.createEl('p', {
             text: 'This equation does not have a tag. Please enter a tag to cite it:',

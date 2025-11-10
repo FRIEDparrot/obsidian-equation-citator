@@ -3,6 +3,8 @@ import Debugger from "@/debug/debugger";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
+import { MarkdownView } from "obsidian";
+import { createEquationTagString } from "@/utils/string_processing/regexp_utils";
 
 export interface RenderedEquation {
     tag: string;  // tag of the equation 
@@ -130,5 +132,88 @@ export class EquationServices {
         }
 
         return { path: file.path, filename: match.label || null };
+    }
+
+    /**
+     * Adds a tag to an equation at a specific line range in a file
+     * @param filePath - The path of the file containing the equation
+     * @param lineStart - The starting line number of the equation
+     * @param lineEnd - The ending line number of the equation
+     * @param tag - The tag to add (without \tag{} wrapper)
+     * @returns true if successful, false otherwise
+     */
+    public addTagToEquation(filePath: string, lineStart: number, lineEnd: number, tag: string): boolean {
+        // Find the MarkdownView for this file
+        const view = this.getMarkdownViewByPath(filePath);
+        if (!view?.editor) {
+            Debugger.log("Cannot find editor for file: ", filePath);
+            return false;
+        }
+
+        const editor = view.editor;
+        const tagString = createEquationTagString(tag);
+
+        // Read the equation lines
+        const equationLines: string[] = [];
+        for (let i = lineStart; i <= lineEnd; i++) {
+            equationLines.push(editor.getLine(i));
+        }
+
+        // Handle single-line vs multi-line equations
+        if (lineStart === lineEnd) {
+            // Single-line equation: $$ content $$
+            const line = equationLines[0];
+            // Insert tag before the closing $$
+            const closingIndex = line.lastIndexOf('$$');
+            if (closingIndex === -1) {
+                Debugger.log("Cannot find closing $$ in single-line equation");
+                return false;
+            }
+
+            const newLine = line.slice(0, closingIndex).trimEnd() + ' ' + tagString + ' ' + line.slice(closingIndex);
+            editor.replaceRange(
+                newLine,
+                { line: lineStart, ch: 0 },
+                { line: lineStart, ch: line.length }
+            );
+        } else {
+            // Multi-line equation: find the line before $$
+            const lastLineIndex = equationLines.length - 1;
+            const lastLine = equationLines[lastLineIndex];
+
+            // Insert tag on the line before the closing $$
+            if (lastLine.trim() === '$$') {
+                // Tag goes on the previous line
+                const tagLineIndex = lineStart + lastLineIndex - 1;
+                const tagLine = editor.getLine(tagLineIndex);
+                const newTagLine = tagLine.trimEnd() + ' ' + tagString;
+                editor.replaceRange(
+                    newTagLine,
+                    { line: tagLineIndex, ch: 0 },
+                    { line: tagLineIndex, ch: tagLine.length }
+                );
+            } else {
+                Debugger.log("Multi-line equation does not have proper closing $$");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Gets the MarkdownView for a file by its path
+     * @param filePath - The path of the file
+     * @returns The MarkdownView if found, null otherwise
+     */
+    private getMarkdownViewByPath(filePath: string): MarkdownView | null {
+        const leaves = this.plugin.app.workspace.getLeavesOfType("markdown");
+        for (const leaf of leaves) {
+            const view = leaf.view as MarkdownView;
+            if (view.file?.path === filePath) {
+                return view;
+            }
+        }
+        return null;
     }
 }
