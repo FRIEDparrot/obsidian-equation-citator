@@ -49,6 +49,7 @@ export class SettingsTabView extends PluginSettingTab {
         ["advanced-settings", false],
         ["customize-settings", false],
     ]);
+    private customizeCategoryFoldStates: Map<string, boolean> = new Map();
     private showReorderButtons = false;
     private searchQuery = "";
     private contentContainer: HTMLElement | null = null;
@@ -240,10 +241,15 @@ export class SettingsTabView extends PluginSettingTab {
             containerEl,
             "Customize Settings Display",
             (panel) => {
-                createCustomizePanel(panel, this.plugin, () => {
-                    // Re-render content when settings change
-                    this.renderContent();
-                });
+                createCustomizePanel(
+                    panel,
+                    this.plugin,
+                    () => {
+                        // Re-render content when settings change
+                        this.renderContent();
+                    },
+                    this.customizeCategoryFoldStates
+                );
             },
             this.foldStates.get("customize-settings") ?? false,
             (newState) => {

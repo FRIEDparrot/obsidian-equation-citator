@@ -8,7 +8,8 @@ import { getAllSettingsByCategory, getSettingDisplayName } from "../settingsHelp
 export function createCustomizePanel(
     containerEl: HTMLElement,
     plugin: EquationCitator,
-    onUpdate: () => void
+    onUpdate: () => void,
+    foldStates?: Map<string, boolean>
 ): void {
     const customizeContainer = containerEl.createDiv({ cls: "ec-settings-customize-panel" });
 
@@ -99,8 +100,8 @@ export function createCustomizePanel(
             });
         });
 
-        // Toggle category collapse
-        let expanded = false;
+        // Toggle category collapse with state tracking
+        let expanded = foldStates?.get(category.id) ?? false;
         const updateCollapse = () => {
             categoryContent.toggleClass("is-collapsed", !expanded);
             chevron.classList.toggle("is-rotated", expanded);
@@ -110,6 +111,10 @@ export function createCustomizePanel(
         categoryHeader.addEventListener("click", () => {
             expanded = !expanded;
             updateCollapse();
+            // Save the fold state
+            if (foldStates) {
+                foldStates.set(category.id, expanded);
+            }
         });
     });
 
