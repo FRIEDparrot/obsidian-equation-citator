@@ -8,6 +8,7 @@ import { drawCursorAtDragPosition, clearDragCursor, getEditorDropLocation } from
 import Debugger from "@/debug/debugger";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
 import TagInputModal from "@/ui/tagInputModal";
+import { checkFootnoteExists } from "@/utils/core/footnote_utils";
 
 export const EQUATION_ARRANGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -397,16 +398,31 @@ export class EquationArrangePanel extends ItemView {
             await this.refreshView();  // refresh view after renaming 
         }
 
-        // Only handle same-file citations for now
+        // Check if this is a cross-file citation
         const isTargetSameAsSource = targetFile.path === equationData.sourcePath;
-        if (!isTargetSameAsSource) {
-            new Notice('Cross-file citation is not supported yet');
-            return;
-        }
-
-        // Build the citation string
         const citationPrefix = this.plugin.settings.citationPrefix;
-        const citation = `$\\ref{${citationPrefix}${tag}}$`;
+        let citation: string;
+
+        if (!isTargetSameAsSource) {
+            // Cross-file citation: need to create or find footnote
+            const footnoteNum = await checkFootnoteExists(
+                this.plugin,
+                targetFile.path,
+                equationData.sourcePath,
+                true  // Create footnote if it doesn't exist
+            );
+
+            if (!footnoteNum) {
+                new Notice('Failed to create footnote for cross-file citation');
+                return;
+            }
+
+            // Build cross-file citation: $\ref{citationPrefix}{footnoteNum}^{tag}}$
+            citation = `$\\ref{${citationPrefix}${footnoteNum}^{${tag}}}$`;
+        } else {
+            // Same-file citation: $\ref{citationPrefix}{tag}$
+            citation = `$\\ref{${citationPrefix}${tag}}$`;
+        }
 
         let dropPosition = getEditorDropLocation(editor, evt);
 

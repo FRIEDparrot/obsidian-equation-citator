@@ -23,7 +23,7 @@ export interface EquationCitatorSettings {
 
     citationPrefix: string; // Citation prefix for equations
     citationFormat: string; // Citation display format for equations 
-
+    
     // figCitationPrefix: string; // Figure Citation Prefix
     // figCitationFormat: string; // citation display format for figures 
 

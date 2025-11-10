@@ -189,8 +189,8 @@ Version 1.3.0 - New features, Refactors and main improvements.
 - [x] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
   - [x] **Outline View, filter and collapse** : Both List view and outline view are supported.
   - [x] **Drag-and Drop to citation** : You can now drag-and-drop equation from equations management panel to cite it.
-  - [ ] **Support the cross-file citations by dragging** 
-  - [ ] **Prompt when drag no-tag equations** 
+  - [x] **Support the cross-file citations by dragging** 
+  - [x] **Prompt when drag no-tag equations** 
   - [x] **Dynamic Update panel when change file and type in editor**
 
 

@@ -33,30 +33,33 @@ export async function checkFootnoteExists(
 
     // Need to create a new footnote
     if (!createIfNotExist) return null;
-    const sourceFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
+    const sourceFile = plugin.app.vault.getAbstractFileByPath(sourceFilePath);
     if(!sourceFile) return null;
-    
+
     // Find next available footnote number
     const maxNum = existingFootnotes?.reduce((max, fn) => {
         const num = parseInt(fn.num);
         return isNaN(num) ? max : Math.max(max, num);
     }, 0) || 0;
     const newNum = (maxNum + 1).toString();
-    
+
     if (isNaN(maxNum)) {
         new Notice("Invalid footnote number");
-        Debugger.error(`Invalid footnote number: ${maxNum}, existing Footnotes are : ${existingFootnote}`);
+        Debugger.error(`Invalid footnote number: ${maxNum}, existing Footnotes are : ${JSON.stringify(existingFootnotes)}`);
         return null;
     }
 
     // Append footnote to target file
-    const targetFileContent = await this.app.vault.adapter.read(targetFilePath);
+    const targetFileContent = await plugin.app.vault.adapter.read(targetFilePath);
     const footnoteText = `[^${newNum}]: [[${sourceFilePath}]]`;
-    const newContent = targetFileContent + '\n' + footnoteText;
-    await this.app.vault.adapter.write(targetFilePath, newContent);
+    
+    const delm = targetFileContent.endsWith("\n") ? "\n" : "\n\n";
+    
+    const newContent = targetFileContent + delm + footnoteText;
+    await plugin.app.vault.adapter.write(targetFilePath, newContent);
 
     // Refresh cache
-    await this.plugin.footnoteCache.updateFileFootnotes(targetFilePath);
+    await plugin.footnoteCache.updateFileFootnotes(targetFilePath);
 
     return newNum;
 }
