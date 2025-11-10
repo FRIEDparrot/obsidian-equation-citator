@@ -21,6 +21,7 @@ import { renderEquationCitation } from "@/views/citation_widget";
 import { find_array } from "@/utils/misc/array_utils";
 import { fastHash } from "@/utils/misc/hash_utils";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
+import { parseAllImagesFromMarkdown, ImageMatch } from "@/utils/parsers/image_parser";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -453,4 +454,238 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
         } as SpanStyles,
     );
     return result;
+}
+
+/////////////////////////////// Image Caption Rendering /////////////////////////
+
+/**
+ * Live Preview Extension for rendering image captions
+ * This extension finds rendered image elements and adds captions below them
+ */
+export function createImageCaptionExtension(plugin: EquationCitator) {
+    const settings: EquationCitatorSettings = plugin.settings;
+
+    return ViewPlugin.fromClass(class {
+        view: EditorView;
+        captionElements: Map<string, HTMLElement> = new Map();
+
+        constructor(view: EditorView) {
+            this.view = view;
+            this.renderImageCaptions(view);
+        }
+
+        update(update: ViewUpdate) {
+            if (update.docChanged || update.viewportChanged) {
+                this.renderImageCaptions(update.view);
+            }
+        }
+
+        renderImageCaptions(view: EditorView) {
+            const currentFile = view.state.field(editorInfoField).file;
+            if (!(currentFile instanceof TFile)) {
+                return;
+            }
+
+            const markdown = view.state.doc.toString();
+            const images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
+
+            // Find all image embed elements in the editor
+            const editorEl = view.dom;
+            const imageEmbeds = editorEl.querySelectorAll('.internal-embed.image-embed, .internal-embed.is-loaded');
+
+            imageEmbeds.forEach((embedEl) => {
+                const imgEl = embedEl.querySelector('img');
+                if (!imgEl) return;
+
+                // Get the image source to match with parsed images
+                const imgSrc = imgEl.getAttribute('src');
+                if (!imgSrc) return;
+
+                // Find matching image from parsed data
+                const matchingImage = findMatchingImage(images, imgSrc, embedEl);
+                if (!matchingImage || (!matchingImage.title && !matchingImage.desc)) {
+                    // Remove caption if it exists but image no longer has metadata
+                    this.removeCaptionIfExists(embedEl);
+                    return;
+                }
+
+                // Check if caption already exists
+                const existingCaption = embedEl.querySelector('.em-image-caption');
+                if (existingCaption) {
+                    // Update existing caption
+                    this.updateCaption(existingCaption as HTMLElement, matchingImage, settings);
+                } else {
+                    // Create new caption
+                    this.createCaption(embedEl, matchingImage, settings);
+                }
+            });
+        }
+
+        removeCaptionIfExists(embedEl: Element) {
+            const existingCaption = embedEl.querySelector('.em-image-caption');
+            if (existingCaption) {
+                existingCaption.remove();
+            }
+        }
+
+        createCaption(embedEl: Element, image: ImageMatch, settings: EquationCitatorSettings) {
+            const captionDiv = document.createElement('div');
+            captionDiv.className = 'em-image-caption';
+
+            // First line: Fig. X.X title
+            if (image.tag || image.title) {
+                const titleLine = document.createElement('div');
+                titleLine.className = 'em-image-caption-title';
+
+                let titleText = '';
+                if (image.tag) {
+                    const figLabel = settings.figCitationFormat.replace('#', image.tag);
+                    titleText = figLabel;
+                }
+                if (image.title) {
+                    titleText += (titleText ? ' ' : '') + image.title;
+                }
+
+                titleLine.textContent = titleText;
+                captionDiv.appendChild(titleLine);
+            }
+
+            // Second line: description
+            if (image.desc) {
+                const descLine = document.createElement('div');
+                descLine.className = 'em-image-caption-desc';
+                descLine.textContent = image.desc;
+                captionDiv.appendChild(descLine);
+            }
+
+            embedEl.appendChild(captionDiv);
+        }
+
+        updateCaption(captionEl: HTMLElement, image: ImageMatch, settings: EquationCitatorSettings) {
+            // Clear existing content
+            captionEl.innerHTML = '';
+
+            // First line: Fig. X.X title
+            if (image.tag || image.title) {
+                const titleLine = document.createElement('div');
+                titleLine.className = 'em-image-caption-title';
+
+                let titleText = '';
+                if (image.tag) {
+                    const figLabel = settings.figCitationFormat.replace('#', image.tag);
+                    titleText = figLabel;
+                }
+                if (image.title) {
+                    titleText += (titleText ? ' ' : '') + image.title;
+                }
+
+                titleLine.textContent = titleText;
+                captionEl.appendChild(titleLine);
+            }
+
+            // Second line: description
+            if (image.desc) {
+                const descLine = document.createElement('div');
+                descLine.className = 'em-image-caption-desc';
+                descLine.textContent = image.desc;
+                captionEl.appendChild(descLine);
+            }
+        }
+
+        destroy() {
+            this.captionElements.clear();
+        }
+    });
+}
+
+/**
+ * Helper function to find matching image from parsed data
+ */
+function findMatchingImage(images: ImageMatch[], imgSrc: string, embedEl: Element): ImageMatch | null {
+    // Get the image link from the embed element's data attributes or text content
+    const embedSrc = embedEl.getAttribute('src') || embedEl.getAttribute('alt');
+
+    for (const img of images) {
+        // Match by image path or link
+        if (img.imagePath && (imgSrc.includes(img.imagePath) || embedSrc?.includes(img.imagePath))) {
+            return img;
+        }
+        if (img.imageLink && (imgSrc.includes(img.imageLink) || embedSrc?.includes(img.imageLink))) {
+            return img;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Reading Mode Post-Processor for image captions
+ */
+export async function imageCaptionPostProcessor(
+    plugin: EquationCitator,
+    el: HTMLElement,
+    ctx: MarkdownPostProcessorContext,
+): Promise<void> {
+    const { figCitationFormat, figCitationPrefix } = plugin.settings;
+
+    // Get the source file content
+    const file = plugin.app.vault.getAbstractFileByPath(ctx.sourcePath);
+    if (!file || !(file instanceof TFile)) return;
+
+    const content = await plugin.app.vault.read(file);
+    const images = parseAllImagesFromMarkdown(content, figCitationPrefix);
+
+    // Find all image embeds in the rendered element
+    const imageEmbeds = el.querySelectorAll('.internal-embed.image-embed, .internal-embed.is-loaded');
+
+    imageEmbeds.forEach((embedEl) => {
+        const imgEl = embedEl.querySelector('img');
+        if (!imgEl) return;
+
+        const imgSrc = imgEl.getAttribute('src');
+        if (!imgSrc) return;
+
+        // Find matching image from parsed data
+        const matchingImage = findMatchingImage(images, imgSrc, embedEl);
+        if (!matchingImage || (!matchingImage.title && !matchingImage.desc)) {
+            return;
+        }
+
+        // Check if caption already exists
+        if (embedEl.querySelector('.em-image-caption')) {
+            return;
+        }
+
+        // Create caption
+        const captionDiv = document.createElement('div');
+        captionDiv.className = 'em-image-caption';
+
+        // First line: Fig. X.X title
+        if (matchingImage.tag || matchingImage.title) {
+            const titleLine = document.createElement('div');
+            titleLine.className = 'em-image-caption-title';
+
+            let titleText = '';
+            if (matchingImage.tag) {
+                const figLabel = figCitationFormat.replace('#', matchingImage.tag);
+                titleText = figLabel;
+            }
+            if (matchingImage.title) {
+                titleText += (titleText ? ' ' : '') + matchingImage.title;
+            }
+
+            titleLine.textContent = titleText;
+            captionDiv.appendChild(titleLine);
+        }
+
+        // Second line: description
+        if (matchingImage.desc) {
+            const descLine = document.createElement('div');
+            descLine.className = 'em-image-caption-desc';
+            descLine.textContent = matchingImage.desc;
+            captionDiv.appendChild(descLine);
+        }
+
+        embedEl.appendChild(captionDiv);
+    });
 }

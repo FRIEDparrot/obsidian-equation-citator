@@ -1284,4 +1284,34 @@ when generating markdown for print pdf,
   cursor: pointer;
 }
 
+/* Image Caption Styles */
+.em-image-caption {
+  display: block;
+  text-align: center;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  padding: 4px 8px;
+  color: var(--text-muted);
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.em-image-caption-title {
+  font-weight: 600;
+  color: var(--text-normal);
+  margin-bottom: 2px;
+}
+
+.em-image-caption-desc {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+/* Ensure image embeds have proper spacing for captions */
+.internal-embed.image-embed,
+.internal-embed.is-loaded {
+  display: inline-block;
+  position: relative;
+}
+
 /*# sourceMappingURL=styles.css.map */

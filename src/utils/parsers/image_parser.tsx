@@ -60,7 +60,7 @@ function parseWeblinkImage(line: string, imagePrefix: string): Omit<ImageMatch, 
             }
         }
     }
-    
+
     return {
         type: isExcalidraw ? 'excalidraw' : 'weblink',
         imagePath,
@@ -177,7 +177,10 @@ function parseImageLine(line: string, lineNumber: number, imagePrefix: string): 
  * @param imagePrefix - The prefix to match (e.g., "fig:"), default is "fig:"
  * @returns Array of ImageMatch objects
  */
-export function parseAllImagesFromMarkdown(markdown: string, imagePrefix: string = "fig:"): ImageMatch[] {
+export function parseAllImagesFromMarkdown(
+    markdown: string, 
+    imagePrefix: string): ImageMatch[] {
+    
     if (!markdown.trim()) return [];
 
     const lines = markdown.split('\n');
@@ -208,7 +211,7 @@ export function parseAllImagesFromMarkdown(markdown: string, imagePrefix: string
 
         // Get the processed content (with quotes removed if any)
         const processedLine = parseResult.processedContent.trim();
-
+        
         // Try to parse as image
         const imageMatch = parseImageLine(processedLine, lineNum, imagePrefix);
 
@@ -217,21 +220,23 @@ export function parseAllImagesFromMarkdown(markdown: string, imagePrefix: string
             Debugger.log(`Parsed image at line ${imageMatch.line}: type=${imageMatch.type}, label=${imageMatch.label}`);
         }
     }
-
     Debugger.log(`Total images parsed: ${images.length}`);
     return images;
 }
 
 /**
  * Parse the first image with the given tag in the markdown content
+ * TODO : improve performance 
  * @param markdown - The markdown content to parse
  * @param tag - The tag to search for (without prefix, e.g., "3.1" not "fig:3.1")
  * @param imagePrefix - The prefix to match (e.g., "fig:"), default is "fig:"
  * @returns The first ImageMatch with the matching tag, or undefined if not found
  */
-export function parseFirstImageInMarkdown(markdown: string, tag: string, imagePrefix: string = "fig:"): ImageMatch | undefined {
+export function parseFirstImageInMarkdown(
+    markdown: string, tag: string, 
+    imagePrefix = "fig:"
+): ImageMatch | undefined {
     if (!markdown.trim() || !tag.trim()) return undefined;
-
     const allImages = parseAllImagesFromMarkdown(markdown, imagePrefix);
     return allImages.find(img => img.tag === tag);
 }

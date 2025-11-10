@@ -12,6 +12,8 @@ import {
     createMathCitationExtension,
     mathCitationPostProcessor,
     calloutCitationPostProcessor,
+    createImageCaptionExtension,
+    imageCaptionPostProcessor,
 } from '@/views/citation_render';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
@@ -42,6 +44,7 @@ export default class EquationCitator extends Plugin {
 
     private autoCompleteSuggest: AutoCompleteSuggest;
     private mathCitationCompartment = new Compartment();
+    private imageCaptionCompartment = new Compartment();
     
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -123,6 +126,11 @@ export default class EquationCitator extends Plugin {
                 createMathCitationExtension(this)
             )
         );
+        this.registerEditorExtension(
+            this.imageCaptionCompartment.of(
+                createImageCaptionExtension(this)
+            )
+        );
         // Register drag cursor field for equation drag-drop visual feedback
         this.registerEditorExtension(dropCursorField);
     }
@@ -130,16 +138,19 @@ export default class EquationCitator extends Plugin {
     loadReadingModeExtensions() {
         this.registerMarkdownPostProcessor(
             async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
-                // const isReadingMode = activeView.getMode() === "preview"; 
+                // const isReadingMode = activeView.getMode() === "preview";
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-                if (!activeView) return; 
-                // also register in live preview mode to render citations in link preview  
+                if (!activeView) return;
+                // also register in live preview mode to render citations in link preview
                 await mathCitationPostProcessor(this, el, ctx, this.citationCache);
-                
+
                 if (this.settings.enableCiteWithCodeBlockInCallout) {
-                    // wait for the callout to be rendered 
+                    // wait for the callout to be rendered
                     await calloutCitationPostProcessor(this, el, ctx, this.citationCache);
                 }
+
+                // Render image captions
+                await imageCaptionPostProcessor(this, el, ctx);
             }
         )
     }
@@ -163,19 +174,23 @@ export default class EquationCitator extends Plugin {
      */
     upDateEditorExtensions() {
         // create a new extension with the new settings
-        const newExt = createMathCitationExtension(this);
-        // iterate over all the views and update the extensions  
+        const newMathExt = createMathCitationExtension(this);
+        const newImageExt = createImageCaptionExtension(this);
+        // iterate over all the views and update the extensions
         this.app.workspace.iterateAllLeaves((leaf) => {
             const view = leaf.view;
             // @ts-ignore
-            const cm = view?.editor?.cm; // get the CodeMirror instance 
+            const cm = view?.editor?.cm; // get the CodeMirror instance
             if (cm && !cm.state.destroyed) {
-                // reload the extension for each view 
+                // reload the extension for each view
                 cm.dispatch({
-                    effects: this.mathCitationCompartment.reconfigure(newExt)
+                    effects: [
+                        this.mathCitationCompartment.reconfigure(newMathExt),
+                        this.imageCaptionCompartment.reconfigure(newImageExt)
+                    ]
                 });
                 cm.dispatch({
-                    // empty opertion, for trigger a refresh of the editor 
+                    // empty opertion, for trigger a refresh of the editor
                     changes: { from: 0, to: 0, insert: "" }
                 });
             }
