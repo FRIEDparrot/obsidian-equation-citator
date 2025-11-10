@@ -827,25 +827,16 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 
 .ec-settings-search-textbox-wrapper {
+  position: relative;
   display: flex;
   flex-direction: row;
+  align-items: center;
 }
 .ec-settings-search-textbox-wrapper .ec-settings-search-textbox {
-  position: relative;
   border-top: none;
-  display: flex;
-  align-items: center;
-  margin-left: 0px;
-  width: 100%;
+  width: 200px;
   height: 33px;
-}
-.ec-settings-search-textbox-wrapper .ec-settings-search-textbox .ec-search-icon {
-  position: absolute;
-  left: 0px;
-  top: 15px;
-  pointer-events: none;
-  font-size: 1.1em;
-  color: var(--text-muted);
+  padding-left: 32px !important;
 }
 
 .ec-settings-icon {
@@ -985,6 +976,14 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   font-size: 14px;
 }
 
+.ec-settings-no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 14px;
+}
+
 /* Customize Panel Styles */
 .ec-settings-customize-panel {
   border: 1px solid var(--background-modifier-border);
@@ -1120,19 +1119,19 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 .ec-setting-reorder-buttons {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 6px;
+  gap: 2px;
+  padding: 1px 6px;
 }
 
 .ec-reorder-btn {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 16px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
+  border-radius: 3px;
   background: var(--background-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1148,8 +1147,8 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 
 .ec-reorder-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 /* Regular citation styles for live preview and reading mode */

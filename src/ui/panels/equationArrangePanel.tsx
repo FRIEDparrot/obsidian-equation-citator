@@ -208,7 +208,7 @@ export class EquationArrangePanel extends ItemView {
             this.toggleSearchMode(false);
         });
         this.quitSearchButton.hide();
-        
+
         // Search input (hidden by default)
         this.searchInput = toolbar.createEl("input", {
             cls: "ec-search-input",

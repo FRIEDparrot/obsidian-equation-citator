@@ -8,7 +8,6 @@ import { addPdfExportSettingsTab } from "@/settings/pages/pdfExportSettingsTab";
 import { addStyleSettingsTab } from "@/settings/pages/styleSettingsTab";
 import { addOtherSettingsTab } from "@/settings/pages/OtherSettingsTab";
 import { addCacheSettingsTab } from "@/settings/pages/cacheSettingsTab";
-import { validateLetterPrefix } from "@/utils/string_processing/string_utils";
 import { createFoldablePanel } from "@/settings/extensions/foldablePanel";
 import { addCitationSettingsTab } from "@/settings/pages/citationSettingsTab";
 import { addAutoNumberSettingsTab } from "@/settings/pages/autoNumberSettingsTab";
@@ -49,7 +48,8 @@ export class SettingsTabView extends PluginSettingTab {
         ["advanced-settings", false],
         ["customize-settings", false],
     ]);
-    private showReorderButtons: boolean = false;
+    private showReorderButtons = false;
+    private searchQuery = "";
 
     constructor(app: App, plugin: EquationCitator) {
         super(app, plugin);
@@ -98,12 +98,16 @@ export class SettingsTabView extends PluginSettingTab {
             });
 
         const searchDiv = toolbar.createDiv({ cls: "ec-settings-search-textbox-wrapper" })
+        
         const searchSetting = new Setting(searchDiv)
-        const searchIcon = searchDiv.createDiv({cls: "ec-search-icon"})
-        setIcon(searchIcon, 'search')
         searchSetting.addSearch((text) => {
             text.inputEl.classList.add("ec-settings-search-textbox")
             text.setPlaceholder("Search settings")
+            text.setValue(this.searchQuery)
+            text.onChange((value) => {
+                this.searchQuery = value.toLowerCase().trim();
+                this.display();
+            })
         })
         const mode = this.plugin.settings.settingsDisplayMode ?? "concise";
         if (mode === "categorical") {
@@ -112,27 +116,7 @@ export class SettingsTabView extends PluginSettingTab {
             this.renderConcise(containerEl);
         }
     }
-
-    private createExpandableCategory(parent: HTMLElement, id: string, title: string, icon: string, render: (el: HTMLElement) => void) {
-        const wrapper = parent.createEl("div", { cls: "ec-settings-category", attr: { id } });
-        const header = wrapper.createEl("div", { cls: "ec-settings-category-header" });
-        header.createEl("div", { cls: "ec-chip-icon" }).createDiv({ cls: `lucide-${icon}` });
-        header.createEl("span", { text: title, cls: "ec-settings-category-title" });
-        const chevron = header.createEl("div", { cls: "ec-settings-category-chevron" });
-        chevron.createDiv({ cls: "lucide-chevron-down" });
-
-        const content = wrapper.createEl("div", { cls: "ec-settings-category-content" });
-        render(content);
-
-        let expanded = true;
-        const update = () => {
-            content.toggleClass("is-collapsed", !expanded);
-            header.toggleClass("is-collapsed", !expanded);
-        };
-        header.onclick = () => { expanded = !expanded; update(); };
-        update();
-    }
-
+    
     private renderGroupSelector(containerEl: HTMLElement, groups: { id: string; title: string; icon: string }[], onSelect: (id: string) => void) {
         const selector = containerEl.createEl("div", { cls: "ec-settings-group-selector" });    
         const setActive = (id: string) => {
@@ -191,76 +175,7 @@ export class SettingsTabView extends PluginSettingTab {
         // initial render
         renderActive();
     }
-    
-    private renderConcideBasicSettings(containerEl: HTMLElement){
-        new Setting(containerEl)
-            .setName("Auto Numbering Depth")
-            .setDesc("Maximum depth for equation numbers")
-            .addSlider((slider) => {
-                slider.setLimits(1, 6, 1);
-                slider.setValue(this.plugin.settings.autoNumberDepth || 1);
-                slider.setDynamicTooltip();
-                slider.onChange(async (value) => {
-                    this.plugin.settings.autoNumberDepth = value;
-                    await this.plugin.saveSettings();
-                });
-            });
-
-        // Equation Preview Widget Width
-        new Setting(containerEl)
-            .setName("Equation Preview Widget Width")
-            .setDesc("Width of the equation preview widget in pixels")
-            .addSlider((slider) => {
-                slider.setLimits(200, 800, 10);
-                slider.setDynamicTooltip();
-                slider.setValue(this.plugin.settings.citationPopoverContainerWidth);
-                slider.onChange(async (value) => {
-                    this.plugin.settings.citationPopoverContainerWidth = value;
-                    WidgetSizeManager.set(WidgetSizeVariable.ContainerWidth, value);
-                    await this.plugin.saveSettings();
-                });
-            });
-
-        // Auto-number No Heading Prefix
-        new Setting(containerEl)
-            .setName("Auto Numbering No Heading Prefix")
-            .setDesc("Prefix for equations without any heading level (letters only)")
-            .addText((text) => {
-                text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("P");
-                text.setValue(this.plugin.settings.autoNumberNoHeadingPrefix);
-                text.inputEl.onblur = async () => {
-                    const newValue = text.getValue();
-                    if (newValue !== this.plugin.settings.autoNumberNoHeadingPrefix) {
-                        if (validateLetterPrefix(newValue)) {
-                            this.plugin.settings.autoNumberNoHeadingPrefix = newValue;
-                            await this.plugin.saveSettings();
-                        } else {
-                            new Notice("Only letters are allowed, Change not saved");
-                            text.setValue(this.plugin.settings.autoNumberNoHeadingPrefix);
-                        }
-                    }
-                };
-            });
-
-        // Reset Settings button
-        new Setting(containerEl)
-            .setName("Reset Settings")
-            .setDesc("Reset all settings to default values")
-            .addButton((button) => {
-                button.setIcon("reset");
-                button.onClick(async () => {
-                    new Notice("Restoring Settings ...");
-                    await new Promise((resolve) => setTimeout(resolve, 200));
-                    this.plugin.settings = { ...DEFAULT_SETTINGS };
-                    resetStyles();
-                    await this.plugin.saveSettings();
-                    this.display();
-                    new Notice("Settings have been restored to defaults");
-                });
-            });
-    }
-    
+        
     private renderConcise(containerEl: HTMLElement) {
         // Add toggle button for reorder buttons
         const toggleContainer = containerEl.createDiv({ cls: "ec-reorder-toggle-container" });
@@ -319,31 +234,61 @@ export class SettingsTabView extends PluginSettingTab {
     }
 
     /**
+     * Check if a setting matches the search query
+     */
+    private settingMatchesSearch(key: string): boolean {
+        if (!this.searchQuery) return true;
+
+        const metadata = SETTINGS_METADATA[key as keyof typeof SETTINGS_METADATA];
+        if (!metadata) return false;
+
+        const searchTerms = [
+            metadata.name.toLowerCase(),
+            metadata.desc.toLowerCase(),
+            key.toLowerCase()
+        ];
+
+        return searchTerms.some(term => term.includes(this.searchQuery));
+    }
+
+    /**
      * Render a settings panel with reorder buttons
      */
     private renderSettingsPanel(containerEl: HTMLElement, settingKeys: string[], panelType: "basic" | "advanced") {
-        settingKeys.forEach((key, index) => {
+        // Filter settings based on search query
+        const filteredKeys = settingKeys.filter(key => this.settingMatchesSearch(key));
+
+        if (filteredKeys.length === 0 && this.searchQuery) {
+            const noResults = containerEl.createDiv({ cls: "ec-settings-no-results" });
+            noResults.textContent = "No settings found matching your search.";
+            return;
+        }
+
+        filteredKeys.forEach((key, index) => {
             const metadata = SETTINGS_METADATA[key as keyof typeof SETTINGS_METADATA];
             if (!metadata || !metadata.renderCallback) return;
+
+            // Get the original index in the full array for proper reordering
+            const originalIndex = settingKeys.indexOf(key);
 
             // Create a wrapper for the setting with reorder buttons
             const settingWrapper = containerEl.createDiv({ cls: "ec-setting-with-reorder" });
 
             // Add reorder buttons BEFORE the setting content if enabled
-            if (this.showReorderButtons) {
+            if (this.showReorderButtons && !this.searchQuery) {
                 const reorderButtons = settingWrapper.createDiv({ cls: "ec-setting-reorder-buttons" });
 
                 // Move up button
                 const upBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": "Move up" } });
-                setIcon(upBtn, "chevron-up");
-                upBtn.disabled = index === 0;
-                if (index === 0) upBtn.style.opacity = "0.3";
+                setIcon(upBtn, "arrow-up");
+                upBtn.disabled = originalIndex === 0;
+                if (originalIndex === 0) upBtn.style.opacity = "0.3";
 
                 upBtn.onclick = async () => {
                     const arr = panelType === "basic" ? this.plugin.settings.basicSettingsKeys : this.plugin.settings.advancedSettingsKeys;
-                    if (index > 0) {
+                    if (originalIndex > 0) {
                         // Swap with previous
-                        [arr[index - 1], arr[index]] = [arr[index], arr[index - 1]];
+                        [arr[originalIndex - 1], arr[originalIndex]] = [arr[originalIndex], arr[originalIndex - 1]];
                         await this.plugin.saveSettings();
                         this.display();
                     }
@@ -351,15 +296,15 @@ export class SettingsTabView extends PluginSettingTab {
 
                 // Move down button
                 const downBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": "Move down" } });
-                setIcon(downBtn, "chevron-down");
-                downBtn.disabled = index === settingKeys.length - 1;
-                if (index === settingKeys.length - 1) downBtn.style.opacity = "0.3";
+                setIcon(downBtn, "arrow-down");
+                downBtn.disabled = originalIndex === settingKeys.length - 1;
+                if (originalIndex === settingKeys.length - 1) downBtn.style.opacity = "0.3";
 
                 downBtn.onclick = async () => {
                     const arr = panelType === "basic" ? this.plugin.settings.basicSettingsKeys : this.plugin.settings.advancedSettingsKeys;
-                    if (index < arr.length - 1) {
+                    if (originalIndex < arr.length - 1) {
                         // Swap with next
-                        [arr[index], arr[index + 1]] = [arr[index + 1], arr[index]];
+                        [arr[originalIndex], arr[originalIndex + 1]] = [arr[originalIndex + 1], arr[originalIndex]];
                         await this.plugin.saveSettings();
                         this.display();
                     }
