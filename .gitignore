@@ -1,5 +1,7 @@
 # vscode
 .vscode 
+.claude 
+.github
 
 # backup 
 backup/*

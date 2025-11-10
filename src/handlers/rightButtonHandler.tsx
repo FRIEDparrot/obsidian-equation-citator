@@ -3,7 +3,7 @@ import { Menu, App, Editor, MarkdownView, MenuItem } from "obsidian"
 import { EditorSelectionInfo, tagSelectedField } from "@/views/citation_render";
 import { EditorState } from "@codemirror/state";
 import Debugger from "@/debug/debugger";
-import { TagRenameModal } from "@/ui/tagRenameModal";
+import { TagRenameModal } from "@/ui/modals/tagRenameModal";
 
 export function registerRightClickHandler(plugin: EquationCitator) {
     const app: App = plugin.app;

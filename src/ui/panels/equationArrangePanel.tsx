@@ -7,8 +7,9 @@ import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
 import { drawCursorAtDragPosition, clearDragCursor, getEditorDropLocation } from "@/utils/workspace/drag_drop_event";
 import Debugger from "@/debug/debugger";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
-import TagInputModal from "@/ui/tagInputModal";
+import TagInputModal from "@/ui/modals/tagInputModal";
 import { checkFootnoteExists } from "@/utils/core/footnote_utils";
+import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigation";
 
 export const EQUATION_ARRANGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -44,6 +45,7 @@ export class EquationArrangePanel extends ItemView {
     private updateHandler: () => void;
     private currentEquationHash = "";
     private lastDragTargetView: MarkdownView | null = null;
+    private lastActiveMarkdownLeaf: WorkspaceLeaf | null = null;  // Track last active markdown leaf
     private refreshDebounceTimer: number | null = null;
     private searchDebounceTimer: number | null = null;
     private fileCheckInterval: number | null = null;
@@ -232,6 +234,12 @@ export class EquationArrangePanel extends ItemView {
             this.currentActiveFile = activeFile.path;
         }
 
+        // Initialize last active markdown leaf
+        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (activeView?.leaf) {
+            this.lastActiveMarkdownLeaf = activeView.leaf;
+        }
+
         this.refreshView();
         
         // Register event listeners for dynamic updates
@@ -244,6 +252,12 @@ export class EquationArrangePanel extends ItemView {
         this.fileCheckInterval = window.setInterval(() => {
             const currentFile = this.app.workspace.getActiveFile();
             const currentPath = currentFile?.path || "";
+
+            // Track last active markdown view's leaf
+            const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (activeView?.leaf) {
+                this.lastActiveMarkdownLeaf = activeView.leaf;
+            }
 
             // Only refresh if file changed
             if (currentPath !== this.currentActiveFile) {
@@ -510,7 +524,7 @@ export class EquationArrangePanel extends ItemView {
         this.collapsedHeadings.clear();
         this.refreshView();
     }
-
+    
     private async getEquationsToRender(): Promise<EquationMatch[]> {
         const currentFile = this.app.workspace.getActiveFile();
         if (!currentFile) {
@@ -530,7 +544,7 @@ export class EquationArrangePanel extends ItemView {
         }
         return filteredEquations;
     }
-
+    
     /**
      * schedule refresh the equations render view with debounce (for search input)
      */
@@ -926,7 +940,6 @@ export class EquationArrangePanel extends ItemView {
                 }
             });
         }
-
         return;
     }
 
@@ -978,8 +991,25 @@ export class EquationArrangePanel extends ItemView {
         );
 
         // Add click handler to jump to equation in the editor
-        eqDiv.addEventListener('dblclick', () => {
-            this.jumpToEquation(equation);
+        // Ctrl/Cmd + double click opens in right panel with smart reuse
+        eqDiv.addEventListener('dblclick', async (event: MouseEvent) => {
+            const ctrlKey = event.ctrlKey || event.metaKey;
+            if (ctrlKey && equation.tag) {
+                // Use tracked last active markdown leaf (works even when panel is active)
+                const currentLeaf = this.lastActiveMarkdownLeaf;
+
+                // Open in split panel with smart reuse (excluding current leaf)
+                await openFileAndScrollToEquation(
+                    this.plugin,
+                    currentFile?.path || '',
+                    equation.tag,
+                    true,  // open in split
+                    currentLeaf || undefined  // exclude current leaf when searching for existing panels
+                );
+            } else {
+                // Normal double click - jump in current view
+                this.jumpToEquation(equation);
+            }
         });
 
         // Drag start event

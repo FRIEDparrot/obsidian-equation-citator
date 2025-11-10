@@ -1,7 +1,7 @@
 import { MarkdownView, Notice, TFile } from "obsidian";
 import { makePrintMarkdown } from "@/views/citation_render";
 import EquationCitator from "@/main";
-import { ModalOption, OptionsModal } from "@/ui/optionsModal";
+import { ModalOption, OptionsModal } from "@/ui/modals/optionsModal";
 import Debugger from "@/debug/debugger";
 
 

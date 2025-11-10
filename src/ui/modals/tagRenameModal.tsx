@@ -1,6 +1,6 @@
 import { Modal, Setting, Editor, Notice } from "obsidian";
 import { TagRenamePair } from "@/services/tag_service";
-import { PromiseOptionsModal, ModalOption } from "@/ui/optionsModal";
+import { PromiseOptionsModal, ModalOption } from "@/ui/modals/optionsModal";
 import EquationCitator from "@/main";
 import { assemblyCitationUpdateMessage } from "@/func/autoNumber";
 

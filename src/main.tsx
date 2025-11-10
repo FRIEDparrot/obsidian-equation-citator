@@ -24,7 +24,7 @@ import { registerRightClickHandler } from '@/handlers/rightButtonHandler';
 import { LineHashCache } from '@/cache/lineHashCache';
 import { WidgetSizeManager } from '@/settings/styleManagers/widgetSizeManager';
 import { isUpdateAvailable } from './api/updateChecking';
-import { EquationArrangePanel, EQUATION_ARRANGE_PANEL_TYPE } from '@/ui/equationArrangePanel';
+import { EquationArrangePanel, EQUATION_ARRANGE_PANEL_TYPE } from '@/ui/panels/equationArrangePanel';
 import Debugger from './debug/debugger';
 import { dropCursorField } from '@/utils/workspace/drag_drop_event';
 
