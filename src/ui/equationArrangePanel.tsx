@@ -390,11 +390,11 @@ export class EquationArrangePanel extends ItemView {
                 equationData.lineEnd,
                 tag
             );
-
             if (!success) {
                 new Notice('Failed to add tag to equation. Make sure the source file is open.');
                 return;
             }
+            await this.refreshView();  // refresh view after renaming 
         }
 
         // Only handle same-file citations for now
@@ -403,7 +403,7 @@ export class EquationArrangePanel extends ItemView {
             new Notice('Cross-file citation is not supported yet');
             return;
         }
-
+        
         // Build the citation string
         const citationPrefix = this.plugin.settings.citationPrefix;
         const citation = `$\\ref{${citationPrefix}${tag}}$`;
@@ -490,7 +490,7 @@ export class EquationArrangePanel extends ItemView {
             this.updateModeButtons();
         }
     }
-    
+
     private toggleTagShow(mode: boolean) {
         this.showEquationTags = mode;
         setIcon(this.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");

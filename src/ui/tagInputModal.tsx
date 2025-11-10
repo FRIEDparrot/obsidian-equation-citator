@@ -42,13 +42,14 @@ export default class TagInputModal extends Modal {
             this.onSubmit(null);
             this.close();
         });
-
+        
         // Focus input
         this.inputEl.focus();
 
         // Submit on Enter
         this.inputEl.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default behavior in editor
                 const tag = this.inputEl.value.trim();
                 if (tag) {
                     this.onSubmit(tag);
