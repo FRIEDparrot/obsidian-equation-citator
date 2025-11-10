@@ -191,7 +191,7 @@ Version 1.3.0 - New features, Refactors and main improvements.
   - [x] **Drag-and Drop to citation** : You can now drag-and-drop equation from equations management panel to cite it.
   - [ ] **Support the cross-file citations by dragging** 
   - [ ] **Prompt when drag no-tag equations** 
-  - [ ] **Dynamic Update panel when change file and type in editor**
+  - [x] **Dynamic Update panel when change file and type in editor**
 
 
 🏗️ Refactors : 

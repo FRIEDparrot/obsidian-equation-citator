@@ -42,6 +42,9 @@ export class EquationArrangePanel extends ItemView {
     private updateHandler: () => void;
     private currentEquationHash = "";
     private lastDragTargetView: MarkdownView | null = null;
+    private refreshDebounceTimer: number | null = null;
+    private searchDebounceTimer: number | null = null;
+    private fileCheckInterval: number | null = null;
 
     private currentActiveFile = "";      // current active file path (used for fast refresh)
     private currentViewMode = "";    // current display mode (used for fast refresh)
@@ -55,8 +58,25 @@ export class EquationArrangePanel extends ItemView {
 
     constructor(private plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
+        // Debounced handler for file modifications (5s delay)
         this.updateHandler = () => {
-            this.refreshView();
+            const activeFile = this.app.workspace.getActiveFile();
+            if (!activeFile) return;
+
+            // Only schedule refresh if the active file is a markdown file
+            const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (!activeView) return;
+
+            // Clear existing timer
+            if (this.refreshDebounceTimer !== null) {
+                clearTimeout(this.refreshDebounceTimer);
+            }
+
+            // Schedule refresh after 5 seconds
+            this.refreshDebounceTimer = window.setTimeout(() => {
+                this.refreshView();
+                this.refreshDebounceTimer = null;
+            }, 5000); // 5 seconds delay
         };
     }
 
@@ -200,20 +220,62 @@ export class EquationArrangePanel extends ItemView {
         this.updateSortMode("seq");
         this.updateModeButtons();      // update mode buttons after that
         this.toggleTagShow(true);
+
+        // Initialize current active file
+        const activeFile = this.app.workspace.getActiveFile();
+        if (activeFile) {
+            this.currentActiveFile = activeFile.path;
+        }
+
         this.refreshView();
 
         // Register event listeners for dynamic updates
+        // File modification: debounced refresh (5s delay)
         this.registerEvent(
             this.app.vault.on('modify', this.updateHandler)
         );
+
+        // Poll every second to check if active file changed
+        this.fileCheckInterval = window.setInterval(() => {
+            const currentFile = this.app.workspace.getActiveFile();
+            const currentPath = currentFile?.path || "";
+
+            // Only refresh if file changed
+            if (currentPath !== this.currentActiveFile) {
+                this.currentActiveFile = currentPath;
+
+                // Cancel pending debounced refresh since we're switching files
+                if (this.refreshDebounceTimer !== null) {
+                    clearTimeout(this.refreshDebounceTimer);
+                    this.refreshDebounceTimer = null;
+                }
+
+                this.refreshView();
+            }
+        }, 1000); // Check every second
 
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
     }
     onunload(): void {
-        // Clean up event listeners
-        this.app.workspace.off('active-leaf-change', this.updateHandler);
-        this.app.vault.off('modify', this.updateHandler);
+        // Clean up debounce timers
+        if (this.refreshDebounceTimer !== null) {
+            clearTimeout(this.refreshDebounceTimer);
+            this.refreshDebounceTimer = null;
+        }
+        if (this.searchDebounceTimer !== null) {
+            clearTimeout(this.searchDebounceTimer);
+            this.searchDebounceTimer = null;
+        }
+
+        // Clean up file check interval
+        if (this.fileCheckInterval !== null) {
+            clearInterval(this.fileCheckInterval);
+            this.fileCheckInterval = null;
+        }
+
+        // Clean up event listeners (registerEvent automatically handles cleanup)
+        // but we still need to remove manual listeners
 
         // Remove drop handlers
         if (this.dropHandler) {
@@ -318,7 +380,7 @@ export class EquationArrangePanel extends ItemView {
         // Only handle same-file citations for now
         const isTargetSameAsSource = targetFile.path === equationData.sourcePath;
         if (!isTargetSameAsSource) {
-            new Notice('Cross-file citation not supported yet via drag-drop');
+            new Notice('Cross-file citation is not supported yet');
             return;
         }
 
@@ -467,16 +529,16 @@ export class EquationArrangePanel extends ItemView {
     }
 
     /**
-     * schedule refresh the equations render view (500ms now)
+     * schedule refresh the equations render view with debounce (for search input)
      */
     private scheduleRefreshView(timeout = 500) {
-        let timeoutId: number | null = null;
-        if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
+        if (this.searchDebounceTimer !== null) {
+            clearTimeout(this.searchDebounceTimer);
+            this.searchDebounceTimer = null;
         }
-        timeoutId = window.setTimeout(() => {
+        this.searchDebounceTimer = window.setTimeout(() => {
             this.refreshView();
+            this.searchDebounceTimer = null;
         }, timeout); // adjust delay as needed
     }
 
