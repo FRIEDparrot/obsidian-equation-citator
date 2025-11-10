@@ -184,7 +184,7 @@ Version 1.2.6 - bug fixes
 Version 1.3.0 - New features, Refactors and main improvements.
 
 ⭐ New Features :
-- [ ] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before. **No more annoying scrolling**. 
+- [x] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before. **No more annoying scrolling**.   
 - [ ] **Citation for figures and tables** (from [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7) by Akucecomma) are now supported, titles, numbers and descriptions.  
 - [x] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
   - [x] **Outline View, filter and collapse** : Both List view and outline view are supported.
@@ -197,14 +197,13 @@ Version 1.3.0 - New features, Refactors and main improvements.
 🏗️ Refactors : 
 - [x] For settings part, refactor code and split it into mutlitple modules, now.
 
-🚀Enhancements : 
+🚀Enhancements & improvements : 
 - [ ] Add [enhancement #50](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/50), better behavior for relocating cursor after auto-number equations. 
 - [x] When jump to equations in another panel now check if there already a panel of this file, and jump in this panel if there is. 
 - [x] Now debugging mode configurations will be saved after restarting Obsidian, so you needn't toggle debug mode every time. 
 - [ ] Remake a brand-new and more concise tutorial. 
-
+- [ ] Remake Readme file to be more friendly and concise. Also add a Chinese translation of Readme. 
 
 ### 🚢 Comming Soon : 
-1. add citations of tables and figures with auto-number feature.
-2. auto-number for tables and figures.
-3. Check citations of figures and tables, all in one 😄
+1. Auto-number and citation complete add for tables and figures 
+2. Check citations of figures and tables, all in one 😄

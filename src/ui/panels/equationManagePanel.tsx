@@ -79,7 +79,7 @@ export class EquationArrangePanel extends ItemView {
             this.refreshDebounceTimer = window.setTimeout(() => {
                 this.refreshView();
                 this.refreshDebounceTimer = null;
-            }, 5000);
+            }, this.plugin.settings.equationManagePanelLazyUpdateTime);
         };
     }
 
@@ -253,8 +253,8 @@ export class EquationArrangePanel extends ItemView {
                     this.refreshDebounceTimer = null;
                 }
             }
-        }, 1000);
-
+        }, this.plugin.settings.equationManagePanelfileCheckInterval);
+        
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
     }
@@ -507,12 +507,12 @@ export class EquationArrangePanel extends ItemView {
         this.refreshView();
     }
     
-    private async getEquationsToRender(): Promise<EquationMatch[] | null> {
+    private async getEquationsToRender(): Promise<EquationMatch[]> {
         const currentFile = this.app.workspace.getActiveFile();
         if (!currentFile) {
             this.viewPanel.empty();
             this.viewPanel.createDiv({ text: "No active file", cls: "ec-empty-message" });
-            return null;
+            return [];
         }
         const equations = await this.getAllEquations()
         const filteredEquations = this.filterEquations(equations);
@@ -522,7 +522,7 @@ export class EquationArrangePanel extends ItemView {
                 text: this.searchQuery ? "No equation match your search" : "No equation found in current file",
                 cls: "ec-empty-message"
             });
-            return null;
+            return [];
         }
         return filteredEquations;
     }
@@ -546,19 +546,10 @@ export class EquationArrangePanel extends ItemView {
      */
     private async refreshView(): Promise<void> {
         const equations = await this.getEquationsToRender();
-
-        // Handle null case (no file or no equations) - update hash to ensure next transition works
-        if (equations === null) {
-            Debugger.log('No equations to render (no file or no equations)');
-            // Set a special hash for empty state to distinguish from previous state
-            const emptyHash = "EMPTY_STATE";
-            if (this.currentEquationHash !== emptyHash) {
-                this.currentEquationHash = emptyHash;
-                Debugger.log('Updated hash to empty state');
-            }
+        if (!equations || equations.length === 0) {
+            Debugger.log('No equations to render'); 
             return;
         }
-
         const equationsHash = hashEquations(equations);
 
         const setsEqual = (
