@@ -136,18 +136,18 @@ function parseImageLine(line: string, lineNumber: number, imagePrefix: string): 
     // Must start with ! to be an image
     if (!trimmedLine.startsWith('!')) return null;
 
-    // Try weblink format first
-    const weblinkResult = parseWeblinkImage(trimmedLine, imagePrefix);
-    if (weblinkResult) {
-        return {
-            ...weblinkResult,
-            raw: trimmedLine,
-            line: lineNumber,
-            inQuote: false,
-        };
-    }
+    // we retain the weblink format parser here (since we )
+    // const weblinkResult = parseWeblinkImage(trimmedLine, imagePrefix);
+    // if (weblinkResult) {
+    //     return {
+    //         ...weblinkResult,
+    //         raw: trimmedLine,
+    //         line: lineNumber,
+    //         inQuote: false,
+    //     };
+    // }
 
-    // Try markdown format
+    // Try parse markdown format images
     const markdownResult = parseMarkdownImage(trimmedLine, imagePrefix);
     if (markdownResult) {
         return {
@@ -167,11 +167,10 @@ function parseImageLine(line: string, lineNumber: number, imagePrefix: string): 
  * - Take the whole line (after trimming)
  * - Start with ! (are displayed)
  * - Are NOT inside quote blocks
- *
- * Supports 3 types:
+ * 
+ * Supports following types (local file only):
  * 1. Weblink: ![[image.png|fig:3.1|title:test|desc:description]]
  * 2. Markdown: ![fig:4-1|desc:wikipedia](link)
- * 3. Excalidraw: ![[drawing.excalidraw.svg|fig:5.1|desc:diagram]]
  *
  * @param markdown - The markdown content to parse
  * @param imagePrefix - The prefix to match (e.g., "fig:"), default is "fig:"
@@ -192,9 +191,8 @@ export function parseAllImagesFromMarkdown(
         const line = lines[lineNum];
 
         // Parse line to check environment (quotes, code blocks, etc.)
-        // parseQuotes = false to ignore images in quotes
         const parseResult = parseMarkdownLine(line, false, inCodeBlock);
-
+        
         // Update code block state
         if (parseResult.isCodeBlockToggle) {
             inCodeBlock = !inCodeBlock;

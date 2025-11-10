@@ -1314,4 +1314,17 @@ when generating markdown for print pdf,
   position: relative;
 }
 
+/* Ensure markdown images with captions display properly */
+img:has(+ .em-image-caption) {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Wrap markdown images to contain caption */
+p > img,
+span > img {
+  display: block;
+  max-width: 100%;
+}
+
 /*# sourceMappingURL=styles.css.map */

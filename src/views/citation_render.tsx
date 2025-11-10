@@ -468,14 +468,26 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
     return ViewPlugin.fromClass(class {
         view: EditorView;
         captionElements: Map<string, HTMLElement> = new Map();
+        captionsByLine: Map<number, { element: Element; caption: HTMLElement }> = new Map();
+        lastCursorLine: number = -1;
 
         constructor(view: EditorView) {
             this.view = view;
+            this.lastCursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
             this.renderImageCaptions(view);
         }
 
         update(update: ViewUpdate) {
-            if (update.docChanged || update.viewportChanged) {
+            // Check if cursor moved to a different line
+            const currentCursorLine = update.state.doc.lineAt(update.state.selection.main.head).number;
+            const cursorLineChanged = currentCursorLine !== this.lastCursorLine;
+
+            // Re-render if:
+            // 1. Document content changed (typing, pasting, etc.)
+            // 2. Viewport scrolled
+            // 3. Cursor moved to a different line (Enter, arrow keys, clicking)
+            if (update.docChanged || update.viewportChanged || (update.selectionSet && cursorLineChanged)) {
+                this.lastCursorLine = currentCursorLine;
                 this.renderImageCaptions(update.view);
             }
         }
@@ -489,46 +501,209 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
             const markdown = view.state.doc.toString();
             const images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
 
-            // Find all image embed elements in the editor
+            // Only process images that have metadata to display
+            const imagesWithMetadata = images.filter(img =>
+                img.tag !== undefined && (img.tag || img.title || img.desc)
+            );
+
+            if (imagesWithMetadata.length === 0) {
+                // No images with metadata, remove all captions
+                const allCaptions = view.dom.querySelectorAll('.em-image-caption');
+                allCaptions.forEach(cap => cap.remove());
+                return;
+            }
+
+            // Find all image elements in the editor
             const editorEl = view.dom;
-            const imageEmbeds = editorEl.querySelectorAll('.internal-embed.image-embed, .internal-embed.is-loaded');
+            const allImageElements = this.getAllImageElements(editorEl);
 
-            imageEmbeds.forEach((embedEl) => {
-                const imgEl = embedEl.querySelector('img');
-                if (!imgEl) return;
+            // Match images by line position in document
+            const matchedPairs = this.matchImagesByLine(allImageElements, imagesWithMetadata, view);
 
-                // Get the image source to match with parsed images
-                const imgSrc = imgEl.getAttribute('src');
-                if (!imgSrc) return;
+            // Track which elements should have captions
+            const elementsWithCaptions = new Set<Element>();
+            const processedLines = new Set<number>();
 
-                // Find matching image from parsed data
-                const matchingImage = findMatchingImage(images, imgSrc, embedEl);
-                if (!matchingImage || (!matchingImage.title && !matchingImage.desc)) {
-                    // Remove caption if it exists but image no longer has metadata
-                    this.removeCaptionIfExists(embedEl);
-                    return;
+            // Apply captions
+            matchedPairs.forEach(({ element, imageData }) => {
+                if (imageData) {
+                    this.ensureCaption(element, imageData, settings);
+                    elementsWithCaptions.add(element);
+                    processedLines.add(imageData.line);
                 }
+            });
 
-                // Check if caption already exists
-                const existingCaption = embedEl.querySelector('.em-image-caption');
-                if (existingCaption) {
-                    // Update existing caption
-                    this.updateCaption(existingCaption as HTMLElement, matchingImage, settings);
-                } else {
-                    // Create new caption
-                    this.createCaption(embedEl, matchingImage, settings);
+            // Clean up any orphaned captions
+            // Since we only render for internal embeds, this is simple
+            const allCaptions = view.dom.querySelectorAll('.em-image-caption');
+            allCaptions.forEach(caption => {
+                // Check if this caption is attached to a tracked element
+                const parentElement = caption.parentElement;
+                const isAttached = Array.from(elementsWithCaptions).some(el =>
+                    el === parentElement || el.contains(caption)
+                );
+
+                // Remove if not attached (shouldn't happen with internal embeds only)
+                if (!isAttached) {
+                    caption.remove();
                 }
             });
         }
 
-        removeCaptionIfExists(embedEl: Element) {
-            const existingCaption = embedEl.querySelector('.em-image-caption');
+        getAllImageElements(editorEl: HTMLElement): Element[] {
+            const images: Element[] = [];
+
+            // Only process internal embeds (local files)
+            // This prevents orphaned captions during editing for markdown/web link images
+            const internalEmbeds = editorEl.querySelectorAll('.internal-embed.image-embed, .internal-embed.is-loaded');
+            internalEmbeds.forEach(el => {
+                const img = el.querySelector('img');
+                if (img) {
+                    images.push(el);
+                }
+            });
+
+            return images;
+        }
+
+        matchImagesByLine(
+            renderedImages: Element[],
+            parsedImages: ImageMatch[],
+            view: EditorView
+        ): Array<{ element: Element; imageData: ImageMatch | null }> {
+            const result: Array<{ element: Element; imageData: ImageMatch | null }> = [];
+            const usedIndices = new Set<number>();
+
+            for (const element of renderedImages) {
+                const imgEl = element.tagName === 'IMG' ? element : element.querySelector('img');
+                if (!imgEl) {
+                    result.push({ element, imageData: null });
+                    continue;
+                }
+
+                // Check if caption already exists - if so, try to preserve it
+                const existingCaption = this.getExistingCaption(element);
+                if (existingCaption) {
+                    // Try to find matching data to update caption
+                    const lineNum = this.getLineNumber(element, view);
+
+                    if (lineNum !== -1) {
+                        // Find the closest unused parsed image
+                        let bestMatch: ImageMatch | null = null;
+                        let bestMatchIndex = -1;
+                        let bestDistance = Infinity;
+
+                        for (let i = 0; i < parsedImages.length; i++) {
+                            if (usedIndices.has(i)) continue;
+                            const img = parsedImages[i];
+                            const distance = Math.abs(img.line - lineNum);
+                            if (distance <= 1 && distance < bestDistance) {
+                                bestMatch = img;
+                                bestMatchIndex = i;
+                                bestDistance = distance;
+                            }
+                        }
+
+                        if (bestMatch && bestMatchIndex !== -1) {
+                            usedIndices.add(bestMatchIndex);
+                            result.push({ element, imageData: bestMatch });
+                            continue;
+                        }
+                    }
+
+                    // If we can't match by line, keep the existing caption
+                    // Don't remove it just because line detection failed
+                    result.push({ element, imageData: null });
+                    continue;
+                }
+
+                // No existing caption - try to create one
+                const lineNum = this.getLineNumber(element, view);
+
+                if (lineNum === -1) {
+                    result.push({ element, imageData: null });
+                    continue;
+                }
+
+                // Find the closest unused parsed image on the same or nearby line
+                let bestMatch: ImageMatch | null = null;
+                let bestMatchIndex = -1;
+                let bestDistance = Infinity;
+
+                for (let i = 0; i < parsedImages.length; i++) {
+                    if (usedIndices.has(i)) continue;
+
+                    const img = parsedImages[i];
+                    const distance = Math.abs(img.line - lineNum);
+
+                    // Only consider images within 1 line distance
+                    if (distance <= 1 && distance < bestDistance) {
+                        bestMatch = img;
+                        bestMatchIndex = i;
+                        bestDistance = distance;
+                    }
+                }
+
+                if (bestMatch && bestMatchIndex !== -1) {
+                    usedIndices.add(bestMatchIndex);
+                    result.push({ element, imageData: bestMatch });
+                } else {
+                    result.push({ element, imageData: null });
+                }
+            }
+
+            return result;
+        }
+
+        getExistingCaption(element: Element): Element | null {
+            // Check for caption as child (internal embeds only)
+            return element.querySelector('.em-image-caption');
+        }
+
+        getLineNumber(element: Element, view: EditorView): number {
+            try {
+                const domNode = element instanceof HTMLElement ? element : element.parentElement;
+                if (domNode) {
+                    const pos = view.posAtDOM(domNode);
+                    const line = view.state.doc.lineAt(pos).number - 1; // 0-indexed
+                    return line;
+                }
+            } catch (e) {
+                // Ignore errors
+            }
+            return -1;
+        }
+
+        ensureCaption(element: Element, imageData: ImageMatch, settings: EquationCitatorSettings) {
+            // Check if caption already exists
+            let existingCaption = element.querySelector('.em-image-caption');
+
+            // For IMG elements, check next sibling
+            if (!existingCaption && element.tagName === 'IMG') {
+                const nextSibling = element.nextElementSibling;
+                if (nextSibling?.classList.contains('em-image-caption')) {
+                    existingCaption = nextSibling;
+                }
+            }
+
+            if (existingCaption) {
+                // Update existing caption
+                this.updateCaption(existingCaption as HTMLElement, imageData, settings);
+            } else {
+                // Create new caption
+                this.createCaption(element, imageData, settings);
+            }
+        }
+
+        removeCaptionIfExists(element: Element) {
+            // Check for caption as child (internal embeds only)
+            const existingCaption = element.querySelector('.em-image-caption');
             if (existingCaption) {
                 existingCaption.remove();
             }
         }
 
-        createCaption(embedEl: Element, image: ImageMatch, settings: EquationCitatorSettings) {
+        createCaption(element: Element, image: ImageMatch, settings: EquationCitatorSettings) {
             const captionDiv = document.createElement('div');
             captionDiv.className = 'em-image-caption';
 
@@ -558,7 +733,8 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 captionDiv.appendChild(descLine);
             }
 
-            embedEl.appendChild(captionDiv);
+            // Only append to internal embeds (not IMG elements)
+            element.appendChild(captionDiv);
         }
 
         updateCaption(captionEl: HTMLElement, image: ImageMatch, settings: EquationCitatorSettings) {
@@ -594,28 +770,9 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
 
         destroy() {
             this.captionElements.clear();
+            this.captionsByLine.clear();
         }
     });
-}
-
-/**
- * Helper function to find matching image from parsed data
- */
-function findMatchingImage(images: ImageMatch[], imgSrc: string, embedEl: Element): ImageMatch | null {
-    // Get the image link from the embed element's data attributes or text content
-    const embedSrc = embedEl.getAttribute('src') || embedEl.getAttribute('alt');
-
-    for (const img of images) {
-        // Match by image path or link
-        if (img.imagePath && (imgSrc.includes(img.imagePath) || embedSrc?.includes(img.imagePath))) {
-            return img;
-        }
-        if (img.imageLink && (imgSrc.includes(img.imageLink) || embedSrc?.includes(img.imageLink))) {
-            return img;
-        }
-    }
-
-    return null;
 }
 
 /**
@@ -635,57 +792,92 @@ export async function imageCaptionPostProcessor(
     const content = await plugin.app.vault.read(file);
     const images = parseAllImagesFromMarkdown(content, figCitationPrefix);
 
-    // Find all image embeds in the rendered element
-    const imageEmbeds = el.querySelectorAll('.internal-embed.image-embed, .internal-embed.is-loaded');
+    // Only process images that have metadata
+    const imagesWithMetadata = images.filter(img =>
+        img.tag !== undefined && (img.tag || img.title || img.desc)
+    );
 
-    imageEmbeds.forEach((embedEl) => {
-        const imgEl = embedEl.querySelector('img');
-        if (!imgEl) return;
+    if (imagesWithMetadata.length === 0) return;
 
-        const imgSrc = imgEl.getAttribute('src');
-        if (!imgSrc) return;
+    // Get section info to calculate line offset
+    const sectionInfo = ctx.getSectionInfo(el);
+    if (!sectionInfo) return;
 
-        // Find matching image from parsed data
-        const matchingImage = findMatchingImage(images, imgSrc, embedEl);
-        if (!matchingImage || (!matchingImage.title && !matchingImage.desc)) {
-            return;
+    // Find all image elements (only internal embeds)
+    const allImageElements: Element[] = [];
+
+    // Internal embeds only (local files)
+    const internalEmbeds = el.querySelectorAll('.internal-embed.image-embed, .internal-embed.is-loaded');
+    internalEmbeds.forEach(embedEl => {
+        const img = embedEl.querySelector('img');
+        if (img) {
+            allImageElements.push(embedEl);
         }
-
-        // Check if caption already exists
-        if (embedEl.querySelector('.em-image-caption')) {
-            return;
-        }
-
-        // Create caption
-        const captionDiv = document.createElement('div');
-        captionDiv.className = 'em-image-caption';
-
-        // First line: Fig. X.X title
-        if (matchingImage.tag || matchingImage.title) {
-            const titleLine = document.createElement('div');
-            titleLine.className = 'em-image-caption-title';
-
-            let titleText = '';
-            if (matchingImage.tag) {
-                const figLabel = figCitationFormat.replace('#', matchingImage.tag);
-                titleText = figLabel;
-            }
-            if (matchingImage.title) {
-                titleText += (titleText ? ' ' : '') + matchingImage.title;
-            }
-
-            titleLine.textContent = titleText;
-            captionDiv.appendChild(titleLine);
-        }
-
-        // Second line: description
-        if (matchingImage.desc) {
-            const descLine = document.createElement('div');
-            descLine.className = 'em-image-caption-desc';
-            descLine.textContent = matchingImage.desc;
-            captionDiv.appendChild(descLine);
-        }
-
-        embedEl.appendChild(captionDiv);
     });
+
+    // Filter images in this section
+    const sectionImages = imagesWithMetadata.filter(img =>
+        img.line >= sectionInfo.lineStart && img.line <= sectionInfo.lineEnd
+    );
+
+    if (sectionImages.length === 0) return;
+
+    // Sort by line number
+    sectionImages.sort((a, b) => a.line - b.line);
+
+    // Match by order - assume images appear in same order as in markdown
+    const usedIndices = new Set<number>();
+
+    allImageElements.forEach((element) => {
+        // Check if caption already exists
+        const hasCaption = element.querySelector('.em-image-caption') !== null;
+        if (hasCaption) return;
+
+        // Find next unused image data
+        for (let i = 0; i < sectionImages.length; i++) {
+            if (!usedIndices.has(i)) {
+                usedIndices.add(i);
+                createImageCaption(element, sectionImages[i], figCitationFormat);
+                break;
+            }
+        }
+    });
+}
+
+/**
+ * Helper function to create image caption element
+ * Only for internal embeds (local files)
+ */
+function createImageCaption(element: Element, image: ImageMatch, figCitationFormat: string): void {
+    const captionDiv = document.createElement('div');
+    captionDiv.className = 'em-image-caption';
+
+    // First line: Fig. X.X title
+    if (image.tag || image.title) {
+        const titleLine = document.createElement('div');
+        titleLine.className = 'em-image-caption-title';
+
+        let titleText = '';
+        if (image.tag) {
+            const figLabel = figCitationFormat.replace('#', image.tag);
+            titleText = figLabel;
+        }
+        if (image.title) {
+            titleText += (titleText ? ' ' : '') + image.title;
+        }
+
+        titleLine.textContent = titleText;
+        captionDiv.appendChild(titleLine);
+    }
+
+    // Second line: description
+    if (image.desc) {
+        const descLine = document.createElement('div');
+        descLine.className = 'em-image-caption-desc';
+        descLine.textContent = image.desc;
+        captionDiv.appendChild(descLine);
+    }
+
+    // Append to internal embed element
+    element.appendChild(captionDiv);
 }
