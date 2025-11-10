@@ -323,8 +323,8 @@ export function processQuoteLine(line: string): QuoteLineMatch {
 
 export interface MarkdownLineEnvironment {
     processedContent: string; // Processed line content with quotes and code blocks removed
-    inQuote: boolean;    // Whether the line is inside a quote block (redundant with quoteDepth) 
-    quoteDepth: number;  // Depth of the quote block 
+    inQuote: boolean;    // Whether the line is inside a quote block (redundant with quoteDepth)
+    quoteDepth: number;  // Depth of the quote block
     isHeading: boolean;
     headingMatch?: RegExpMatchArray | null;
     isCodeBlockToggle: boolean;
@@ -332,6 +332,7 @@ export interface MarkdownLineEnvironment {
     singleLineEquationMatch?: RegExpMatchArray | null;
     isEquationBlockStart: boolean;
     isEquationBlockEnd: boolean;
+    isImage: boolean;    // Whether the line is an image (starts with !)
     cleanedLine: string;   // Cleaned line with inline code blocks also removed
 }
 
@@ -369,6 +370,7 @@ export function parseMarkdownLine(
             isSingleLineEquation: false,
             isEquationBlockStart: false,
             isEquationBlockEnd: false,
+            isImage: false,
             cleanedLine: processedContent
         };
     }
@@ -390,6 +392,9 @@ export function parseMarkdownLine(
     const isEquationBlockStart = /^\$\$(?!\$)/.test(trimmedLine);
     const isEquationBlockEnd = /(?<!\\)\$\$(?!\$)$/.test(trimmedLine);
 
+    // Check if line is an image (starts with !)
+    const isImage = trimmedLine.startsWith('!');
+
     return {
         processedContent,
         inQuote,
@@ -401,6 +406,7 @@ export function parseMarkdownLine(
         singleLineEquationMatch,
         isEquationBlockStart,
         isEquationBlockEnd,
+        isImage,
         cleanedLine
     };
 }export function containSafeCharAndNotBlank(s: string): boolean {

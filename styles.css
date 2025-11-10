@@ -1159,6 +1159,57 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   height: 12px;
 }
 
+/* Prefix list container */
+.ec-prefix-list-container {
+  margin-top: 10px;
+  margin-left: 0;
+}
+
+/* Individual prefix item */
+.ec-prefix-item {
+  border-bottom: 1px solid var(--background-modifier-border-hover);
+  padding: 8px 0;
+  margin-bottom: 0 !important;
+  border-top: none !important;
+}
+.ec-prefix-item:last-of-type {
+  border-bottom: none;
+}
+.ec-prefix-item .setting-item-info {
+  display: none;
+}
+.ec-prefix-item .setting-item-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-left: 0;
+  padding-left: 0;
+}
+.ec-prefix-item .setting-item-control input {
+  flex: 0 0 auto;
+  width: 120px;
+  max-width: 150px;
+  margin: 0;
+}
+.ec-prefix-item .setting-item-control button {
+  margin: 0;
+  margin-left: auto;
+}
+
+/* Add prefix button styling */
+.ec-add-prefix-setting {
+  border-top: none !important;
+  margin-top: 8px !important;
+  padding-top: 8px !important;
+}
+.ec-add-prefix-setting .setting-item-info {
+  display: none;
+}
+.ec-add-prefix-setting .setting-item-control {
+  justify-content: center;
+}
+
 /* Regular citation styles for live preview and reading mode */
 .em-math-citation-container {
   position: relative;

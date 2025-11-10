@@ -25,8 +25,9 @@ export interface EquationCitatorSettings {
     citationPrefix: string; // Citation prefix for equations
     citationFormat: string; // Citation display format for equations 
     
-    // figCitationPrefix: string; // Figure Citation Prefix
-    // figCitationFormat: string; // citation display format for figures 
+    figCitationPrefix: string; // Figure Citation Prefix
+    figCitationFormat: string; // citation display format for figures 
+    quoteCitationPrefixes: string[];  // Citation prefix for quotes 
 
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
     multiCitationDelimiterRender: string; // Rendered delimiter for multiple citations in a single cite
@@ -34,17 +35,18 @@ export interface EquationCitatorSettings {
     enableContinuousCitation: boolean; // Render continuous citations in compat format  
     continuousRangeSymbol: string; // Range symbol for continuous citations in a single cite 
     continuousDelimiters: string; // Delimiter for continuous citations in a single cite 
+    
 
     enableCrossFileCitation: boolean; // Optional setting for cross-file citations
     fileCiteDelimiter: string;
     //#endregion
-
+    
     //#region style settings  
     citationPopoverContainerWidth: number; // Equation preview widget width in pixels
     citationPopoverContainerHeight: number; // Equation preview widget height in pixels 
     enableRenderLocalFileName: boolean; // Render local file name for citations 
     fileSuperScriptColor: string;
-    fileSuperScriptHoverColor: string;
+    fileSuperScriptHoverColor: string; 
 
     citationColor: string; // Citation display color for equations 
     citationHoverColor: string; // Citation display hover color for equations 
@@ -94,8 +96,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationPopoverContainerHeight: 400, // Default to 400px for preview widget height 
     citationPrefix: "eq:", // Default prefix for citations 
     citationFormat: "(#)", // Default display format for citations  
-    // figCitationPrefix: "fig:", // prefix for cite figures 
-    // figCitationFormat: "fig. #", // citation format for figures 
+    figCitationPrefix: "fig:", // prefix for cite figures 
+    figCitationFormat: "fig. #", // citation format for figures 
+    quoteCitationPrefixes: ["table:"], 
     citationColor: "#a288f9",
     citationHoverColor: "#c5b6fc",
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
@@ -134,29 +137,31 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     // settings UI defaults
     settingsDisplayMode: "concise",
     basicSettingsKeys: [
+        "autoNumberType",
         "autoNumberDepth",
+        "autoNumberNoHeadingPrefix",
+        "enableAutoNumberGlobalPrefix",
+        "enableAutoNumberEquationsInQuotes",
         "citationPopoverContainerWidth",
         "citationPopoverContainerHeight",
-        "autoNumberNoHeadingPrefix",
-        "citationPrefix",
-        "citationFormat",
+        "quoteCitationPrefixes",
     ],
     advancedSettingsKeys: [
         "enableCitationInSourceMode",
+        "citationPrefix",
+        "citationFormat",
         "enableRenderLocalFileName",
         "multiCitationDelimiter",
         "multiCitationDelimiterRender",
         "enableContinuousCitation",
-        "enableCrossFileCitation",
+        "continuousDelimiters", 
         "autoNumberDelimiter",
-        "autoNumberType",
-        "enableAutoNumberGlobalPrefix",
-        "enableAutoNumberEquationsInQuotes",
         "enableUpdateTagsInAutoNumber",
         "cacheUpdateTime",
         "cacheCleanTime",
-        "citationColor",
-        "citationHoverColor",
+        "citationWidgetColor",
+        "citationWidgetColorDark",
+        "debugMode",
     ],
     equationManagePanelLazyUpdateTime: 5000,
     equationManagePanelfileCheckInterval: 1000,
@@ -215,6 +220,30 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.citationFormat(el, plugin);
+        }
+    },
+    figCitationPrefix: {
+        name: "Figure Citation Prefix",
+        desc: "Prefix used for figure citations, e.g. 'fig:' means use `\\ref{fig:1.1}` for citation",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.figCitationPrefix(el, plugin);
+        }
+    },
+    figCitationFormat: {
+        name: "Figure Citation Display Format",
+        desc: "Display format for figure citations, use '#' for figure number",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.figCitationFormat(el, plugin);
+        }
+    },
+    quoteCitationPrefixes: {
+        name: "Callout/Quote Citation Prefixes",
+        desc: "Prefixes for citing callouts/quotes. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions. Format: > [!table:1.1] or > [!thm:2.3]",
+        type: "array",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.quoteCitationPrefixes(el, plugin);
         }
     },
     multiCitationDelimiter: {
@@ -384,7 +413,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
 
     citationPopoverContainerHeight: {
         name: "Equation Preview Widget Height",
-        desc: "Height of the equation preview widget in pixels",
+        desc: "Max Height of the equation preview widget in pixels",
         type: "number",
         renderCallback: (el, plugin) => {
             StyleSettingsTab.citationPopoverContainerHeight(el, plugin);

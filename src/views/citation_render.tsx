@@ -20,6 +20,7 @@ import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "
 import { renderEquationCitation } from "@/views/citation_widget";
 import { find_array } from "@/utils/misc/array_utils";
 import { fastHash } from "@/utils/misc/hash_utils";
+import { isSourceMode } from "@/utils/workspace/workspace_utils";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -420,13 +421,6 @@ async function showReadingModePopover(
     };
 }
 
-// Utility functions
-export function isSourceMode(view: EditorView): boolean {
-    const mdView = view.state.field(editorInfoField, false) as MarkdownView | undefined;
-    const currentMode = mdView?.currentMode;
-    // @ts-ignore
-    return currentMode?.sourceMode ? true : false;
-}
 
 //////////////////////////  Make Markdown for PDF Export  ////////////////////////  
 

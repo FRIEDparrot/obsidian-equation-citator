@@ -233,6 +233,147 @@ export const CitationSettingsTab = {
                     }
                 };
             });
+    },
+
+    figCitationPrefix(panel: HTMLElement, plugin: EquationCitator) {
+        new Setting(panel)
+            .setName(SETTINGS_METADATA.figCitationPrefix.name)
+            .setDesc(SETTINGS_METADATA.figCitationPrefix.desc)
+            .addText((text) => {
+                text.inputEl.classList.add("ec-delimiter-input");
+                text.setPlaceholder("fig:");
+                text.setValue(plugin.settings.figCitationPrefix);
+                text.inputEl.onblur = async () => {
+                    const newValue = text.getValue();
+                    if (!newValue.endsWith(":")) {
+                        new Notice("Please add a colon (:) to the end of the prefix, Change not saved");
+                        text.setValue(plugin.settings.figCitationPrefix);
+                        return;
+                    }
+                    if (newValue !== plugin.settings.figCitationPrefix) {
+                        if (containSafeCharAndNotBlank(newValue)) {
+                            plugin.settings.figCitationPrefix = newValue;
+                            await plugin.saveSettings();
+                        } else {
+                            new Notice("Only special characters (not brace) are allowed, Change not saved");
+                        }
+                    }
+                }
+            })
+    },
+
+    figCitationFormat(panel: HTMLElement, plugin: EquationCitator) {
+        new Setting(panel)
+            .setName(SETTINGS_METADATA.figCitationFormat.name)
+            .setDesc(SETTINGS_METADATA.figCitationFormat.desc)
+            .addText((text) => {
+                text.inputEl.classList.add("ec-delimiter-input");
+                text.setPlaceholder("fig: #");
+                text.setValue(plugin.settings.figCitationFormat);
+                text.inputEl.onblur = async () => { 
+                    const newValue = text.getValue();
+                    if (newValue !== plugin.settings.figCitationFormat) { 
+                        if (validateEquationDisplayFormat(newValue)) {
+                            plugin.settings.figCitationFormat = newValue;
+                            await plugin.saveSettings();
+                        } else {
+                            new Notice("Invalid format, Change not saved");
+                            text.setValue(plugin.settings.figCitationFormat);
+                        }
+                    }
+                };
+            })
+    },
+    
+    quoteCitationPrefixes(containerEl: HTMLElement, plugin: EquationCitator) {
+        new Setting(containerEl)
+            .setName(SETTINGS_METADATA.quoteCitationPrefixes.name)
+            .setDesc(SETTINGS_METADATA.quoteCitationPrefixes.desc);
+        
+        // Container for the list of prefixes
+        const prefixListContainer = containerEl.createDiv("ec-prefix-list-container");
+
+        const renderPrefixList = () => {
+            prefixListContainer.empty();
+
+            // Render each existing prefix
+            plugin.settings.quoteCitationPrefixes.forEach((prefix, index) => {
+                const setting = new Setting(prefixListContainer)
+                    .setClass("ec-prefix-item");
+
+                // Remove default name/desc to make layout cleaner
+                setting.setName("");
+                setting.setDesc("");
+
+                // Add text input first (moves it to the front)
+                setting.addText((text) => {
+                    text.inputEl.classList.add("ec-delimiter-input");
+                    text.setValue(prefix);
+                    text.setPlaceholder("e.g., table:");
+                    text.inputEl.onblur = async () => {
+                        const newValue = text.getValue().trim();
+                        if (!newValue.endsWith(":")) {
+                            new Notice("Prefix must end with colon (:)");
+                            text.setValue(prefix);
+                            return;
+                        }
+                        if (newValue === "title:" || newValue === "desc:") {
+                            new Notice("'title:' and 'desc:' are reserved keywords and cannot be used as citation prefixes");
+                            text.setValue(prefix);
+                            return;
+                        }
+                        if (!containSafeCharAndNotBlank(newValue)) {
+                            new Notice("Invalid prefix: {}, $, or blank are not allowed");
+                            text.setValue(prefix);
+                            return;
+                        }
+                        if (newValue !== prefix) {
+                            // Check for duplicates
+                            if (plugin.settings.quoteCitationPrefixes.includes(newValue)) {
+                                new Notice("This prefix already exists");
+                                text.setValue(prefix);
+                                return;
+                            }
+                            plugin.settings.quoteCitationPrefixes[index] = newValue;
+                            await plugin.saveSettings();
+                        }
+                    };
+                });
+
+                // Add remove button after text input
+                setting.addButton((button) => {
+                    button.setButtonText("Remove")
+                        .setClass("mod-warning")
+                        .onClick(async () => {
+                            plugin.settings.quoteCitationPrefixes.splice(index, 1);
+                            await plugin.saveSettings();
+                            renderPrefixList();
+                        });
+                });
+            });
+
+            // Add "Add New Prefix" button
+            new Setting(prefixListContainer)
+                .setClass("ec-add-prefix-setting")
+                .addButton((button) => {
+                    button.setButtonText("Add New Prefix")
+                        .setClass("mod-cta")
+                        .onClick(() => {
+                            // Find a unique default prefix
+                            let newPrefix = "custom:";
+                            let counter = 1;
+                            while (plugin.settings.quoteCitationPrefixes.includes(newPrefix)) {
+                                newPrefix = `custom${counter}:`;
+                                counter++;
+                            }
+                            plugin.settings.quoteCitationPrefixes.push(newPrefix);
+                            plugin.saveSettings();
+                            renderPrefixList();
+                        });
+                });
+        };
+
+        renderPrefixList();
     }
     //#endregion  
 }
@@ -247,8 +388,11 @@ export function addCitationSettingsTab(containerEl: HTMLElement, plugin: Equatio
     CitationSettingsTab.enableRenderLocalFileName(containerEl, plugin);
     CitationSettingsTab.citationPrefix(containerEl, plugin);
     CitationSettingsTab.citationFormat(containerEl, plugin);
+    CitationSettingsTab.figCitationPrefix(containerEl, plugin);
+    CitationSettingsTab.figCitationFormat(containerEl, plugin);
+    CitationSettingsTab.quoteCitationPrefixes(containerEl, plugin);
     CitationSettingsTab.multiCitationDelimiter(containerEl, plugin);
     CitationSettingsTab.multiCitationDelimiterRender(containerEl, plugin);
     CitationSettingsTab.enableContinuousCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
-    CitationSettingsTab.enableCrossFileCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)    
+    CitationSettingsTab.enableCrossFileCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
 }

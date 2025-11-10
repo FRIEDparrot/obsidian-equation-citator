@@ -490,3 +490,65 @@
     width: 12px;
     height: 12px;
 }
+
+/* Prefix list container */
+.ec-prefix-list-container {
+    margin-top: 10px;
+    margin-left: 0;
+}
+
+/* Individual prefix item */
+.ec-prefix-item {
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    padding: 8px 0;
+    margin-bottom: 0 !important;
+    border-top: none !important;
+
+    &:last-of-type {
+        border-bottom: none;
+    }
+
+    // Remove name and description padding for prefix items
+    .setting-item-info {
+        display: none;
+    }
+
+    // Align controls - input left, button right
+    .setting-item-control {
+        display: flex;
+        align-items: center;  // Center vertical alignment
+        justify-content: space-between;  // Input left, button right
+        gap: 10px;
+        margin-left: 0;
+        padding-left: 0;
+
+        // Make input take available space but not too long
+        input {
+            flex: 0 0 auto;
+            width: 120px;
+            max-width: 150px;
+            margin: 0;
+        }
+
+        // Button aligned to right
+        button {
+            margin: 0;
+            margin-left: auto;  // Push to right
+        }
+    }
+}
+
+/* Add prefix button styling */
+.ec-add-prefix-setting {
+    border-top: none !important;
+    margin-top: 8px !important;
+    padding-top: 8px !important;
+
+    .setting-item-info {
+        display: none;
+    }
+
+    .setting-item-control {
+        justify-content: center;
+    }
+}

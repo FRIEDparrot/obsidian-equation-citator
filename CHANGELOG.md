@@ -185,7 +185,8 @@ Version 1.3.0 - New features, Refactors and main improvements.
 
 ⭐ New Features :
 - [x] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before. **No more annoying scrolling**.   
-- [ ] **Citation for figures and tables** (from [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7) by Akucecomma) are now supported, titles, numbers and descriptions.  
+- [ ] **Citation for figures** (from [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7) by Akucecomma) are now supported, titles, numbers and descriptions. 
+- [ ] **Callout Citations**, We can add tables to callout to make a citation to it. This feature also gives us flexibility to cite tables, pieces and theorems (quote all tables in callout to cite it).
 - [x] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
   - [x] **Outline View, filter and collapse** : Both List view and outline view are supported.
   - [x] **Drag-and Drop to citation** : You can now drag-and-drop equation from equations management panel to cite it.

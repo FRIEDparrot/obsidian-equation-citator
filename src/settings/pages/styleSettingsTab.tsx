@@ -8,7 +8,7 @@ export const StyleSettingsTab = {
     citationPopoverContainerWidth(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.citationPopoverContainerWidth;
         const equationPreviewWidgetWidthSetting = new Setting(containerEl);
-
+        
         equationPreviewWidgetWidthSetting.setName(name)
             .setDesc(desc)
             .addSlider((slider) => {

@@ -89,7 +89,9 @@ export const AutoNumberSettingsTab = {
             });
     },
 
-    enableAutoNumberGlobalPrefix(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = true) {
+    enableAutoNumberGlobalPrefix(
+        containerEl: HTMLElement, plugin: EquationCitator,
+        renderSubpanel = true) {
         const { name, desc } = SETTINGS_METADATA.enableAutoNumberGlobalPrefix;
         const autoNumberingPrefixSetting = new Setting(containerEl);
         autoNumberingPrefixSetting.setName(name)
@@ -102,8 +104,9 @@ export const AutoNumberSettingsTab = {
                 plugin.saveSettings();
             },
             (panel) => {
-
-            }
+                AutoNumberSettingsTab.autoNumberGlobalPrefix(panel, plugin);
+            },
+            renderSubpanel
         );
     },
     
@@ -160,7 +163,7 @@ export const AutoNumberSettingsTab = {
         );
     },
     deleteRepeatTagsInAutoNumber(panel: HTMLElement, plugin: EquationCitator) {
-        const {name, desc} = SETTINGS_METADATA.deleteRepeatTagsInAutoNumber; 
+        const { name, desc } = SETTINGS_METADATA.deleteRepeatTagsInAutoNumber;
         new Setting(panel)
             .setName(name)
             .setDesc(desc)
@@ -174,7 +177,7 @@ export const AutoNumberSettingsTab = {
             });
     },
     deleteUnusedTagsInAutoNumber(panel: HTMLElement, plugin: EquationCitator) {
-        const {name, desc} = SETTINGS_METADATA.deleteUnusedTagsInAutoNumber;  
+        const { name, desc } = SETTINGS_METADATA.deleteUnusedTagsInAutoNumber;
         new Setting(panel)
             .setName(name)
             .setDesc(desc)
