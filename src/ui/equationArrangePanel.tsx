@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, setIcon, setTooltip, MarkdownRenderer, Modal, App, Notice, MarkdownView } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, setTooltip, MarkdownRenderer, Notice, MarkdownView } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
@@ -7,6 +7,7 @@ import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
 import { drawCursorAtDragPosition, clearDragCursor, getEditorDropLocation } from "@/utils/workspace/drag_drop_event";
 import Debugger from "@/debug/debugger";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
+import TagInputModal from "@/ui/tagInputModal";
 
 export const EQUATION_ARRANGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -1028,73 +1029,5 @@ export class EquationArrangePanel extends ItemView {
             });
         }
     }
-
-
 }
 
-// Modal for tag input
-class TagInputModal extends Modal {
-    private onSubmit: (tag: string | null) => void;
-    private inputEl: HTMLInputElement;
-
-    constructor(app: App, onSubmit: (tag: string | null) => void) {
-        super(app);
-        this.onSubmit = onSubmit;
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-
-        contentEl.createEl('h3', { text: 'Enter equation tag' });
-        contentEl.createEl('p', {
-            text: 'This equation does not have a tag. Please enter a tag to cite it:',
-            cls: 'ec-modal-description'
-        });
-
-        this.inputEl = contentEl.createEl('input', {
-            type: 'text',
-            placeholder: 'e.g., eq:1.2.3',
-            cls: 'ec-tag-input-modal'
-        });
-
-        const buttonContainer = contentEl.createDiv({ cls: 'ec-modal-buttons' });
-
-        const submitBtn = buttonContainer.createEl('button', { text: 'Submit', cls: 'mod-cta' });
-        submitBtn.addEventListener('click', () => {
-            const tag = this.inputEl.value.trim();
-            if (tag) {
-                this.onSubmit(tag);
-                this.close();
-            }
-        });
-
-        const cancelBtn = buttonContainer.createEl('button', { text: 'Cancel' });
-        cancelBtn.addEventListener('click', () => {
-            this.onSubmit(null);
-            this.close();
-        });
-
-        // Focus input
-        this.inputEl.focus();
-
-        // Submit on Enter
-        this.inputEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const tag = this.inputEl.value.trim();
-                if (tag) {
-                    this.onSubmit(tag);
-                    this.close();
-                }
-            } else if (e.key === 'Escape') {
-                this.onSubmit(null);
-                this.close();
-            }
-        });
-    }
-
-    onClose() {
-        const { contentEl } = this;
-        contentEl.empty();
-    }
-}
