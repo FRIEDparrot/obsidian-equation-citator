@@ -84,7 +84,8 @@ export interface EquationCitatorSettings {
 
     // settings UI
     settingsDisplayMode: "categorical" | "concise"; // settings tab display mode
-    basicSettingsKeys?: string[]; // keys shown in Basic section for concise mode
+    basicSettingsKeys: string[]; // keys shown in Basic section for concise mode
+    advancedSettingsKeys: string[]; // keys shown in Advanced section for concise mode
 }
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
@@ -135,8 +136,27 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     basicSettingsKeys: [
         "autoNumberDepth",
         "citationPopoverContainerWidth",
+        "citationPopoverContainerHeight",
         "autoNumberNoHeadingPrefix",
-        "resetSettings"
+        "citationPrefix",
+        "citationFormat",
+    ],
+    advancedSettingsKeys: [
+        "enableCitationInSourceMode",
+        "enableRenderLocalFileName",
+        "multiCitationDelimiter",
+        "multiCitationDelimiterRender",
+        "enableContinuousCitation",
+        "enableCrossFileCitation",
+        "autoNumberDelimiter",
+        "autoNumberType",
+        "enableAutoNumberGlobalPrefix",
+        "enableAutoNumberEquationsInQuotes",
+        "enableUpdateTagsInAutoNumber",
+        "cacheUpdateTime",
+        "cacheCleanTime",
+        "citationColor",
+        "citationHoverColor",
     ],
     equationManagePanelLazyUpdateTime: 5000,
     equationManagePanelfileCheckInterval: 1000,
@@ -155,7 +175,14 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         name: "Basic Settings Keys",
         desc: "Keys shown in Basic section for concise mode",
         type: "array",
-        renderCallback: (el, plugin) => {}  // to be implemented  
+        renderCallback: (el, plugin) => {}  // to be implemented
+    },
+
+    advancedSettingsKeys: {
+        name: "Advanced Settings Keys",
+        desc: "Keys shown in Advanced section for concise mode",
+        type: "array",
+        renderCallback: (el, plugin) => {}  // to be implemented
     },
 
     enableCitationInSourceMode: {

@@ -112,8 +112,11 @@ export class EquationArrangePanel extends ItemView {
     async onOpen(): Promise<void> {
         const { containerEl } = this;
         containerEl.empty();
-        const {equationManagePanelfileCheckInterval: equationManagePanelfileCheckInterval} = this.plugin.settings;
+        const {
+            equationManagePanelfileCheckInterval
+        } = this.plugin.settings;
 
+        const { equationManagePanelDefaultViewType } = this.plugin.settings;
         const panelWrapper = containerEl.createDiv("ec-manage-panel-wrapper");
         const toolbar = panelWrapper.createDiv("ec-manage-panel-toolbar");
 
@@ -205,7 +208,7 @@ export class EquationArrangePanel extends ItemView {
             this.toggleSearchMode(false);
         });
         this.quitSearchButton.hide();
-
+        
         // Search input (hidden by default)
         this.searchInput = toolbar.createEl("input", {
             cls: "ec-search-input",
@@ -222,7 +225,7 @@ export class EquationArrangePanel extends ItemView {
 
         ///////////////////////////////   Render view   ////////// 
 
-        this.updateViewMode("list");   // default view mode is list
+        this.updateViewMode(equationManagePanelDefaultViewType);   // default view mode is list
         this.updateSortMode("seq");
         this.updateModeButtons();      // update mode buttons after that
         this.toggleTagShow(true);

@@ -5,6 +5,7 @@ export function createFoldablePanel(
     title: string,
     renderCallback: (panelEl: HTMLElement) => void,
     defaultOpenState = true,
+    onStateChange?: (newState: boolean) => void,
 ) {
     let openState = defaultOpenState;
     // Title bar
@@ -32,8 +33,10 @@ export function createFoldablePanel(
     // Toggle behavior
     iconEl.onclick = () => {
         openState = !openState;
-        
         renderPanel();
+        if (onStateChange) {
+            onStateChange(openState);
+        }
     };
 
     return { titleEl, panelEl };

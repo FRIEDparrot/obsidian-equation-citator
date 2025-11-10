@@ -1,18 +1,20 @@
 import EquationCitator from "@/main";
-import { PluginSettingTab, App, Setting, Notice, setIcon} from "obsidian";
+import { PluginSettingTab, App, Setting, Notice, setIcon } from "obsidian";
 import { DEFAULT_SETTINGS } from "./defaultSettings";
 import { ColorManager } from "./styleManagers/colorManager";
 import { WidgetSizeManager, WidgetSizeVariable } from "./styleManagers/widgetSizeManager";
 
-import { addPdfExportSettingsTab } from "./pages/pdfExportSettingsTab";
-import { addStyleSettingsTab } from "./pages/styleSettingsTab";
-import { addOtherSettingsTab } from "./pages/OtherSettingsTab";
-import { addCacheSettingsTab } from "./pages/cacheSettingsTab";
+import { addPdfExportSettingsTab } from "@/settings/pages/pdfExportSettingsTab";
+import { addStyleSettingsTab } from "@/settings/pages/styleSettingsTab";
+import { addOtherSettingsTab } from "@/settings/pages/OtherSettingsTab";
+import { addCacheSettingsTab } from "@/settings/pages/cacheSettingsTab";
 import { validateLetterPrefix } from "@/utils/string_processing/string_utils";
-import { createFoldablePanel } from "./extensions/foldablePanel";
-import { addCitationSettingsTab } from "./pages/citationSettingsTab";
-import { addAutoNumberSettingsTab } from "./pages/autoNumberSettingsTab";
-import { addEquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
+import { createFoldablePanel } from "@/settings/extensions/foldablePanel";
+import { addCitationSettingsTab } from "@/settings/pages/citationSettingsTab";
+import { addAutoNumberSettingsTab } from "@/settings/pages/autoNumberSettingsTab";
+import { addEquationPanelSettingsTab } from "@/settings/pages/equationPanelSettingsTab";
+import { createCustomizePanel } from "@/settings/extensions/customizePanel";
+import { SETTINGS_METADATA } from "@/settings/defaultSettings";
 
 //#region Style Settings Utilities
 export function resetStyles(): void {
@@ -42,6 +44,13 @@ export enum SettingsDisplayMode {
 export class SettingsTabView extends PluginSettingTab {
     plugin: EquationCitator;
     private activeCategoryId: string | null = null;
+    private foldStates: Map<string, boolean> = new Map([
+        ["basic-settings", true],
+        ["advanced-settings", false],
+        ["customize-settings", false],
+    ]);
+    private showReorderButtons: boolean = false;
+
     constructor(app: App, plugin: EquationCitator) {
         super(app, plugin);
         this.plugin = plugin;
@@ -253,33 +262,133 @@ export class SettingsTabView extends PluginSettingTab {
     }
     
     private renderConcise(containerEl: HTMLElement) {
-        createFoldablePanel(containerEl, "Basic Settings", (panel) => { this.renderConcideBasicSettings(panel) }, true);
-        createFoldablePanel(containerEl, "Advanced Settings", (panel) => { /* placeholder for future behavior */ }, false);
-        
-        // Advanced Section
-        // const advancedPanel = containerEl.createDiv({ cls: "ec-settings-advanced-settings-panel" });
-        // createFoldablePanel(advancedPanel, "Advanced Settings", () => { /* placeholder for future behavior */ }, false);
- 
-        
-        // Simple selector to promote settings (placeholder for future drag/drop)
-        // const customize = containerEl.createEl("div", { cls: "ec-settings-customize" });
-        // new Setting(customize)
-        //     .setName("Customize Basic Settings")
-        //     .setDesc("Select categories to include in Basic section (future: drag & drop)")
-        //     .addDropdown((dd) => {
-        //         dd.addOption("none", "None");
-        //         dd.addOption("citation", "Citation");
-        //         dd.addOption("auto", "Auto Numbering");
-        //         dd.addOption("style", "Style");
-        //         dd.onChange(async () => { /* placeholder for future behavior */ });
-        //     });
+        // Add toggle button for reorder buttons
+        const toggleContainer = containerEl.createDiv({ cls: "ec-reorder-toggle-container" });
+        new Setting(toggleContainer)
+            .setName("Show Reorder Buttons")
+            .setDesc("Display arrow buttons to reorder settings")
+            .addToggle((toggle) => {
+                toggle.setValue(this.showReorderButtons);
+                toggle.onChange((value) => {
+                    this.showReorderButtons = value;
+                    this.display();
+                });
+            });
 
-        // // Render all settings below as advanced
-        // addBasicCitationSettingsTab(containerEl, this.plugin);
-        // addAutoNumberSettingsTab(containerEl, this.plugin);
-        // addStyleSettingsTab(containerEl, this.plugin);
-        // addPdfExportSettingsTab(containerEl, this.plugin);
-        // addCacheSettingsTab(containerEl, this.plugin);
-        // addOtherSettingsTab(containerEl, this.plugin, this);
+        // Render Basic Settings
+        createFoldablePanel(
+            containerEl,
+            "Basic Settings",
+            (panel) => {
+                this.renderSettingsPanel(panel, this.plugin.settings.basicSettingsKeys, "basic");
+            },
+            this.foldStates.get("basic-settings") ?? true,
+            (newState) => {
+                this.foldStates.set("basic-settings", newState);
+            }
+        );
+
+        // Render Advanced Settings
+        createFoldablePanel(
+            containerEl,
+            "Advanced Settings",
+            (panel) => {
+                this.renderSettingsPanel(panel, this.plugin.settings.advancedSettingsKeys, "advanced");
+            },
+            this.foldStates.get("advanced-settings") ?? false,
+            (newState) => {
+                this.foldStates.set("advanced-settings", newState);
+            }
+        );
+
+        // Render Customize Panel
+        createFoldablePanel(
+            containerEl,
+            "Customize Settings Display",
+            (panel) => {
+                createCustomizePanel(panel, this.plugin, () => {
+                    // Re-render the entire view when settings change
+                    this.display();
+                });
+            },
+            this.foldStates.get("customize-settings") ?? false,
+            (newState) => {
+                this.foldStates.set("customize-settings", newState);
+            }
+        );
+    }
+
+    /**
+     * Render a settings panel with reorder buttons
+     */
+    private renderSettingsPanel(containerEl: HTMLElement, settingKeys: string[], panelType: "basic" | "advanced") {
+        settingKeys.forEach((key, index) => {
+            const metadata = SETTINGS_METADATA[key as keyof typeof SETTINGS_METADATA];
+            if (!metadata || !metadata.renderCallback) return;
+
+            // Create a wrapper for the setting with reorder buttons
+            const settingWrapper = containerEl.createDiv({ cls: "ec-setting-with-reorder" });
+
+            // Add reorder buttons BEFORE the setting content if enabled
+            if (this.showReorderButtons) {
+                const reorderButtons = settingWrapper.createDiv({ cls: "ec-setting-reorder-buttons" });
+
+                // Move up button
+                const upBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": "Move up" } });
+                setIcon(upBtn, "chevron-up");
+                upBtn.disabled = index === 0;
+                if (index === 0) upBtn.style.opacity = "0.3";
+
+                upBtn.onclick = async () => {
+                    const arr = panelType === "basic" ? this.plugin.settings.basicSettingsKeys : this.plugin.settings.advancedSettingsKeys;
+                    if (index > 0) {
+                        // Swap with previous
+                        [arr[index - 1], arr[index]] = [arr[index], arr[index - 1]];
+                        await this.plugin.saveSettings();
+                        this.display();
+                    }
+                };
+
+                // Move down button
+                const downBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": "Move down" } });
+                setIcon(downBtn, "chevron-down");
+                downBtn.disabled = index === settingKeys.length - 1;
+                if (index === settingKeys.length - 1) downBtn.style.opacity = "0.3";
+
+                downBtn.onclick = async () => {
+                    const arr = panelType === "basic" ? this.plugin.settings.basicSettingsKeys : this.plugin.settings.advancedSettingsKeys;
+                    if (index < arr.length - 1) {
+                        // Swap with next
+                        [arr[index], arr[index + 1]] = [arr[index + 1], arr[index]];
+                        await this.plugin.saveSettings();
+                        this.display();
+                    }
+                };
+            }
+
+            const settingContent = settingWrapper.createDiv({ cls: "ec-setting-content", attr: { style: "flex: 1;" } });
+
+            // Render the actual setting
+            metadata.renderCallback(settingContent, this.plugin, true);
+        });
+
+        // Add reset settings button at the end for basic panel
+        if (panelType === "basic") {
+            new Setting(containerEl)
+                .setName("Reset Settings")
+                .setDesc("Reset all settings to default values")
+                .addButton((button) => {
+                    button.setIcon("reset");
+                    button.onClick(async () => {
+                        new Notice("Restoring Settings ...");
+                        await new Promise((resolve) => setTimeout(resolve, 200));
+                        this.plugin.settings = { ...DEFAULT_SETTINGS };
+                        resetStyles();
+                        await this.plugin.saveSettings();
+                        this.display();
+                        new Notice("Settings have been restored to defaults");
+                    });
+                });
+        }
     }
 }
