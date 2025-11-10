@@ -832,11 +832,22 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   flex-direction: row;
   align-items: center;
 }
-.ec-settings-search-textbox-wrapper .ec-settings-search-textbox {
-  border-top: none;
-  width: 200px;
+
+.ec-settings-search-setting {
+  border-top: none !important;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+.ec-settings-search-setting .setting-item-info {
+  display: none;
+}
+.ec-settings-search-setting .setting-item-control {
+  flex-grow: 1;
+}
+
+.ec-settings-search-textbox {
+  width: 200px !important;
   height: 33px;
-  padding-left: 32px !important;
 }
 
 .ec-settings-icon {

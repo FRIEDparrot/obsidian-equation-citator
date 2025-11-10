@@ -14,6 +14,7 @@ import { addAutoNumberSettingsTab } from "@/settings/pages/autoNumberSettingsTab
 import { addEquationPanelSettingsTab } from "@/settings/pages/equationPanelSettingsTab";
 import { createCustomizePanel } from "@/settings/extensions/customizePanel";
 import { SETTINGS_METADATA } from "@/settings/defaultSettings";
+import { getAllSettingsByCategory } from "@/settings/settingsHelper";
 
 //#region Style Settings Utilities
 export function resetStyles(): void {
@@ -50,11 +51,13 @@ export class SettingsTabView extends PluginSettingTab {
     ]);
     private showReorderButtons = false;
     private searchQuery = "";
+    private contentContainer: HTMLElement | null = null;
 
     constructor(app: App, plugin: EquationCitator) {
         super(app, plugin);
         this.plugin = plugin;
     }
+
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
@@ -96,24 +99,34 @@ export class SettingsTabView extends PluginSettingTab {
                     await this.plugin.checkForUpdates(true);
                 });
             });
-
+            
         const searchDiv = toolbar.createDiv({ cls: "ec-settings-search-textbox-wrapper" })
-        
         const searchSetting = new Setting(searchDiv)
+        searchSetting.setClass("ec-settings-search-setting")
         searchSetting.addSearch((text) => {
             text.inputEl.classList.add("ec-settings-search-textbox")
             text.setPlaceholder("Search settings")
             text.setValue(this.searchQuery)
             text.onChange((value) => {
                 this.searchQuery = value.toLowerCase().trim();
-                this.display();
+                this.renderContent();
             })
         })
+
+        // Create content container
+        this.contentContainer = containerEl.createDiv({ cls: "ec-settings-content-container" });
+        this.renderContent();
+    }
+
+    private renderContent(): void {
+        if (!this.contentContainer) return;
+        this.contentContainer.empty();
+
         const mode = this.plugin.settings.settingsDisplayMode ?? "concise";
         if (mode === "categorical") {
-            this.renderCategorical(containerEl);
+            this.renderCategorical(this.contentContainer);
         } else {
-            this.renderConcise(containerEl);
+            this.renderConcise(this.contentContainer);
         }
     }
     
@@ -150,7 +163,7 @@ export class SettingsTabView extends PluginSettingTab {
         ];
 
         // Create a wrapper container for both selector and content
-        const wrapper = this.containerEl.createEl("div", { cls: "ec-categorical-wrapper" });
+        const wrapper = containerEl.createEl("div", { cls: "ec-categorical-wrapper" });
 
         // group selector controls active category
         this.renderGroupSelector(wrapper, groups, (id) => {
@@ -163,13 +176,19 @@ export class SettingsTabView extends PluginSettingTab {
         const renderActive = () => {
             content.empty();
             const activeId = this.activeCategoryId ?? groups[0].id;
-            if (activeId === "ec-group-citation") addCitationSettingsTab(content, this.plugin);
-            else if (activeId === "ec-group-auto") addAutoNumberSettingsTab(content, this.plugin);
-            else if (activeId === "ec-group-panel") addEquationPanelSettingsTab(content, this.plugin);
-            else if (activeId === "ec-group-style") addStyleSettingsTab(content, this.plugin);
-            else if (activeId === "ec-group-pdf") addPdfExportSettingsTab(content, this.plugin);
-            else if (activeId === "ec-group-cache") addCacheSettingsTab(content, this.plugin);
-            else if (activeId === "ec-group-other") addOtherSettingsTab(content, this.plugin, this);
+
+            // If there's a search query, filter the settings
+            if (this.searchQuery) {
+                this.renderFilteredCategoricalSettings(content, activeId);
+            } else {
+                if (activeId === "ec-group-citation") addCitationSettingsTab(content, this.plugin);
+                else if (activeId === "ec-group-auto") addAutoNumberSettingsTab(content, this.plugin);
+                else if (activeId === "ec-group-panel") addEquationPanelSettingsTab(content, this.plugin);
+                else if (activeId === "ec-group-style") addStyleSettingsTab(content, this.plugin);
+                else if (activeId === "ec-group-pdf") addPdfExportSettingsTab(content, this.plugin);
+                else if (activeId === "ec-group-cache") addCacheSettingsTab(content, this.plugin);
+                else if (activeId === "ec-group-other") addOtherSettingsTab(content, this.plugin, this);
+            }
         };
 
         // initial render
@@ -186,7 +205,7 @@ export class SettingsTabView extends PluginSettingTab {
                 toggle.setValue(this.showReorderButtons);
                 toggle.onChange((value) => {
                     this.showReorderButtons = value;
-                    this.display();
+                    this.renderContent();
                 });
             });
 
@@ -222,8 +241,8 @@ export class SettingsTabView extends PluginSettingTab {
             "Customize Settings Display",
             (panel) => {
                 createCustomizePanel(panel, this.plugin, () => {
-                    // Re-render the entire view when settings change
-                    this.display();
+                    // Re-render content when settings change
+                    this.renderContent();
                 });
             },
             this.foldStates.get("customize-settings") ?? false,
@@ -231,6 +250,45 @@ export class SettingsTabView extends PluginSettingTab {
                 this.foldStates.set("customize-settings", newState);
             }
         );
+    }
+
+    /**
+     * Render filtered settings for categorical mode
+     */
+    private renderFilteredCategoricalSettings(containerEl: HTMLElement, activeGroupId: string): void {
+        // Map group IDs to category IDs in settingsHelper
+        const categoryMap: Record<string, string> = {
+            "ec-group-citation": "citation",
+            "ec-group-auto": "auto-numbering",
+            "ec-group-panel": "equation-panel",
+            "ec-group-style": "style",
+            "ec-group-pdf": "pdf-export",
+            "ec-group-cache": "cache",
+            "ec-group-other": "other"
+        };
+
+        const categoryId = categoryMap[activeGroupId];
+        if (!categoryId) return;
+
+        const allCategories = getAllSettingsByCategory();
+        const category = allCategories.find(cat => cat.id === categoryId);
+        if (!category) return;
+
+        // Filter settings in this category based on search
+        const filteredKeys = category.settingKeys.filter(key => this.settingMatchesSearch(key as string));
+
+        if (filteredKeys.length === 0) {
+            const noResults = containerEl.createDiv({ cls: "ec-settings-no-results" });
+            noResults.textContent = "No settings found matching your search in this category.";
+            return;
+        }
+
+        // Render each filtered setting
+        filteredKeys.forEach(key => {
+            const metadata = SETTINGS_METADATA[key];
+            if (!metadata || !metadata.renderCallback) return;
+            metadata.renderCallback(containerEl, this.plugin, true);
+        });
     }
 
     /**
@@ -290,7 +348,7 @@ export class SettingsTabView extends PluginSettingTab {
                         // Swap with previous
                         [arr[originalIndex - 1], arr[originalIndex]] = [arr[originalIndex], arr[originalIndex - 1]];
                         await this.plugin.saveSettings();
-                        this.display();
+                        this.renderContent();
                     }
                 };
 
@@ -306,7 +364,7 @@ export class SettingsTabView extends PluginSettingTab {
                         // Swap with next
                         [arr[originalIndex], arr[originalIndex + 1]] = [arr[originalIndex + 1], arr[originalIndex]];
                         await this.plugin.saveSettings();
-                        this.display();
+                        this.renderContent();
                     }
                 };
             }
