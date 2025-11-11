@@ -983,7 +983,6 @@ export class EquationArrangePanel extends ItemView {
             const ctrlKey = event.ctrlKey || event.metaKey;
             if (ctrlKey && equation.tag && currentFile) {
                 // Always create a new split panel on the right
-                console.log("Ctrl/Cmd + double click: Opening new split panel");
                 const newLeaf = this.app.workspace.getLeaf("split");
                 if (newLeaf) {
                     this.app.workspace.setActiveLeaf(newLeaf, { focus: true });

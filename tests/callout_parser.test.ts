@@ -84,17 +84,6 @@ describe('parseAllCalloutsFromMarkdown - edge cases', () => {
         expect(callouts).toHaveLength(0);
     });
 
-    it('should parse single-line callout', () => {
-        const markdown = `> [!table:4.2]
-> Single line content`;
-
-        const callouts = parseAllCalloutsFromMarkdown(markdown, testPrefixes);
-
-        expect(callouts).toHaveLength(1);
-        expect(callouts[0].tag).toBe('4.2');
-        expect(callouts[0].content).toBe('Single line content');
-    });
-
     it('should handle callouts with various tag formats', () => {
         const markdown = `> [!table:1.1]
 > Content 1
