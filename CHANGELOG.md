@@ -200,7 +200,7 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
   - [x] **interactive** : support double-click jump and ctrl + double-click (new panel+jump)
 
 🏗️ Refactors : 
-- [x] For settings part, refactor code and split it into mutlitple modules, now.
+- [x] For settings part, refactor code and split it into mutlitple modules.
 
 🚀Enhancements & improvements : 
 - [x] Add [enhancement #50](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/50), better behavior for relocating cursor after auto-number equations. 

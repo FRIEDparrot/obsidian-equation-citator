@@ -3,7 +3,7 @@
 <center><div width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
-  <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=下载量">
+  <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></div></center>
 
