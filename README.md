@@ -3,17 +3,15 @@
 <center><div width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
-  <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=downloads">
+    <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads" alt="Downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
 </span></div></center>
-
-
 <center><b>English</b> | <a href="README_zh.md" target="_blank"><b>简体中文</b></a></center>
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4> </center> 
 
 ---
 
-🚀 **Quick Start** : see [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for basic rules, syntax, and most important operations. It only takes < 5 mins but will make everything go smoothly.
+🚀 **Quick Start** : see [Full Tutorial Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Quick%20Start.md) for basic rules, syntax, and most important operations. It only takes < 5 mins but will make everything go smoothly.
 
 ✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details. 
 
@@ -24,7 +22,7 @@
 
 2.  OR you can just download `main.js`,`manifest.json` and `style.css` in the latest release page and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault. 
 
-## ✨ What this plugin do
+## ✨ What this plugin do 
 
 ### 1. ⚡ **Auto-number equations by heading level** 
 
@@ -33,16 +31,17 @@
 
 <center><img src="img\auto_number_vid.gif" alt="auto-number" style="zoom: 50%;" /></center>
 
-### 2. 🖥️ **Compact Equation Panel, Cite by Drag and Drop**
+### 2. 🖥️ **Compact Equation Manage Panel, Cite by Drag and Drop**
 
-Cite equations by drag and drop from equation manage panel. 
+Cite equations by drag and drop from equation manage panel. multiple equation citations and cross-file citation are all supported. 
 
 <center><img src="img\drag-drop-cite.gif" alt="drag-drop-cite" style="zoom: 50%;" /></center>
 
-### 3. 🖼️ Cite Images and Tables 
+### 3. 🖼️ Cite Images, Tables and Even Theorems 
 
-Cite images and tables using the citation syntax 
+Cite images by adding field to it. Cite tables and theorems by quote citation feature. 
 
+<center><img src="img\image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px; " /></center>
 
 ### 4.  📜**PDF export support**  
 Not export PDF directly, Run command `Make markdown copy to export PDF` to make a full PDF ready for you to export. 

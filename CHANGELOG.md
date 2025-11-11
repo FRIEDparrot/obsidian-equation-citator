@@ -181,7 +181,7 @@ Version 1.2.6 - bug fixes
 ## 1.3 - 1.3.x Version Series
 ### Version 1.3.0 
 
-Version 1.3.0 - New features, Refactors and main improvements.
+Version 1.3.0 - New features, Refactors, Main improvements and User friendly improvements.
 
 ⭐ New Features :
 - [x] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before. **No more annoying scrolling**.   
@@ -203,7 +203,7 @@ Version 1.3.0 - New features, Refactors and main improvements.
 - [ ] Add [enhancement #50](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/50), better behavior for relocating cursor after auto-number equations. 
 - [x] When jump to equations in another panel now check if there already a panel of this file, and jump in this panel if there is. 
 - [x] Now debugging mode configurations will be saved after restarting Obsidian, so you needn't toggle debug mode every time. 
-- [ ] Remake a brand-new and more concise tutorial. 
+- [x] Remake a brand-new and more concise tutorial. 
 - [ ] Remake Readme file to be more friendly and concise. Also add a Chinese translation of Readme. 
 
 ### 🚢 Comming Soon : 
