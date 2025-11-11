@@ -12,12 +12,15 @@ import {
     splitContinuousCitationTags
 } from "@/utils/core/citation_utils";
 import { CitationWidget } from "@/views/citation_widget";
+import { FigureCitationWidget } from "@/views/figure_citation_widget";
 import { CitationCache } from "@/cache/citationCache";
 import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
 import EquationCitator from "@/main";
 import { CitationPopover } from "@/views/citation_popover";
+import { FigureCitationPopover } from "@/views/figure_citation_popover";
 import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/string_processing/regexp_utils";
 import { renderEquationCitation } from "@/views/citation_widget";
+import { renderFigureCitation } from "@/views/figure_citation_render";
 import { find_array } from "@/utils/misc/array_utils";
 import { fastHash } from "@/utils/misc/hash_utils";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
@@ -174,34 +177,53 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                             const inSelection = sel.from < currentEqRange.to && sel.to > currentEqRange.from;
                             const text = state.sliceDoc(currentEqRange.from, currentEqRange.to);
 
-                            // citation match 
-                            const cm = matchNestedCitation(text, settings.citationPrefix);
-                            if (!cm) return;
-                            if (!inSelection && !inCursor) {
-                                // citations not in cursor,  render full citations
-                                const eqNumbers: string[] = cm.label.split(settings.multiCitationDelimiter || ',').map(c => c.trim()).filter(c => c.length > 0);
+                            // Check for both equation and figure citations
+                            // Try equation citation first
+                            const eqCm = matchNestedCitation(text, settings.citationPrefix);
+                            // Try figure citation
+                            const figCm = matchNestedCitation(text, settings.figCitationPrefix);
 
-                                // split all equations to combine later  
-                                const eqNumbersAll = settings.enableContinuousCitation ?
+                            const cm = eqCm || figCm;
+                            if (!cm) return;
+
+                            const isFigureCitation = !eqCm && figCm;
+
+                            if (!inSelection && !inCursor) {
+                                // citations not in cursor, render full citations
+                                // Remove the prefix first, then split
+                                const prefix = isFigureCitation ? settings.figCitationPrefix : settings.citationPrefix;
+                                const labelWithoutPrefix = cm.label.substring(prefix.length);
+                                const numbers: string[] = labelWithoutPrefix.split(settings.multiCitationDelimiter || ',').map(c => c.trim()).filter(c => c.length > 0);
+
+                                // split all citations to combine later
+                                const numbersAll = settings.enableContinuousCitation ?
                                     splitContinuousCitationTags(
-                                        eqNumbers,
+                                        numbers,
                                         settings.continuousRangeSymbol || '~',
                                         settings.continuousDelimiters.split(' ').filter(d => d.trim()),
                                         settings.fileCiteDelimiter
-                                    ) : eqNumbers; // split continuous citation tags if enabled 
+                                    ) : numbers; // split continuous citation tags if enabled
 
                                 builder.add(
                                     currentEqRange.from,
                                     currentEqRange.to,
                                     Decoration.replace({
-                                        widget: new CitationWidget(
-                                            plugin,
-                                            currentFile.path,
-                                            eqNumbersAll,
-                                            currentEqRange,
-                                        ),
+                                        widget: isFigureCitation
+                                            ? new FigureCitationWidget(
+                                                plugin,
+                                                currentFile.path,
+                                                numbersAll,
+                                                currentEqRange,
+                                            )
+                                            : new CitationWidget(
+                                                plugin,
+                                                currentFile.path,
+                                                numbersAll,
+                                                currentEqRange,
+                                            ),
                                         attributes: {
-                                            "data-citation-id": citationId
+                                            "data-citation-id": citationId,
+                                            "data-citation-type": isFigureCitation ? "figure" : "equation"
                                         }
                                     })
                                 );
@@ -277,30 +299,54 @@ export async function mathCitationPostProcessor(
     )
     
     const renderCiteSpans = (citeSpans: Element[], citations: CitationRef[]) => {
-        citeSpans.forEach((span, index) => {  // no need to match for 2rd time here 
-            const eq = citations[index];
-            const eqLabel = eq.label.substring(citationPrefix.length);  // get the actual label without prefix 
-            const eqNumbers: string[] = eqLabel.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
-            const eqNumbersAll = plugin.settings.enableContinuousCitation ?
+        citeSpans.forEach((span, index) => {  // no need to match for 2rd time here
+            const citation = citations[index];
+
+            // Check if this is a figure citation or equation citation
+            const isFigureCitation = citation.label.startsWith(plugin.settings.figCitationPrefix);
+            const isEquationCitation = citation.label.startsWith(citationPrefix);
+
+            if (!isFigureCitation && !isEquationCitation) return; // Skip if not a valid citation
+
+            const prefix = isFigureCitation ? plugin.settings.figCitationPrefix : citationPrefix;
+            const label = citation.label.substring(prefix.length);  // get the actual label without prefix
+            const numbers: string[] = label.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
+            const numbersAll = plugin.settings.enableContinuousCitation ?
                 splitContinuousCitationTags(
-                    eqNumbers,
+                    numbers,
                     plugin.settings.continuousRangeSymbol || '~',
                     plugin.settings.continuousDelimiters.split(' ').filter(d => d.trim()),
                     plugin.settings.fileCiteDelimiter
-                ) : eqNumbers; // split continuous citation tags if enabled  
+                ) : numbers; // split continuous citation tags if enabled
+
             const activeLeaf = plugin.app.workspace.getActiveViewOfType(MarkdownView) as HoverParent | null;
             if (!activeLeaf) {
                 Debugger.error("No active leaf found, skip rendering");
                 return;
             }
-            const citationWidget = renderEquationCitation(
-                plugin,
-                ctx.sourcePath,
-                activeLeaf,
-                eqNumbersAll,
-                true,
-            );
-            addReadingModePreviewListener(plugin, citationWidget, eqNumbersAll, ctx.sourcePath);
+
+            const citationWidget = isFigureCitation
+                ? renderFigureCitation(
+                    plugin,
+                    ctx.sourcePath,
+                    activeLeaf,
+                    numbersAll,
+                    true,
+                )
+                : renderEquationCitation(
+                    plugin,
+                    ctx.sourcePath,
+                    activeLeaf,
+                    numbersAll,
+                    true,
+                );
+
+            if (isFigureCitation) {
+                addReadingModeFigurePreviewListener(plugin, citationWidget, numbersAll, ctx.sourcePath);
+            } else {
+                addReadingModePreviewListener(plugin, citationWidget, numbersAll, ctx.sourcePath);
+            }
+
             span.replaceWith(citationWidget);
         });
     }
@@ -343,6 +389,50 @@ function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTML
             await showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
         })
     })
+}
+
+function addReadingModeFigurePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, figureTagsAll: string[], sourcePath: string): void {
+    const citationSpans = citationEl.querySelectorAll('span.em-figure-citation');
+    citationSpans.forEach(span => {
+        span.addEventListener('mouseenter', async (event: MouseEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+            await showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath);
+        })
+    })
+}
+
+async function showReadingModeFigurePopover(
+    plugin: EquationCitator,
+    citationEl: HTMLElement,
+    figureTagsAll: string[],
+    sourcePath: string
+): Promise<void> {
+    const mdView: MarkdownView | null = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+    const activeLeaf: WorkspaceLeaf | undefined = mdView?.leaf;
+    if (!activeLeaf) return;  // no active leaf found, skip popover
+
+    const figures = await plugin.figureServices.getFiguresByTags(figureTagsAll, sourcePath);
+    const cleanedFigures = figures.filter(fig => fig.tag && fig.sourcePath && (fig.imagePath || fig.imageLink));
+
+    if (cleanedFigures.length === 0) {
+        Debugger.log(`No valid figures found for citation: ${figureTagsAll.join(', ')}`);
+        return;
+    }
+
+    let popover: FigureCitationPopover | null = new FigureCitationPopover(
+        plugin,
+        // @ts-ignore
+        activeLeaf,
+        citationEl,
+        figures,
+        sourcePath,
+        300
+    );
+
+    popover.onClose = function () {
+        popover = null;
+    };
 }
 
 export async function calloutCitationPostProcessor(
@@ -469,8 +559,8 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         view: EditorView;
         captionElements: Map<string, HTMLElement> = new Map();
         captionsByLine: Map<number, { element: Element; caption: HTMLElement }> = new Map();
-        lastCursorLine: number = -1;
-
+        lastCursorLine = -1;
+        
         constructor(view: EditorView) {
             this.view = view;
             this.lastCursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;

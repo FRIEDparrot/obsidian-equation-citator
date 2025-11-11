@@ -18,8 +18,10 @@ import {
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
 import { FootNoteCache } from '@/cache/footnoteCache';
+import { ImageCache } from '@/cache/imageCache';
 import { ColorManager } from '@/settings/styleManagers/colorManager';
 import { EquationServices } from '@/services/equation_services';
+import { FigureServices } from '@/services/figure_services';
 import { TagService } from '@/services/tag_service';
 import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
 import { registerRightClickHandler } from '@/handlers/rightButtonHandler';
@@ -34,12 +36,14 @@ export default class EquationCitator extends Plugin {
     settings: EquationCitatorSettings;
     extensions: Extension[] = [];
     equationServices: EquationServices;
+    figureServices: FigureServices;
     tagService: TagService;
 
     // initialize caches
-    public citationCache: CitationCache;   // citation cache instance 
+    public citationCache: CitationCache;   // citation cache instance
     public equationCache: EquationCache;     // equation cache instance
     public footnoteCache: FootNoteCache;     // footnote cache instance
+    public imageCache: ImageCache;           // image cache instance
     public lineHashCache: LineHashCache;     // line hash cache instance 
 
     private autoCompleteSuggest: AutoCompleteSuggest;
@@ -88,6 +92,7 @@ export default class EquationCitator extends Plugin {
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
         this.footnoteCache = new FootNoteCache(this);
+        this.imageCache = new ImageCache(this);
         this.lineHashCache = new LineHashCache(this);
     }
 
@@ -95,6 +100,7 @@ export default class EquationCitator extends Plugin {
         this.citationCache.clear();
         this.equationCache.clear();
         this.footnoteCache.clear();
+        this.imageCache.clear();
         this.lineHashCache.clear();
     }
 
@@ -102,6 +108,7 @@ export default class EquationCitator extends Plugin {
         this.citationCache?.destroy();
         this.equationCache?.destroy();
         this.footnoteCache?.destroy();
+        this.imageCache?.destroy();
         this.lineHashCache?.destroy();
     }
 
@@ -115,8 +122,9 @@ export default class EquationCitator extends Plugin {
     }
 
     registerServices() {
-        // sheared services instance  
+        // sheared services instance
         this.equationServices = new EquationServices(this);
+        this.figureServices = new FigureServices(this);
         this.tagService = new TagService(this);
     }
 

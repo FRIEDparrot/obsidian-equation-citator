@@ -136,18 +136,18 @@ function parseImageLine(line: string, lineNumber: number, imagePrefix: string): 
     // Must start with ! to be an image
     if (!trimmedLine.startsWith('!')) return null;
 
-    // we retain the weblink format parser here (since we )
-    // const weblinkResult = parseWeblinkImage(trimmedLine, imagePrefix);
-    // if (weblinkResult) {
-    //     return {
-    //         ...weblinkResult,
-    //         raw: trimmedLine,
-    //         line: lineNumber,
-    //         inQuote: false,
-    //     };
-    // }
+    // Try parse weblink format images first (![[path|metadata]])
+    const weblinkResult = parseWeblinkImage(trimmedLine, imagePrefix);
+    if (weblinkResult) {
+        return {
+            ...weblinkResult,
+            raw: trimmedLine,
+            line: lineNumber,
+            inQuote: false,
+        };
+    }
 
-    // Try parse markdown format images
+    // Try parse markdown format images (![alt](url))
     const markdownResult = parseMarkdownImage(trimmedLine, imagePrefix);
     if (markdownResult) {
         return {
@@ -167,7 +167,7 @@ function parseImageLine(line: string, lineNumber: number, imagePrefix: string): 
  * - Take the whole line (after trimming)
  * - Start with ! (are displayed)
  * - Are NOT inside quote blocks
- * 
+ *
  * Supports following types (local file only):
  * 1. Weblink: ![[image.png|fig:3.1|title:test|desc:description]]
  * 2. Markdown: ![fig:4-1|desc:wikipedia](link)
@@ -177,9 +177,9 @@ function parseImageLine(line: string, lineNumber: number, imagePrefix: string): 
  * @returns Array of ImageMatch objects
  */
 export function parseAllImagesFromMarkdown(
-    markdown: string, 
+    markdown: string,
     imagePrefix: string): ImageMatch[] {
-    
+
     if (!markdown.trim()) return [];
 
     const lines = markdown.split('\n');
@@ -192,7 +192,7 @@ export function parseAllImagesFromMarkdown(
 
         // Parse line to check environment (quotes, code blocks, etc.)
         const parseResult = parseMarkdownLine(line, false, inCodeBlock);
-        
+
         // Update code block state
         if (parseResult.isCodeBlockToggle) {
             inCodeBlock = !inCodeBlock;
@@ -209,7 +209,7 @@ export function parseAllImagesFromMarkdown(
 
         // Get the processed content (with quotes removed if any)
         const processedLine = parseResult.processedContent.trim();
-        
+
         // Try to parse as image
         const imageMatch = parseImageLine(processedLine, lineNum, imagePrefix);
 
@@ -224,14 +224,14 @@ export function parseAllImagesFromMarkdown(
 
 /**
  * Parse the first image with the given tag in the markdown content
- * TODO : improve performance 
+ * TODO : improve performance
  * @param markdown - The markdown content to parse
  * @param tag - The tag to search for (without prefix, e.g., "3.1" not "fig:3.1")
  * @param imagePrefix - The prefix to match (e.g., "fig:"), default is "fig:"
  * @returns The first ImageMatch with the matching tag, or undefined if not found
  */
 export function parseFirstImageInMarkdown(
-    markdown: string, tag: string, 
+    markdown: string, tag: string,
     imagePrefix = "fig:"
 ): ImageMatch | undefined {
     if (!markdown.trim() || !tag.trim()) return undefined;

@@ -5,6 +5,8 @@ import {
     combineContinuousCitationTags,
     splitFileCitation,
 } from "@/utils/core/citation_utils";
+import { FigureCitationPopover } from "@/views/figure_citation_popover";
+import Debugger from "@/debug/debugger";
 
 /**
  * PROTOTYPE: Render function for figure citations
@@ -49,7 +51,7 @@ export function renderFigureCitation(
 
     // TODO: Add figure-specific citation format to settings
     // For now, use a hardcoded format
-    const figureCitationFormat = "(fig:#)"; // e.g., (fig:3.1)
+    const figureCitationFormat = plugin.settings.figCitationFormat; // e.g., (fig:3.1)
 
     const el = document.createElement('span');
     const fileDelimiter = enableCrossFileCitation ?
@@ -90,18 +92,18 @@ export function renderFigureCitation(
         const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
         const citationSpanEl = document.createElement('span');
         citationSpanEl.className = 'em-math-citation em-figure-citation';
-
+        
         if (crossFile) {
             // Create citation with superscript bracket for cross-file references
             const localCitation = figureCitationFormat.replace('#', local);
             citationSpanEl.textContent = localCitation;
             containerDiv.appendChild(citationSpanEl);
-
+        
             // Create superscript bracket
             const fileSuperEl = document.createElement('sup');
             fileSuperEl.textContent = `[${crossFile}]`;
             fileSuperEl.className = "em-math-citation-file-superscript em-figure-citation-file-superscript";
-
+            
             // TODO: Add figure-specific file superscript popover
             // This should show information about the source file
             if (parent) {
@@ -111,7 +113,7 @@ export function renderFigureCitation(
                         e.preventDefault();
                         e.stopPropagation();
                         // TODO: Show file info popover
-                        // const popover = new FileSuperScriptPopover(...);
+                        // const popover = new FileSuperScriptPopover(...);  
                     }
                 });
             }
@@ -140,89 +142,51 @@ export function renderFigureCitation(
         el.appendChild(container);
     }
 
-    // TODO: Add event listener for figure preview popover
-    // This should show the figure image when hovering (Ctrl+hover in live preview)
-    // el.addEventListener('mouseenter', async (event) => {
-    //     const ctrlKey = event.ctrlKey || event.metaKey;
-    //     if (isInteractive || ctrlKey) {
-    //         // Fetch figures from FigureCache
-    //         // const figures = await plugin.figureServices.getFiguresByTags(citeFigureTags, sourcePath);
-    //         // Show FigureCitationPopover with image preview
-    //     }
-    // });
+    // Add event listener for figure preview popover
+    // Show the figure image when hovering (Ctrl+hover in live preview, always in reading mode)
+    if (parent) {
+        el.addEventListener('mouseenter', async (event: MouseEvent) => {
+            const ctrlKey = event.ctrlKey || event.metaKey;
+            if (isInteractive || ctrlKey) {
+                event.preventDefault();
+                event.stopPropagation();
+                await showFigurePopover(plugin, parent, el, citeFigureTags, sourcePath);
+            }
+        });
+    }
 
     return el;
 }
 
 /**
- * TODO: Create FigureCitationPopover class
- *
- * This should be similar to CitationPopover but display:
- * - The image (rendered from imagePath or imageLink)
- * - Figure title
- * - Figure description
- * - Link to source file (for cross-file citations)
- *
- * Example structure:
- *
- * class FigureCitationPopover extends HoverPopover {
- *     constructor(
- *         plugin: EquationCitator,
- *         parent: HoverParent,
- *         targetEl: HTMLElement,
- *         figures: ImageMatch[],
- *         sourcePath: string,
- *         waitTime: number
- *     ) {
- *         // Initialize popover
- *     }
- *
- *     onload() {
- *         // Render image(s)
- *         // Render title and description
- *         // Add click handler to jump to figure
- *     }
- * }
+ * Show figure preview popover
  */
+async function showFigurePopover(
+    plugin: EquationCitator,
+    parent: HoverParent,
+    targetEl: HTMLElement,
+    figureTags: string[],
+    sourcePath: string
+): Promise<void> {
+    try {
+        // Fetch figures from FigureServices
+        const figures = await plugin.figureServices.getFiguresByTags(figureTags, sourcePath);
 
-/**
- * TODO: Create FigureServices class
- *
- * Similar to EquationServices, this should provide:
- *
- * - getFiguresByTags(tags: string[], sourcePath: string): Promise<ImageMatch[]>
- *   - Parse tags to extract cross-file citations
- *   - Query FigureCache for each file
- *   - Return matched figures
- *
- * - resolveFigurePath(imagePath: string, sourcePath: string): string
- *   - Resolve relative image paths
- *   - Handle Obsidian vault paths
- *   - Return absolute path or URL
- */
+        if (figures.length === 0) {
+            Debugger.log("No valid figures found for tags:", figureTags);
+            return;
+        }
 
-/**
- * TODO: Integration points
- *
- * 1. In citation_render.tsx (Live Preview):
- *    - Detect citation prefix (e.g., "fig:", "table:")
- *    - Route to appropriate renderer:
- *      - "eq:" -> renderEquationCitation()
- *      - "fig:" -> renderFigureCitation()
- *      - "table:" -> renderCalloutCitation() (future)
- *
- * 2. In citation_render.tsx (Reading Mode):
- *    - Same prefix detection logic
- *    - Query appropriate cache
- *    - Render with appropriate function
- *
- * 3. Settings:
- *    - Add figureCitationFormat setting (default: "(fig:#)")
- *    - Add enableFigureCitation toggle
- *    - Add parseFiguresInQuotes toggle (if needed)
- *
- * 4. Auto-complete:
- *    - Extend AutoCompleteSuggest to handle "fig:" prefix
- *    - Show figure preview in suggestions
- *    - Display image thumbnail in dropdown
- */
+        // Show FigureCitationPopover with image preview
+        const popover = new FigureCitationPopover(
+            plugin,
+            parent,
+            targetEl,
+            figures,
+            sourcePath,
+            300
+        );
+    } catch (error) {
+        Debugger.error("Error showing figure popover:", error);
+    }
+}

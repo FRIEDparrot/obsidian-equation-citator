@@ -1327,4 +1327,173 @@ span > img {
   max-width: 100%;
 }
 
+/* Figure Citation Styles - Similar to equation citations */
+.em-figure-citation-container {
+  position: relative;
+  display: inline-block;
+  cursor: default;
+}
+
+.em-figure-citation {
+  font-family: var(--em-math-latex-font);
+  position: relative;
+  padding: 1px 2px;
+  pointer-events: auto;
+  user-select: none;
+  display: inline-block;
+  color: var(--em-math-citation-color);
+}
+
+.em-figure-citation:hover {
+  cursor: pointer;
+  color: var(--em-math-citation-hover-color);
+}
+
+.em-figure-citation-multi-delimiter {
+  display: inline-block;
+  color: var(--em-math-citation-color);
+}
+
+.em-figure-citation-file-superscript {
+  font-family: var(--em-math-latex-font);
+  font-size: 0.7em;
+  position: relative;
+  vertical-align: super;
+  margin-left: 1px;
+  color: var(--em-math-citation-file-superscript-color);
+  z-index: 10;
+}
+
+.em-figure-citation-file-superscript:hover {
+  cursor: pointer;
+  color: var(--em-math-citation-file-superscript-hover-color);
+}
+
+/* Figure Citation Popover Styles */
+.em-figure-citation-popover-container {
+  /* Inherits from .em-citation-popover-container */
+  min-width: 400px;
+  max-width: 600px;
+}
+
+.em-figures-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.em-figure-option-container {
+  border-bottom: 1px solid var(--em-background-modifier-border);
+  padding-bottom: 12px;
+}
+
+.em-figure-option-container:last-child {
+  border-bottom: none;
+}
+
+.em-figure-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--em-background-secondary);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.em-figure-wrapper:hover,
+.em-figure-wrapper.em-figure-hover {
+  background: var(--em-background-modifier-hover);
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.em-figure-wrapper.em-figure-clicked {
+  background: var(--em-background-primary-alt);
+  transform: scale(0.98);
+}
+
+.em-figure-label-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.em-figure-label {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.em-figure-number {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.em-figure-markdown-filename {
+  background: var(--em-background-modifier-border);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.em-figure-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.em-figure-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 300px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--em-background-primary);
+}
+
+.em-figure-image {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.em-figure-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.em-figure-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-normal);
+}
+
+.em-figure-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.em-figure-error {
+  padding: 12px;
+  text-align: center;
+  color: var(--text-error);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Dark theme adjustments for figure citations */
+.theme-dark .em-figure-wrapper:hover,
+.theme-dark .em-figure-wrapper.em-figure-hover {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
 /*# sourceMappingURL=styles.css.map */
