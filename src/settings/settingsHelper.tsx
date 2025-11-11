@@ -97,6 +97,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             id: "other",
             title: "Other / Beta",
             settingKeys: [
+                "enableTypstMode",
                 "debugMode",
                 "enableCiteWithCodeBlockInCallout",
             ]

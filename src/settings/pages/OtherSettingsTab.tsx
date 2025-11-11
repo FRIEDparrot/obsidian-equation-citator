@@ -6,6 +6,20 @@ import { resetStyles, SettingsTabView } from "../SettingsTab";
 
 
 export const OtherSettingsTab = {
+    enableTypstMode(containerEl: HTMLElement, plugin: EquationCitator) {
+        const enableTypstModeSetting = new Setting(containerEl);
+        const { name, desc } = SETTINGS_METADATA.enableTypstMode;
+        enableTypstModeSetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableTypstMode);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableTypstMode = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
     debugMode(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.debugMode;
         const debugModeSetting = new Setting(containerEl);
@@ -71,6 +85,7 @@ export const OtherSettingsTab = {
 
 
 export function addOtherSettingsTab(containerEl: HTMLElement, plugin: EquationCitator, settingsTab: SettingsTabView) {
+    OtherSettingsTab.enableTypstMode(containerEl, plugin);
     OtherSettingsTab.debugMode(containerEl, plugin);
     OtherSettingsTab.resetSettings(containerEl, plugin, settingsTab);
     // ==================  Beta features settings ==========   

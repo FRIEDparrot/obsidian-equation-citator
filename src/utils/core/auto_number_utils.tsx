@@ -210,7 +210,8 @@ export function autoNumberEquations(
     delimiter: string,
     noHeadingEquationPrefix: string,
     globalPrefix: string,
-    parseQuotes = false
+    parseQuotes = false,
+    enableTypstMode = false,
 ): AutoNumberProceedResult {
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
@@ -242,12 +243,12 @@ export function autoNumberEquations(
         const tag = generateNextEquationTag(numberingState);
         if (equationBody.endsWith("\n")) {
             return {
-                eq: equationBody.slice(0, -1) + " " + createEquationTagString(tag) + "\n",
+                eq: equationBody.slice(0, -1) + " " + createEquationTagString(tag, enableTypstMode) + "\n",
                 tag: tag
             }
         } else {
             return {
-                eq: equationBody.trim() + " " + createEquationTagString(tag),
+                eq: equationBody.trim() + " " + createEquationTagString(tag, enableTypstMode),
                 tag: tag
             }
         }
@@ -290,7 +291,7 @@ export function autoNumberEquations(
             if (parseResult.isEquationBlockEnd) {
                 quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
                 inEquationBlock = false;
-                const { content, tag: oldTag } = parseEquationTag(equationBuffer.join("\n"));
+                const { content, tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), enableTypstMode);
                 const { eq, tag: newTag } = getTaggedEquation(content); 
                 addTagMapping(oldTag, newTag);
                 const fullEquationLines = `$$\n${eq}\n$$`.split("\n");
@@ -304,7 +305,7 @@ export function autoNumberEquations(
             const rawEquationContent = parseResult.singleLineEquationMatch[1].trim();
 
             // now not clear equation Content 
-            const { content, tag: oldTag } = parseEquationTag(rawEquationContent);
+            const { content, tag: oldTag } = parseEquationTag(rawEquationContent, enableTypstMode);
             const { eq, tag: newTag } = getTaggedEquation(content);
             // add tag mapping 
             addTagMapping(oldTag, newTag);
@@ -324,7 +325,7 @@ export function autoNumberEquations(
     // Handle unclosed equation blocks
     if (inEquationBlock && equationBuffer.length > 0) {
         const equation_raw = equationBuffer.join("\n");
-        const { content, tag: oldTag } = parseEquationTag(equation_raw);
+        const { content, tag: oldTag } = parseEquationTag(equation_raw, enableTypstMode);
         const { eq, tag: NewTag } = getTaggedEquation(content);
         
         // add tag mapping 

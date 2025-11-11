@@ -176,18 +176,25 @@ export function createCitationString(
 //////////////////////////// TAGS //////////////////////// 
 export function createEquationTagRegex(
     fullMatch = false,
-    tagName: string | null = null
+    tagName: string | null = null,
+    typst = false,
 ): RegExp {
     if (!tagName) {
-        return new RegExp(fullMatch ? /^\\tag\{([^}]*)\}$/ : /\\tag\{([^}]*)\}/);
+        return typst
+            ? new RegExp(fullMatch ? /^#label\("([^"]*)"\)$/ : /#label\("([^"]*)"\)/)
+            : new RegExp(fullMatch ? /^\\tag\{([^}]*)\}$/ : /\\tag\{([^}]*)\}/);
     }
     const escapedTagName = escapeRegExp(tagName);
-    return fullMatch ?
-        RegExp(`^\\\\tag\\{\\s*${tagName}\\s*\\}$`) :
-        RegExp(`\\\\tag\\{\\s*${escapedTagName}\\s*\\}`);
+    return typst
+        ? fullMatch
+            ? new RegExp(`^#label\\(\\s*"${escapedTagName}"\\s*\\)$`)
+            : new RegExp(`#label\\(\\s*"${escapedTagName}"\\s*\\)`)
+        : fullMatch
+            ? new RegExp(`^\\\\tag\\{\\s*${tagName}\\s*\\}$`)
+            : new RegExp(`\\\\tag\\{\\s*${escapedTagName}\\s*\\}`);
 }
 
-export function createEquationTagString(content: string): string {
-    const tagString = `\\tag{${content}}`;
+export function createEquationTagString(content: string, typst: boolean): string {
+    const tagString = typst ? `#label("${content}")` : `\\tag{${content}}`;
     return tagString;
 }

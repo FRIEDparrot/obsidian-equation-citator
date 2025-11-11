@@ -41,7 +41,7 @@ function restoreCursorPosition(editor: Editor, originalPos: EditorPosition): voi
 
 export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
-        autoNumberNoHeadingPrefix, autoNumberGlobalPrefix: autoNumberPrefix, enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes } = plugin.settings;
+        autoNumberNoHeadingPrefix, autoNumberGlobalPrefix: autoNumberPrefix, enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes, enableTypstMode } = plugin.settings;
     const {
         deleteRepeatTagsInAutoNumber: deleteRepeatTags,
         deleteUnusedTagsInAutoNumber: deleteUnusedTags,
@@ -71,7 +71,8 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
                 autoNumberDelimiter,
                 autoNumberNoHeadingPrefix,
                 autoNumberPrefix,
-                autoNumberEquationsInQuotes
+                autoNumberEquationsInQuotes,
+                enableTypstMode,
             );
             tagMapping = tm;
             // rename tags by tagmapping
@@ -115,7 +116,7 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
     const cursorPos = editor.getCursor();
     const content = editor.getValue();
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
-        autoNumberNoHeadingPrefix, autoNumberGlobalPrefix: autoNumberPrefix, enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes } = plugin.settings;
+        autoNumberNoHeadingPrefix, autoNumberGlobalPrefix: autoNumberPrefix, enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes, enableTypstMode } = plugin.settings;
 
     const autoNumberTag = getAutoNumberInCursor(
         content,
@@ -130,7 +131,7 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
         new Notice("Cursor is not in a valid equation block");
         return;
     }
-    const insertText = `\\tag{${autoNumberTag}}`;
+    const insertText = enableTypstMode ? `#label("${autoNumberTag}")` : `\\tag{${autoNumberTag}}`;
     insertTextWithCursorOffset(editor, insertText, insertText.length);
 }
 

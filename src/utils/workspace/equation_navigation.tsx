@@ -28,7 +28,7 @@ export async function scrollToEquationByTag(
     }
 
     const md = await plugin.app.vault.cachedRead(file);
-    const match: EquationMatch | undefined = parseFirstEquationInMarkdown(md, tag);
+    const match: EquationMatch | undefined = parseFirstEquationInMarkdown(md, tag, plugin.settings.enableTypstMode);
     if (!match) {
         Debugger.log("Can't find equation with tag: " + tag + " in file: " + targetFilePath);
         return;

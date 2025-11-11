@@ -5,7 +5,7 @@ import {
 import { cleanUpStyles, loadStyles, SettingsTabView } from "@/settings/SettingsTab";
 import { DEFAULT_SETTINGS } from "@/settings/defaultSettings";
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
-import { Extension, Compartment } from '@codemirror/state';
+import { Extension, Compartment, StateField } from '@codemirror/state';
 import registerCommands from '@/commands/command_list';
 import registerRibbonButton from '@/ui/ribbon';
 import {
@@ -14,6 +14,7 @@ import {
     calloutCitationPostProcessor,
     createImageCaptionExtension,
     imageCaptionPostProcessor,
+    EditorSelectionInfo,
 } from '@/views/citation_render';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
@@ -40,6 +41,7 @@ export default class EquationCitator extends Plugin {
     figureServices: FigureServices;
     calloutServices: CalloutServices;
     tagService: TagService;
+    tagSelectedField: StateField<EditorSelectionInfo>;
 
     // initialize caches
     public citationCache: CitationCache;   // citation cache instance
