@@ -572,7 +572,7 @@ $$ e2 $$`;
             expect(result).toMatch(/\$\$ e1 \\tag{1\.1\.1} \$\$/);
             expect(result).toMatch(/\$\$ e2 \\tag{1\.1\.2} \$\$/);
         });
-
+        
         test('should fix malformed existing tags like .1 .2 .3 (Absolute)', () => {
             const content = `### 1 Test
 $$

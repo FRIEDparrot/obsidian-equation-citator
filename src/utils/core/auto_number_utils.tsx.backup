@@ -345,23 +345,28 @@ function updateLevelCounters(
     maxDepth: number,
     type: AutoNumberingType
 ): void {
-    // maxDepth is the maximum heading level we want to handle in numbering.
-    // For example, maxDepth=3 means we handle heading levels 1, 2, and 3.
-    const maxAllowedLevel = maxDepth;
+    // maxDepth is the total number of heading levels, but since heading levels are 1-based
+    // and levelCounters is 0-based, we subtract 1 to get the maximum allowed index.
+    const maxAllowedLevel = maxDepth - 1;
+    const effectiveLevel = Math.min(headingLevel, maxAllowedLevel);
 
-    // Early return for headings deeper than maxDepth - they should not update counters
-    if (headingLevel > maxAllowedLevel) return;
-
-    // Handle absolute numbering case (title level jumps)
+    // Handle absolute numbering case (title level jumps) 
     if (type === AutoNumberingType.Absolute) {
         // Find the parent level (not include current level)
-        for (let i = 0; i < headingLevel - 1; i++) {
+        for (let i = 0; i < effectiveLevel - 1; i++) {
             if (levelCounters[i] === 0) {
                 levelCounters[i] = 1;
             }
         }
     }
-    // Increment current level and reset deeper levels
-    levelCounters[headingLevel - 1]++;
-    levelCounters.fill(0, headingLevel);
+    // keep all levels unchanged to autonumber correctly 
+    if (headingLevel > maxAllowedLevel) {
+        // keep the last level at least 1 for absolute numbering 
+        if (type === AutoNumberingType.Absolute && levelCounters[effectiveLevel - 1] === 0) {
+            levelCounters[effectiveLevel - 1] = 1;
+        }
+    }
+    // Increment current level and reset deeper levels 
+    levelCounters[effectiveLevel - 1]++;
+    levelCounters.fill(0, effectiveLevel);
 }
