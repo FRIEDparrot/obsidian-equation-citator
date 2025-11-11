@@ -1,6 +1,6 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField } from "obsidian";
+import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField, Notice } from "obsidian";
 import { FigureCitationPopover } from "@/views/figure_citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
@@ -100,7 +100,9 @@ export class FigureCitationWidget extends WidgetType {
         const renderedFigures = await this.plugin.figureServices.getFiguresByTags(this.figureTagsAll, sourcePath);
 
         if (renderedFigures.length === 0) {
-            Debugger.error("No valid figures found for citation widget");
+            Debugger.log(`No valid figures found for citation: ${this.figureTagsAll.join(', ')}`);
+            // Show a simple notice to the user instead of throwing an error
+            new Notice(`Figure not found: fig:${this.figureTagsAll.join(', ')}`);
             return;
         }
 

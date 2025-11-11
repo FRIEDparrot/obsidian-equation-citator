@@ -1,6 +1,6 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField } from "obsidian";
+import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField, Notice } from "obsidian";
 import { CalloutCitationPopover } from "@/views/callout_citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
@@ -107,7 +107,9 @@ export class CalloutCitationWidget extends WidgetType {
         );
 
         if (renderedCallouts.length === 0) {
-            Debugger.error("No valid callouts found for citation widget");
+            Debugger.log(`No valid callouts found for citation: ${this.calloutTagsAll.join(', ')}`);
+            // Show a simple notice to the user instead of throwing an error
+            new Notice(`Citation not found: ${this.prefix}${this.calloutTagsAll.join(', ')}`);
             return;
         }
 

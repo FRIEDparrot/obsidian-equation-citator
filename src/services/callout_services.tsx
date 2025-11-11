@@ -145,14 +145,15 @@ export class CalloutServices {
             return { path: null, filename: null };
         }
 
-        const refFile = this.plugin.app.vault.getAbstractFileByPath(refFilePath);
+        // Use metadataCache to resolve the file path (handles relative paths better)
+        const refFile = this.plugin.app.metadataCache.getFirstLinkpathDest(refFilePath, sourcePath);
         if (!refFile) {
             Debugger.log(`Referenced file ${refFilePath} not found`);
             return { path: null, filename: null };
         }
 
         return {
-            path: refFilePath,
+            path: refFile.path,
             filename: footnote.label || refFile.name
         };
     }
