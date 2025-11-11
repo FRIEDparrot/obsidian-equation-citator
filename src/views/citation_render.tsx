@@ -190,10 +190,8 @@ export function createMathCitationExtension(plugin: EquationCitator) {
 
                             if (!inSelection && !inCursor) {
                                 // citations not in cursor, render full citations
-                                // Remove the prefix first, then split
-                                const prefix = isFigureCitation ? settings.figCitationPrefix : settings.citationPrefix;
-                                const labelWithoutPrefix = cm.label.substring(prefix.length);
-                                const numbers: string[] = labelWithoutPrefix.split(settings.multiCitationDelimiter || ',').map(c => c.trim()).filter(c => c.length > 0);
+                                // Note: matchNestedCitation already removes the prefix from cm.label
+                                const numbers: string[] = cm.label.split(settings.multiCitationDelimiter || ',').map(c => c.trim()).filter(c => c.length > 0);
 
                                 // split all citations to combine later
                                 const numbersAll = settings.enableContinuousCitation ?
@@ -308,6 +306,8 @@ export async function mathCitationPostProcessor(
 
             if (!isFigureCitation && !isEquationCitation) return; // Skip if not a valid citation
 
+            // Note: CitationRef.label includes the prefix (e.g., "fig:7" or "eq:1.1")
+            // We need to remove it before processing
             const prefix = isFigureCitation ? plugin.settings.figCitationPrefix : citationPrefix;
             const label = citation.label.substring(prefix.length);  // get the actual label without prefix
             const numbers: string[] = label.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());

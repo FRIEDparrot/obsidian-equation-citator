@@ -26,6 +26,18 @@ export default function registerCommands(plugin: EquationCitator) {
     });
 
     plugin.addCommand({
+        id: 'insert-citation-on-cursor-position',
+        name: 'Insert a citation on cursor position',
+        callback: () => {
+            const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+            if (!editor) return;
+            const citeString = createCitationString("");
+            // Move cursor inside the braces
+            insertTextWithCursorOffset(editor, citeString, 6);
+        }
+    })
+
+    plugin.addCommand({
         id: 'insert-equation-citation-on-cursor-position',
         name: 'Insert equation citation on cursor position',
         callback: () => {

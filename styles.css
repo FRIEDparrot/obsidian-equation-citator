@@ -1467,12 +1467,14 @@ span > img {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  text-align: center;
 }
 
 .em-figure-title {
   font-weight: 600;
   font-size: 13px;
   color: var(--text-normal);
+  text-align: center;
 }
 
 .em-figure-desc {
@@ -1480,6 +1482,7 @@ span > img {
   color: var(--text-muted);
   font-style: italic;
   line-height: 1.4;
+  text-align: center;
 }
 
 .em-figure-error {

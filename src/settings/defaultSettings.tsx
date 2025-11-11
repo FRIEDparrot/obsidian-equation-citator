@@ -97,7 +97,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationPrefix: "eq:", // Default prefix for citations 
     citationFormat: "(#)", // Default display format for citations  
     figCitationPrefix: "fig:", // prefix for cite figures 
-    figCitationFormat: "fig. #", // citation format for figures 
+    figCitationFormat: "Fig. #", // citation format for figures 
     quoteCitationPrefixes: ["table:"], 
     citationColor: "#a288f9",
     citationHoverColor: "#c5b6fc",

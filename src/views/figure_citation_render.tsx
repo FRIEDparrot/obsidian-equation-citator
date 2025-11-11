@@ -67,7 +67,7 @@ export function renderFigureCitation(
             fileDelimiter,
         )
         : citeFigureTags;
-
+    
     // Handle empty citation case
     if (!formattedCiteFigureTags.length) {
         const containerDiv = document.createElement('div');
