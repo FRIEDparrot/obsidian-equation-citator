@@ -2,7 +2,7 @@ import {
     Plugin, MarkdownView, WorkspaceLeaf,
     MarkdownPostProcessorContext
 } from 'obsidian';
-import { cleanUpStyles, SettingsTabView } from "@/settings/SettingsTab";
+import { cleanUpStyles, loadStyles, SettingsTabView } from "@/settings/SettingsTab";
 import { DEFAULT_SETTINGS } from "@/settings/defaultSettings";
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
 import { Extension, Compartment } from '@codemirror/state';
@@ -19,24 +19,26 @@ import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
 import { FootNoteCache } from '@/cache/footnoteCache';
 import { ImageCache } from '@/cache/imageCache';
-import { ColorManager } from '@/settings/styleManagers/colorManager';
+import { CalloutCache } from '@/cache/calloutCache';
 import { EquationServices } from '@/services/equation_services';
 import { FigureServices } from '@/services/figure_services';
+import { CalloutServices } from '@/services/callout_services';
 import { TagService } from '@/services/tag_service';
 import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
 import { registerRightClickHandler } from '@/handlers/rightButtonHandler';
 import { LineHashCache } from '@/cache/lineHashCache';
-import { WidgetSizeManager } from '@/settings/styleManagers/widgetSizeManager';
 import { isUpdateAvailable } from './api/updateChecking';
 import { EquationArrangePanel, EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
 import Debugger from './debug/debugger';
 import { dropCursorField } from '@/utils/workspace/drag_drop_event';
+
 
 export default class EquationCitator extends Plugin {
     settings: EquationCitatorSettings;
     extensions: Extension[] = [];
     equationServices: EquationServices;
     figureServices: FigureServices;
+    calloutServices: CalloutServices;
     tagService: TagService;
 
     // initialize caches
@@ -44,6 +46,7 @@ export default class EquationCitator extends Plugin {
     public equationCache: EquationCache;     // equation cache instance
     public footnoteCache: FootNoteCache;     // footnote cache instance
     public imageCache: ImageCache;           // image cache instance
+    public calloutCache: CalloutCache;       // callout cache instance
     public lineHashCache: LineHashCache;     // line hash cache instance 
 
     private autoCompleteSuggest: AutoCompleteSuggest;
@@ -53,13 +56,12 @@ export default class EquationCitator extends Plugin {
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
         Debugger.debugMode = this.settings.debugMode;  // set debug mode from settings 
+        loadStyles();
         this.upDateEditorExtensions();
     }
     
     async onload() {
         await this.loadSettings();
-        ColorManager.updateAllColors(this.settings);
-        WidgetSizeManager.updateAllSizes(this.settings);
         this.addSettingTab(new SettingsTabView(this.app, this));
         
         // initialize caches
@@ -93,6 +95,7 @@ export default class EquationCitator extends Plugin {
         this.equationCache = new EquationCache(this);
         this.footnoteCache = new FootNoteCache(this);
         this.imageCache = new ImageCache(this);
+        this.calloutCache = new CalloutCache(this);
         this.lineHashCache = new LineHashCache(this);
     }
 
@@ -101,6 +104,7 @@ export default class EquationCitator extends Plugin {
         this.equationCache.clear();
         this.footnoteCache.clear();
         this.imageCache.clear();
+        this.calloutCache.clear();
         this.lineHashCache.clear();
     }
 
@@ -109,6 +113,7 @@ export default class EquationCitator extends Plugin {
         this.equationCache?.destroy();
         this.footnoteCache?.destroy();
         this.imageCache?.destroy();
+        this.calloutCache?.destroy();
         this.lineHashCache?.destroy();
     }
 
@@ -125,6 +130,7 @@ export default class EquationCitator extends Plugin {
         // sheared services instance
         this.equationServices = new EquationServices(this);
         this.figureServices = new FigureServices(this);
+        this.calloutServices = new CalloutServices(this);
         this.tagService = new TagService(this);
     }
 

@@ -40,19 +40,19 @@ export interface EquationCitatorSettings {
     enableContinuousCitation: boolean; // Render continuous citations in compat format  
     continuousRangeSymbol: string; // Range symbol for continuous citations in a single cite 
     continuousDelimiters: string; // Delimiter for continuous citations in a single cite 
-    
+
 
     enableCrossFileCitation: boolean; // Optional setting for cross-file citations
     fileCiteDelimiter: string;
     //#endregion
-    
+
     //#region style settings  
     citationPopoverContainerWidth: number; // Equation preview widget width in pixels
     citationPopoverContainerHeight: number; // Equation preview widget height in pixels 
     enableRenderLocalFileName: boolean; // Render local file name for citations 
     fileSuperScriptColor: string;
-    fileSuperScriptHoverColor: string; 
-
+    fileSuperScriptHoverColor: string;
+    enableCenterTableInCallout: boolean; // Center table in callout  
     citationColor: string; // Citation display color for equations 
     citationHoverColor: string; // Citation display hover color for equations 
     citationWidgetColor: string[]; // Citation widget color for different types of citations  
@@ -67,6 +67,7 @@ export interface EquationCitatorSettings {
     enableAutoNumberGlobalPrefix: boolean; // Setting for auto numbering prefix 
     autoNumberGlobalPrefix: string; // Global Auto numbering prefix for equations without any heading level  
     enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
+
     // by default, auto-number rename the citation, I don't provide this as option 
     enableUpdateTagsInAutoNumber: boolean; // Update citation in auto numbering 
     deleteRepeatTagsInAutoNumber: boolean; // Delete repeat tags in auto numbering  
@@ -83,7 +84,7 @@ export interface EquationCitatorSettings {
     debugMode: boolean; // Optional setting for debug mode
     enableCiteWithCodeBlockInCallout: boolean; // Enable citation by inline code block in callout 
 
-    
+
     // equation management panel Settings 
     equationManagePanelLazyUpdateTime: number,
     equationManagePanelfileCheckInterval: number,
@@ -105,8 +106,10 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     figCitationFormat: "Fig. #", // citation format for figures
     quoteCitationPrefixes: [
         { prefix: "table:", format: "Table. #" },
-    ], 
+    ],
+
     citationColor: "#a288f9",
+    enableCenterTableInCallout: true,  // enable centering tables in callout for butiful rendering 
     citationHoverColor: "#c5b6fc",
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
     multiCitationDelimiterRender: ", ", // Default rendered delimiter for multiple citations in a single cite 
@@ -148,10 +151,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberDepth",
         "autoNumberNoHeadingPrefix",
         "enableAutoNumberGlobalPrefix",
-        "enableAutoNumberEquationsInQuotes",
-        "citationPopoverContainerWidth",
-        "citationPopoverContainerHeight",
-        "quoteCitationPrefixes",
+        "citationPopoverContainerWidth"
     ],
     advancedSettingsKeys: [
         "enableCitationInSourceMode",
@@ -161,8 +161,10 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "multiCitationDelimiter",
         "multiCitationDelimiterRender",
         "enableContinuousCitation",
-        "continuousDelimiters", 
+        "continuousDelimiters",
+        "quoteCitationPrefixes",
         "autoNumberDelimiter",
+        "enableAutoNumberEquationsInQuotes",
         "enableUpdateTagsInAutoNumber",
         "cacheUpdateTime",
         "cacheCleanTime",
@@ -176,25 +178,25 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
-    settingsDisplayMode : {
+    settingsDisplayMode: {
         name: "Settings Display Mode",
         desc: "Settings display mode",
         type: "select",
-        renderCallback: (el, plugin) => {}  // toolbar settings no need that 
+        renderCallback: (el, plugin) => { }  // toolbar settings no need that 
     },
-    
+
     basicSettingsKeys: {
         name: "Basic Settings Keys",
         desc: "Keys shown in Basic section for concise mode",
         type: "array",
-        renderCallback: (el, plugin) => {}  // to be implemented
+        renderCallback: (el, plugin) => { }  // to be implemented
     },
 
     advancedSettingsKeys: {
         name: "Advanced Settings Keys",
         desc: "Keys shown in Advanced section for concise mode",
         type: "array",
-        renderCallback: (el, plugin) => {}  // to be implemented
+        renderCallback: (el, plugin) => { }  // to be implemented
     },
 
     enableCitationInSourceMode: {
@@ -352,7 +354,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             AutoNumberSettingsTab.enableAutoNumberGlobalPrefix(el, plugin, renderSubpanel);
         }
     },
-    autoNumberGlobalPrefix : {
+    autoNumberGlobalPrefix: {
         name: "Auto Numbering Global Prefix",
         desc: "Global Auto equation numbering prefix for purpose like chapter",
         type: "string",
@@ -470,6 +472,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
 
+    enableCenterTableInCallout: {
+        name: "Center Tables in Callouts",
+        desc: "If enabled, tables inside callouts will be centered within the callout box.",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            StyleSettingsTab.enableCenterTableInCallout(el, plugin);
+        }
+    },
+    
     citationWidgetColorDark: {
         name: "Dark Theme Widget Colors",
         desc: "Widget colors for dark theme",
@@ -487,7 +498,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             PdfExportSettingsTab.citationColorInPdf(el, plugin);
         }
     },
-    debugMode : {
+    debugMode: {
         name: "Debug Mode",
         desc: "Enables developer debug mode for this plugin",
         type: "boolean",
@@ -495,7 +506,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             OtherSettingsTab.debugMode(el, plugin);
         }
     },
-    enableCiteWithCodeBlockInCallout : {
+    enableCiteWithCodeBlockInCallout: {
         name: "(Beta) Cite with Inline Code Block in Callout",
         desc: "Enable citation by inline code block in callout",
         type: "boolean",
@@ -503,7 +514,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             OtherSettingsTab.enableCiteWithCodeBlockInCallout(el, plugin);
         }
     },
-    equationManagePanelfileCheckInterval : {
+    equationManagePanelfileCheckInterval: {
         name: "Equation Panel File Check Interval",
         desc: "Time interval to check for newly opened files and refresh the equation panel (in ms)",
         type: "number",
@@ -511,7 +522,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             EquationPanelSettingsTab.equationManagePanelFileCheckInterval(el, plugin);
         }
     },
-    equationManagePanelLazyUpdateTime : {
+    equationManagePanelLazyUpdateTime: {
         name: "Equation Panel Lazy Update Time",
         desc: "Time interval to update the equation panel while editing (in ms)",
         type: "number",
@@ -519,7 +530,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             EquationPanelSettingsTab.equationManagePanelLazyUpdateTime(el, plugin);
         }
     },
-    equationManagePanelDefaultViewType : {
+    equationManagePanelDefaultViewType: {
         name: "Equation Panel Default View Type",
         desc: "Default view type for the equation panel (outline or list)",
         type: "select",

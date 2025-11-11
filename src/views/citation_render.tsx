@@ -13,14 +13,17 @@ import {
 } from "@/utils/core/citation_utils";
 import { CitationWidget } from "@/views/citation_widget";
 import { FigureCitationWidget } from "@/views/figure_citation_widget";
+import { CalloutCitationWidget } from "@/views/callout_citation_widget";
 import { CitationCache } from "@/cache/citationCache";
 import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
 import EquationCitator from "@/main";
 import { CitationPopover } from "@/views/citation_popover";
 import { FigureCitationPopover } from "@/views/figure_citation_popover";
+import { CalloutCitationPopover } from "@/views/callout_citation_popover";
 import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/string_processing/regexp_utils";
 import { renderEquationCitation } from "@/views/citation_widget";
 import { renderFigureCitation } from "@/views/figure_citation_render";
+import { renderCalloutCitation } from "@/views/callout_citation_render";
 import { find_array } from "@/utils/misc/array_utils";
 import { fastHash } from "@/utils/misc/hash_utils";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
@@ -177,16 +180,28 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                             const inSelection = sel.from < currentEqRange.to && sel.to > currentEqRange.from;
                             const text = state.sliceDoc(currentEqRange.from, currentEqRange.to);
 
-                            // Check for both equation and figure citations
+                            // Check for equation, figure, and callout citations
                             // Try equation citation first
                             const eqCm = matchNestedCitation(text, settings.citationPrefix);
                             // Try figure citation
                             const figCm = matchNestedCitation(text, settings.figCitationPrefix);
+                            // Try callout citations (check all configured prefixes)
+                            let calloutCm: ReturnType<typeof matchNestedCitation> = null;
+                            let matchedCalloutPrefix: string | null = null;
+                            for (const prefixConfig of settings.quoteCitationPrefixes) {
+                                const cm = matchNestedCitation(text, prefixConfig.prefix);
+                                if (cm) {
+                                    calloutCm = cm;
+                                    matchedCalloutPrefix = prefixConfig.prefix;
+                                    break;  // Use first matching prefix
+                                }
+                            }
 
-                            const cm = eqCm || figCm;
+                            const cm = eqCm || figCm || calloutCm;
                             if (!cm) return;
 
-                            const isFigureCitation = !eqCm && figCm;
+                            const isFigureCitation = !eqCm && figCm && !calloutCm;
+                            const isCalloutCitation = !eqCm && !figCm && calloutCm;
 
                             if (!inSelection && !inCursor) {
                                 // citations not in cursor, render full citations
@@ -202,26 +217,45 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                                         settings.fileCiteDelimiter
                                     ) : numbers; // split continuous citation tags if enabled
 
+                                // Determine widget type and citation type
+                                let widget: CitationWidget | FigureCitationWidget | CalloutCitationWidget;
+                                let citationType: string;
+
+                                if (isCalloutCitation && matchedCalloutPrefix) {
+                                    widget = new CalloutCitationWidget(
+                                        plugin,
+                                        currentFile.path,
+                                        matchedCalloutPrefix,
+                                        numbersAll,
+                                        currentEqRange,
+                                    );
+                                    citationType = "callout";
+                                } else if (isFigureCitation) {
+                                    widget = new FigureCitationWidget(
+                                        plugin,
+                                        currentFile.path,
+                                        numbersAll,
+                                        currentEqRange,
+                                    );
+                                    citationType = "figure";
+                                } else {
+                                    widget = new CitationWidget(
+                                        plugin,
+                                        currentFile.path,
+                                        numbersAll,
+                                        currentEqRange,
+                                    );
+                                    citationType = "equation";
+                                }
+
                                 builder.add(
                                     currentEqRange.from,
                                     currentEqRange.to,
                                     Decoration.replace({
-                                        widget: isFigureCitation
-                                            ? new FigureCitationWidget(
-                                                plugin,
-                                                currentFile.path,
-                                                numbersAll,
-                                                currentEqRange,
-                                            )
-                                            : new CitationWidget(
-                                                plugin,
-                                                currentFile.path,
-                                                numbersAll,
-                                                currentEqRange,
-                                            ),
+                                        widget,
                                         attributes: {
                                             "data-citation-id": citationId,
-                                            "data-citation-type": isFigureCitation ? "figure" : "equation"
+                                            "data-citation-type": citationType
                                         }
                                     })
                                 );
@@ -300,15 +334,28 @@ export async function mathCitationPostProcessor(
         citeSpans.forEach((span, index) => {  // no need to match for 2rd time here
             const citation = citations[index];
 
-            // Check if this is a figure citation or equation citation
+            // Check if this is a figure, equation, or callout citation
             const isFigureCitation = citation.label.startsWith(plugin.settings.figCitationPrefix);
             const isEquationCitation = citation.label.startsWith(citationPrefix);
 
-            if (!isFigureCitation && !isEquationCitation) return; // Skip if not a valid citation
+            // Check for callout citations
+            let isCalloutCitation = false;
+            let calloutPrefix: string | null = null;
+            for (const prefixConfig of plugin.settings.quoteCitationPrefixes) {
+                if (citation.label.startsWith(prefixConfig.prefix)) {
+                    isCalloutCitation = true;
+                    calloutPrefix = prefixConfig.prefix;
+                    break;
+                }
+            }
 
-            // Note: CitationRef.label includes the prefix (e.g., "fig:7" or "eq:1.1")
+            if (!isFigureCitation && !isEquationCitation && !isCalloutCitation) return; // Skip if not a valid citation
+
+            // Note: CitationRef.label includes the prefix (e.g., "fig:7", "eq:1.1", or "table:1.1")
             // We need to remove it before processing
-            const prefix = isFigureCitation ? plugin.settings.figCitationPrefix : citationPrefix;
+            const prefix = isCalloutCitation ? calloutPrefix :
+                          (isFigureCitation ? plugin.settings.figCitationPrefix : citationPrefix);
+            if (prefix === null) return;
             const label = citation.label.substring(prefix.length);  // get the actual label without prefix
             const numbers: string[] = label.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
             const numbersAll = plugin.settings.enableContinuousCitation ?
@@ -325,23 +372,34 @@ export async function mathCitationPostProcessor(
                 return;
             }
 
-            const citationWidget = isFigureCitation
-                ? renderFigureCitation(
+            const citationWidget = isCalloutCitation && calloutPrefix
+                ? renderCalloutCitation(
                     plugin,
                     ctx.sourcePath,
                     activeLeaf,
+                    calloutPrefix,
                     numbersAll,
                     true,
                 )
-                : renderEquationCitation(
-                    plugin,
-                    ctx.sourcePath,
-                    activeLeaf,
-                    numbersAll,
-                    true,
-                );
+                : (isFigureCitation
+                    ? renderFigureCitation(
+                        plugin,
+                        ctx.sourcePath,
+                        activeLeaf,
+                        numbersAll,
+                        true,
+                    )
+                    : renderEquationCitation(
+                        plugin,
+                        ctx.sourcePath,
+                        activeLeaf,
+                        numbersAll,
+                        true,
+                    ));
 
-            if (isFigureCitation) {
+            if (isCalloutCitation && calloutPrefix) {
+                addReadingModeCalloutPreviewListener(plugin, citationWidget, calloutPrefix, numbersAll, ctx.sourcePath);
+            } else if (isFigureCitation) {
                 addReadingModeFigurePreviewListener(plugin, citationWidget, numbersAll, ctx.sourcePath);
             } else {
                 addReadingModePreviewListener(plugin, citationWidget, numbersAll, ctx.sourcePath);
@@ -426,6 +484,58 @@ async function showReadingModeFigurePopover(
         activeLeaf,
         citationEl,
         figures,
+        sourcePath,
+        300
+    );
+
+    popover.onClose = function () {
+        popover = null;
+    };
+}
+
+function addReadingModeCalloutPreviewListener(
+    plugin: EquationCitator,
+    citationEl: HTMLElement,
+    prefix: string,
+    calloutTagsAll: string[],
+    sourcePath: string
+): void {
+    const citationSpans = citationEl.querySelectorAll('span.em-callout-citation');
+    citationSpans.forEach(span => {
+        span.addEventListener('mouseenter', async (event: MouseEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+            await showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath);
+        })
+    })
+}
+
+async function showReadingModeCalloutPopover(
+    plugin: EquationCitator,
+    citationEl: HTMLElement,
+    prefix: string,
+    calloutTagsAll: string[],
+    sourcePath: string
+): Promise<void> {
+    const mdView: MarkdownView | null = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+    const activeLeaf: WorkspaceLeaf | undefined = mdView?.leaf;
+    if (!activeLeaf) return;  // no active leaf found, skip popover
+
+    const callouts = await plugin.calloutServices.getCalloutsByTags(calloutTagsAll, prefix, sourcePath);
+    const cleanedCallouts = callouts.filter(c => c.tag && c.sourcePath && c.content);
+
+    if (cleanedCallouts.length === 0) {
+        Debugger.log(`No valid callouts found for citation: ${calloutTagsAll.join(', ')}`);
+        return;
+    }
+
+    let popover: CalloutCitationPopover | null = new CalloutCitationPopover(
+        plugin,
+        // @ts-ignore
+        activeLeaf,
+        citationEl,
+        prefix,
+        callouts,
         sourcePath,
         300
     );

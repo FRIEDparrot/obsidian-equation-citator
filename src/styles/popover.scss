@@ -273,3 +273,166 @@
   margin: 0.1em 0;
   display: inline-block;
 }
+
+// ------------ callout citation popover styles ------------
+
+/* Callouts container - similar to equations container */
+.em-callouts-container {
+    max-height: 280px;
+    overflow-x: auto;
+    overflow-y: auto;
+    padding: 2.4px 0;
+}
+
+/* Custom scrollbar for callouts */
+.em-callouts-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.em-callouts-container::-webkit-scrollbar-track {
+    background: var(--em-background-secondary);
+}
+
+.em-callouts-container::-webkit-scrollbar-thumb {
+    background: var(--em-background-modifier-border);
+    border-radius: 3px;
+}
+
+.em-callouts-container::-webkit-scrollbar-thumb:hover {
+    background: var(--em-text-faint);
+}
+
+.em-callout-option-container {
+    width: 100%;
+    overflow-x: auto;
+    display: flex;
+    margin: 0px;
+    padding: 3px 5px;
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+/* Individual callout wrapper */
+.em-callout-wrapper {
+    width: fit-content;
+    flex-grow: 1;
+    margin: 3px 12px;
+    padding: 2px 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: var(--em-background-primary);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.em-callout-wrapper:hover,
+.em-callout-wrapper.em-callout-hover {
+    border-color: var(--em-interactive-accent);
+    background: var(--em-background-primary-alt);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.em-callout-wrapper.em-callout-clicked {
+    border-color: var(--em-interactive-accent);
+    background: var(--em-background-modifier-hover);
+    box-shadow: 0 0 0 2px rgba(var(--em-interactive-accent-rgb), 0.2);
+}
+
+.em-callout-label-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Callout label */
+.em-callout-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--em-text-muted);
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+}
+
+.em-callout-number {
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.em-callout-markdown-filename {
+    font-size: 9px;
+    color: var(--em-text-faint);
+    margin-left: 5px;
+    max-width: 300px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Callout content */
+.em-callout-content {
+    color: var(--em-text-normal);
+    line-height: 1.5;
+    font-size: 13px;
+}
+
+.em-callout-content-container {
+    margin-top: 4px;
+}
+
+/* Callout error message */
+.em-callout-error {
+    color: var(--em-text-error);
+    font-style: italic;
+    font-size: 12px;
+}
+
+/* Callout content styling - handle tables and other content */
+.em-callout-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+
+.em-callout-content th,
+.em-callout-content td {
+    border: 1px solid var(--em-background-modifier-border);
+    padding: 4px 8px;
+    text-align: left;
+}
+
+.em-callout-content th {
+    background: var(--em-background-secondary);
+    font-weight: 600;
+}
+
+.em-callout-content p {
+    margin: 4px 0;
+}
+
+.em-callout-content code {
+    background: var(--em-background-modifier-border);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* Handle callout blocks within the preview */
+.em-callout-content .callout {
+    margin: 8px 0;
+}
+
+/* Responsive adjustments for callouts */
+@media (max-width: 480px) {
+    .em-callout-wrapper {
+        margin: 3px 6px;
+        padding: 6px 10px;
+    }
+}
+
+/* Dark theme specific adjustments for callouts */
+.theme-dark .em-callout-wrapper:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

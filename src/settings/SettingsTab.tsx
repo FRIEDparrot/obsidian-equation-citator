@@ -15,24 +15,34 @@ import { addEquationPanelSettingsTab } from "@/settings/pages/equationPanelSetti
 import { createCustomizePanel } from "@/settings/extensions/customizePanel";
 import { SETTINGS_METADATA } from "@/settings/defaultSettings";
 import { getAllSettingsByCategory } from "@/settings/settingsHelper";
+import { CalloutTableStyleManager } from '@/settings/styleManagers/calloutTabManager';
 
-//#region Style Settings Utilities
-export function resetStyles(): void {
-    ColorManager.resetAllColors(DEFAULT_SETTINGS);
-    WidgetSizeManager.resetAllSizes(DEFAULT_SETTINGS);
-}
 
 export interface UserSettingGroupConfig {
     basic ?: string[];
     advanced?: string[];
 }
 
+//#region Style Settings Utilities
+export function loadStyles(): void {
+    ColorManager.updateAllColors(DEFAULT_SETTINGS);
+    WidgetSizeManager.updateAllSizes(DEFAULT_SETTINGS);
+    CalloutTableStyleManager.update(DEFAULT_SETTINGS);
+}
+
+export function resetStyles(): void {
+    ColorManager.resetAllColors(DEFAULT_SETTINGS);
+    WidgetSizeManager.resetAllSizes(DEFAULT_SETTINGS);
+    CalloutTableStyleManager.cleanup();
+}
+
 /**
- * Cleans up all custom styles by removing style elements related to color and widget size.
+ * @summary Cleans up all custom styles by removing style elements related to color and widget size.
  */
 export function cleanUpStyles() {
     ColorManager.cleanup(); // remove the style element
     WidgetSizeManager.cleanUp();
+    CalloutTableStyleManager.cleanup();
 }
 //#endregion
 
@@ -346,7 +356,7 @@ export class SettingsTabView extends PluginSettingTab {
                 const upBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": "Move up" } });
                 setIcon(upBtn, "arrow-up");
                 upBtn.disabled = originalIndex === 0;
-                if (originalIndex === 0) upBtn.style.opacity = "0.3";
+                if (originalIndex === 0) upBtn.addClass("ec-reorder-btn-disabled");
 
                 upBtn.onclick = async () => {
                     const arr = panelType === "basic" ? this.plugin.settings.basicSettingsKeys : this.plugin.settings.advancedSettingsKeys;
@@ -362,7 +372,7 @@ export class SettingsTabView extends PluginSettingTab {
                 const downBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": "Move down" } });
                 setIcon(downBtn, "arrow-down");
                 downBtn.disabled = originalIndex === settingKeys.length - 1;
-                if (originalIndex === settingKeys.length - 1) downBtn.style.opacity = "0.3";
+                if (originalIndex === settingKeys.length - 1) downBtn.addClass("ec-reorder-btn-disabled");
 
                 downBtn.onclick = async () => {
                     const arr = panelType === "basic" ? this.plugin.settings.basicSettingsKeys : this.plugin.settings.advancedSettingsKeys;
@@ -375,7 +385,7 @@ export class SettingsTabView extends PluginSettingTab {
                 };
             }
 
-            const settingContent = settingWrapper.createDiv({ cls: "ec-setting-content", attr: { style: "flex: 1;" } });
+            const settingContent = settingWrapper.createDiv({ cls: "ec-setting-content" });
 
             // Render the actual setting
             metadata.renderCallback(settingContent, this.plugin, true);

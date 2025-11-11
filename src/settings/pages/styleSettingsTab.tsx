@@ -3,12 +3,14 @@ import { ColorManager } from "@/settings/styleManagers/colorManager";
 import EquationCitator from "@/main";
 import { Setting } from "obsidian";
 import { SETTINGS_METADATA } from "../defaultSettings";
+import { CalloutTableStyleManager } from "../styleManagers/calloutTabManager";
+
 
 export const StyleSettingsTab = {
     citationPopoverContainerWidth(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.citationPopoverContainerWidth;
         const equationPreviewWidgetWidthSetting = new Setting(containerEl);
-        
+
         equationPreviewWidgetWidthSetting.setName(name)
             .setDesc(desc)
             .addSlider((slider) => {
@@ -124,7 +126,7 @@ export const StyleSettingsTab = {
             });
         }
     },
-    
+
     citationWidgetColorDark(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.citationWidgetColorDark;
         const darkWidgetColorSetting = new Setting(containerEl);
@@ -142,14 +144,37 @@ export const StyleSettingsTab = {
                 });
             });
         }
-    }
+    },
+
+    enableCenterTableInCallout(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.enableCenterTableInCallout;
+        const setting = new Setting(containerEl);
+
+        setting.setName(name)
+            .setDesc(desc)
+            .addToggle(toggle => {
+                toggle.setValue(plugin.settings.enableCenterTableInCallout);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableCenterTableInCallout = value;
+                    await plugin.saveSettings();
+                    CalloutTableStyleManager.update(plugin.settings);
+                });
+            });
+    },
 }
 
+/**
+ * Adds the style settings to the settings tab
+ * @param containerEl The container element to add the settings to
+ * @param plugin The plugin instanc  
+ */
 export function addStyleSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     StyleSettingsTab.citationPopoverContainerWidth(containerEl, plugin);
     StyleSettingsTab.citationPopoverContainerHeight(containerEl, plugin);
     StyleSettingsTab.citationColor(containerEl, plugin);
     StyleSettingsTab.fileSuperScriptColor(containerEl, plugin);
+    StyleSettingsTab.fileSuperScriptHoverColor(containerEl, plugin);
     StyleSettingsTab.citationWidgetColor(containerEl, plugin);
     StyleSettingsTab.citationWidgetColorDark(containerEl, plugin);
+    StyleSettingsTab.enableCenterTableInCallout(containerEl, plugin);
 }

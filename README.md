@@ -1,11 +1,12 @@
 <center><div width="100%"><img src="./img/Equation_Citator_header.png" width="65%"></div></center>
 
-<center><span width="100%"><span>
+<center><div width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
-</span></span></center>
+</span></div></center>
+
 
 <center><b>English</b> | <a href="README_zh.md" target="_blank"><b>简体中文</b></a></center>
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4> </center> 
