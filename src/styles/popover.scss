@@ -436,3 +436,219 @@
 .theme-dark .em-callout-wrapper:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
+// ------------ figure citation popover styles ------------
+
+/* Figures container - similar to equations and callouts container */
+.em-figures-container {
+    max-height: 280px;
+    overflow-x: auto;
+    overflow-y: auto;
+    padding: 2.4px 0;
+}
+
+/* Custom scrollbar for figures */
+.em-figures-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.em-figures-container::-webkit-scrollbar-track {
+    background: var(--em-background-secondary);
+}
+
+.em-figures-container::-webkit-scrollbar-thumb {
+    background: var(--em-background-modifier-border);
+    border-radius: 3px;
+}
+
+.em-figures-container::-webkit-scrollbar-thumb:hover {
+    background: var(--em-text-faint);
+}
+
+.em-figure-option-container {
+    width: 100%;
+    overflow-x: auto;
+    display: flex;
+    margin: 0px;
+    padding: 3px 5px;
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+/* Individual figure wrapper */
+.em-figure-wrapper {
+    width: fit-content;
+    flex-grow: 1;
+    margin: 3px 12px;
+    padding: 2px 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: var(--em-background-primary);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.em-figure-wrapper:hover,
+.em-figure-wrapper.em-figure-hover {
+    border-color: var(--em-interactive-accent);
+    background: var(--em-background-primary-alt);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.em-figure-wrapper.em-figure-clicked {
+    border-color: var(--em-interactive-accent);
+    background: var(--em-background-modifier-hover);
+    box-shadow: 0 0 0 2px rgba(var(--em-interactive-accent-rgb), 0.2);
+}
+
+.em-figure-label-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Figure label */
+.em-figure-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--em-text-muted);
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+}
+
+.em-figure-number {
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.em-figure-markdown-filename {
+    font-size: 9px;
+    color: var(--em-text-faint);
+    margin-left: 5px;
+    max-width: 300px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Figure content */
+.em-figure-content {
+    color: var(--em-text-normal);
+    line-height: 1.5;
+    font-size: 13px;
+}
+
+/* Figure image container */
+.em-figure-image-container {
+    margin: 8px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Figure image with max width constraint */
+.em-figure-image {
+    max-width: var(--em-citation-popover-container-width);
+    max-height: 400px;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* Figure metadata (title and description) */
+.em-figure-metadata {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--em-background-modifier-border);
+    text-align: center;
+}
+
+.em-figure-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--em-text-normal);
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.em-figure-desc {
+    font-size: 13px;
+    color: var(--em-text-muted);
+    opacity: 0.7;
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* Figure error message */
+.em-figure-error {
+    color: var(--em-text-error);
+    font-style: italic;
+    font-size: 12px;
+    padding: 8px;
+}
+
+/* Responsive adjustments for figures */
+@media (max-width: 480px) {
+    .em-figure-wrapper {
+        margin: 3px 6px;
+        padding: 6px 10px;
+    }
+
+    .em-figure-image {
+        max-width: 100%;
+    }
+}
+
+/* Dark theme specific adjustments for figures */
+.theme-dark .em-figure-wrapper:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+// ------------ image caption styles (for live preview) ------------
+
+/* Center the internal embed when it has a caption */
+.internal-embed:has(.em-image-caption) {
+    display: block;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Center the image itself when it has a caption */
+.internal-embed:has(.em-image-caption) img {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Image caption container */
+.em-image-caption {
+    margin-top: 6px;
+    padding: 0;
+    background: transparent;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Image caption title (Fig. X.X title) */
+.em-image-caption-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--em-text-normal);
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+/* Image caption description */
+.em-image-caption-desc {
+    color: var(--em-text-muted);
+    opacity: 0.7;
+    font-style: normal;
+    font-size: 13px;
+    text-align: center;
+}

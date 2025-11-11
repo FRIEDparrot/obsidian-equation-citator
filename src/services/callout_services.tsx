@@ -40,6 +40,7 @@ export class CalloutServices {
         prefix: string,
         sourcePath: string
     ): Promise<RenderedCallout[]> {
+        Debugger.log(`getCalloutsByTags called with tags: ${JSON.stringify(calloutTagsAll)}, prefix: ${prefix}, sourcePath: ${sourcePath}`);
         const settings = this.plugin.settings;
         const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath) || [];
 
@@ -74,12 +75,15 @@ export class CalloutServices {
         });
 
         const validCallouts = callouts.filter(callout => callout.sourcePath !== null);
+        Debugger.log(`Created ${callouts.length} callouts, ${validCallouts.length} valid callouts`);
         if (validCallouts.length === 0) {
             Debugger.log("No valid callouts found");
             return [];
         }
 
-        return this.fillCalloutsContent(validCallouts, prefix);
+        const result = await this.fillCalloutsContent(validCallouts, prefix);
+        Debugger.log(`fillCalloutsContent returned ${result.length} callouts`);
+        return result;
     }
 
     /**
@@ -108,6 +112,8 @@ export class CalloutServices {
         return callouts.map(callout => {
             const fileCallouts = callout.sourcePath ? fileCalloutsMap.get(callout.sourcePath) : undefined;
             const matchedCallout = fileCallouts?.find(cached => cached.tag === callout.tag);
+
+            Debugger.log(`Matching callout tag "${callout.tag}" - found: ${matchedCallout ? 'yes' : 'no'}, available tags: ${fileCallouts?.map(c => c.tag).join(', ') || 'none'}`);
 
             return {
                 ...callout,
