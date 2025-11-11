@@ -7,15 +7,12 @@ import { EquationCitatorSettings } from "@/settings/defaultSettings";
 import { editorInfoField, MarkdownView } from "obsidian";
 import {
     CitationRef,
-    replaceCitationsInMarkdownWithSpan,
-    SpanStyles,
     splitContinuousCitationTags
 } from "@/utils/core/citation_utils";
 import { CitationWidget } from "@/views/citation_widget";
 import { FigureCitationWidget } from "@/views/figure_citation_widget";
 import { CalloutCitationWidget } from "@/views/callout_citation_widget";
 import { CitationCache } from "@/cache/citationCache";
-import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
 import EquationCitator from "@/main";
 import { CitationPopover } from "@/views/citation_popover";
 import { FigureCitationPopover } from "@/views/figure_citation_popover";
@@ -620,40 +617,6 @@ async function showReadingModePopover(
     popover.onClose = function () {
         popover = null;
     };
-}
-
-
-//////////////////////////  Make Markdown for PDF Export  ////////////////////////  
-
-/**
- * Replace all citations in markdown with HTML inline format for PDF rendering 
- * @note
- * Since the original PDF rendering function is not accessible,
- * and patching it is potentially unstable, we make a  markdown copy by replacing the 
- * markdown with HTML format with inline styles for PDF export to render correctly. 
- * 
- * This is admittedly a workaround—not elegant, and somewhat crude—
- *  but it is effective and stable in most practical cases.
- */
-export function makePrintMarkdown(md: string, settings: EquationCitatorSettings): string {
-    const rangeSymbol = settings.enableContinuousCitation ?
-        settings.continuousRangeSymbol || '~' : null;
-    const fileCiteDelimiter = settings.enableCrossFileCitation ?
-        settings.fileCiteDelimiter || '^' : DISABLED_DELIMITER;
-    const { citationColorInPdf } = settings;
-    const result = replaceCitationsInMarkdownWithSpan(
-        md,
-        settings.citationPrefix,
-        rangeSymbol,
-        settings.continuousDelimiters.split(' ').filter(d => d.trim()),
-        fileCiteDelimiter,
-        settings.multiCitationDelimiter || ',',
-        settings.citationFormat,
-        {
-            citationColorInPdf
-        } as SpanStyles,
-    );
-    return result;
 }
 
 /////////////////////////////// Image Caption Rendering /////////////////////////
