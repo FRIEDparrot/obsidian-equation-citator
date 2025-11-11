@@ -178,7 +178,7 @@ async function showFigurePopover(
         }
 
         // Show FigureCitationPopover with image preview
-        const popover = new FigureCitationPopover(
+        new FigureCitationPopover(
             plugin,
             parent,
             targetEl,

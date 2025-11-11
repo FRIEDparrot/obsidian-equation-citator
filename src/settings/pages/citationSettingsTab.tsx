@@ -1,6 +1,6 @@
 import { Notice, Setting } from "obsidian";
 import { addSubPanelToggle } from "@/settings/extensions/subPanelToggle";
-import { validateDelimiter, validateEquationDisplayFormat, containSafeCharAndNotBlank } from "@/utils/string_processing/string_utils";
+import { validateDelimiter, validateDisplayFormat, containSafeCharAndNotBlank } from "@/utils/string_processing/string_utils";
 import EquationCitator from "@/main";
 import { SETTINGS_METADATA } from "../defaultSettings";
 
@@ -70,7 +70,7 @@ export const CitationSettingsTab = {
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (newValue !== plugin.settings.citationFormat) {
-                        if (validateEquationDisplayFormat(newValue)) {
+                        if (validateDisplayFormat(newValue)) {
                             plugin.settings.citationFormat = newValue;
                             await plugin.saveSettings();
                         } else {
@@ -124,7 +124,11 @@ export const CitationSettingsTab = {
     },
 
     //#region  Continuous citation settings Groups  
-    enableContinuousCitation(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = true) {
+    enableContinuousCitation(
+        containerEl: HTMLElement,
+        plugin: EquationCitator,
+        renderSubpanel = true
+    ) {
         const renderContinuousCitationSetting = new Setting(containerEl);
         renderContinuousCitationSetting.setName(SETTINGS_METADATA.enableContinuousCitation.name)
             .setDesc(SETTINGS_METADATA.enableContinuousCitation.desc);
@@ -166,7 +170,7 @@ export const CitationSettingsTab = {
                 };
             });
     },
-    
+
     continuousDelimiters(panel: HTMLElement, plugin: EquationCitator) {
         new Setting(panel)
             .setName(SETTINGS_METADATA.continuousDelimiters.name)
@@ -270,10 +274,10 @@ export const CitationSettingsTab = {
                 text.inputEl.classList.add("ec-delimiter-input");
                 text.setPlaceholder("fig: #");
                 text.setValue(plugin.settings.figCitationFormat);
-                text.inputEl.onblur = async () => { 
+                text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
-                    if (newValue !== plugin.settings.figCitationFormat) { 
-                        if (validateEquationDisplayFormat(newValue)) {
+                    if (newValue !== plugin.settings.figCitationFormat) {
+                        if (validateDisplayFormat(newValue)) {
                             plugin.settings.figCitationFormat = newValue;
                             await plugin.saveSettings();
                         } else {
@@ -284,20 +288,20 @@ export const CitationSettingsTab = {
                 };
             })
     },
-    
+
     quoteCitationPrefixes(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
             .setName(SETTINGS_METADATA.quoteCitationPrefixes.name)
             .setDesc(SETTINGS_METADATA.quoteCitationPrefixes.desc);
-        
+
         // Container for the list of prefixes
         const prefixListContainer = containerEl.createDiv("ec-prefix-list-container");
 
         const renderPrefixList = () => {
             prefixListContainer.empty();
 
-            // Render each existing prefix
-            plugin.settings.quoteCitationPrefixes.forEach((prefix, index) => {
+            // Render each existing prefix with format
+            plugin.settings.quoteCitationPrefixes.forEach((item, index) => {
                 const setting = new Setting(prefixListContainer)
                     .setClass("ec-prefix-item");
 
@@ -305,42 +309,64 @@ export const CitationSettingsTab = {
                 setting.setName("");
                 setting.setDesc("");
 
-                // Add text input first (moves it to the front)
+                // Add prefix input
                 setting.addText((text) => {
                     text.inputEl.classList.add("ec-delimiter-input");
-                    text.setValue(prefix);
+                    text.setValue(item.prefix);
                     text.setPlaceholder("e.g., table:");
                     text.inputEl.onblur = async () => {
                         const newValue = text.getValue().trim();
                         if (!newValue.endsWith(":")) {
                             new Notice("Prefix must end with colon (:)");
-                            text.setValue(prefix);
+                            text.setValue(item.prefix);
                             return;
                         }
                         if (newValue === "title:" || newValue === "desc:") {
                             new Notice("'title:' and 'desc:' are reserved keywords and cannot be used as citation prefixes");
-                            text.setValue(prefix);
+                            text.setValue(item.prefix);
                             return;
                         }
                         if (!containSafeCharAndNotBlank(newValue)) {
                             new Notice("Invalid prefix: {}, $, or blank are not allowed");
-                            text.setValue(prefix);
+                            text.setValue(item.prefix);
                             return;
                         }
-                        if (newValue !== prefix) {
+                        if (newValue !== item.prefix) {
                             // Check for duplicates
-                            if (plugin.settings.quoteCitationPrefixes.includes(newValue)) {
+                            const exists = plugin.settings.quoteCitationPrefixes.some(
+                                (p, i) => i !== index && p.prefix === newValue
+                            );
+                            if (exists) {
                                 new Notice("This prefix already exists");
-                                text.setValue(prefix);
+                                text.setValue(item.prefix);
                                 return;
                             }
-                            plugin.settings.quoteCitationPrefixes[index] = newValue;
+                            plugin.settings.quoteCitationPrefixes[index].prefix = newValue;
                             await plugin.saveSettings();
                         }
                     };
                 });
 
-                // Add remove button after text input
+                // Add format input
+                setting.addText((text) => {
+                    text.inputEl.classList.add("ec-delimiter-input");
+                    text.setValue(item.format);
+                    text.setPlaceholder("e.g., Table. #");
+                    text.inputEl.onblur = async () => {
+                        const newValue = text.getValue().trim();
+                        if (!validateDisplayFormat(newValue)) {
+                            new Notice("Invalid format: must contain '#' placeholder");
+                            text.setValue(item.format);
+                            return;
+                        }
+                        if (newValue !== item.format) {
+                            plugin.settings.quoteCitationPrefixes[index].format = newValue;
+                            await plugin.saveSettings();
+                        }
+                    };
+                });
+                
+                // Add remove button after text inputs
                 setting.addButton((button) => {
                     button.setButtonText("Remove")
                         .setClass("mod-warning")
@@ -362,11 +388,15 @@ export const CitationSettingsTab = {
                             // Find a unique default prefix
                             let newPrefix = "custom:";
                             let counter = 1;
-                            while (plugin.settings.quoteCitationPrefixes.includes(newPrefix)) {
+                            const existingPrefixes = plugin.settings.quoteCitationPrefixes.map(p => p.prefix);
+                            while (existingPrefixes.includes(newPrefix)) {
                                 newPrefix = `custom${counter}:`;
                                 counter++;
                             }
-                            plugin.settings.quoteCitationPrefixes.push(newPrefix);
+                            plugin.settings.quoteCitationPrefixes.push({
+                                prefix: newPrefix,
+                                format: "Custom. #"
+                            });
                             plugin.saveSettings();
                             renderPrefixList();
                         });

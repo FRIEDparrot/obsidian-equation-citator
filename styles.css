@@ -1188,9 +1188,9 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 .ec-prefix-item .setting-item-control input {
   flex: 0 0 auto;
-  width: 120px;
-  max-width: 150px;
-  margin: 0;
+  width: 140px;
+  max-width: 160px;
+  margin: 0 4px 0 0;
 }
 .ec-prefix-item .setting-item-control button {
   margin: 0;

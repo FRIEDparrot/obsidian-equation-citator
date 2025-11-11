@@ -8,12 +8,17 @@ import { PdfExportSettingsTab } from "./pages/pdfExportSettingsTab";
 import { OtherSettingsTab } from "./pages/OtherSettingsTab";
 import { EquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
 
+export interface QuoteCitationPrefix {
+    prefix: string;   // e.g., "table:", "thm:", "def:"
+    format: string;   // e.g., "Table. #", "Theorem #", "Definition #"
+}
+
 export interface SettingsMetadata {
     name: string;
-    desc: string; // description 
+    desc: string; // description
     type: "string" | "number" | "boolean" | "select" | "color" | "array";
     renderCallback: (el: HTMLElement, plugin: EquationCitator, renderSubpanel?: boolean) => void; // optional callback to render the value in the UI
-    favoriate?: boolean; // whether to show this setting in the basic section 
+    favoriate?: boolean; // whether to show this setting in the basic section
     hasSubPanel?: boolean; // whether this setting can have a subpanel to render
 }
 
@@ -23,11 +28,11 @@ export interface EquationCitatorSettings {
     enableCitationInSourceMode: boolean; // Enable citation in source mode 
 
     citationPrefix: string; // Citation prefix for equations
-    citationFormat: string; // Citation display format for equations 
-    
+    citationFormat: string; // Citation display format for equations
+
     figCitationPrefix: string; // Figure Citation Prefix
-    figCitationFormat: string; // citation display format for figures 
-    quoteCitationPrefixes: string[];  // Citation prefix for quotes 
+    figCitationFormat: string; // citation display format for figures
+    quoteCitationPrefixes: QuoteCitationPrefix[];  // Citation prefixes and formats for callouts/quotes 
 
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
     multiCitationDelimiterRender: string; // Rendered delimiter for multiple citations in a single cite
@@ -94,11 +99,13 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
     citationPopoverContainerWidth: 500, // Default to 370px for preview widget width 
     citationPopoverContainerHeight: 400, // Default to 400px for preview widget height 
-    citationPrefix: "eq:", // Default prefix for citations 
-    citationFormat: "(#)", // Default display format for citations  
-    figCitationPrefix: "fig:", // prefix for cite figures 
-    figCitationFormat: "Fig. #", // citation format for figures 
-    quoteCitationPrefixes: ["table:"], 
+    citationPrefix: "eq:", // Default prefix for citations
+    citationFormat: "(#)", // Default display format for citations
+    figCitationPrefix: "fig:", // prefix for cite figures
+    figCitationFormat: "Fig. #", // citation format for figures
+    quoteCitationPrefixes: [
+        { prefix: "table:", format: "Table. #" },
+    ], 
     citationColor: "#a288f9",
     citationHoverColor: "#c5b6fc",
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite

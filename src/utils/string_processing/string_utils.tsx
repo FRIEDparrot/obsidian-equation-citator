@@ -34,7 +34,7 @@ export function validateLetterPrefix(prefix: string): boolean {
     return /^[a-zA-Z]+$/.test(prefix);
 }
 
-export function validateEquationDisplayFormat(format: string): boolean {
+export function validateDisplayFormat(format: string): boolean {
     // must contain only one `#` symbol
     return format.split("#").length === 2;
 }
