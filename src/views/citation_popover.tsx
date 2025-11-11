@@ -5,9 +5,7 @@ import {
     Component,
     HoverPopover,
     HoverParent,
-    TFile,
     MarkdownView,
-    EditorRange,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
 
@@ -18,8 +16,8 @@ export class TargetElComponent extends Component {
 }
 
 import { RenderedEquation } from "@/services/equation_services";
-import { EquationMatch, parseFirstEquationInMarkdown } from "@/utils/equation_utils";
-import { getLeafByElement } from "@/utils/workspace_utils";
+import { getLeafByElement } from "@/utils/workspace/workspace_utils";
+import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigation";
 
 /**
  * Citaton Popover Class, render the equations in the popover 
@@ -67,8 +65,17 @@ export class CitationPopover extends HoverPopover {
         // Create header
         const header = container.createDiv();
         header.addClass("em-citation-header");
+
         header.createEl("h3", { text: "Referenced Equations", cls: "em-citation-title" });
-        
+        const footerSpan = header.createEl("div", {
+            cls: "em-citation-title-note",
+        });
+
+        footerSpan.createDiv(); // placeholder  
+        footerSpan.createDiv({
+            text: "shift + scroll to scroll horizontally",
+            cls: "em-citation-title-note-text",
+        })
         // Create content wrapper
         const content = container.createDiv();
         content.addClass("em-citation-content");
@@ -201,59 +208,16 @@ function addClickEffects(equationWrapper: HTMLElement): void {
     });
 }
 
-async function scrollToTag(plugin: EquationCitator, tag: string): Promise<void> {
-    // get current file path
-    const filePath = plugin.app.workspace.getActiveFile()?.path;
-    if (!filePath) {
-        return;
-    }
-    const file = plugin.app.vault.getAbstractFileByPath(filePath);
-    if (!(file instanceof TFile)) {
-        return;
-    }
-    const md = await plugin.app.vault.cachedRead(file);
-    const match: EquationMatch | undefined = parseFirstEquationInMarkdown(md, tag);
-    if (!match) {
-        Debugger.log("can't find equation with tag: " + tag + " in file: " + filePath);
-        return;
-    }
-    const lineStart = match.lineStart;
-    // scroll to the first equation with tag  
-    const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || !view.editor) {
-        Debugger.log("can't find active view or editor");
-        return;
-    }
-    // live preview mode
-    const editor = view.editor;
-    // set cursor first
-    const tryScroll = (retries = 5) => {
-        if (editor.lineCount() >= lineStart) {
-            editor.setCursor({ line: lineStart, ch: 0 });
-            const scrollRange: EditorRange = { from: { line: lineStart, ch: 0 }, to: { line: lineStart, ch: 0 } };
-            editor.scrollIntoView(scrollRange, true); 
-        } else if (retries > 0) {
-            Debugger.log(`line count ` + editor.lineCount() + ` is less than lineStart ` + lineStart + `, retrying...`);
-            setTimeout(() => {
-                tryScroll(retries - 1);
-            }, 350);
-        } else if (retries === 0) {
-            Debugger.log(`failed to scroll to line ${lineStart} in file ${filePath}`);
-        }
-    };
-    tryScroll();
-}
-
 function addClickLinkJump(
-    plugin: EquationCitator, 
-    equationWrapper: HTMLElement, 
+    plugin: EquationCitator,
+    equationWrapper: HTMLElement,
     eq: RenderedEquation,
-    leaf: WorkspaceLeaf, 
+    leaf: WorkspaceLeaf,
 ): void {
-    // double-click to jump to the equation file 
+    // double-click to jump to the equation file
     equationWrapper.addEventListener('dblclick', async (event) => {
         if (!eq.sourcePath || !eq.tag) {
-            return;   // no valid equation file or tag 
+            return;   // no valid equation file or tag
         }
         const view = leaf.view;
         if (!(view instanceof MarkdownView)) return;
@@ -262,19 +226,13 @@ function addClickLinkJump(
             new Notice("Link jump is not supported in reading mode. Use Live Preview instead.");
             return;
         }
-        const ctrlKey = (event.ctrlKey || event.metaKey)
-        const targetLeaf = ctrlKey ?
-            plugin.app.workspace.getLeaf("split") :
-            view.leaf;  // open in new pane if ctrl key is pressed
-        if (!targetLeaf) return; 
-        plugin.app.workspace.setActiveLeaf(targetLeaf, { focus: true });
-        plugin.app.workspace.openLinkText("", eq.sourcePath, false);
-        // scroll to the first equation with tag
-        plugin.app.workspace.onLayoutReady(async () => {
-            // ensure the layout is ready before scrolling to the tag  
-            setTimeout(async() => {
-                await scrollToTag(plugin, eq.tag);
-            }, 50);
-        })
+        const ctrlKey = (event.ctrlKey || event.metaKey);
+        await openFileAndScrollToEquation(
+            plugin,
+            eq.sourcePath,
+            eq.tag,
+            ctrlKey,  // open in split if ctrl key is pressed
+            view.leaf  // current leaf: used for opening when not splitting, or excluded when splitting
+        );
     });
 }

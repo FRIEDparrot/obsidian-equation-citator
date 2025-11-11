@@ -1,137 +1,84 @@
-<h1> <center> Obsidian Equation Citator </center> </h1>
+<center><div width="100%"><img src="./img/Equation_Citator_header.png" width="65%"></div></center>
 
-<center><span>
-  <img src="https://img.shields.io/badge/Latest%20Version-1.2.6-blue" alt="Release">
+<center><div width="100%"><span>
+  <img src="https://img.shields.io/badge/Version-1.3.0-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
-	<a href=""><img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=downloads"></a>
+    <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads" alt="Downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
-</span></center>
+</span></div></center>
+<center><b>English</b> | <a href="README_zh.md" target="_blank"><b>简体中文</b></a></center>
+<center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4> </center> 
 
-<center>
-    <div><small> First Release : Aug 3, 2025       Last Updated : Sep 30, 2025 </small></div>
-</center>
-<p></p>
+---
 
-**5 mins Quick Start** : see [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) 
+🚀 **Quick Start** : see [Full Tutorial Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Quick%20Start.md) for basic rules, syntax, and most important operations. It only takes < 5 mins but will make everything go smoothly.
 
-**Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) 
+✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details. 
 
-**Video Tutorial**: I'll make a video tutorial if this plugin has 5000 downloads (in obsidian community plugin) or this repo gets 50 stars.
+📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
-## How to use this plugin? 
+## 🛠️ Installation 
+1.  You can download it from community plugins After this plugin is published in obsidian vault (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`). 
 
-You can download following 3 files in the latest release page :
-```sh
-main.js
-manifest.json
-style.css
-```
-and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault.  
+2.  OR you can just download `main.js`,`manifest.json` and `style.css` in the latest release page and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault. 
 
-Also after this plugin is published in obsidian, you can download it from community plugins. 
+## ✨ What this plugin do 
 
-## Introduction & Simple Examples
-Obsidian-Equation-Citator is a plugin that provides a simple and elegant way to write in-line equation citation cite equations in obsidian just like `\ref{}` label in latex.
+### 1. ⚡ **Auto-number equations by heading level** 
 
-Here is a simple examples to show how it works.
-```
-$$ E = mc^2 \tag{A} $$
+**Auto number all the equations in by simply 1 click on the sidebar icon**  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-function-icon lucide-square-function"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 17c2 0 2.8-1 2.8-2.8V10c0-2 1-3.3 3.2-3"/><path d="M9 11.2h5.7"/></svg> 
+, making them to be super easy to manage and cite. (Citations will be auto-updated so you can easily insert or delete any equation)
 
-This is an equation $\ref{eq:A}$.
-```
+<center><img src="img\auto_number_vid.gif" alt="auto-number" style="zoom: 50%;" /></center>
 
-this will be rendered as follows (support both light and dark theme) : 
+### 2. 🖥️ **Compact Equation Manage Panel, Cite by Drag and Drop**
 
+Cite equations by drag and drop from equation manage panel. multiple equation citations and cross-file citation are all supported. 
 
-<center><img src="img\most-simple-equation.png" alt="most-simple-equation" style="zoom:67%; max-height: 350px; " /></center>
+<center><img src="img\drag-drop-cite.gif" alt="drag-drop-cite" style="zoom: 50%;" /></center>
 
+### 3. 🖼️ Cite Images, Tables and Even Theorems 
 
-- Why this plugin?
-  - While the existing plugin [Math Booster](<https://www.obsidianstats.com/plugins/math-booster>) (or `LaTeX-like Theorem & Equation Referencer` now) also provides equation citation in obsidian (since it's based on latex, it can't do cross-file citation and outline-based equation autonumber). Equation citator is focused on providing an **easy-to-use, light-weight but more powerful, elegant, and full customizable citation experience**. 
+Cite images by adding field to it. Cite tables and theorems by quote citation feature. 
 
-- This plugin would be very helpful if you : 
-  - have habit of adding `\tag{}` in equation blocks, and want to have a elegant and powerful way to cite them. 
-  - don't want to add ugly block reference `^` in your equation blocks for reference, and make your citation more organized and clean. 
+<center><img src="img\image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px; " /></center>
 
-> [!warning] 
-> You should follow some very simple rules to make this plugin work properly, 
-> please check [Full Tutorial & Guidelines](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for details. 
->
-> If an issue occurs because of you are not following such rules, such issue may be closed without being fixed. 
+### 4.  📜**PDF export support**  
+Not export PDF directly, Run command `Make markdown copy to export PDF` to make a full PDF ready for you to export. 
 
-## Main Features
-### 1.  🚀 **Make citations, Preview, Easy jump and Rename Tags**
+<center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:100%; max-height: 350px; " /></center>
 
-Use simple inline `$\ref{eq:A}$` format to cite equation block with `\tag{A}` and preview it just as links in obsidian.  
+## 🚨 Disclaimer
 
-`Ctrl + hover` to preview the equation of following tag (just hover when in reading mode). `double click` to jump to location of equation, or `ctrl + double click` to open on the right and jump
+This plugin can edit and update files in your Obsidian vault.
 
-**Select tag (`\tag{1.2}`) and right click to rename tag**, and its **citation will be automatically updated**. 
+Although it has been thoroughly tested on multiple versions and used daily on my own vault for several months without data loss, unexpected bugs may still occur — especially when new features are introduced.
 
-<center><img src="img\rename_tag.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px; " /></center>
+To protect your data, I strongly recommend enabling the “File Recovery” core plugin (or keeping regular backups) before using this plugin.
 
+While I cannot take responsibility for data loss caused by bugs or unexpected behavior, I take reports seriously and will investigate and fix any critical issues that cause data loss as quickly as possible.
 
-### 2.  🔗**Cross-file citation, Multi/Consecutive citation**
+##  🐛 Bug & Reports 
 
-- Cross-file citation is supported by **footnote format**. Citing several equations by delimiter `,` is also supported. 
-
-- Use consecutive format (`~`) to cite multiple equations. 
-
-```sh
-# for example
-$\ref{eq:1^1.3.1~3, 1^2.1.1~2}$
-# but we recommend this nested format after version 1.2.2 : 
-$\ref{eq:1^{1.3.1~3}, 1^{2.1.1~2}}$ 
-```
-
-<center><img src="img\crossfile_jump.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px; " /></center>
-
-### 3.  ✈️ **Auto complete citations** 
-
-Suggest you available equations when adding citations and fill in the equation number in 1-click : 
-
-<center><img src="img\auto-complete.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 750px;" /></center>
-
-
-### 4. ⚡**One-click outline-based Equation AutoNumber**
-
-**Auto number all the equations in by one click on the sidebar icon**  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-function-icon lucide-square-function"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 17c2 0 2.8-1 2.8-2.8V10c0-2 1-3.3 3.2-3"/><path d="M9 11.2h5.7"/></svg> 
- :
-
-
-<center><img src="img\auto_number_vid.gif" alt="continuous-cross-file" style="zoom:67%; max-height: 500px; " /></center>
-
-### 5.  📜**PDF export support** 
-
-Original PDF export in obsidian can fail to render citation, so a command `Make markdown copy to export PDF` is provided to make markdown for export to pdf correctly. 
-
-<center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:67%; max-height: 350px; " /></center>
-
-## Bugs & Suggestions
-
-Since it's a new plugin, some bugs or issues may still exist. If you encounter any, please provide the following information on the issue page (if this is a feature coming soon, please not comment on the issue page, but wait for the release update) : 
-
+If you encounter any bug, please **provide the following information** on the issue page : 
 1.  A description of the bug or issue, along with steps to reproduce it.
 2.  The relevant markdown text that triggers the issue.  
 3.  Enable debug mode in the settings tab, and provide the console log (Ctrl + Shift + I in Obsidian). 
 
 > [!TIP] 
-> Since this plugin have cache mechanism for better performance, some problems like delay or no in-time update (like a little delay for citation update) may happens. So you may wait several seconds, or re-open file or restart obsidian to ensure your issue is not just a normal cache-related behavior.
+> Since this plugin have cache mechanism for better performance, normal delay or no in-time update is a normal cache-related behavior. So you may wait several seconds, or re-open file or restart obsidian to ensure your issue is not just a normal cache-related behavior.
 
-If u have knowledge about plugin development, you can also find which function is causing the bug or issue, provide testing cases or make pull requests to fix the bug or issue. 
 
-Also, if u have any suggestion or question for this plugin, feel free to leave it in the issue page.
+## 💖 Support and Collaboration 
 
-> [!note] 
-> **Contributors and maintainers are always welcome!**
->
-> I developed this plugin to help my daily work and follow my personal interests. It's totally free, I would be very glad if anyone can fork this repo and help me to maintain this plugin (since I'm busy during school time). 
->
-> You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**). 
->
-> Very appreciate for your contributions!
-> 
+I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. 
 
-You can also :  
+**Contributors and maintainers are always welcome** :
+- You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**).   
+- I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
 
-<center><a href='https://ko-fi.com/Z8Z81N7CMO' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a></center>
+Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
+
+Finally, if you find this plugin helpful, consider buy me a cup of ☕️:
+
+<center><a href='https://ko-fi.com/Z8Z81N7CMO'  target='_blank'><img src="./img/friedparrot-kofi.jpg" width="350px" style="border-radius:15px"></img></a></center>

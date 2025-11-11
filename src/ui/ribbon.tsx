@@ -1,6 +1,9 @@
 import { MarkdownView } from 'obsidian';
 import { autoNumberCurrentFileEquations } from '@/func/autoNumber';
 import EquationCitator from '@/main';
+import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
+import { invokeView } from '@/utils/workspace/invokePanelView';
+
 
 export default function registerRibbonButton(plugin: EquationCitator) {
     plugin.addRibbonIcon('square-function', 'Auto-number Current File Equations', async () => {
@@ -12,5 +15,9 @@ export default function registerRibbonButton(plugin: EquationCitator) {
         setTimeout(() => {
             editor.scrollTo(scrollInfo.left, scrollInfo.top);
         }, 50); // delay to allow the editor to update the scroll position
+    });
+
+    plugin.addRibbonIcon('square-pi', 'Open Equation Arrange Panel', () => {
+        invokeView(plugin, EQUATION_MANAGE_PANEL_TYPE);       
     });
 }

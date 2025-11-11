@@ -1,5 +1,8 @@
 # vscode
 .vscode 
+.claude 
+.github
+tests
 
 # backup 
 backup/*
@@ -14,6 +17,7 @@ node_modules
 # Don't include the compiled main.js file in the repo.
 # They should be uploaded to GitHub releases instead.
 main.js
+style.css
 
 # Exclude sourcemaps
 *.map

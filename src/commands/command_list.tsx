@@ -2,9 +2,11 @@ import EquationCitator from '@/main';
 import { autoNumberCurrentFileEquations, insertAutoNumberTag } from '@/func/autoNumber';
 import { MarkdownView } from 'obsidian';
 import { exportCurrentMarkdown } from '@/func/exportMarkdown';
-import { insertTextWithCursorOffset } from '@/func/insertTextOnCursor';
-import { createCitationString, createEquationTagString } from '@/utils/regexp_utils';
+import { insertTextWithCursorOffset } from '@/utils/workspace/insertTextOnCursor';
+import { createCitationString, createEquationTagString } from '@/utils/string_processing/regexp_utils';
 import { Notice } from 'obsidian';
+import { invokeView } from '@/utils/workspace/invokePanelView';
+import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
@@ -22,6 +24,18 @@ export default function registerCommands(plugin: EquationCitator) {
             }, 50); // delay to allow the editor to update the scroll position 
         }
     });
+
+    plugin.addCommand({
+        id: 'insert-citation-on-cursor-position',
+        name: 'Insert a citation on cursor position',
+        callback: () => {
+            const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+            if (!editor) return;
+            const citeString = createCitationString("");
+            // Move cursor inside the braces
+            insertTextWithCursorOffset(editor, citeString, 6);
+        }
+    })
 
     plugin.addCommand({
         id: 'insert-equation-citation-on-cursor-position',
@@ -71,6 +85,14 @@ export default function registerCommands(plugin: EquationCitator) {
         callback: async () => {
             await plugin.clearCaches();
             new Notice("All caches cleared"); 
+        }
+    })
+
+    plugin.addCommand({
+        id: 'open-equation-manage-panel',
+        name: 'Open equation manage panel',
+        callback: async () => {
+            await invokeView(plugin, EQUATION_MANAGE_PANEL_TYPE)
         }
     })
 }

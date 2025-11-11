@@ -2,58 +2,9 @@
 This is SCSS file for compile the CSS file for equation_citator plugin. 
 */
 @use "popover";
+@use "panels";
 @use "variables";
-
-
-/* element styles  in settings tab */
-.ec-settings-title,
-.ec-settings-header {
-    margin-top: 15px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: orange;
-}
-
-.ec-settings-title {
-    font-size: 25px;
-}
-
-.ec-settings-header {
-    font-size: 20px;
-}
-
-.ec-settings-nodelimter {
-    border-top: none; 
-    margin-top: 2px;
-    padding-top: 0px;
-}
-
-.ec-delimiter-input,
-.ec-multi-delimiter-input {
-    height: 20px;
-    margin-bottom: 10px;
-    text-align: center;
-    vertical-align: middle;
-    font-size: 14px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-}
-
-.ec-delimiter-input {
-    width: 75px;
-}
-
-.ec-multi-delimiter-input {
-    width: 120px;
-}
-
-.ec-settings-warning {
-    color: red; 
-    font-weight: bold;
-    margin-bottom: 10px;
-    font-size: 14px; 
-}
+@use "settings";
 
 /* Regular citation styles for live preview and reading mode */
 .em-math-citation-container {

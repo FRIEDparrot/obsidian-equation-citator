@@ -1,4 +1,6 @@
-## Update Changelog for Equation Citator Plugin 
+# Update Changelog for Equation Citator Plugin 
+
+## 1.0 - 1.1 Version Series  
 
 ### Version 1.0.0 
 Version 1.0.0 - Initial release  
@@ -23,13 +25,13 @@ Other Fixes ([Pull Request #7298](https://github.com/obsidianmd/obsidian-release
 1. Fix: Use `app.fileManager.trashFile(file: TAbstractFile)` instead of `delete()` to delete files. 
 2. Change Color Setting Mechanisms to avoid directly setting style by Javascipt. All `setProperty()` are now removed. 
 3. All the setting callback functions are used `async` to ensure the settings save correctly. and add `Debugger.log` For Debugging. 
-4. Remove unsaft `innerHTML` operations  
+4. Remove unsafe `innerHTML` operations  
 
 ✨ New Features :  
 1. Auto-Complete Feature is now available! 
 2. Preview for Equations is now available in Reading mode!
 
-
+## 1.2 - 1.2.x Version Series 
 ### Version 1.2.0  
 Version 1.2.0 - functionally improvements.  
 
@@ -174,3 +176,39 @@ Version 1.2.6 - bug fixes
 🚀 Enhancements: 
 - [x] Add enhancement [#61](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/61), enhancement when autocomplete in continuous citations. 
 - [x] Add enhancement [#62](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/62), add option to manually clear cache in settings tab. 
+
+
+## 1.3 - 1.3.x Version Series
+### Version 1.3.0 
+
+Version 1.3.0 - New features, Refactors, Main improvements and User friendly improvements.
+
+🐛 Bug Fixes : 
+- [x] Fix [bug #70](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/70), the auto-numbering behavior is now fixed. 
+
+⭐ New Features :
+- [x] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before. **No more annoying scrolling**.   
+- [x] **Citation for figures** (from [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7) by Akucecomma) are now supported, titles, numbers and descriptions. 
+- [x] **Citations for Callout**, We can add tables to callout to make a citation to it. This feature also gives you flexibility to cite tables, text pieces and even theorems (quote all tables in callout to cite it). 
+- [x] Add PDF export support for figures and callouts. 
+- [x] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
+  - [x] **Outline View, filter and collapse** : Both List view and outline view are supported.
+  - [x] **Drag-and Drop to citation** : You can now drag-and-drop equation from equations management panel to cite it.
+  - [x] **Support the cross-file citations by dragging** 
+  - [x] **Prompt when drag no-tag equations** 
+  - [x] **Dynamic Update panel when change file and type in editor**
+  - [x] **interactive** : support double-click jump and ctrl + double-click (new panel+jump)
+
+🏗️ Refactors : 
+- [x] For settings part, refactor code and split it into mutlitple modules, now.
+
+🚀Enhancements & improvements : 
+- [x] Add [enhancement #50](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/50), better behavior for relocating cursor after auto-number equations. 
+- [x] When jump to equations in another panel now check if there already a panel of this file, and jump in this panel if there is. 
+- [x] Now debugging mode configurations will be saved after restarting Obsidian, so you needn't toggle debug mode every time. 
+- [x] Remake a brand-new and more concise tutorial. 
+- [x] Remake Readme file to be more friendly and concise. Also add a Chinese translation of Readme. 
+
+### 🚢 Comming Soon : 
+1. Auto-number and citation complete add for tables and figures 
+2. Check citations of figures and tables, all in one 😄

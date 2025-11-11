@@ -1,0 +1,332 @@
+.ec-manage-panel-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px 5px;
+}
+
+.ec-manage-panel-toolbar {
+    display: flex;
+    max-width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 15px;
+    align-items: center;
+    margin: 5px 20px 10px;
+}
+
+.ec-search-input {
+    flex: 1;
+    padding: 5px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 14px;
+
+    &:focus {
+        outline: none;
+        border-color: var(--interactive-accent);
+    }
+}
+
+.ec-equation-list-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-empty-message {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 20px;
+    font-style: italic;
+}
+
+/* List View Styles */
+.ec-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Outline View Styles */
+.ec-outline-view {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ec-heading-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-heading-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+
+    &.ec-clickable {
+        cursor: pointer;
+
+        &:hover {
+            background-color: var(--background-modifier-hover);
+        }
+    }
+}
+
+// Padding for different heading levels based on absolute level
+@for $i from 1 through 6 {
+    .ec-heading-level-#{$i} .ec-heading-header {
+        padding-left: calc(8px + #{($i - 1) * 16px});
+    }
+
+    .ec-heading-level-#{$i} .ec-heading-equations {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+}
+
+.ec-heading-level-7 {
+    padding-left: 8px;
+    /* no-heading level */
+}
+
+// Special styling for no-heading group
+.ec-no-heading-group {
+    .ec-heading-header {
+        padding-left: 8px; // Override level-based padding
+    }
+
+    .ec-heading-equations {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    .ec-heading-text {
+        font-style: italic;
+        color: var(--text-muted);
+    }
+}
+
+.ec-heading-text-1:hover::after,
+.ec-heading-text-2:hover::after,
+.ec-heading-text-3:hover::after,
+.ec-heading-text-4:hover::after,
+.ec-heading-text-5:hover::after,
+.ec-heading-text-6:hover::after {
+    color: var(--interactive-accent);
+    font-size: 12px;
+    padding-left: 10px;
+}
+
+.ec-heading-text-1:hover::after {
+    content: "#1";
+}
+
+.ec-heading-text-2:hover::after {
+    content: "#2";
+}
+
+.ec-heading-text-3:hover::after {
+    content: "#3";
+}
+
+.ec-heading-text-4:hover::after {
+    content: "#4";
+}
+
+.ec-heading-text-5:hover::after {
+    content: "#5";
+}
+
+.ec-heading-text-6:hover::after {
+    content: "#6";
+}
+
+
+.ec-collapse-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+
+    &.ec-clickable {
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+
+        &:hover {
+            background-color: var(--background-modifier-hover);
+        }
+    }
+}
+
+.ec-collapse-icon-placeholder {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.ec-heading-text {
+    flex: 1;
+    color: var(--text-normal);
+    font-size: 14px;
+}
+
+.ec-equation-count {
+    flex-shrink: 0;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+}
+
+.ec-heading-equations {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;  // same as ec-list-view
+    margin-top: 6px;
+    margin-left: 2px;
+}
+
+/* Equation Item Styles */
+.ec-equation-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background-color: var(--background-primary);
+    cursor: grab;
+    transition: all 0.2s;
+    position: relative;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+        border-color: var(--interactive-accent);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    &[draggable="true"] {
+        user-select: none;
+    } 
+    /* Visual cue on the dragged equation */
+    &.ec-is-dragging {
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+        &:hover {
+            cursor: grabbing;
+        }
+    }
+}
+
+/* drag cursor rendered at drop location as CM6 widget */
+.ec-drag-cursor {
+    display: inline-block;
+    width: 1px;
+    height: 1.2em;
+    background-color: var(--em-text-normal, #2f3133);
+    border-radius: 1px;
+    pointer-events: none;
+    vertical-align: text-bottom;
+    animation: ec-cursor-blink 1s step-end infinite;
+}
+
+/* Blinking animation for drag cursor */
+@keyframes ec-cursor-blink {
+    0%, 49% {
+        opacity: 1;
+    }
+    50%, 100% {
+        opacity: 0.3;
+    }
+}
+
+.ec-equation-tag {
+    position: absolute;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.8;
+}
+
+.ec-tag-show .ec-equation-tag {
+    display: flex;
+}
+
+
+.ec-tag-text {
+    font-family: var(--font-monospace);
+    font-size: 12px;
+    color: var(--interactive-accent);
+    background-color: var(--background-modifier-border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.ec-equation-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-equation-math {
+    font-size: 14px;
+    overflow-x: auto;
+
+    /* Style the rendered math */
+    .math {
+        font-size: 1em;
+    }
+    
+    mjx-container {
+        margin: 0;
+    }
+}
+
+/* Tag Input Modal Styles */
+.ec-modal-description {
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.ec-tag-input-modal {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 16px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+
+    &:focus {
+        outline: none;
+        border-color: var(--interactive-accent);
+    }
+}
+
+.ec-modal-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}

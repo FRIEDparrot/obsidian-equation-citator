@@ -7,7 +7,7 @@ export default class Debugger {
         return Debugger._debugMode;
     }
 
-    public static  set debugMode(value: boolean) {
+    public static set debugMode(value: boolean) {
         Debugger._debugMode = value;
     }
 

@@ -70,10 +70,25 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   border-bottom: 1px solid var(--em-background-modifier-border);
 }
 
+.em-citation-title-note {
+  height: 0.35em;
+  margin: 0.5px 5px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.em-citation-title-note-text {
+  font-size: x-small;
+  color: var(--em-text-muted);
+}
+
 .em-citation-title {
   width: 100%;
   text-align: center;
   margin: 2px;
+  margin-bottom: 0px;
   font-size: 13px;
   font-weight: 600;
   color: var(--em-text-normal);
@@ -299,27 +314,836 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   display: inline-block;
 }
 
+/* Callouts container - similar to equations container */
+.em-callouts-container {
+  max-height: 280px;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 2.4px 0;
+}
+
+/* Custom scrollbar for callouts */
+.em-callouts-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.em-callouts-container::-webkit-scrollbar-track {
+  background: var(--em-background-secondary);
+}
+
+.em-callouts-container::-webkit-scrollbar-thumb {
+  background: var(--em-background-modifier-border);
+  border-radius: 3px;
+}
+
+.em-callouts-container::-webkit-scrollbar-thumb:hover {
+  background: var(--em-text-faint);
+}
+
+.em-callout-option-container {
+  width: 100%;
+  overflow-x: auto;
+  display: flex;
+  margin: 0px;
+  padding: 3px 5px;
+  flex-grow: 1;
+  flex-direction: row;
+}
+
+/* Individual callout wrapper */
+.em-callout-wrapper {
+  width: fit-content;
+  flex-grow: 1;
+  margin: 3px 12px;
+  padding: 2px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--em-background-primary);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.em-callout-wrapper:hover,
+.em-callout-wrapper.em-callout-hover {
+  border-color: var(--em-interactive-accent);
+  background: var(--em-background-primary-alt);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.em-callout-wrapper.em-callout-clicked {
+  border-color: var(--em-interactive-accent);
+  background: var(--em-background-modifier-hover);
+  box-shadow: 0 0 0 2px rgba(var(--em-interactive-accent-rgb), 0.2);
+}
+
+.em-callout-label-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Callout label */
+.em-callout-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--em-text-muted);
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.em-callout-number {
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.em-callout-markdown-filename {
+  font-size: 9px;
+  color: var(--em-text-faint);
+  margin-left: 5px;
+  max-width: 300px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Callout content */
+.em-callout-content {
+  color: var(--em-text-normal);
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.em-callout-content-container {
+  margin-top: 4px;
+}
+
+/* Callout error message */
+.em-callout-error {
+  color: var(--em-text-error);
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Callout content styling - handle tables and other content */
+.em-callout-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+
+.em-callout-content th,
+.em-callout-content td {
+  border: 1px solid var(--em-background-modifier-border);
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.em-callout-content th {
+  background: var(--em-background-secondary);
+  font-weight: 600;
+}
+
+.em-callout-content p {
+  margin: 4px 0;
+}
+
+.em-callout-content code {
+  background: var(--em-background-modifier-border);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+/* Handle callout blocks within the preview */
+.em-callout-content .callout {
+  margin: 8px 0;
+}
+
+/* Responsive adjustments for callouts */
+@media (max-width: 480px) {
+  .em-callout-wrapper {
+    margin: 3px 6px;
+    padding: 6px 10px;
+  }
+}
+/* Dark theme specific adjustments for callouts */
+.theme-dark .em-callout-wrapper:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Figures container - similar to equations and callouts container */
+.em-figures-container {
+  max-height: 280px;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 2.4px 0;
+}
+
+/* Custom scrollbar for figures */
+.em-figures-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.em-figures-container::-webkit-scrollbar-track {
+  background: var(--em-background-secondary);
+}
+
+.em-figures-container::-webkit-scrollbar-thumb {
+  background: var(--em-background-modifier-border);
+  border-radius: 3px;
+}
+
+.em-figures-container::-webkit-scrollbar-thumb:hover {
+  background: var(--em-text-faint);
+}
+
+.em-figure-option-container {
+  width: 100%;
+  overflow-x: auto;
+  display: flex;
+  margin: 0px;
+  padding: 3px 5px;
+  flex-grow: 1;
+  flex-direction: row;
+}
+
+/* Individual figure wrapper */
+.em-figure-wrapper {
+  width: fit-content;
+  flex-grow: 1;
+  margin: 3px 12px;
+  padding: 2px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--em-background-primary);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.em-figure-wrapper:hover,
+.em-figure-wrapper.em-figure-hover {
+  border-color: var(--em-interactive-accent);
+  background: var(--em-background-primary-alt);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.em-figure-wrapper.em-figure-clicked {
+  border-color: var(--em-interactive-accent);
+  background: var(--em-background-modifier-hover);
+  box-shadow: 0 0 0 2px rgba(var(--em-interactive-accent-rgb), 0.2);
+}
+
+.em-figure-label-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Figure label */
+.em-figure-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--em-text-muted);
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.em-figure-number {
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.em-figure-markdown-filename {
+  font-size: 9px;
+  color: var(--em-text-faint);
+  margin-left: 5px;
+  max-width: 300px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Figure content */
+.em-figure-content {
+  color: var(--em-text-normal);
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+/* Figure image container */
+.em-figure-image-container {
+  margin: 8px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Figure image with max width constraint */
+.em-figure-image {
+  max-width: var(--em-citation-popover-container-width);
+  max-height: 400px;
+  height: auto;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* Figure metadata (title and description) */
+.em-figure-metadata {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--em-background-modifier-border);
+  text-align: center;
+}
+
+.em-figure-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--em-text-normal);
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.em-figure-desc {
+  font-size: 13px;
+  color: var(--em-text-muted);
+  opacity: 0.7;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* Figure error message */
+.em-figure-error {
+  color: var(--em-text-error);
+  font-style: italic;
+  font-size: 12px;
+  padding: 8px;
+}
+
+/* Responsive adjustments for figures */
+@media (max-width: 480px) {
+  .em-figure-wrapper {
+    margin: 3px 6px;
+    padding: 6px 10px;
+  }
+  .em-figure-image {
+    max-width: 100%;
+  }
+}
+/* Dark theme specific adjustments for figures */
+.theme-dark .em-figure-wrapper:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Center the internal embed when it has a caption */
+.internal-embed:has(.em-image-caption) {
+  display: block;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Center the image itself when it has a caption */
+.internal-embed:has(.em-image-caption) img {
+  display: inline-block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Image caption container */
+.em-image-caption {
+  margin-top: 6px;
+  padding: 0;
+  background: transparent;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Image caption title (Fig. X.X title) */
+.em-image-caption-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--em-text-normal);
+  margin-bottom: 3px;
+  text-align: center;
+}
+
+/* Image caption description */
+.em-image-caption-desc {
+  color: var(--em-text-muted);
+  opacity: 0.7;
+  font-style: normal;
+  font-size: 13px;
+  text-align: center;
+}
+
+.ec-manage-panel-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px 5px;
+}
+
+.ec-manage-panel-toolbar {
+  display: flex;
+  max-width: 100%;
+  flex-direction: row;
+  justify-content: center;
+  gap: 15px;
+  align-items: center;
+  margin: 5px 20px 10px;
+}
+
+.ec-search-input {
+  flex: 1;
+  padding: 5px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 14px;
+}
+.ec-search-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.ec-equation-list-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ec-empty-message {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 20px;
+  font-style: italic;
+}
+
+/* List View Styles */
+.ec-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Outline View Styles */
+.ec-outline-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ec-heading-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.ec-heading-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+}
+.ec-heading-header.ec-clickable {
+  cursor: pointer;
+}
+.ec-heading-header.ec-clickable:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.ec-heading-level-1 .ec-heading-header {
+  padding-left: calc(8px + 0px);
+}
+
+.ec-heading-level-1 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-2 .ec-heading-header {
+  padding-left: calc(8px + 16px);
+}
+
+.ec-heading-level-2 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-3 .ec-heading-header {
+  padding-left: calc(8px + 32px);
+}
+
+.ec-heading-level-3 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-4 .ec-heading-header {
+  padding-left: calc(8px + 48px);
+}
+
+.ec-heading-level-4 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-5 .ec-heading-header {
+  padding-left: calc(8px + 64px);
+}
+
+.ec-heading-level-5 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-6 .ec-heading-header {
+  padding-left: calc(8px + 80px);
+}
+
+.ec-heading-level-6 .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.ec-heading-level-7 {
+  padding-left: 8px;
+  /* no-heading level */
+}
+
+.ec-no-heading-group .ec-heading-header {
+  padding-left: 8px;
+}
+.ec-no-heading-group .ec-heading-equations {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+.ec-no-heading-group .ec-heading-text {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.ec-heading-text-1:hover::after,
+.ec-heading-text-2:hover::after,
+.ec-heading-text-3:hover::after,
+.ec-heading-text-4:hover::after,
+.ec-heading-text-5:hover::after,
+.ec-heading-text-6:hover::after {
+  color: var(--interactive-accent);
+  font-size: 12px;
+  padding-left: 10px;
+}
+
+.ec-heading-text-1:hover::after {
+  content: "#1";
+}
+
+.ec-heading-text-2:hover::after {
+  content: "#2";
+}
+
+.ec-heading-text-3:hover::after {
+  content: "#3";
+}
+
+.ec-heading-text-4:hover::after {
+  content: "#4";
+}
+
+.ec-heading-text-5:hover::after {
+  content: "#5";
+}
+
+.ec-heading-text-6:hover::after {
+  content: "#6";
+}
+
+.ec-collapse-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.ec-collapse-icon.ec-clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+.ec-collapse-icon.ec-clickable:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.ec-collapse-icon-placeholder {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.ec-heading-text {
+  flex: 1;
+  color: var(--text-normal);
+  font-size: 14px;
+}
+
+.ec-equation-count {
+  flex-shrink: 0;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+.ec-heading-equations {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  margin-left: 2px;
+}
+
+/* Equation Item Styles */
+.ec-equation-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background-color: var(--background-primary);
+  cursor: grab;
+  transition: all 0.2s;
+  position: relative;
+}
+.ec-equation-item:hover {
+  background-color: var(--background-modifier-hover);
+  border-color: var(--interactive-accent);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.ec-equation-item:active {
+  cursor: grabbing;
+}
+.ec-equation-item[draggable=true] {
+  user-select: none;
+}
+.ec-equation-item {
+  /* Visual cue on the dragged equation */
+}
+.ec-equation-item.ec-is-dragging {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.ec-equation-item.ec-is-dragging:hover {
+  cursor: grabbing;
+}
+
+/* drag cursor rendered at drop location as CM6 widget */
+.ec-drag-cursor {
+  display: inline-block;
+  width: 1px;
+  height: 1.2em;
+  background-color: var(--em-text-normal, #2f3133);
+  border-radius: 1px;
+  pointer-events: none;
+  vertical-align: text-bottom;
+  animation: ec-cursor-blink 1s step-end infinite;
+}
+
+/* Blinking animation for drag cursor */
+@keyframes ec-cursor-blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.3;
+  }
+}
+.ec-equation-tag {
+  position: absolute;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.8;
+}
+
+.ec-tag-show .ec-equation-tag {
+  display: flex;
+}
+
+.ec-tag-text {
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  color: var(--interactive-accent);
+  background-color: var(--background-modifier-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.ec-equation-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.ec-equation-math {
+  font-size: 14px;
+  overflow-x: auto;
+  /* Style the rendered math */
+}
+.ec-equation-math .math {
+  font-size: 1em;
+}
+.ec-equation-math mjx-container {
+  margin: 0;
+}
+
+/* Tag Input Modal Styles */
+.ec-modal-description {
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.ec-tag-input-modal {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+.ec-tag-input-modal:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.ec-modal-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 /* element styles  in settings tab */
 .ec-settings-title,
 .ec-settings-header {
-  margin-top: 15px;
-  margin-bottom: 10px;
+  font-size: 20px;
+  margin-top: 0px;
+  margin-bottom: 5px;
   font-weight: bold;
-  color: orange;
 }
 
-.ec-settings-title {
-  font-size: 25px;
+/* Concise titles with theme-aware color */
+.ec-concise-title {
+  color: orange;
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 10px;
+  display: flex;
+}
+
+.theme-dark .ec-concise-title {
+  color: var(--interactive-accent);
+}
+
+/* Colorful gradient title (overridable) */
+.ec-title-colorful {
+  position: relative;
+  display: inline-block;
+  font-weight: bold;
+  font-size: 2.5em;
+  text-align: center;
+  color: transparent;
+  background: none;
+}
+
+.ec-settings-header-container {
+  position: relative;
+  width: 100%;
+  height: 3em;
+  margin-bottom: 8px;
+  background-color: inherit;
+  overflow: hidden;
 }
 
 .ec-settings-header {
-  font-size: 20px;
+  font-size: 10px;
+  width: 100%;
+}
+
+.ec-settings-header-background,
+.ec-settings-header-foreground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  font-weight: bold;
+  white-space: pre;
+  pointer-events: none;
+}
+
+.ec-settings-header-background {
+  /* Colorful text as background */
+  background: linear-gradient(45deg, #7a1fff, #1f6bff, #1fc1a6, #ffd36b, #ff7a7a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -moz-background-clip: text;
+  -moz-text-fill-color: transparent;
+  z-index: 1;
+}
+
+.theme-dark .ec-settings-header-background {
+  background: linear-gradient(45deg, #b68bff, #6bc1ff, #ff7a7a, #ffd36b, #8be28b);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .ec-settings-nodelimter {
   border-top: none;
   margin-top: 2px;
   padding-top: 0px;
+}
+
+.ec-settings-subpanel {
+  margin-left: 2px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-left: 10px;
+  border-left: 3px solid var(--interactive-hover);
+  border-top: none;
+  border-bottom: none;
+  padding-top: 0px;
+}
+
+.ec-settings-subpanel hr {
+  display: none;
 }
 
 .ec-delimiter-input,
@@ -342,11 +1166,427 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   width: 120px;
 }
 
+.ec-settings-tip {
+  font-size: 14px;
+  color: var(--interactive-accent);
+  margin-top: -8px;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.ec-settings-toolbar-wrapper {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Settings toolbar */
+.ec-settings-toolbar {
+  display: flex;
+  width: 90%;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  gap: 20px;
+  padding: 8px 0 6px 0;
+  margin-bottom: 0px;
+}
+
+.ec-settings-search-textbox-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.ec-settings-search-setting {
+  border-top: none !important;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+.ec-settings-search-setting .setting-item-info {
+  display: none;
+}
+.ec-settings-search-setting .setting-item-control {
+  flex-grow: 1;
+}
+
+.ec-settings-search-textbox {
+  width: 200px !important;
+  height: 33px;
+}
+
+.ec-settings-icon {
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  margin-left: 5px;
+  margin-top: 2.5px;
+}
+.ec-settings-icon :hover {
+  color: rgb(136, 135, 235);
+}
+
+/* Categorical wrapper - merged container */
+.ec-categorical-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  overflow: hidden;
+}
+
+/* Group selector chips */
+.ec-settings-group-selector {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.ec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+}
+
+.ec-chip:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+  border-color: var(--text-muted);
+}
+
+.ec-chip.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.ec-chip .ec-chip-text {
+  display: none;
+  white-space: nowrap;
+}
+
+.ec-chip.is-active .ec-chip-text {
+  display: inline;
+}
+
+.ec-chip .ec-chip-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.ec-chip .ec-chip-text {
+  font-size: 13px;
+}
+
+/* Expandable categories */
+.ec-settings-category {
+  margin: 10px 0 14px 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ec-settings-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--background-secondary);
+  cursor: pointer;
+}
+
+.ec-settings-category-header.is-collapsed {
+  opacity: 0.85;
+}
+
+.ec-settings-category-title {
+  font-weight: 600;
+}
+
+.ec-settings-category-content {
+  padding: 8px 10px 10px 10px;
+}
+
+.ec-settings-category-content.is-collapsed {
+  display: none;
+}
+
+/* Concise customize area */
+.ec-settings-customize {
+  border: 1px dashed var(--background-modifier-border);
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+/* Single-category content wrapper */
+.ec-category-content-holder {
+  padding: 16px 16px 20px 16px;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .ec-settings-warning {
   color: red;
   font-weight: bold;
   margin-bottom: 10px;
   font-size: 14px;
+}
+
+.ec-settings-no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Customize Panel Styles */
+.ec-settings-customize-panel {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: var(--background-primary);
+}
+
+.ec-customize-header {
+  margin-bottom: 16px;
+}
+
+.ec-customize-title {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.ec-customize-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.ec-customize-category {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.ec-customize-category-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.ec-customize-category-header:hover {
+  background: var(--background-modifier-hover);
+}
+
+.ec-customize-chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.ec-customize-chevron.is-rotated {
+  transform: rotate(90deg);
+}
+
+.ec-customize-category-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ec-customize-category-content {
+  padding: 8px 12px;
+  max-height: 500px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.ec-customize-category-content.is-collapsed {
+  max-height: 0;
+  padding: 0 12px;
+  overflow: hidden;
+}
+
+.ec-customize-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--background-modifier-border-hover);
+}
+
+.ec-customize-setting-row:last-child {
+  border-bottom: none;
+}
+
+.ec-customize-setting-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-normal);
+}
+
+.ec-customize-checkbox-group {
+  display: flex;
+  gap: 16px;
+}
+
+.ec-customize-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.ec-customize-checkbox-label input[type=checkbox] {
+  cursor: pointer;
+}
+
+.ec-customize-checkbox-label:hover {
+  color: var(--text-normal);
+}
+
+/* Reorder toggle container */
+.ec-reorder-toggle-container {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+}
+
+/* Settings with reorder buttons */
+.ec-setting-with-reorder {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ec-setting-reorder-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 1px 6px;
+}
+
+.ec-reorder-btn {
+  width: 20px;
+  height: 16px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+  background: var(--background-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ec-reorder-btn:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--text-muted);
+}
+
+.ec-reorder-btn:active {
+  transform: scale(0.95);
+}
+
+.ec-reorder-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Prefix list container */
+.ec-prefix-list-container {
+  margin-top: 10px;
+  margin-left: 0;
+}
+
+/* Individual prefix item */
+.ec-prefix-item {
+  border-bottom: 1px solid var(--background-modifier-border-hover);
+  padding: 8px 0;
+  margin-bottom: 0 !important;
+  border-top: none !important;
+}
+.ec-prefix-item:last-of-type {
+  border-bottom: none;
+}
+.ec-prefix-item .setting-item-info {
+  display: none;
+}
+.ec-prefix-item .setting-item-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-left: 0;
+  padding-left: 0;
+}
+.ec-prefix-item .setting-item-control input {
+  flex: 0 0 auto;
+  width: 120px;
+  max-width: 150px;
+  margin: 0;
+}
+.ec-prefix-item .setting-item-control button {
+  margin: 0;
+  margin-left: auto;
+}
+
+/* Add prefix button styling */
+.ec-add-prefix-setting {
+  border-top: none !important;
+  margin-top: 8px !important;
+  padding-top: 8px !important;
+}
+.ec-add-prefix-setting .setting-item-info {
+  display: none;
+}
+.ec-add-prefix-setting .setting-item-control {
+  justify-content: center;
+}
+
+/* Divider line between settings in basic/advanced panels */
+.ec-settings-divider {
+  border: none;
+  border-top: 1px solid var(--background-modifier-border);
+  margin-top: 0px;
+  margin-bottom: 8px;
+  opacity: 0.6;
 }
 
 /* Regular citation styles for live preview and reading mode */

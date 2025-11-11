@@ -1,6 +1,6 @@
-import { fastHash } from "@/utils/hash_utils";
+import { fastHash } from "@/utils/misc/hash_utils";
 import { BaseCache } from "@/cache/baseCache";
-import { find_array } from "@/utils/array_utils";
+import { find_array } from "@/utils/misc/array_utils";
 
 export interface LineHash {
     line: number;
