@@ -184,7 +184,7 @@ Version 1.2.6 - bug fixes
 Version 1.3.0 - New features, Refactors, Main improvements and User friendly improvements.
 
 🐛 Bug Fixes : 
-- [ ] Fix [bug #70](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/70), the auto-numbering behavior is now fixed. 
+- [x] Fix [bug #70](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/70), the auto-numbering behavior is now fixed. 
 
 ⭐ New Features :
 - [x] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before. **No more annoying scrolling**.   

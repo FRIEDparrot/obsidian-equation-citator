@@ -420,9 +420,9 @@ export function addCitationSettingsTab(containerEl: HTMLElement, plugin: Equatio
     CitationSettingsTab.citationFormat(containerEl, plugin);
     CitationSettingsTab.figCitationPrefix(containerEl, plugin);
     CitationSettingsTab.figCitationFormat(containerEl, plugin);
-    CitationSettingsTab.quoteCitationPrefixes(containerEl, plugin);
     CitationSettingsTab.multiCitationDelimiter(containerEl, plugin);
     CitationSettingsTab.multiCitationDelimiterRender(containerEl, plugin);
     CitationSettingsTab.enableContinuousCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
     CitationSettingsTab.enableCrossFileCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
+    CitationSettingsTab.quoteCitationPrefixes(containerEl, plugin);
 }

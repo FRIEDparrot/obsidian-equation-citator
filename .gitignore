@@ -2,6 +2,7 @@
 .vscode 
 .claude 
 .github
+tests
 
 # backup 
 backup/*

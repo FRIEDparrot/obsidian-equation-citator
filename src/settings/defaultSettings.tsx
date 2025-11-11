@@ -151,7 +151,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberDepth",
         "autoNumberNoHeadingPrefix",
         "enableAutoNumberGlobalPrefix",
-        "citationPopoverContainerWidth"
+        "citationPopoverContainerWidth",
+        "enableCenterTableInCallout",
     ],
     advancedSettingsKeys: [
         "enableCitationInSourceMode",
