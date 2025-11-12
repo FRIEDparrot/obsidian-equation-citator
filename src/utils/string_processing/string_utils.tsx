@@ -4,9 +4,11 @@ export const DISABLED_DELIMITER = `§¶∞&#&@∸∹≑≒≓≌≍≎≏⋤⋥�
 
 // escapeString.ts
 export function escapeString(str: string, quoteType: '"' | "'" = '"'): string {
-    // eslint-disable-next-line no-control-regex
-    const quoteRegex = quoteType === '"' ? /["\\\b\f\n\r\t\v\x00-\x1F\x7F-\x9F]/g : /['\\\b\f\n\r\t\v\x00-\x1F\x7F-\x9F]/g;
-
+    
+    const quoteRegex =
+        quoteType === '"'
+            ? /["\\\b\f\n\r\t\v]/g
+            : /['\\\b\f\n\r\t\v]/g;
     return str.replace(quoteRegex, (char: string) => {
         switch (char) {
             case '\\': return '\\\\';

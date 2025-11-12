@@ -49,8 +49,8 @@ export const CacheSettingsTab = {
             .addButton((button) => {
                 button.setIcon("trash");
                 button.setTooltip("Clear Cache");
-                button.onClick(async () => {
-                    await plugin.clearCaches();
+                button.onClick(() => {
+                    plugin.clearCaches();
                     new Notice("All caches cleared");
                 });
             });

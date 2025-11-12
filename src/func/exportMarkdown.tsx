@@ -30,22 +30,22 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
     const existingFile = plugin.app.vault.getAbstractFileByPath(newFilePath);
 
     // finish the export process of pdf
-    const finishExport = (newFilePath: string) => {
+    const finishExport = async (newFilePath: string) => {
         new Notice(`Exported to ${newFilePath}`);
         const newLeaf = plugin.app.workspace.getLeaf(true);
         plugin.app.workspace.setActiveLeaf(newLeaf, { focus: true });
-        plugin.app.workspace.openLinkText("", newFilePath, false);
+        await plugin.app.workspace.openLinkText("", newFilePath, false);
     }
 
     if (existingFile instanceof TFile) {
         const confirmOption: ModalOption = {
             label: "Confirm",
             cta: true,
-            action: async () => {
+            action : async():Promise<void> => {
                 try {
                     await plugin.app.fileManager.trashFile(existingFile);
                     await plugin.app.vault.create(newFilePath, md_processed);
-                    finishExport(newFilePath);
+                    await finishExport(newFilePath);
                 }
                 catch (error) {
                     new Notice(`Error: ${error.message}`);
@@ -55,8 +55,8 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
         const cancelOption: ModalOption = {
             label: "Cancel",
             cta: false,
-            action: () => {
-                // do nothing on cancel 
+            action : async() : Promise<void> => {
+                new Notice("Export cancelled");
             }
         }
         new OptionsModal(plugin.app, "File already exists",
@@ -67,7 +67,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
     else {
         try {
             await plugin.app.vault.create(newFilePath, md_processed);
-            finishExport(newFilePath);
+            await finishExport(newFilePath);
         }
         catch (error) {
             new Notice(`Error while exporting to ${newFilePath}: ${error.message}`);

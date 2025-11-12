@@ -1,13 +1,12 @@
 import { WorkspaceLeaf, TFile, Notice, MarkdownView, EditorRange } from "obsidian";
 import EquationCitator from "@/main";
 import {
-    MarkdownRenderer,
     Component,
     HoverPopover,
     HoverParent,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
-import { TargetElComponent } from "@/views/citation_popover";
+import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedFigure } from "@/services/figure_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 
@@ -42,7 +41,7 @@ export class FigureCitationPopover extends HoverPopover {
         this.adjustPosition();
     }
 
-    async onunload(): Promise<void> {
+    onunload() {
         this.onClose();
     }
 

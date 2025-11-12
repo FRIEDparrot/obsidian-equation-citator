@@ -5,7 +5,7 @@ import {
     combineContinuousCitationTags,
     splitFileCitation,
 } from "@/utils/core/citation_utils";
-import { FigureCitationPopover } from "@/views/figure_citation_popover";
+import { FigureCitationPopover } from "@/views/popovers/figure_citation_popover";
 import Debugger from "@/debug/debugger";
 
 /**
@@ -141,16 +141,16 @@ export function renderFigureCitation(
     for (const container of containers) {
         el.appendChild(container);
     }
-
+    
     // Add event listener for figure preview popover
     // Show the figure image when hovering (Ctrl+hover in live preview, always in reading mode)
     if (parent) {
-        el.addEventListener('mouseenter', async (event: MouseEvent) => {
+        el.addEventListener('mouseenter', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
             if (isInteractive || ctrlKey) {
                 event.preventDefault();
                 event.stopPropagation();
-                await showFigurePopover(plugin, parent, el, citeFigureTags, sourcePath);
+                showFigurePopover(plugin, parent, el, citeFigureTags, sourcePath).then();
             }
         });
     }

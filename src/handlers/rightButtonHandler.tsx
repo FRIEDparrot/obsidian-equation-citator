@@ -1,6 +1,6 @@
 import EquationCitator from "@/main"
 import { Menu, App, Editor, MarkdownView, MenuItem } from "obsidian"
-import { EditorSelectionInfo } from "@/views/citation_render";
+import { EditorSelectionInfo } from "@/views/widgets/citation_render";
 import { EditorState } from "@codemirror/state";
 import Debugger from "@/debug/debugger";
 import { TagRenameModal } from "@/ui/modals/tagRenameModal";

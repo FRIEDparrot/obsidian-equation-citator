@@ -1,4 +1,4 @@
-import { Notice,  WorkspaceLeaf } from "obsidian";
+import { Notice, WorkspaceLeaf } from "obsidian";
 import EquationCitator from "@/main";
 import {
     MarkdownRenderer,
@@ -45,7 +45,7 @@ export class CitationPopover extends HoverPopover {
         this.showEquations();
         this.adjustPosition();
     }
-    async onunload(): Promise<void> {
+    onunload(): void {
         this.onClose();
     }
 
@@ -56,7 +56,7 @@ export class CitationPopover extends HoverPopover {
     showEquations() {
         if (!this.targetEl) {
             Debugger.log("can't find targetEl of citation popover");
-            return;  
+            return;
         }
         const container: HTMLElement = this.hoverEl.createDiv();
         const targetComponent = new TargetElComponent(this.targetEl);
@@ -83,16 +83,16 @@ export class CitationPopover extends HoverPopover {
         // Create scrollable equations container
         const equationsContainer = content.createDiv();
         equationsContainer.addClass("em-equations-container");
-        
+
         // Loop and create div for each equation 
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
-        if (!leaf) return ;
-        this.equationsToRender.forEach((eq, index) => {
+        if (!leaf) return;
+        this.equationsToRender.forEach(async (eq, index) => {
             const equationOptionContainer = equationsContainer.createDiv();
             equationOptionContainer.addClass("em-equation-option-container");
-            renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, targetComponent, true);
+            await renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, targetComponent, true);
         });
-        
+
         // Add footer with equation count
         const footer = container.createDiv();
         const totalEquations = this.equationsToRender.length;
@@ -147,7 +147,7 @@ export class CitationPopover extends HoverPopover {
  * @param container 
  * @param targetComponent 
  */
-export function renderEquationWrapper(
+export async function renderEquationWrapper(
     plugin: EquationCitator,
     leaf: WorkspaceLeaf,
     sourcePath: string,
@@ -155,7 +155,7 @@ export function renderEquationWrapper(
     container: HTMLElement,
     targetComponent: Component,
     addLinkJump = false
-): void {
+): Promise<void> {
     if (!container) {
         Debugger.log("can't find container for equation");
         return;
@@ -176,13 +176,13 @@ export function renderEquationWrapper(
     const fileNameLabel = equationLabelContainer.createDiv();
     fileNameLabel.addClass("em-equation-label", "em-equation-markdown-filename");
     fileNameLabel.textContent = `${eq.filename || ""}`;
-    
+
     // Create equation content div
     const equationDiv = equationWrapper.createDiv();
     equationDiv.addClass("em-equation-content");
 
     // Render the markdown equation
-    MarkdownRenderer.render(
+    await MarkdownRenderer.render(
         plugin.app,
         eq.md,
         equationDiv,
@@ -215,7 +215,7 @@ function addClickLinkJump(
     leaf: WorkspaceLeaf,
 ): void {
     // double-click to jump to the equation file
-    equationWrapper.addEventListener('dblclick', async (event) => {
+    equationWrapper.addEventListener('dblclick', (event) => {
         if (!eq.sourcePath || !eq.tag) {
             return;   // no valid equation file or tag
         }
@@ -227,12 +227,12 @@ function addClickLinkJump(
             return;
         }
         const ctrlKey = (event.ctrlKey || event.metaKey);
-        await openFileAndScrollToEquation(
+        openFileAndScrollToEquation(
             plugin,
             eq.sourcePath,
             eq.tag,
             ctrlKey,  // open in split if ctrl key is pressed
             view.leaf  // current leaf: used for opening when not splitting, or excluded when splitting
-        );
+        ).then().catch((error) => { Debugger.error("Error opening file:", error); });
     });
 }

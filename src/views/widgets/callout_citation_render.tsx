@@ -5,7 +5,7 @@ import {
     combineContinuousCitationTags,
     splitFileCitation,
 } from "@/utils/core/citation_utils";
-import { CalloutCitationPopover } from "@/views/callout_citation_popover";
+import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popover";
 import Debugger from "@/debug/debugger";
 
 /**
@@ -144,37 +144,38 @@ export function renderCalloutCitation(
     // Add event listener for callout preview popover
     // Show the callout content when hovering (Ctrl+hover in live preview, always in reading mode)
     if (parent) {
-        el.addEventListener('mouseenter', async (event: MouseEvent) => {
-            const ctrlKey = event.ctrlKey || event.metaKey;
-            if (isInteractive || ctrlKey) {
-                event.preventDefault();
-                event.stopPropagation();
+        el.addEventListener('mouseenter', (event: MouseEvent) => {
+            (async () => {
+                const ctrlKey = event.ctrlKey || event.metaKey;
+                if (isInteractive || ctrlKey) {
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                // Fetch callout data from services
-                const renderedCallouts = await plugin.calloutServices.getCalloutsByTags(
-                    citeCalloutTags,  // Use original tags, not formatted ones
-                    prefix,
-                    sourcePath
-                );
+                    // Fetch callout data from services
+                    const renderedCallouts = await plugin.calloutServices.getCalloutsByTags(
+                        citeCalloutTags,  // Use original tags, not formatted ones
+                        prefix,
+                        sourcePath
+                    );
 
-                if (renderedCallouts.length === 0) {
-                    Debugger.log("No callouts found for citation");
-                    return;
+                    if (renderedCallouts.length === 0) {
+                        Debugger.log("No callouts found for citation");
+                        return;
+                    }
+
+                    // Create and show popover
+                    new CalloutCitationPopover(
+                        plugin,
+                        parent,
+                        el,
+                        prefix,
+                        renderedCallouts,
+                        sourcePath,
+                        300  // wait time in ms
+                    );
                 }
-
-                // Create and show popover
-                const popover = new CalloutCitationPopover(
-                    plugin,
-                    parent,
-                    el,
-                    prefix,
-                    renderedCallouts,
-                    sourcePath,
-                    300  // wait time in ms
-                );
-            }
+            })();
         });
     }
-
     return el;
 }

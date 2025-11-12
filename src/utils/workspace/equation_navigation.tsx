@@ -135,10 +135,10 @@ export async function openFileAndScrollToEquation(
     await plugin.app.workspace.openLinkText("", sourcePath, false);
 
     // Scroll to the equation after layout is ready
-    plugin.app.workspace.onLayoutReady(async () => {
+    plugin.app.workspace.onLayoutReady(() => {
         // Ensure the layout is ready before scrolling to the tag
-        setTimeout(async () => {
-            await scrollToEquationByTag(plugin, tag, sourcePath);
+        setTimeout(() => {
+            scrollToEquationByTag(plugin, tag, sourcePath).then().catch(console.error);
         }, 50);
     });
 }

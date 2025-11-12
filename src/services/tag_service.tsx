@@ -127,7 +127,7 @@ export class TagService {
             // Split continuous citation tags into discrete tags
             const splittedCitations = splitContinuousCitationTags(
                 citations, rangeSymbol, citeDelimiters.split(" "), fileDelimiter
-            ) as string[];
+            );
             // Add to existing tags set
             splittedCitations.forEach(tag => existingTags.add(tag));
         }
@@ -184,7 +184,7 @@ export class TagService {
         let currentFileUpdatedNum = 0;
         if (editor) {
             const currentFileLines = currentFileContent.split('\n');
-            const { updatedLineMap, updatedNum } = await this.updateCitationLines(
+            const { updatedLineMap, updatedNum } = this.updateCitationLines(
                 currentFileLines, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
             );
             const sortedUpdatedLineMap = new Map(Array.from(updatedLineMap.entries()).sort((a, b) => b[0] - a[0]));
@@ -263,20 +263,20 @@ export class TagService {
             details: fileChangeMap  // return not filtered result  
         };
     }
-
+    
     /**
      * For current Editor, use updateCitationLines to avoid lose focus of cursor 
      */
-    async updateCitationLines(
+    updateCitationLines(
         lines: string[],
         // mapping from old tag to new tag (full -> we remove repeat internally and remove unused)
         nameMappingFull: Map<string, string>,
         deleteRepeatCitations = false,
         deleteUnusedCitations = false
-    ): Promise<{
+    ): {
         updatedLineMap: Map<number, string>,
         updatedNum: number
-    }> {
+    } {
         const prefix = this.plugin.settings.citationPrefix || "eq:";  // delimiter configuration
         const multiEqDelimiter = this.plugin.settings.multiCitationDelimiter || ",";
         const rangeSymbol = this.plugin.settings.continuousRangeSymbol || "~";
@@ -297,14 +297,14 @@ export class TagService {
         const allExistingDiscrete: string[] = [];
         for (const c of citationsAll) {
             const citations = c.label.substring(prefix.length).split(multiEqDelimiter).map(t => t.trim());
-            const splitted = splitContinuousCitationTags(citations, rangeSymbol, citeDelimiters, fileDelimiter) as string[];
+            const splitted = splitContinuousCitationTags(citations, rangeSymbol, citeDelimiters, fileDelimiter);
             allExistingDiscrete.push(...splitted);
         }
         const oldTagsByCrossFile = this.groupCitationsByCrossFile(allExistingDiscrete, fileDelimiter);
         const newTagsByCrossFile = this.groupCitationsByCrossFile(nameMapping.values(), fileDelimiter);
 
         let updatedNum = 0;
-        for (const c of citationsAll.slice().reverse() as CitationRef[]) {
+        for (const c of citationsAll.slice().reverse()) {
             const currentLine = lineMap.get(c.line) ?? lines[c.line];
             const before = currentLine.substring(0, c.position.start);
             const after = currentLine.substring(c.position.end);
@@ -314,8 +314,8 @@ export class TagService {
 
             const splittedCitations = splitContinuousCitationTags(
                 citations, rangeSymbol, citeDelimiters, fileDelimiter
-            ) as string[];
-
+            );
+            
             const processedCitations = splittedCitations.map(ct => {
                 const pc = this.processCitation(
                     ct,
@@ -356,7 +356,7 @@ export class TagService {
         }> {
         if (!md.trim()) return { updatedContent: md, updatedNum: 0 };  // not do anyhing if md is empty 
         const lines = md.split('\n');  // split the markdown into lines 
-        const { updatedLineMap, updatedNum } = await this.updateCitationLines(
+        const { updatedLineMap, updatedNum } = this.updateCitationLines(
             lines, nameMapping, deleteRepeatCitations, deleteUnusedCitations
         );
         // for Map.forEach, it use map.forEach(value, key)

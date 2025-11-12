@@ -1,10 +1,10 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField, Notice } from "obsidian";
-import { CalloutCitationPopover } from "@/views/callout_citation_popover";
+import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
-import { renderCalloutCitation } from "@/views/callout_citation_render";
+import { renderCalloutCitation } from "@/views/widgets/callout_citation_render";
 
 /**
  * Widget for rendering callout citations in Live Preview mode
@@ -69,13 +69,13 @@ export class CalloutCitationWidget extends WidgetType {
      * Register events for the callout citation
      * Render callouts on hover with Ctrl key
      */
-    private async registerCitationEvents() {
+    private registerCitationEvents() {
         if (this.el) {
-            this.el.addEventListener('mouseenter', async (event) => {
-                const ctrlKey = event.ctrlKey || event.metaKey;
+            this.el.addEventListener('mouseenter', (event) => {
+                (async ()=> {const ctrlKey = event.ctrlKey || event.metaKey;
                 if (ctrlKey) {
                     await this.showPopover();
-                }
+                }})();
             });
         }
     }
