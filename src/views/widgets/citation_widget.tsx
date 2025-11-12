@@ -85,6 +85,7 @@ export class CitationWidget extends WidgetType {
         }
         return null;
     }
+
     /**
      * Show popover with equations preview content. 
      * @returns 
@@ -93,8 +94,8 @@ export class CitationWidget extends WidgetType {
         const parent = this.getActiveLeaf() as HoverParent | null;
         if (this.popover !== null) return;  // already showing popover
         if (!parent || !this.el) {
-            Debugger.error(`parent is ${parent} and citationEl is ${this.el},` +
-                `some of them not found for equation citation widget, can't show popover`);
+            Debugger.error(
+                `parent or citationEl is not found for equation citation widget, can't show popover`);
             return;
         }
         const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || "";
@@ -159,7 +160,7 @@ export function renderEquationCitation(
             fileDelimiter,
         )
         : citeEquationTags;
-    
+
     // handle empty citation case 
     if (!formatedCiteEquationTags.length) {
         // empty equation tags
@@ -172,7 +173,7 @@ export function renderEquationCitation(
         el.appendChild(containerDiv);
         return el;
     }
-    
+
     const containers: HTMLElement[] = [];
     // render equation parts
     for (const tag of formatedCiteEquationTags) {
@@ -199,7 +200,7 @@ export function renderEquationCitation(
                         e.preventDefault();
                         e.stopPropagation();  // prevent original popover from showing up  
                         e.stopImmediatePropagation();    // prevent other popovers from showing up 
-                        
+
                         new FileSuperScriptPopover(
                             plugin,
                             parent,
@@ -218,14 +219,14 @@ export function renderEquationCitation(
             containerDiv.appendChild(citationSpanEl);
         }
         containers.push(containerDiv);
-        
+
         // add  multi-citation delimiter if needed 
-        if (multiCitationDelimiterRender &&  formatedCiteEquationTags.length > 1 &&
+        if (multiCitationDelimiterRender && formatedCiteEquationTags.length > 1 &&
             tag !== formatedCiteEquationTags[formatedCiteEquationTags.length - 1] // not last one
         ) {
             const multiDelimEl = document.createElement('span');
             multiDelimEl.className = 'em-math-citation-multi-delimiter';
-            multiDelimEl.textContent = multiCitationDelimiterRender ;
+            multiDelimEl.textContent = multiCitationDelimiterRender;
             containers.push(multiDelimEl);
         }
     }
