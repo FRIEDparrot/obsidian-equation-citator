@@ -222,6 +222,7 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 - [x] change `console.log` to `console.debug`
 - [ ] removed unnecessary assertions 
 - [ ] use `then` to replace `await` in eventListener to avoid ts error
+- [ ] fixed some incorrect `debugger.error`
 
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 

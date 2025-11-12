@@ -39,8 +39,8 @@ export class CitationPopover extends HoverPopover {
     }
     public onOpen() { }
     public onClose() { }
-
-    async onload(): Promise<void> {
+    
+    onload(): void {
         this.onOpen();
         this.showEquations();
         this.adjustPosition();
