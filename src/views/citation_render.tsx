@@ -49,59 +49,62 @@ export interface EditorSelectionInfo {
 /**
  * The stateFiled to share the selection information of the editor 
  */
-export const tagSelectedField = StateField.define<EditorSelectionInfo>({
-    create() {
-        return { range: null, tagSelected: false, tagContent: null };
-    },
-    update(value, tr) {
-        const state = tr.state;
-        const sel = tr.state.selection.main;
-        const selectedText = tr.state.sliceDoc(sel.from, sel.to).trim();
-        const tagRegex = createEquationTagRegex(true, null);
-        const tagContent = selectedText.match(tagRegex)?.[1] || null;
+function createTagSelectedField(settings: EquationCitatorSettings) {
+    return StateField.define<EditorSelectionInfo>({
+        create() {
+            return { range: null, tagSelected: false, tagContent: null };
+        },
+        update(value, tr) {
+            const state = tr.state;
+            const sel = tr.state.selection.main;
+            const selectedText = tr.state.sliceDoc(sel.from, sel.to).trim();
+            const tagRegex = createEquationTagRegex(true, null, settings.enableTypstMode);
+            const tagContent = selectedText.match(tagRegex)?.[1] || null;
 
-        let tagSelected = false;
-        if (tagRegex.test(selectedText)) {
-            const tree = syntaxTree(state);
-            let currentMathBlockRange: { from: number; to: number } | null = null;
-            tree.iterate({
-                enter: (node) => {
-                    const t = node.type.name;
-                    // in math block, add the tag rename option  
-                    if (t.includes("math-block")) {
-                        if (t.includes("math-begin")) {
-                            currentMathBlockRange = { from: node.from, to: -1 };
+            let tagSelected = false;
+            if (tagRegex.test(selectedText)) {
+                const tree = syntaxTree(state);
+                let currentMathBlockRange: { from: number; to: number } | null = null;
+                tree.iterate({
+                    enter: (node) => {
+                        const t = node.type.name;
+                        // in math block, add the tag rename option  
+                        if (t.includes("math-block")) {
+                            if (t.includes("math-begin")) {
+                                currentMathBlockRange = { from: node.from, to: -1 };
+                            }
+                        }
+                        else if (currentMathBlockRange && t.includes("math-end")) {
+                            if (!currentMathBlockRange) {
+                                Debugger.error("Math block end without begin");
+                                return;
+                            }
+                            currentMathBlockRange.to = node.to;
+                            if (sel.from > currentMathBlockRange.from && sel.to < currentMathBlockRange.to) {
+                                tagSelected = true;
+                                return;  // stop searching 
+                            }
+                            currentMathBlockRange = null;
                         }
                     }
-                    else if (currentMathBlockRange && t.includes("math-end")) {
-                        if (!currentMathBlockRange) {
-                            Debugger.error("Math block end without begin");
-                            return;
-                        }
-                        currentMathBlockRange.to = node.to;
-                        if (sel.from > currentMathBlockRange.from && sel.to < currentMathBlockRange.to) {
-                            tagSelected = true;
-                            return;  // stop searching 
-                        }
-                        currentMathBlockRange = null;
-                    }
-                }
-            })
+                })
+
+                return {
+                    tagSelected: tagSelected,
+                    tagContent: tagContent,
+                    range: { from: sel.from, to: sel.to },
+                };
+            }
 
             return {
-                tagSelected: tagSelected,
-                tagContent: tagContent,
+                tagSelected: false,
+                tagContent: null,
                 range: { from: sel.from, to: sel.to },
             };
-        }
+        },
+    });
+}
 
-        return {
-            tagSelected: false,
-            tagContent: null,
-            range: { from: sel.from, to: sel.to },
-        };
-    },
-});
 
 /**
  * Live Preview Extension (CodeMirror ViewPlugin) for render equation in editor   
@@ -110,8 +113,9 @@ export const tagSelectedField = StateField.define<EditorSelectionInfo>({
  */
 export function createMathCitationExtension(plugin: EquationCitator) {
     const settings: EquationCitatorSettings = plugin.settings;
+    plugin.tagSelectedField = createTagSelectedField(settings);
     return Prec.high([
-        tagSelectedField,
+        plugin.tagSelectedField,
         ViewPlugin.fromClass(class {
             decorations: DecorationSet;
             lastPrefix: string;

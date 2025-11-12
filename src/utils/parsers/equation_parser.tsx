@@ -40,10 +40,10 @@ export function isValidEquationPart(part: string, validDelimiters: string[]): bo
  * @param eqn : Raw equation block with $$ $$ bracket, also can have no $$ bracket 
  * @returns 
  */
-export function parseEquationTag(eqn: string): EquationParseResult {
+export function parseEquationTag(eqn: string, enableTypstMode = false): EquationParseResult {
     // Remove $$ if present 
     const contentWithTag = eqn.replace(/^\s*\$\$\s*/, "").replace(/\s*\$\$\s*$/, "").trim();
-    const pattern = createEquationTagRegex(false, null); 
+    const pattern = createEquationTagRegex(false, null, enableTypstMode); 
     const match = contentWithTag.match(pattern);   // only match first tag 
     // trim equations 
     const content = contentWithTag.replace(pattern, '').trim();
@@ -125,7 +125,7 @@ export function extractPrefixBeforeLastNumber(tag: string, validDelimiters: stri
  * @param markdown - The markdown content to parse
  * @returns Array of EquationMatch objects
  */
-export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): EquationMatch[] {
+export function parseEquationsInMarkdown(markdown: string, parseQuotes = true, enableTypstMode = false): EquationMatch[] {
     if (!markdown.trim()) return [];
     const lines = markdown.split('\n');
 
@@ -149,7 +149,7 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): 
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
                 const rawContent = equationBuffer.join('\n');
-                const { contentWithTag, content, tag } = parseEquationTag(rawContent);
+                const { contentWithTag, content, tag } = parseEquationTag(rawContent, enableTypstMode);
 
                 equations.push({
                     raw: rawContent,
@@ -168,7 +168,7 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): 
         // Handle single-line equation blocks 
         if (parseResult.isSingleLineEquation && parseResult.singleLineEquationMatch) {
             const rawEquationContent = parseResult.singleLineEquationMatch[1].trim();
-            const { contentWithTag, content, tag } = parseEquationTag(rawEquationContent);
+            const { contentWithTag, content, tag } = parseEquationTag(rawEquationContent, enableTypstMode);
 
             equations.push({
                 raw: parseResult.cleanedLine.trim(),
@@ -195,7 +195,7 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): 
     // Handle unclosed equation blocks
     if (inEquationBlock && equationBuffer.length > 0) {
         const rawContent = equationBuffer.join('\n');
-        const { contentWithTag, content, tag } = parseEquationTag(rawContent);
+        const { contentWithTag, content, tag } = parseEquationTag(rawContent, enableTypstMode);
 
         equations.push({
             raw: rawContent,
@@ -216,7 +216,7 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true): 
  * @param tag - The tag to search for (without \tag{} wrapper)
  * @returns The first EquationMatch with the matching tag, or undefined if not found
  */
-export function parseFirstEquationInMarkdown(markdown: string, tag: string): EquationMatch | undefined {
+export function parseFirstEquationInMarkdown(markdown: string, tag: string, enableTypstMode = false): EquationMatch | undefined {
     if (!markdown.trim() || !tag.trim()) return undefined;
 
     const lines = markdown.split('\n');
@@ -246,7 +246,7 @@ export function parseFirstEquationInMarkdown(markdown: string, tag: string): Equ
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
                 const rawContent = equationBuffer.join('\n');
-                const { contentWithTag, content, tag: eqTag } = parseEquationTag(rawContent);
+                const { contentWithTag, content, tag: eqTag } = parseEquationTag(rawContent, enableTypstMode);
 
                 // Check if this equation has the target tag
                 if (eqTag === tag) {
@@ -268,7 +268,7 @@ export function parseFirstEquationInMarkdown(markdown: string, tag: string): Equ
         // Handle single-line equation blcoks 
         if (parseResult.isSingleLineEquation && parseResult.singleLineEquationMatch) {
             const rawEquationContent = parseResult.singleLineEquationMatch[1].trim();
-            const { contentWithTag, content, tag: eqTag } = parseEquationTag(rawEquationContent);
+            const { contentWithTag, content, tag: eqTag } = parseEquationTag(rawEquationContent, enableTypstMode);
 
             // Check if this equation has the target tag
             if (eqTag === tag) {
@@ -298,7 +298,7 @@ export function parseFirstEquationInMarkdown(markdown: string, tag: string): Equ
     // Handle unclosed equation blocks
     if (inEquationBlock && equationBuffer.length > 0) {
         const rawContent = equationBuffer.join('\n');
-        const { contentWithTag, content, tag: eqTag } = parseEquationTag(rawContent);
+        const { contentWithTag, content, tag: eqTag } = parseEquationTag(rawContent, enableTypstMode);
 
         // Check if this unclosed equation has the target tag
         if (eqTag === tag) {

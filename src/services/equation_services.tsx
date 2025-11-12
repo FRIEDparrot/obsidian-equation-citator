@@ -151,7 +151,7 @@ export class EquationServices {
         }
 
         const editor = view.editor;
-        const tagString = createEquationTagString(tag);
+        const tagString = createEquationTagString(tag, this.plugin.settings.enableTypstMode);
 
         // Read the equation lines
         const equationLines: string[] = [];

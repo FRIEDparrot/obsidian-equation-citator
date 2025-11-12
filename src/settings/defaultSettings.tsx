@@ -81,6 +81,7 @@ export interface EquationCitatorSettings {
     citationColorInPdf: string; // default citation color in PDF rendering
 
     // other settings  
+    enableTypstMode: boolean; // Enable compatibility with Typst syntax
     debugMode: boolean; // Optional setting for debug mode
     enableCiteWithCodeBlockInCallout: boolean; // Enable citation by inline code block in callout 
 
@@ -143,6 +144,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
 
     citationWidgetColor: ["#ffffff", "#f8f9fa", "#f5f6f7", "#e9ecef", "#dee2e6"],
     citationWidgetColorDark: ["#1e1e1e", "#2d2d2d", "#252525", "#3a3a3a", "#404040"],
+    enableTypstMode: false,
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
     // settings UI defaults
     settingsDisplayMode: "concise",
@@ -167,6 +169,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberDelimiter",
         "enableAutoNumberEquationsInQuotes",
         "enableUpdateTagsInAutoNumber",
+        "enableTypstMode",
         "cacheUpdateTime",
         "cacheCleanTime",
         "citationWidgetColor",
@@ -497,6 +500,14 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "color",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.citationColorInPdf(el, plugin);
+        }
+    },
+    enableTypstMode: {
+        name: "Enable Typst Mode",
+        desc: "Enable compatibility with Typst syntax",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            OtherSettingsTab.enableTypstMode(el, plugin);
         }
     },
     debugMode: {

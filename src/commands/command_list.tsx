@@ -64,9 +64,9 @@ export default function registerCommands(plugin: EquationCitator) {
         callback: () => {
             const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
             if (!editor) return;
-            const tagString = createEquationTagString("");
+            const tagString = createEquationTagString("", plugin.settings.enableTypstMode);
             // Move cursor inside the braces
-            insertTextWithCursorOffset(editor, tagString, 5);
+            insertTextWithCursorOffset(editor, tagString, plugin.settings.enableTypstMode ? 8 : 5);
         }
     })
 

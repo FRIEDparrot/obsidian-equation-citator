@@ -3,7 +3,7 @@ import { BaseCache } from '@/cache/baseCache';
 
 export class EquationCache extends BaseCache<EquationMatch> {
     protected parseMarkdown(markdown: string): EquationMatch[] {
-        return parseEquationsInMarkdown(markdown, true); 
+        return parseEquationsInMarkdown(markdown, true, this.plugin.settings.enableTypstMode); 
     }
     
     protected getCacheTypeName(): string {

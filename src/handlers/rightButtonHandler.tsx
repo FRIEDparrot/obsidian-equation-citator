@@ -1,6 +1,6 @@
 import EquationCitator from "@/main"
 import { Menu, App, Editor, MarkdownView, MenuItem } from "obsidian"
-import { EditorSelectionInfo, tagSelectedField } from "@/views/citation_render";
+import { EditorSelectionInfo } from "@/views/citation_render";
 import { EditorState } from "@codemirror/state";
 import Debugger from "@/debug/debugger";
 import { TagRenameModal } from "@/ui/modals/tagRenameModal";
@@ -14,7 +14,7 @@ export function registerRightClickHandler(plugin: EquationCitator) {
             try {
                 // @ts-ignore
                 const state: EditorState = editor.cm?.state
-                tagInfo = state.field(tagSelectedField);  // get the selected tag  
+                tagInfo = state.field(plugin.tagSelectedField);  // get the selected tag  
             }
             catch (e) {
                 Debugger.error("Can't get selected tag: ", e);
@@ -38,7 +38,7 @@ export function registerRightClickHandler(plugin: EquationCitator) {
                         const modal = new TagRenameModal(plugin, tagInfo.tagContent, filePath);
                         modal.setEditor(editor);  // set the editor for the modal 
                         modal.onSubmit = (newName: string) => {
-                            const newTag = `\\tag{${newName}}`; 
+                            const newTag = plugin.settings.enableTypstMode ? `#label("${newName}")` : `\\tag{${newName}}`; 
                             const fromPos = editor.getCursor("from"); 
                             const toPos = editor.getCursor("to");
                             editor.replaceRange( 
