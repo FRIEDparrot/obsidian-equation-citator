@@ -1,7 +1,7 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField } from "obsidian";
-import { CitationPopover } from "@/views/citation_popover";
+import { CitationPopover } from "@/views/popovers/citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 import {
@@ -9,7 +9,7 @@ import {
     splitFileCitation,
 } from "@/utils/core/citation_utils";
 import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
-import { FileSuperScriptPopover } from "@/views/file_superscript_popover";
+import { FileSuperScriptPopover } from "@/views/popovers/file_superscript_popover";
 
 /**
  * Widget for render citation in Live Preview mode. 
@@ -68,12 +68,12 @@ export class CitationWidget extends WidgetType {
      * reigster events for whole citation part.
      * render equations in once  
      */
-    private async registerCitaionEvents() {
+    private registerCitaionEvents() {
         if (this.el) {
-            this.el.addEventListener('mouseenter', async (event) => {
+            this.el.addEventListener('mouseenter', (event) => {
                 const ctrlKey = event.ctrlKey || event.metaKey;
                 if (ctrlKey) {
-                    await this.showPopover();
+                    this.showPopover().then();
                 }
             })
         }
@@ -199,8 +199,8 @@ export function renderEquationCitation(
                         e.preventDefault();
                         e.stopPropagation();  // prevent original popover from showing up  
                         e.stopImmediatePropagation();    // prevent other popovers from showing up 
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const popover = new FileSuperScriptPopover(
+                        
+                        new FileSuperScriptPopover(
                             plugin,
                             parent,
                             fileSuperEl,

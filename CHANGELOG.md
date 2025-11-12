@@ -215,6 +215,14 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 ⭐ New Features :
 - [x] Add support for typst (by [azyarashi](https://github.com/azyarashi) in PR [#73](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/73))
 
+🏗️ Refactors :
+- [x] Change `fetch` to `requestUrl` for fetching equations
+- [ ] Fixed async & await functions 
+- [ ] Remove unicode in quoteRegex
+- [x] change `console.log` to `console.debug`
+- [ ] removed unnecessary assertions 
+- [ ] use `then` to replace `await` in eventListener to avoid ts error
+
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 
 2. Check citations of figures and tables, all in one 😄

@@ -54,13 +54,13 @@ export const OtherSettingsTab = {
                 button.setIcon("reset");
                 button.onClick(async () => {
                     new Notice("Restoring Settings ...");
-
+                    
                     // Add a small delay to show the animation
                     await new Promise(resolve => setTimeout(resolve, 200));
-
+                    
                     plugin.settings = { ...DEFAULT_SETTINGS };
-                    await resetStyles(); // reset styles
-                    await plugin.saveSettings(); // this have no log 
+                    resetStyles(); // reset styles
+                    await plugin.saveSettings();
                     // Refresh the display
                     settingsTab.display();
                     new Notice("Settings have been restored to defaults");

@@ -101,7 +101,7 @@ export const AutoNumberSettingsTab = {
             plugin.settings.enableAutoNumberGlobalPrefix,
             (toggle) => {
                 plugin.settings.enableAutoNumberGlobalPrefix = toggle;
-                plugin.saveSettings();
+                plugin.saveSettings().then();
             },
             (panel) => {
                 AutoNumberSettingsTab.autoNumberGlobalPrefix(panel, plugin);
@@ -153,7 +153,7 @@ export const AutoNumberSettingsTab = {
             plugin.settings.enableUpdateTagsInAutoNumber,
             (toggle) => {
                 plugin.settings.enableUpdateTagsInAutoNumber = toggle;
-                plugin.saveSettings();
+                plugin.saveSettings().then();
             },
             (panel) => {
                 AutoNumberSettingsTab.deleteRepeatTagsInAutoNumber(panel, plugin);

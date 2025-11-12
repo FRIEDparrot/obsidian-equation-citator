@@ -54,10 +54,10 @@ export class EquationArrangePanel extends ItemView {
     private currentCollapseHeadings: Set<number> = new Set();
     private currentSortMode = "";    // current sort mode (used for fast refresh)
     private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
-    private dropHandler: (evt: DragEvent) => void;
+    private dropHandler: (evt: DragEvent) => Promise<void>;
     private dragoverHandler: (evt: DragEvent) => void;
     private dragendHandler: () => void;
-    
+
     constructor(private plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
 
@@ -76,10 +76,12 @@ export class EquationArrangePanel extends ItemView {
             }
 
             // Schedule refresh using current setting value
-            this.refreshDebounceTimer = window.setTimeout(() => {
-                this.refreshView();
-                this.refreshDebounceTimer = null;
-            }, this.plugin.settings.equationManagePanelLazyUpdateTime);
+            this.refreshDebounceTimer = window.setTimeout(
+                () => (async () => {
+                    await this.refreshView();
+                    this.refreshDebounceTimer = null;
+                })(), this.plugin.settings.equationManagePanelLazyUpdateTime
+            )
         };
     }
 
@@ -118,9 +120,9 @@ export class EquationArrangePanel extends ItemView {
             const newViewMode = this.viewMode === "outline" ? "list" : "outline";
             this.updateViewMode(newViewMode);
             this.updateModeButtons();
-            this.refreshView();
+            this.refreshView().then();
         });
-        
+
         this.sortButton = toolbar.createEl("button", {
             cls: "clickable-icon ec-mode-button",
             attr: { "aria-label": "Sort equations" },
@@ -129,7 +131,7 @@ export class EquationArrangePanel extends ItemView {
         this.sortButton.addEventListener("click", () => {
             const sortMode = this.sortMode === "tag" ? "seq" : "tag";
             this.updateSortMode(sortMode);
-            this.refreshView();
+            this.refreshView().then();
         });
 
         this.expandButton = toolbar.createEl("button", {
@@ -139,7 +141,7 @@ export class EquationArrangePanel extends ItemView {
         setIcon(this.expandButton, "chevrons-up-down");
         setTooltip(this.expandButton, "Expand all");
         this.expandButton.addEventListener("click", () => {
-            this.handleExpandAll();
+            this.handleExpandAll().then();
         });
 
         this.collapseButton = toolbar.createEl("button", {
@@ -149,7 +151,7 @@ export class EquationArrangePanel extends ItemView {
         setIcon(this.collapseButton, "chevrons-down-up");
         setTooltip(this.collapseButton, "Collapse all");
         this.collapseButton.addEventListener("click", () => {
-            this.handleCollapseAll();
+            this.handleCollapseAll().then().catch(console.error);
         });
 
         // hide tag button
@@ -160,7 +162,7 @@ export class EquationArrangePanel extends ItemView {
         this.toggleTagShowButton.addEventListener("click", () => {
             const mode = this.showEquationTags ? false : true;
             this.toggleTagShow(mode);
-            this.refreshView();
+            this.refreshView().then();
         });
 
         // Filter empty headings button (only visible in outline mode)
@@ -171,7 +173,7 @@ export class EquationArrangePanel extends ItemView {
         this.filterEmptyHeadingsButton.addEventListener("click", () => {
             this.filterEmptyHeadings = !this.filterEmptyHeadings;
             this.updateFilterButton();
-            this.refreshView();
+            this.refreshView().then();
         });
         this.updateFilterButton(); // Set initial state
         this.filterEmptyHeadingsButton.hide();
@@ -186,7 +188,7 @@ export class EquationArrangePanel extends ItemView {
         setIcon(this.searchButton, "search");
         setTooltip(this.searchButton, "Search equations");
         this.searchButton.addEventListener("click", () => {
-            this.toggleSearchMode(true);
+            this.toggleSearchMode(true).then();
         });
 
         // Quit search button (hidden by default)
@@ -198,7 +200,7 @@ export class EquationArrangePanel extends ItemView {
         setTooltip(this.quitSearchButton, "Exit search");
 
         this.quitSearchButton.addEventListener("click", () => {
-            this.toggleSearchMode(false);
+            this.toggleSearchMode(false).then();
         });
         this.quitSearchButton.hide();
 
@@ -229,8 +231,8 @@ export class EquationArrangePanel extends ItemView {
             this.currentActiveFile = activeFile.path;
         }
 
-        this.refreshView();
-        
+        await this.refreshView();
+
         // Register event listeners for dynamic updates
         this.registerEvent(
             // File modification: debounced refresh (5s delay) 
@@ -238,15 +240,15 @@ export class EquationArrangePanel extends ItemView {
         );
 
         // Poll to check if active file changed (using current setting value)
-        this.fileCheckInterval = window.setInterval(() => {
+        this.fileCheckInterval = window.setInterval(async () => {
             const currentFile = this.app.workspace.getActiveFile();
             const currentPath = currentFile?.path || "";
 
             // Only refresh if file changed
             if (currentPath !== this.currentActiveFile) {
                 this.currentActiveFile = currentPath;
-                
-                this.refreshView(); 
+
+                await this.refreshView();
                 // Cancel pending debounced refresh since we're switching files
                 if (this.refreshDebounceTimer !== null) {
                     clearTimeout(this.refreshDebounceTimer);
@@ -254,7 +256,7 @@ export class EquationArrangePanel extends ItemView {
                 }
             }
         }, this.plugin.settings.equationManagePanelfileCheckInterval);
-        
+
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
     }
@@ -431,7 +433,7 @@ export class EquationArrangePanel extends ItemView {
         editor.setCursor(dropPosition);
         insertTextWithCursorOffset(editor, citation, citation.length);
         // Focus the editor to ensure it's active
-        targetView.leaf.setViewState({
+        await targetView.leaf.setViewState({
             ...targetView.leaf.getViewState(),
             active: true
         });
@@ -445,8 +447,8 @@ export class EquationArrangePanel extends ItemView {
             modal.open();
         });
     }
-    
-    private toggleSearchMode(enable: boolean): void {
+
+    private async toggleSearchMode(enable: boolean): Promise<void> {
         this.isSearchMode = enable;
 
         this.searchInput.toggle(enable);
@@ -465,7 +467,7 @@ export class EquationArrangePanel extends ItemView {
             this.searchInput.focus();
         } else {
             // Hide search UI
-            this.refreshView();
+            await this.refreshView();
             this.updateModeButtons();
         }
     }
@@ -493,20 +495,20 @@ export class EquationArrangePanel extends ItemView {
         setTooltip(this.filterEmptyHeadingsButton, tooltipText);
     }
 
-    private handleCollapseAll(): void {
+    private async handleCollapseAll(): Promise<void> {
         const allHeadings = this.viewPanel.querySelectorAll('.ec-heading-item');
         allHeadings.forEach((heading) => {
             const lineNum = parseInt(heading.getAttribute('data-line') || '0');
             this.collapsedHeadings.add(lineNum);
         });
-        this.refreshView();
+        await this.refreshView();
     }
 
-    private handleExpandAll(): void {
+    private async handleExpandAll(): Promise<void> {
         this.collapsedHeadings.clear();
-        this.refreshView();
+        await this.refreshView();
     }
-    
+
     private async getEquationsToRender(): Promise<EquationMatch[]> {
         const currentFile = this.app.workspace.getActiveFile();
         if (!currentFile) {
@@ -526,7 +528,7 @@ export class EquationArrangePanel extends ItemView {
         }
         return filteredEquations;
     }
-    
+
     /**
      * schedule refresh the equations render view with debounce (for search input)
      */
@@ -535,9 +537,11 @@ export class EquationArrangePanel extends ItemView {
             clearTimeout(this.searchDebounceTimer);
             this.searchDebounceTimer = null;
         }
-        this.searchDebounceTimer = window.setTimeout(async() => {
-            await this.refreshView();
-            this.searchDebounceTimer = null;
+        this.searchDebounceTimer = window.setTimeout(() => {
+            (async () => {
+                await this.refreshView();
+                this.searchDebounceTimer = null;
+            })()
         }, timeout); // adjust delay as needed
     }
 
@@ -547,7 +551,7 @@ export class EquationArrangePanel extends ItemView {
     private async refreshView(): Promise<void> {
         const equations = await this.getEquationsToRender();
         if (!equations || equations.length === 0) {
-            Debugger.log('No equations to render'); 
+            Debugger.log('No equations to render');
             return;
         }
         const equationsHash = hashEquations(equations);
@@ -866,7 +870,7 @@ export class EquationArrangePanel extends ItemView {
             headingTextSpan.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent event bubbling
                 if (group.heading) {
-                    this.jumpToHeading(group.heading);
+                    this.jumpToHeading(group.heading).then();
                 }
             });
         }
@@ -908,7 +912,7 @@ export class EquationArrangePanel extends ItemView {
                 allHeadings
             );
         }
-        
+
         // Click handler for chevron - collapse/expand
         if (hasContent && collapseIcon) {
             const iconElement = collapseIcon;
@@ -930,14 +934,14 @@ export class EquationArrangePanel extends ItemView {
         return;
     }
 
-    private jumpToHeading(heading: Heading): void {
+    private async jumpToHeading(heading: Heading): Promise<void> {
         const currentFile = this.app.workspace.getActiveFile();
         if (!currentFile) return;
 
         // Open the file and jump to the heading line
         const leaf = this.app.workspace.getLeaf(false);
         if (leaf) {
-            leaf.openFile(currentFile, {
+            await leaf.openFile(currentFile, {
                 eState: {
                     line: heading.line,
                     cursor: { from: { line: heading.line, ch: 0 } }
@@ -957,8 +961,7 @@ export class EquationArrangePanel extends ItemView {
         // Tag section (if exists)
         if (equation.tag) {
             const tagDiv = eqDiv.createDiv({ cls: "ec-equation-tag ec-tag-show" });
-            tagDiv.createSpan({ text: equation.tag, cls: "ec-tag-text" });
-        }
+            tagDiv.createSpan({ text: equation.tag, cls: "ec-tag-text" });        }
 
         // Equation content
         const contentDiv = eqDiv.createDiv("ec-equation-content");
@@ -979,27 +982,29 @@ export class EquationArrangePanel extends ItemView {
 
         // Add click handler to jump to equation in the editor
         // Ctrl/Cmd + double click always creates new panel on right
-        eqDiv.addEventListener('dblclick', async (event: MouseEvent) => {
+        eqDiv.addEventListener('dblclick', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
             if (ctrlKey && equation.tag && currentFile) {
                 // Always create a new split panel on the right
                 const newLeaf = this.app.workspace.getLeaf("split");
                 if (newLeaf) {
                     this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
-                    await this.app.workspace.openLinkText("", currentFile.path, false);
+                    this.app.workspace.openLinkText("", currentFile.path, false).then().catch(console.error);
 
                     // Scroll to the equation after layout is ready
-                    this.app.workspace.onLayoutReady(async () => {
-                        setTimeout(async () => {
-                            if (equation.tag) {
-                                await scrollToEquationByTag(this.plugin, equation.tag, currentFile.path);
-                            }
+                    this.app.workspace.onLayoutReady(() => {
+                        setTimeout(() => {
+                            (async () => {
+                                if (equation.tag) {
+                                    await scrollToEquationByTag(this.plugin, equation.tag, currentFile.path);
+                                }
+                            })();
                         }, 50);
                     });
                 }
             } else {
                 // Normal double click - jump in current view
-                this.jumpToEquation(equation);
+                this.jumpToEquation(equation).then().catch(console.error);
             }
         });
 
@@ -1030,14 +1035,14 @@ export class EquationArrangePanel extends ItemView {
         });
     }
 
-    private jumpToEquation(equation: EquationMatch): void {
+    private async jumpToEquation(equation: EquationMatch): Promise<void> {
         const currentFile = this.app.workspace.getActiveFile();
         if (!currentFile) return;
 
         // Open the file and jump to the line
         const leaf = this.app.workspace.getLeaf(false);
         if (leaf) {
-            leaf.openFile(currentFile, {
+            await leaf.openFile(currentFile, {
                 eState: {
                     line: equation.lineStart,
                     cursor: { from: { line: equation.lineStart, ch: 0 } }

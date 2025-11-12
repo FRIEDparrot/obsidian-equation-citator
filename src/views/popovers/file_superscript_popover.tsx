@@ -27,8 +27,9 @@ export class FileSuperScriptPopover extends HoverPopover {
         }
         this.showFootnote(footnote)
     }
-    async onunload(): Promise<void> {
-    }
+    
+    onunload() {}
+
     showFootnote(footnote: FootNote) {
         const container: HTMLElement = this.hoverEl.createDiv();
         container.addClass("em-file-superscript-popover-container");
@@ -55,13 +56,15 @@ export class FileSuperScriptPopover extends HoverPopover {
                 const newLeaf = (evt.ctrlKey || evt.metaKey)   // Ctrl on Windows/Linux, Cmd on macOS
                     ? this.plugin.app.workspace.getLeaf("split", 'vertical') // split right by default
                     : this.plugin.app.workspace.getLeaf(true); // reuse current 
-                
+
                 this.plugin.app.workspace.setActiveLeaf(newLeaf, { focus: true });
                 this.plugin.app.workspace.openLinkText(
                     "",
                     sourceFile.path,
                     false,
-                );
+                ).then().catch((err) => {
+                    Debugger.error(err);
+                });
             });
         }
         else if (footnote.url !== null) {

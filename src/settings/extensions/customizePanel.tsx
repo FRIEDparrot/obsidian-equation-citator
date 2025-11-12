@@ -59,7 +59,7 @@ export function createCustomizePanel(
             advancedCheckbox.checked = plugin.settings.advancedSettingsKeys.includes(settingKey as string);
 
             // Handle checkbox changes - mutually exclusive
-            basicCheckbox.addEventListener("change", async () => {
+            basicCheckbox.addEventListener("change", () => {
                 if (basicCheckbox.checked) {
                     // Add to basic, remove from advanced
                     if (!plugin.settings.basicSettingsKeys.includes(settingKey as string)) {
@@ -75,11 +75,10 @@ export function createCustomizePanel(
                         k => k !== settingKey
                     );
                 }
-                await plugin.saveSettings();
-                onUpdate();
+                plugin.saveSettings().then(() => onUpdate()).catch(e => new Notice("Error saving settings"));
             });
 
-            advancedCheckbox.addEventListener("change", async () => {
+            advancedCheckbox.addEventListener("change", () => {
                 if (advancedCheckbox.checked) {
                     // Add to advanced, remove from basic
                     if (!plugin.settings.advancedSettingsKeys.includes(settingKey as string)) {
@@ -95,8 +94,7 @@ export function createCustomizePanel(
                         k => k !== settingKey
                     );
                 }
-                await plugin.saveSettings();
-                onUpdate();
+                plugin.saveSettings().then(() => onUpdate()).catch(e => new Notice("Error saving settings"));
             });
         });
 

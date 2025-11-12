@@ -15,7 +15,7 @@ import {
     createImageCaptionExtension,
     imageCaptionPostProcessor,
     EditorSelectionInfo,
-} from '@/views/citation_render';
+} from '@/views/widgets/citation_render';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
 import { FootNoteCache } from '@/cache/footnoteCache';
@@ -136,7 +136,7 @@ export default class EquationCitator extends Plugin {
         this.tagService = new TagService(this);
     }
 
-    async loadEditorExtensions() {
+    loadEditorExtensions() {
         this.registerEditorExtension(
             this.mathCitationCompartment.of(
                 createMathCitationExtension(this)
@@ -162,7 +162,7 @@ export default class EquationCitator extends Plugin {
 
                 if (this.settings.enableCiteWithCodeBlockInCallout) {
                     // wait for the callout to be rendered
-                    await calloutCitationPostProcessor(this, el, ctx, this.citationCache);
+                    calloutCitationPostProcessor(this, el, ctx, this.citationCache);
                 }
 
                 // Render image captions

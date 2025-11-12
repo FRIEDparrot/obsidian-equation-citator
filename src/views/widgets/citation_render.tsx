@@ -9,18 +9,18 @@ import {
     CitationRef,
     splitContinuousCitationTags
 } from "@/utils/core/citation_utils";
-import { CitationWidget } from "@/views/citation_widget";
-import { FigureCitationWidget } from "@/views/figure_citation_widget";
-import { CalloutCitationWidget } from "@/views/callout_citation_widget";
+import { CitationWidget } from "@/views/widgets/citation_widget";
+import { FigureCitationWidget } from "@/views/widgets/figure_citation_widget";
+import { CalloutCitationWidget } from "@/views/widgets/callout_citation_widget";
 import { CitationCache } from "@/cache/citationCache";
 import EquationCitator from "@/main";
-import { CitationPopover } from "@/views/citation_popover";
-import { FigureCitationPopover } from "@/views/figure_citation_popover";
-import { CalloutCitationPopover } from "@/views/callout_citation_popover";
+import { CitationPopover } from "@/views/popovers/citation_popover";
+import { FigureCitationPopover } from "@/views/popovers/figure_citation_popover";
+import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popover";
 import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/string_processing/regexp_utils";
-import { renderEquationCitation } from "@/views/citation_widget";
-import { renderFigureCitation } from "@/views/figure_citation_render";
-import { renderCalloutCitation } from "@/views/callout_citation_render";
+import { renderEquationCitation } from "@/views/widgets/citation_widget";
+import { renderFigureCitation } from "@/views/widgets/figure_citation_render";
+import { renderCalloutCitation } from "@/views/widgets/callout_citation_render";
 import { find_array } from "@/utils/misc/array_utils";
 import { fastHash } from "@/utils/misc/hash_utils";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
@@ -442,10 +442,10 @@ export async function mathCitationPostProcessor(
 function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, eqNumbersAll: string[], sourcePath: string): void {
     const citationSpans = citationEl.querySelectorAll('span.em-math-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', async (event: MouseEvent) => {
+        span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            await showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
+            showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath).then();
         })
     })
 }
@@ -453,10 +453,10 @@ function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTML
 function addReadingModeFigurePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, figureTagsAll: string[], sourcePath: string): void {
     const citationSpans = citationEl.querySelectorAll('span.em-figure-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', async (event: MouseEvent) => {
+        span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            await showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath);
+            showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath).then();
         })
     })
 }
@@ -503,10 +503,10 @@ function addReadingModeCalloutPreviewListener(
 ): void {
     const citationSpans = citationEl.querySelectorAll('span.em-callout-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', async (event: MouseEvent) => {
+        span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            await showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath);
+            showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath).then();
         })
     })
 }
@@ -546,12 +546,12 @@ async function showReadingModeCalloutPopover(
     };
 }
 
-export async function calloutCitationPostProcessor(
+export function calloutCitationPostProcessor(
     plugin: EquationCitator,
     el: HTMLElement,
     ctx: MarkdownPostProcessorContext,
     citationCache: CitationCache,
-): Promise<void> {
+): void {
     // render the inline-code format citation in the callout block
     const calloutContent = el.querySelector('.callout-content');
     if (!calloutContent) return;  // no callout content found, skip rendering   
@@ -836,7 +836,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                     return line;
                 }
             } catch (e) {
-                // Ignore errors
+                console.error(e);
             }
             return -1;
         }

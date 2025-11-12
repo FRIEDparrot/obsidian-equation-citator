@@ -43,10 +43,10 @@ export class TagRenameModal extends Modal {
                     this.newTag = value;
                 })
                 // Press Enter inside input to trigger rename
-                text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
+                text.inputEl.addEventListener('keydown', async(e: KeyboardEvent) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        triggerRename();
+                        triggerRename().then(() => {});
                     }
                 });
             });
@@ -57,10 +57,10 @@ export class TagRenameModal extends Modal {
                 button.setCta();
                 button.onClick(triggerRename);
                 // Allow Enter when button focused (some Obsidian themes may swallow it)
-                (button.buttonEl as HTMLButtonElement).addEventListener('keydown', (e: KeyboardEvent) => {
+                button.buttonEl.addEventListener('keydown', (e: KeyboardEvent) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        triggerRename();
+                        triggerRename().then(() => {});
                     }
                 });
             })
@@ -95,17 +95,19 @@ export class TagRenameModal extends Modal {
             const deleteOption: ModalOption = {
                 label: "Delete",
                 cta: true,
-                action: callRenameTagService.bind(this, true, false)
+                action: ()=> callRenameTagService(true, false)
             }
             const keepOption: ModalOption = {
                 label: "Keep",
                 cta: false,
-                action: callRenameTagService.bind(this, false, false)
+                action: ()=> callRenameTagService(false, false)
             }
             const cancelOption: ModalOption = {
                 label: "Cancel",
                 cta: false,
-                action: () => {} // do nothing when cancel button is clicked
+                action: async() => {
+                    return new Promise(resolve => resolve());
+                } // do nothing when cancel button is clicked
             }
             const modal = new PromiseOptionsModal(this.app,
                 "Citation Conflict",

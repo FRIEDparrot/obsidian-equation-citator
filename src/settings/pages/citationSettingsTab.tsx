@@ -136,9 +136,9 @@ export const CitationSettingsTab = {
         addSubPanelToggle(
             renderContinuousCitationSetting,
             plugin.settings.enableContinuousCitation,
-            async (value) => {
+            (value) => {
                 plugin.settings.enableContinuousCitation = value;
-                await plugin.saveSettings();
+                plugin.saveSettings().then();
             },
             (panel) => {
                 CitationSettingsTab.continuousRangeSymbol(panel, plugin);
@@ -205,9 +205,9 @@ export const CitationSettingsTab = {
         addSubPanelToggle(
             crossFileSetting,
             plugin.settings.enableCrossFileCitation,
-            async (value) => {
-                plugin.settings.enableCrossFileCitation = value,
-                    await plugin.saveSettings();
+            (value) => {
+                plugin.settings.enableCrossFileCitation = value;
+                plugin.saveSettings().then();
             },
             (panel) => {
                 CitationSettingsTab.fileCiteDelimiter(panel, plugin); // Render child setting
@@ -384,7 +384,7 @@ export const CitationSettingsTab = {
                 .addButton((button) => {
                     button.setButtonText("Add New Prefix")
                         .setClass("mod-cta")
-                        .onClick(() => {
+                        .onClick(async() => {
                             // Find a unique default prefix
                             let newPrefix = "custom:";
                             let counter = 1;
@@ -397,7 +397,7 @@ export const CitationSettingsTab = {
                                 prefix: newPrefix,
                                 format: "Custom. #"
                             });
-                            plugin.saveSettings();
+                            await plugin.saveSettings();
                             renderPrefixList();
                         });
                 });

@@ -2,8 +2,8 @@ import { App, Modal, Setting } from "obsidian";
 
 export type ModalOption = {
     label: string;
-    cta?: boolean;
-    action: () => void;
+    cta?: boolean;   // cta button  
+    action: () => Promise<void> ;
 };
 
 export class OptionsModal extends Modal {
@@ -23,9 +23,9 @@ export class OptionsModal extends Modal {
             setting.addButton(btn => {
                 btn
                     .setButtonText(opt.label)
-                    .onClick(() => {
+                    .onClick(async() => {
                         this.close();
-                        opt.action();  // do action after close 
+                        await opt.action?.();  // do action after close 
                     });
 
                 if (opt.cta) {
@@ -68,7 +68,7 @@ export class PromiseOptionsModal extends Modal {
                 btn
                     .setButtonText(opt.label)
                     .onClick(async() => {
-                        await opt.action?.();  // do action after close 
+                        await opt.action?.(); // do action after close
                         this.close(); 
                         this.resolver(null); // resolve promise 
                     });

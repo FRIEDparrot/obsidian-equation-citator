@@ -1,7 +1,7 @@
 import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView } from "obsidian";
 import { RenderedEquation } from "@/services/equation_services";
 import { findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvironment, removePairedBraces } from "@/utils/string_processing/string_utils";
-import { renderEquationWrapper, TargetElComponent } from "@/views/citation_popover";
+import { renderEquationWrapper, TargetElComponent } from "@/views/popovers/citation_popover";
 import { EditorView } from "@codemirror/view";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
 import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/string_processing/regexp_utils";
@@ -239,8 +239,8 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
             return equations;
         }
     }
-
-    renderSuggestion(value: RenderedEquation, el: HTMLElement): void {
+    
+    async renderSuggestion(value: RenderedEquation, el: HTMLElement): Promise<void> {
         const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || null;
         if (!sourcePath) return;
         el.addClass("em-equation-option-container")
@@ -249,7 +249,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
 
-        renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent);
+        await renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent);
     }
 
     selectSuggestion(value: RenderedEquation, evt: MouseEvent | KeyboardEvent): void {

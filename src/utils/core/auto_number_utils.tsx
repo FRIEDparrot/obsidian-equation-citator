@@ -95,8 +95,8 @@ export function getAutoNumberInCursor(
 ): string | null {
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
-    assert(cursorPos.line >= 0 && cursorPos.line < lines.length, "Invalid cursor position " + cursorPos);
-
+    assert(cursorPos.line >= 0 && cursorPos.line < lines.length, "Invalid cursor position");
+    
     let inCodeBlock = false;
     let inEquationBlock = false;
     let newTag: string | null = null;

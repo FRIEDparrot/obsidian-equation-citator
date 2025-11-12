@@ -1,16 +1,16 @@
 import EquationCitator from "@/main";
-import { Notice } from "obsidian";
+import { Notice, requestUrl } from "obsidian";
 const versionUrl = "https://raw.githubusercontent.com/FRIEDparrot/obsidian-equation-citator/refs/heads/master/manifest.json"
 
 export async function isUpdateAvailable(plugin: EquationCitator, use_notice=true): Promise<boolean> {
     try {
-        const response = await fetch(versionUrl);
-        if (!response.ok) {
+        const response = await requestUrl(versionUrl);
+        if (response.status !== 200) {
             console.error(`HTTP error! status: ${response.status}`);
             new Notice("Network error");
             return false;
         }
-        const data = await response.json();
+        const data = response.json;
         const latestVersion = data.version;
         const currentVersion = plugin.manifest.version;
 

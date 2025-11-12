@@ -7,7 +7,7 @@ import {
     HoverParent,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
-import { TargetElComponent } from "@/views/citation_popover";
+import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedCallout } from "@/services/callout_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 
@@ -43,7 +43,7 @@ export class CalloutCitationPopover extends HoverPopover {
         this.adjustPosition();
     }
 
-    async onunload(): Promise<void> {
+    onunload(): void {
         this.onClose();
     }
 
@@ -206,7 +206,8 @@ async function renderCalloutWrapper(
 
     if (callout.content) {
         try {
-            await MarkdownRenderer.renderMarkdown(
+            await MarkdownRenderer.render(
+                plugin.app,
                 callout.content,
                 contentContainer,
                 callout.sourcePath || '',
@@ -267,7 +268,7 @@ function addClickLinkJump(
     callout: RenderedCallout,
     leaf: WorkspaceLeaf
 ): void {
-    calloutWrapper.addEventListener("dblclick", async (event: MouseEvent) => {
+    calloutWrapper.addEventListener("dblclick", (event: MouseEvent) => {
         if (!callout.sourcePath || !callout.tag) {
             Debugger.log("No source path or tag for callout");
             return;
@@ -283,14 +284,16 @@ function addClickLinkJump(
         }
 
         const ctrlKey = event.ctrlKey || event.metaKey;
-        await openFileAndScrollToCallout(
+        openFileAndScrollToCallout(
             plugin,
             callout.sourcePath,
             callout.tag,
             callout.prefix,
             ctrlKey,  // open in split if ctrl key is pressed
             view.leaf  // current leaf
-        );
+        ).then().catch((error) => {
+            Debugger.error("Error opening file:", error);
+        });
     });
 }
 

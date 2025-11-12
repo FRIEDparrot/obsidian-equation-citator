@@ -52,9 +52,9 @@ export default function registerCommands(plugin: EquationCitator) {
 
     plugin.addCommand({
         id: 'make-markdown-copy-to-export-pdf',
-        name: 'Make markdown copy to export PDF',
+        name: 'Make a markdown copy to export pdf',
         callback: async () => {
-            exportCurrentMarkdown(plugin);
+            await exportCurrentMarkdown(plugin);
         }
     })
 
@@ -73,8 +73,8 @@ export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
         id: 'insert-tag-with-auto-number-on-cursor-position',
         name: 'Insert tag on cursor position with auto-number',
-        callback: async () => {
-            await insertAutoNumberTag(plugin);
+        callback: () => {
+            insertAutoNumberTag(plugin);
         }
     })
 
@@ -82,8 +82,8 @@ export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
         id: 'clear-cache',
         name: 'Clear plugin cache', 
-        callback: async () => {
-            await plugin.clearCaches();
+        callback: () => {
+            plugin.clearCaches();
             new Notice("All caches cleared"); 
         }
     })

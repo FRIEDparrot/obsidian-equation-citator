@@ -1,10 +1,10 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField, Notice } from "obsidian";
-import { FigureCitationPopover } from "@/views/figure_citation_popover";
+import { FigureCitationPopover } from "@/views/popovers/figure_citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
-import { renderFigureCitation } from "@/views/figure_citation_render";
+import { renderFigureCitation } from "@/views/widgets/figure_citation_render";
 
 /**
  * Widget for rendering figure citations in Live Preview mode
@@ -58,7 +58,9 @@ export class FigureCitationWidget extends WidgetType {
             setSelectionRange(view, this.range.from, this.range.to);
         });
 
-        this.registerCitationEvents();
+        setTimeout(() => {
+            this.registerCitationEvents().catch(console.error);
+        }, 0); 
         return el;
     }
 
