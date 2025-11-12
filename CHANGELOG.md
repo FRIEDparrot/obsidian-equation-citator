@@ -209,6 +209,12 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 - [x] Remake a brand-new and more concise tutorial. 
 - [x] Remake Readme file to be more friendly and concise. Also add a Chinese translation of Readme. 
 
+
+### Version 1.3.1 (Coming) 
+
+⭐ New Features :
+- [x] Add support for typst (by [azyarashi](https://github.com/azyarashi) in PR [#73](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/73))
+
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 
 2. Check citations of figures and tables, all in one 😄
