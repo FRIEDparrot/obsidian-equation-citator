@@ -102,9 +102,9 @@ export class SettingsTabView extends PluginSettingTab {
         // Update check button 
         const updateDiv = toolbar.createDiv({ cls: "ec-settings-update-check" });
         new Setting(updateDiv)
-            .setName("Check Updates")
+            .setName("Check updates")
             .addButton((btn) => {
-                btn.setButtonText("Check Now");
+                btn.setButtonText("Check now");
                 btn.setIcon("refresh-cw");
                 btn.onClick(async () => {
                     await this.plugin.checkForUpdates(true);
@@ -210,7 +210,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Add toggle button for reorder buttons
         const toggleContainer = containerEl.createDiv({ cls: "ec-reorder-toggle-container" });
         new Setting(toggleContainer)
-            .setName("Show Reorder Buttons")
+            .setName("Show reorder buttons")
             .setDesc("Display arrow buttons to reorder settings")
             .addToggle((toggle) => {
                 toggle.setValue(this.showReorderButtons);
@@ -249,7 +249,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Render Customize Panel
         createFoldablePanel(
             containerEl,
-            "Customize Settings Display",
+            "Customize settings display",
             (panel) => {
                 createCustomizePanel(
                     panel,
@@ -399,12 +399,12 @@ export class SettingsTabView extends PluginSettingTab {
         // Add reset settings button at the end for basic panel
         if (panelType === "basic") {
             new Setting(containerEl)
-                .setName("Reset Settings")
+                .setName("Reset settings")
                 .setDesc("Reset all settings to default values")
                 .addButton((button) => {
                     button.setIcon("reset");
                     button.onClick(async () => {
-                        new Notice("Restoring Settings ...");
+                        new Notice("Restoring settings ...");
                         await new Promise((resolve) => setTimeout(resolve, 200));
                         this.plugin.settings = { ...DEFAULT_SETTINGS };
                         resetStyles();

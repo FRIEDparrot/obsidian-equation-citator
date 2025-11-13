@@ -62,7 +62,7 @@ export class FigureCitationPopover extends HoverPopover {
         const header = container.createDiv();
         header.addClass("em-citation-header");
 
-        header.createEl("h3", { text: "Referenced Figures", cls: "em-citation-title" });
+        header.createEl("h3", { text: "Referenced figures", cls: "em-citation-title" });
         const footerSpan = header.createEl("div", {
             cls: "em-citation-title-note",
         });
@@ -289,7 +289,7 @@ function addClickLinkJump(
 
         const isReadingMode = view.getMode() === "preview";
         if (isReadingMode) {
-            new Notice("Link jump is not supported in reading mode. Use Live Preview instead.");
+            new Notice("Link jump is not supported in reading mode. Use live preview instead.");
             return;
         }
 

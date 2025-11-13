@@ -422,7 +422,7 @@ export async function mathCitationPostProcessor(
         const lineIndex = find_array(sectionHashes, lineHash.map(l => l.hash));
         Debugger.log("Block rendering - find hash index at line:", lineIndex);
         if (lineIndex === -1) {
-            new Notice("Equation Citator: Can't locate the line hash for this section, skip rendering");
+            new Notice("Can't locate the line hash for this section, skip rendering");
             return;
         }
         const lineStart = lineIndex;
@@ -445,7 +445,7 @@ function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTML
         span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath).then();
+            void showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
         })
     })
 }
@@ -456,7 +456,7 @@ function addReadingModeFigurePreviewListener(plugin: EquationCitator, citationEl
         span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath).then();
+            void showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath);
         })
     })
 }
@@ -506,7 +506,7 @@ function addReadingModeCalloutPreviewListener(
         span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath).then();
+            void showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath);
         })
     })
 }

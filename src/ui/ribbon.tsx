@@ -6,7 +6,7 @@ import { invokeView } from '@/utils/workspace/invokePanelView';
 
 
 export default function registerRibbonButton(plugin: EquationCitator) {
-    plugin.addRibbonIcon('square-function', 'Auto-number Current File Equations', async () => {
+    plugin.addRibbonIcon('square-function', 'Auto-number current file equations', async () => {
         const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
         if (!editor) return;
         const scrollInfo = editor.getScrollInfo();
@@ -17,7 +17,7 @@ export default function registerRibbonButton(plugin: EquationCitator) {
         }, 50); // delay to allow the editor to update the scroll position
     });
 
-    plugin.addRibbonIcon('square-pi', 'Open Equation Arrange Panel', async() => {
+    plugin.addRibbonIcon('square-pi', 'Open equation arrange panel', async() => {
         await invokeView(plugin, EQUATION_MANAGE_PANEL_TYPE);       
     });
 }

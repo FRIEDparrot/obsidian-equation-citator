@@ -14,7 +14,7 @@ import { Setting } from "obsidian";
 export function addSubPanelToggle(
     setting: Setting,
     initVal: boolean,
-    onToggleChange: (value: boolean) => void,
+    onToggleChange: (value: boolean) => Promise<void>,
     subPanelCreationCallback: (panel: HTMLElement) => void,
     renderPanel = true, // optional: render subpanel initially 
     reverse = false,

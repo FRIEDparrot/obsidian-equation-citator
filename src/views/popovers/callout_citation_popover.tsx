@@ -37,9 +37,9 @@ export class CalloutCitationPopover extends HoverPopover {
     public onOpen() { }
     public onClose() { }
 
-    async onload(): Promise<void> {
+    onload(): void {
         this.onOpen();
-        await this.showCallouts();
+        void this.showCallouts();
         this.adjustPosition();
     }
 
@@ -279,7 +279,7 @@ function addClickLinkJump(
 
         const isReadingMode = view.getMode() === "preview";
         if (isReadingMode) {
-            new Notice("Link jump is not supported in reading mode. Use Live Preview instead.");
+            new Notice("Link jump is not supported in reading mode. Use live preview instead.");
             return;
         }
 

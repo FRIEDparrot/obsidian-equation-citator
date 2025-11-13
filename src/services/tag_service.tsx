@@ -184,7 +184,7 @@ export class TagService {
         let currentFileUpdatedNum = 0;
         if (editor) {
             const currentFileLines = currentFileContent.split('\n');
-            const { updatedLineMap, updatedNum } = this.updateCitationLines(
+            const { updatedLineMap, updatedNum } = await this.updateCitationLines(
                 currentFileLines, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
             );
             const sortedUpdatedLineMap = new Map(Array.from(updatedLineMap.entries()).sort((a, b) => b[0] - a[0]));
@@ -198,7 +198,7 @@ export class TagService {
             currentFileUpdatedNum = updatedNum;
         } else {
             // no editor instance, update the citation in current file without editor instance 
-            const { updatedContent, updatedNum } = await this.updateCitations(
+            const { updatedContent, updatedNum } = this.updateCitations(
                 currentFileContent, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
             );
             await this.plugin.app.vault.modify(file, updatedContent);
@@ -246,7 +246,7 @@ export class TagService {
                 }
             });
             const md = await this.plugin.app.vault.read(file);
-            const { updatedContent, updatedNum } = await this.updateCitations(
+            const { updatedContent, updatedNum } = this.updateCitations(
                 md, crossFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
             );
             await this.plugin.app.vault.modify(file, updatedContent);
@@ -263,7 +263,7 @@ export class TagService {
             details: fileChangeMap  // return not filtered result  
         };
     }
-    
+
     /**
      * For current Editor, use updateCitationLines to avoid lose focus of cursor 
      */
@@ -345,15 +345,14 @@ export class TagService {
         return { updatedLineMap: lineMap, updatedNum };
     }
 
-    async updateCitations(md: string,
+    updateCitations(md: string,
         nameMapping: Map<string, string>,   // mapping from old tag to new tag
         deleteRepeatCitations = false,
         deleteUnusedCitations = false
-    ): Promise<
-        {
+    ):  {
             updatedContent: string,
             updatedNum: number
-        }> {
+        } {
         if (!md.trim()) return { updatedContent: md, updatedNum: 0 };  // not do anyhing if md is empty 
         const lines = md.split('\n');  // split the markdown into lines 
         const { updatedLineMap, updatedNum } = this.updateCitationLines(

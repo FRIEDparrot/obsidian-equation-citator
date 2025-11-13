@@ -3,7 +3,7 @@ import { EquationCitatorSettings } from "@/settings/defaultSettings";
 export class CalloutTableStyleManager {
     private static styleElement: HTMLStyleElement | null = null;
     private static readonly STYLE_ID = 'equation-citator-callout-table-style';
-
+    
     static update(settings: EquationCitatorSettings): void {
         this.ensureStyleElement();
         const css = settings.enableCenterTableInCallout

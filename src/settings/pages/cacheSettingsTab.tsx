@@ -44,11 +44,11 @@ export const CacheSettingsTab = {
 
     clearCache(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
-            .setName("Clear Cache")
+            .setName("Clear cache")
             .setDesc("Manually clear the cache, useful if you suspect the cache is out of date")
             .addButton((button) => {
                 button.setIcon("trash");
-                button.setTooltip("Clear Cache");
+                button.setTooltip("Clear cache");
                 button.onClick(() => {
                     plugin.clearCaches();
                     new Notice("All caches cleared");
@@ -63,7 +63,7 @@ export const CacheSettingsTab = {
  * @param plugin 
  */
 export function addCacheSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
-    containerEl.createEl("h2", { text: "Cache Settings", cls: "ec-settings-header" });
+    containerEl.createEl("h2", { text: "Cache settings", cls: "ec-settings-header" });
     CacheSettingsTab.cacheUpdateTime(containerEl, plugin);
     CacheSettingsTab.cacheCleanTime(containerEl, plugin);
     CacheSettingsTab.clearCache(containerEl, plugin);

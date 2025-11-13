@@ -21,7 +21,7 @@ export class TagRenameModal extends Modal {
     }
 
     onOpen(): void {
-        this.titleEl.setText("Rename Tag");
+        this.titleEl.setText("Rename tag");
         this.contentEl.addClass("ec-tag-rename-modal");
         this.newTag = this.oldTag;
         // helper to perform rename (shared by button & Enter key)
@@ -35,7 +35,7 @@ export class TagRenameModal extends Modal {
         new Setting(this.contentEl)
             .setName(this.heading)
             .addText((text) => {
-                text.setPlaceholder("New Tag Name");
+                text.setPlaceholder("New tag name");
                 text.setValue(this.oldTag);
                 text.inputEl.focus();
                 text.inputEl.select();
@@ -43,10 +43,10 @@ export class TagRenameModal extends Modal {
                     this.newTag = value;
                 })
                 // Press Enter inside input to trigger rename
-                text.inputEl.addEventListener('keydown', async(e: KeyboardEvent) => {
+                text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        triggerRename().then(() => {});
+                        void triggerRename(); 
                     }
                 });
             });
@@ -60,7 +60,7 @@ export class TagRenameModal extends Modal {
                 button.buttonEl.addEventListener('keydown', (e: KeyboardEvent) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        triggerRename().then(() => {});
+                        void triggerRename();
                     }
                 });
             })

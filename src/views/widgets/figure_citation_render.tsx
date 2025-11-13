@@ -150,7 +150,7 @@ export function renderFigureCitation(
             if (isInteractive || ctrlKey) {
                 event.preventDefault();
                 event.stopPropagation();
-                showFigurePopover(plugin, parent, el, citeFigureTags, sourcePath).then();
+                void showFigurePopover(plugin, parent, el, citeFigureTags, sourcePath);
             }
         });
     }

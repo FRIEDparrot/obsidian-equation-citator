@@ -48,12 +48,12 @@ export const OtherSettingsTab = {
      */
     resetSettings(containerEl: HTMLElement, plugin: EquationCitator, settingsTab: SettingsTabView) {
         new Setting(containerEl)
-            .setName("Reset Settings")
+            .setName("Reset settings")
             .setDesc("Reset all settings to default values")
             .addButton((button) => {
                 button.setIcon("reset");
                 button.onClick(async () => {
-                    new Notice("Restoring Settings ...");
+                    new Notice("Restoring settings ...");
                     
                     // Add a small delay to show the animation
                     await new Promise(resolve => setTimeout(resolve, 200));
@@ -89,6 +89,6 @@ export function addOtherSettingsTab(containerEl: HTMLElement, plugin: EquationCi
     OtherSettingsTab.debugMode(containerEl, plugin);
     OtherSettingsTab.resetSettings(containerEl, plugin, settingsTab);
     // ==================  Beta features settings ==========   
-    containerEl.createEl("h2", { text: "Beta Features", cls: "ec-settings-header" });
+    containerEl.createEl("h2", { text: "Beta features", cls: "ec-settings-header" });
     OtherSettingsTab.enableCiteWithCodeBlockInCallout(containerEl, plugin);
 }
