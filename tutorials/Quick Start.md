@@ -165,6 +165,12 @@ So here we give an example  for how to cite a table :
 
 Cite the table using: `$\ref{table:2.1}$`, rendered as $\ref{table:2.1}$  
 
+Since **edit table in callout would not be easy**, here I give a simple trick to you to edit table easier (also see [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7)):   
+1. When you want to edit table, use `Ctrl + shift` and drag the cursor vertically to duplicate cursor to the whole line and delete the quote mark `>`. (then you can edit the table as it is) 
+2. After editing, insert a callout (I use `ctrl+Q` for this) around the table (this adds `>`) to all lines) and then combine two pieces together 
+
+Also, callout citation should be strictly matched (including case match), e.g. `> [!NOTE:1]` should be cite with `$\ref:{NOTE:1}$` 
+
 All figure and callout citations support syntax and interactive features in [[#1. Basic Equation Citations]]. 
 
 ## 3. Equations Manage Panel (New in v1.3.0)
