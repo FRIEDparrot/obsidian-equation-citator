@@ -1,6 +1,7 @@
 import {
     Plugin, MarkdownView, WorkspaceLeaf,
-    MarkdownPostProcessorContext
+    MarkdownPostProcessorContext,
+	Editor,
 } from 'obsidian';
 import { cleanUpStyles, loadStyles, SettingsTabView } from "@/settings/SettingsTab";
 import { DEFAULT_SETTINGS } from "@/settings/defaultSettings";
@@ -194,23 +195,25 @@ export default class EquationCitator extends Plugin {
         const newImageExt = createImageCaptionExtension(this);
         // iterate over all the views and update the extensions
         this.app.workspace.iterateAllLeaves((leaf) => {
-            const view = leaf.view;
-            // @ts-expect-error editor.cm exists
-            const cm = view?.editor?.cm; // get the CodeMirror instance
-            if (cm && !cm.state.destroyed) {
-                // reload the extension for each view
-                cm.dispatch({
-                    effects: [
-                        this.mathCitationCompartment.reconfigure(newMathExt),
-                        this.imageCaptionCompartment.reconfigure(newImageExt)
-                    ]
-                });
-                cm.dispatch({
-                    // empty opertion, for trigger a refresh of the editor
-                    changes: { from: 0, to: 0, insert: "" }
-                });
-            }
-        });
+			const view = leaf.view;
+			if (!("editor" in view)) return;
+
+			const cm = (view?.editor as Editor).cm; // get the CodeMirror instance
+			// @ts-expect-error destroyed property is private
+			if (cm.state.destroyed) return;
+
+			// reload the extension for each view
+			cm.dispatch({
+				effects: [
+					this.mathCitationCompartment.reconfigure(newMathExt),
+					this.imageCaptionCompartment.reconfigure(newImageExt),
+				],
+			});
+			cm.dispatch({
+				// empty operation to trigger a refresh of the editor
+				changes: { from: 0, to: 0, insert: "" },
+			});
+		});
     }
 
     async checkForUpdates(showNotice: boolean) {

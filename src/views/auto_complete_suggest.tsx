@@ -160,12 +160,9 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         // judge if it's source mode or not 
         const mdView = this.plugin.app.workspace.activeEditor?.editor;
         if (!mdView) return null;
-
-        // @ts-expect-error editor.cm exists
  
-        const editorView: EditorView = editor.cm;
-        if (!editorView) return null;
-        if (isSourceMode(editorView) && !enableCitationInSourceMode) {
+        const cm = editor.cm;
+        if (isSourceMode(cm) && !enableCitationInSourceMode) {
             return null; // do not suggest in source mode if not enabled in settings
         }
 

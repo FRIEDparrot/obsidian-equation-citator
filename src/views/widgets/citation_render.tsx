@@ -481,8 +481,6 @@ async function showReadingModeFigurePopover(
 
     let popover: FigureCitationPopover | null = new FigureCitationPopover(
         plugin,
-        // @ts-expect-error editor.cm exists
-
         activeLeaf,
         citationEl,
         figures,
@@ -533,8 +531,6 @@ async function showReadingModeCalloutPopover(
 
     let popover: CalloutCitationPopover | null = new CalloutCitationPopover(
         plugin,
-        // @ts-expect-error editor.cm exists
-
         activeLeaf,
         citationEl,
         prefix,
@@ -614,8 +610,6 @@ async function showReadingModePopover(
 
     let popover: CitationPopover | null = new CitationPopover(
         plugin,
-        // @ts-expect-error editor.cm exists
-
         activeLeaf,
         citationEl,
         equations,
