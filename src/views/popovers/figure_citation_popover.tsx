@@ -278,7 +278,7 @@ function addClickLinkJump(
     fig: RenderedFigure,
     leaf: WorkspaceLeaf
 ): void {
-    figureWrapper.addEventListener("dblclick", async (event: MouseEvent) => {
+    figureWrapper.addEventListener("dblclick", (event: MouseEvent) => {
         if (!fig.sourcePath || !fig.tag) {
             Debugger.log("No source path or tag for figure");
             return;
@@ -294,7 +294,7 @@ function addClickLinkJump(
         }
 
         const ctrlKey = event.ctrlKey || event.metaKey;
-        await openFileAndScrollToFigure(
+        void openFileAndScrollToFigure(
             plugin,
             fig.sourcePath,
             fig.tag,

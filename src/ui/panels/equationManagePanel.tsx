@@ -54,7 +54,7 @@ export class EquationArrangePanel extends ItemView {
     private currentCollapseHeadings: Set<number> = new Set();
     private currentSortMode = "";    // current sort mode (used for fast refresh)
     private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
-    private dropHandler: (evt: DragEvent) => Promise<void>;
+    private dropHandler: (evt: DragEvent) => void;
     private dragoverHandler: (evt: DragEvent) => void;
     private dragendHandler: () => void;
 
@@ -240,7 +240,7 @@ export class EquationArrangePanel extends ItemView {
         );
 
         // Poll to check if active file changed (using current setting value)
-        this.fileCheckInterval = window.setInterval(async () => {
+        this.fileCheckInterval = window.setInterval(() => {
             const currentFile = this.app.workspace.getActiveFile();
             const currentPath = currentFile?.path || "";
 
@@ -248,7 +248,7 @@ export class EquationArrangePanel extends ItemView {
             if (currentPath !== this.currentActiveFile) {
                 this.currentActiveFile = currentPath;
 
-                await this.refreshView();
+                void this.refreshView();
                 // Cancel pending debounced refresh since we're switching files
                 if (this.refreshDebounceTimer !== null) {
                     clearTimeout(this.refreshDebounceTimer);
@@ -316,7 +316,7 @@ export class EquationArrangePanel extends ItemView {
         };
 
         // Drop handler
-        this.dropHandler = async (evt: DragEvent) => {
+        this.dropHandler = (evt: DragEvent) => {
             // Get the target view to insert citation
             const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
             if (!targetView) return;
@@ -337,7 +337,7 @@ export class EquationArrangePanel extends ItemView {
                 return;
             }
 
-            await this.handleEquationDrop(equationData, evt);
+            void this.handleEquationDrop(equationData, evt);
         };
 
 

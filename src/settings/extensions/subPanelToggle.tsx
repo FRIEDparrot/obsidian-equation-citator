@@ -47,7 +47,7 @@ export function addSubPanelToggle(
         createSubPanel(reverse ? !initVal : initVal);
         toggle.onChange((value) => {
             // call the callback function 
-            onToggleChange(value);
+            void onToggleChange(value);
             const display = reverse ? !value : value;
             createSubPanel(display);
         });

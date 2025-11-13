@@ -240,16 +240,16 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         }
     }
     
-    async renderSuggestion(value: RenderedEquation, el: HTMLElement): Promise<void> {
+    renderSuggestion(value: RenderedEquation, el: HTMLElement): void {
         const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || null;
         if (!sourcePath) return;
-        el.addClass("em-equation-option-container")
+        el.addClass("em-equation-option-container");
         const targetEl = el.createDiv();
         const targetComponent = new TargetElComponent(targetEl);
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
 
-        void (async() => await renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent))();
+        void renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent);
     }
 
     selectSuggestion(value: RenderedEquation, evt: MouseEvent | KeyboardEvent): void {
