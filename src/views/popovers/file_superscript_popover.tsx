@@ -14,21 +14,25 @@ export class FileSuperScriptPopover extends HoverPopover {
     ) {
         super(parent, targetEl, waitTime, null);
     }
-    async onload(): Promise<void> {
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(this.sourcePath);
-        if (!footnotes) {
-            Debugger.log("can't find footnotes for file: ", this.sourcePath);
-            return;
-        }
-        const footnote = footnotes.filter(f => f.num === this.footnoteIndex)[0];
-        if (!footnote) {
-            Debugger.log("can't find footnote with index: ", this.footnoteIndex, " in file: ", this.sourcePath);
-            return;
-        }
-        this.showFootnote(footnote)
+    onload(): void {
+        void (async () => {
+            const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(this.sourcePath);
+            if (!footnotes) {
+                Debugger.log("can't find footnotes for file: ", this.sourcePath);
+                return;
+            }
+            const footnote = footnotes.filter(f => f.num === this.footnoteIndex)[0];
+            if (!footnote) {
+                Debugger.log("can't find footnote with index: ", this.footnoteIndex, " in file: ", this.sourcePath);
+                return;
+            }
+            this.showFootnote(footnote)
+        })().catch(err => {
+            Debugger.error(err);
+        })
     }
     
-    onunload() {}
+    onunload() { }
 
     showFootnote(footnote: FootNote) {
         const container: HTMLElement = this.hoverEl.createDiv();

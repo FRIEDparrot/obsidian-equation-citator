@@ -73,7 +73,7 @@ export class CitationWidget extends WidgetType {
             this.el.addEventListener('mouseenter', (event) => {
                 const ctrlKey = event.ctrlKey || event.metaKey;
                 if (ctrlKey) {
-                    this.showPopover().then();
+                    void this.showPopover();
                 }
             })
         }

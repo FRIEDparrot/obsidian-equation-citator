@@ -48,15 +48,16 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
                     await finishExport(newFilePath);
                 }
                 catch (error) {
-                    new Notice(`Error: ${error.message}`);
+                    new Notice(`Export Failed: ${error.message}`);
                 }
             }
         }
         const cancelOption: ModalOption = {
             label: "Cancel",
             cta: false,
-            action : async() : Promise<void> => {
+            action : () : Promise<void> => {
                 new Notice("Export cancelled");
+                return Promise.resolve();
             }
         }
         new OptionsModal(plugin.app, "File already exists",

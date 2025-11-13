@@ -249,7 +249,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
 
-        await renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent);
+        void (async() => await renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent))();
     }
 
     selectSuggestion(value: RenderedEquation, evt: MouseEvent | KeyboardEvent): void {

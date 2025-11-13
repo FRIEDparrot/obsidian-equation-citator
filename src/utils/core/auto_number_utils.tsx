@@ -130,7 +130,7 @@ export function getAutoNumberInCursor(
                 relativeHeadingLevel(headings, currentHeadingIndex) :
                 parseResult.headingMatch[1].length;
 
-            assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array ${headings}`);
+            assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array`);
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) {
                 numberingState.equationNumber = 0;
@@ -276,7 +276,7 @@ export function autoNumberEquations(
                 relativeHeadingLevel(headings, currentHeadingIndex) :
                 parseResult.headingMatch[1].length;
 
-            assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array ${headings}`);
+            assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array`);
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) numberingState.equationNumber = 0;
             numberingState.currentDepth = Math.min(headingLevel, maxDepth);

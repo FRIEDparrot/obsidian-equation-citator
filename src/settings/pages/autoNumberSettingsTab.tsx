@@ -25,7 +25,7 @@ export const AutoNumberSettingsTab = {
                             plugin.settings.autoNumberDelimiter = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters (not brace) are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, change not saved");
                             text.setValue(plugin.settings.autoNumberDelimiter);
                         }
                     }
@@ -72,7 +72,7 @@ export const AutoNumberSettingsTab = {
             .setDesc(desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("Default: P");
+                text.setPlaceholder("P");
                 text.setValue(plugin.settings.autoNumberNoHeadingPrefix);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
@@ -81,7 +81,7 @@ export const AutoNumberSettingsTab = {
                             plugin.settings.autoNumberNoHeadingPrefix = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only letters are allowed, Change not saved");
+                            new Notice("Only letters are allowed, change not saved");
                             text.setValue(plugin.settings.autoNumberNoHeadingPrefix);
                         }
                     }
@@ -99,9 +99,9 @@ export const AutoNumberSettingsTab = {
         addSubPanelToggle(
             autoNumberingPrefixSetting,
             plugin.settings.enableAutoNumberGlobalPrefix,
-            (toggle) => {
+            async (toggle) => {
                 plugin.settings.enableAutoNumberGlobalPrefix = toggle;
-                plugin.saveSettings().then();
+                await plugin.saveSettings();
             },
             (panel) => {
                 AutoNumberSettingsTab.autoNumberGlobalPrefix(panel, plugin);
@@ -151,9 +151,9 @@ export const AutoNumberSettingsTab = {
         addSubPanelToggle(
             enableUpdateTagsInAutoNumberSetting,
             plugin.settings.enableUpdateTagsInAutoNumber,
-            (toggle) => {
+            async  (toggle) => {
                 plugin.settings.enableUpdateTagsInAutoNumber = toggle;
-                plugin.saveSettings().then();
+                await plugin.saveSettings();
             },
             (panel) => {
                 AutoNumberSettingsTab.deleteRepeatTagsInAutoNumber(panel, plugin);

@@ -77,10 +77,10 @@ export class EquationArrangePanel extends ItemView {
 
             // Schedule refresh using current setting value
             this.refreshDebounceTimer = window.setTimeout(
-                () => (async () => {
-                    await this.refreshView();
+                () => {
+                    void this.refreshView();
                     this.refreshDebounceTimer = null;
-                })(), this.plugin.settings.equationManagePanelLazyUpdateTime
+                }, this.plugin.settings.equationManagePanelLazyUpdateTime
             )
         };
     }
@@ -120,7 +120,7 @@ export class EquationArrangePanel extends ItemView {
             const newViewMode = this.viewMode === "outline" ? "list" : "outline";
             this.updateViewMode(newViewMode);
             this.updateModeButtons();
-            this.refreshView().then();
+            void this.refreshView();
         });
 
         this.sortButton = toolbar.createEl("button", {
@@ -131,7 +131,7 @@ export class EquationArrangePanel extends ItemView {
         this.sortButton.addEventListener("click", () => {
             const sortMode = this.sortMode === "tag" ? "seq" : "tag";
             this.updateSortMode(sortMode);
-            this.refreshView().then();
+            void this.refreshView();
         });
 
         this.expandButton = toolbar.createEl("button", {
@@ -141,7 +141,7 @@ export class EquationArrangePanel extends ItemView {
         setIcon(this.expandButton, "chevrons-up-down");
         setTooltip(this.expandButton, "Expand all");
         this.expandButton.addEventListener("click", () => {
-            this.handleExpandAll().then();
+            void this.handleExpandAll();
         });
 
         this.collapseButton = toolbar.createEl("button", {
@@ -151,7 +151,7 @@ export class EquationArrangePanel extends ItemView {
         setIcon(this.collapseButton, "chevrons-down-up");
         setTooltip(this.collapseButton, "Collapse all");
         this.collapseButton.addEventListener("click", () => {
-            this.handleCollapseAll().then().catch(console.error);
+            void this.handleCollapseAll();
         });
 
         // hide tag button
@@ -162,7 +162,7 @@ export class EquationArrangePanel extends ItemView {
         this.toggleTagShowButton.addEventListener("click", () => {
             const mode = this.showEquationTags ? false : true;
             this.toggleTagShow(mode);
-            this.refreshView().then();
+            void this.refreshView();
         });
 
         // Filter empty headings button (only visible in outline mode)
@@ -173,7 +173,7 @@ export class EquationArrangePanel extends ItemView {
         this.filterEmptyHeadingsButton.addEventListener("click", () => {
             this.filterEmptyHeadings = !this.filterEmptyHeadings;
             this.updateFilterButton();
-            this.refreshView().then();
+            void this.refreshView();
         });
         this.updateFilterButton(); // Set initial state
         this.filterEmptyHeadingsButton.hide();
@@ -188,7 +188,7 @@ export class EquationArrangePanel extends ItemView {
         setIcon(this.searchButton, "search");
         setTooltip(this.searchButton, "Search equations");
         this.searchButton.addEventListener("click", () => {
-            this.toggleSearchMode(true).then();
+            void this.toggleSearchMode(true);
         });
 
         // Quit search button (hidden by default)
@@ -200,7 +200,7 @@ export class EquationArrangePanel extends ItemView {
         setTooltip(this.quitSearchButton, "Exit search");
 
         this.quitSearchButton.addEventListener("click", () => {
-            this.toggleSearchMode(false).then();
+            void this.toggleSearchMode(false);
         });
         this.quitSearchButton.hide();
 
@@ -538,10 +538,8 @@ export class EquationArrangePanel extends ItemView {
             this.searchDebounceTimer = null;
         }
         this.searchDebounceTimer = window.setTimeout(() => {
-            (async () => {
-                await this.refreshView();
-                this.searchDebounceTimer = null;
-            })()
+            void this.refreshView();
+            this.searchDebounceTimer = null;
         }, timeout); // adjust delay as needed
     }
 
@@ -870,7 +868,7 @@ export class EquationArrangePanel extends ItemView {
             headingTextSpan.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent event bubbling
                 if (group.heading) {
-                    this.jumpToHeading(group.heading).then();
+                    void this.jumpToHeading(group.heading);
                 }
             });
         }
@@ -961,7 +959,8 @@ export class EquationArrangePanel extends ItemView {
         // Tag section (if exists)
         if (equation.tag) {
             const tagDiv = eqDiv.createDiv({ cls: "ec-equation-tag ec-tag-show" });
-            tagDiv.createSpan({ text: equation.tag, cls: "ec-tag-text" });        }
+            tagDiv.createSpan({ text: equation.tag, cls: "ec-tag-text" });
+        }
 
         // Equation content
         const contentDiv = eqDiv.createDiv("ec-equation-content");
@@ -994,11 +993,9 @@ export class EquationArrangePanel extends ItemView {
                     // Scroll to the equation after layout is ready
                     this.app.workspace.onLayoutReady(() => {
                         setTimeout(() => {
-                            (async () => {
-                                if (equation.tag) {
-                                    await scrollToEquationByTag(this.plugin, equation.tag, currentFile.path);
-                                }
-                            })();
+                            if (equation.tag) {
+                                void scrollToEquationByTag(this.plugin, equation.tag, currentFile.path);
+                            }
                         }, 50);
                     });
                 }

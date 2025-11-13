@@ -41,7 +41,7 @@ export const CitationSettingsTab = {
             .setDesc(SETTINGS_METADATA.citationPrefix.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("eq:");
+                text.setPlaceholder("E.g. eq:");
                 text.setValue(plugin.settings.citationPrefix);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
@@ -74,7 +74,7 @@ export const CitationSettingsTab = {
                             plugin.settings.citationFormat = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Invalid format, You must use only one '#' symbol to represent equation number");
+                            new Notice("Invalid format, you must use only one '#' symbol to represent equation number");
                             text.setValue(plugin.settings.citationFormat);
                         }
                     }
@@ -97,7 +97,7 @@ export const CitationSettingsTab = {
                             plugin.settings.multiCitationDelimiter = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters (not brace) are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, change not saved");
                             text.setValue(plugin.settings.multiCitationDelimiter);
                         }
                     }
@@ -136,9 +136,9 @@ export const CitationSettingsTab = {
         addSubPanelToggle(
             renderContinuousCitationSetting,
             plugin.settings.enableContinuousCitation,
-            (value) => {
+            async (value) => {
                 plugin.settings.enableContinuousCitation = value;
-                plugin.saveSettings().then();
+                await plugin.saveSettings()
             },
             (panel) => {
                 CitationSettingsTab.continuousRangeSymbol(panel, plugin);
@@ -163,7 +163,7 @@ export const CitationSettingsTab = {
                             plugin.settings.continuousRangeSymbol = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters (not brace) are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, change not saved");
                             text.setValue(plugin.settings.continuousRangeSymbol);
                         }
                     }
@@ -188,7 +188,7 @@ export const CitationSettingsTab = {
                             plugin.settings.continuousDelimiters = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters (not brace) are allowed in each delimiter, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed in each delimiter, change not saved");
                             text.setValue(plugin.settings.continuousDelimiters);
                         }
                     }
@@ -205,9 +205,9 @@ export const CitationSettingsTab = {
         addSubPanelToggle(
             crossFileSetting,
             plugin.settings.enableCrossFileCitation,
-            (value) => {
+            async (value) => {
                 plugin.settings.enableCrossFileCitation = value;
-                plugin.saveSettings().then();
+                await plugin.saveSettings();
             },
             (panel) => {
                 CitationSettingsTab.fileCiteDelimiter(panel, plugin); // Render child setting
@@ -231,7 +231,7 @@ export const CitationSettingsTab = {
                             plugin.settings.fileCiteDelimiter = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters (not brace) are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, change not saved");
                             text.setValue(plugin.settings.fileCiteDelimiter);
                         }
                     }
@@ -245,12 +245,12 @@ export const CitationSettingsTab = {
             .setDesc(SETTINGS_METADATA.figCitationPrefix.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("fig:");
+                text.setPlaceholder("E.g. fig:");
                 text.setValue(plugin.settings.figCitationPrefix);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
                     if (!newValue.endsWith(":")) {
-                        new Notice("Please add a colon (:) to the end of the prefix, Change not saved");
+                        new Notice("Please add a colon (:) to the end of the prefix, change not saved");
                         text.setValue(plugin.settings.figCitationPrefix);
                         return;
                     }
@@ -259,7 +259,7 @@ export const CitationSettingsTab = {
                             plugin.settings.figCitationPrefix = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters (not brace) are allowed, Change not saved");
+                            new Notice("Only special characters (not brace) are allowed, change not saved");
                         }
                     }
                 }
@@ -272,7 +272,7 @@ export const CitationSettingsTab = {
             .setDesc(SETTINGS_METADATA.figCitationFormat.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("fig: #");
+                text.setPlaceholder("Fig: #");
                 text.setValue(plugin.settings.figCitationFormat);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
@@ -281,7 +281,7 @@ export const CitationSettingsTab = {
                             plugin.settings.figCitationFormat = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Invalid format, Change not saved");
+                            new Notice("Invalid format, change not saved");
                             text.setValue(plugin.settings.figCitationFormat);
                         }
                     }
@@ -313,7 +313,7 @@ export const CitationSettingsTab = {
                 setting.addText((text) => {
                     text.inputEl.classList.add("ec-delimiter-input");
                     text.setValue(item.prefix);
-                    text.setPlaceholder("e.g., table:");
+                    text.setPlaceholder("E.g., table:");
                     text.inputEl.onblur = async () => {
                         const newValue = text.getValue().trim();
                         if (!newValue.endsWith(":")) {
@@ -351,7 +351,7 @@ export const CitationSettingsTab = {
                 setting.addText((text) => {
                     text.inputEl.classList.add("ec-delimiter-input");
                     text.setValue(item.format);
-                    text.setPlaceholder("e.g., Table. #");
+                    text.setPlaceholder("Table. #");
                     text.inputEl.onblur = async () => {
                         const newValue = text.getValue().trim();
                         if (!validateDisplayFormat(newValue)) {
@@ -382,7 +382,7 @@ export const CitationSettingsTab = {
             new Setting(prefixListContainer)
                 .setClass("ec-add-prefix-setting")
                 .addButton((button) => {
-                    button.setButtonText("Add New Prefix")
+                    button.setButtonText("Add new prefix")
                         .setClass("mod-cta")
                         .onClick(async() => {
                             // Find a unique default prefix

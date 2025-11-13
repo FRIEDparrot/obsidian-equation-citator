@@ -15,9 +15,9 @@ export function createCustomizePanel(
 
     // Header with description
     const header = customizeContainer.createDiv({ cls: "ec-customize-header" });
-    header.createEl("h3", { text: "Customize Settings Display", cls: "ec-customize-title" });
+    header.createEl("h3", { text: "Customize settings display", cls: "ec-customize-title" });
     header.createEl("p", {
-        text: "Choose which settings to show in Basic or Advanced sections. Settings can only appear in one section at a time.",
+        text: "Choose which settings to show in basic or advanced sections. Settings can only appear in one section at a time.",
         cls: "ec-customize-desc"
     });
 
@@ -118,8 +118,8 @@ export function createCustomizePanel(
 
     // Reset button
     new Setting(customizeContainer)
-        .setName("Reset to Defaults")
-        .setDesc("Reset Basic and Advanced settings to their default values")
+        .setName("Reset to defaults")
+        .setDesc("Reset basic and advanced settings to their default values")
         .addButton((btn) => {
             btn.setButtonText("Reset");
             btn.setIcon("reset");

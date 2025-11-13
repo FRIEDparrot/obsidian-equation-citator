@@ -57,10 +57,7 @@ export class FigureCitationWidget extends WidgetType {
             view.focus();
             setSelectionRange(view, this.range.from, this.range.to);
         });
-
-        setTimeout(() => {
-            this.registerCitationEvents().catch(console.error);
-        }, 0); 
+        this.registerCitationEvents(); 
         return el;
     }
 
@@ -68,7 +65,7 @@ export class FigureCitationWidget extends WidgetType {
      * Register events for the figure citation
      * Render figures on hover with Ctrl key
      */
-    private async registerCitationEvents() {
+    private registerCitationEvents() {
         if (this.el) {
             this.el.addEventListener('mouseenter', async (event) => {
                 const ctrlKey = event.ctrlKey || event.metaKey;
@@ -94,7 +91,7 @@ export class FigureCitationWidget extends WidgetType {
         const parent = this.getActiveLeaf() as HoverParent | null;
         if (this.popover !== null) return;  // already showing popover
         if (!parent || !this.el) {
-            Debugger.error(`parent is ${parent} and citationEl is ${this.el}, can't show popover`);
+            Debugger.error(`parent is not equal with citationEl, can't show popover`);
             return;
         }
 

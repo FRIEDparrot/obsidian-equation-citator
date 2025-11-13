@@ -44,8 +44,8 @@ export const EquationPanelSettingsTab = {
             .setName(name)
             .setDesc(desc)
             .addDropdown((dropdown) => {
-                dropdown.addOption("outline", "Outline View");
-                dropdown.addOption("list", "List View");
+                dropdown.addOption("outline", "Outline view");
+                dropdown.addOption("list", "List view");
                 dropdown.setValue(plugin.settings.equationManagePanelDefaultViewType);
                 dropdown.onChange(async (value) => {
                     plugin.settings.equationManagePanelDefaultViewType = value as "outline" | "list";

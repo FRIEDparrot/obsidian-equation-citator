@@ -145,7 +145,7 @@ export function renderCalloutCitation(
     // Show the callout content when hovering (Ctrl+hover in live preview, always in reading mode)
     if (parent) {
         el.addEventListener('mouseenter', (event: MouseEvent) => {
-            (async () => {
+            void (async () => {
                 const ctrlKey = event.ctrlKey || event.metaKey;
                 if (isInteractive || ctrlKey) {
                     event.preventDefault();
@@ -174,7 +174,7 @@ export function renderCalloutCitation(
                         300  // wait time in ms
                     );
                 }
-            })();
+            })();  // ignore promise
         });
     }
     return el;

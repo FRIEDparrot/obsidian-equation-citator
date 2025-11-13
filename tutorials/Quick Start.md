@@ -37,11 +37,14 @@ $$ du = \left(\frac{\partial u}{\partial s}\right)_v ds +\left( \frac{\partial u
 \quad \boxed{T = \left( \frac{\partial u}{\partial s}\right)_v, \quad p = - \left(\frac{\partial u}{\partial v} \right)_s} \tag{3.1.1} $$
 ```
 
-❌ NOT SUPPORTED EXAMPLES :  
+❌ NOT SUPPORTED EXAMPLES :
+
 ```latex
 this  is an $$ equation
 $$ block  # not write content before or after equation block in one line!
 ```
+
+If you still don't understand, goto [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74) for clarification.
 
 ### (3) Citing Clarity  
 1. Avoid using `\}` in your tag or citation (this will cause the tag recognized incorrectly) 
@@ -49,8 +52,22 @@ $$ block  # not write content before or after equation block in one line!
 3.  To **cite a callout** after v1.3 :   
 You can **select content and use command `insert callout` to quickly make content a callout**. For these callout **Every line should start with greater sign** `>`. Implicit callout line with no `>` sign would be neglected. 
 
+### (4) Autonumber only when all contents correctly rendered 
+
+You should autonumber all equations of file **Only when all contents correctly rendered and your markdown syntax is correct**. 
+
+```markdown
+$$
+\text{equation content} 
+# malicious heading 
+\text{other content}
+$$
+```
+
+This will cause heading dismatch in Auto-numbering, and `# title` grammar is prohibit in equations (in that case equation render incorrectly). So only auto-nuber when all your content are correctly rendered. 
+
 > [!warning] 
-> You should follow above rules when making citations. Issues caused by not following above rules may be closed without being fixed. 
+> You should follow above rules if you use this plugin. Issues caused by not following above rules may be closed without being fixed. 
 
 ## 1. Basic Equation Citations 
 
