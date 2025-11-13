@@ -87,10 +87,10 @@ export class CitationPopover extends HoverPopover {
         // Loop and create div for each equation 
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
         if (!leaf) return;
-        this.equationsToRender.forEach(async (eq, index) => {
+        this.equationsToRender.forEach((eq, index) => {
             const equationOptionContainer = equationsContainer.createDiv();
             equationOptionContainer.addClass("em-equation-option-container");
-            await renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, targetComponent, true);
+            void renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, targetComponent, true);
         });
 
         // Add footer with equation count

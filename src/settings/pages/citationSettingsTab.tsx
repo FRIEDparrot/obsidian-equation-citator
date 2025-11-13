@@ -41,7 +41,7 @@ export const CitationSettingsTab = {
             .setDesc(SETTINGS_METADATA.citationPrefix.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("E.g. eq:");
+                text.setPlaceholder("E.g., eq:");
                 text.setValue(plugin.settings.citationPrefix);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
@@ -245,7 +245,7 @@ export const CitationSettingsTab = {
             .setDesc(SETTINGS_METADATA.figCitationPrefix.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("E.g. fig:");
+                text.setPlaceholder("E.g., fig:");
                 text.setValue(plugin.settings.figCitationPrefix);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();

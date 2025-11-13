@@ -184,7 +184,7 @@ export class TagService {
         let currentFileUpdatedNum = 0;
         if (editor) {
             const currentFileLines = currentFileContent.split('\n');
-            const { updatedLineMap, updatedNum } = await this.updateCitationLines(
+            const { updatedLineMap, updatedNum } = this.updateCitationLines(
                 currentFileLines, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
             );
             const sortedUpdatedLineMap = new Map(Array.from(updatedLineMap.entries()).sort((a, b) => b[0] - a[0]));

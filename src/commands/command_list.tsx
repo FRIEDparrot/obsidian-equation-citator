@@ -51,8 +51,8 @@ export default function registerCommands(plugin: EquationCitator) {
     })
 
     plugin.addCommand({
-        id: 'make-markdown-copy-to-export-pdf',
-        name: 'Make a markdown copy to export PDF',
+        id: 'make-markdown-copy-to-export-PDF',
+        name: 'Make a markdown copy for PDF export',
         callback: async () => {
             await exportCurrentMarkdown(plugin);
         }

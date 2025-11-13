@@ -67,10 +67,10 @@ export class FigureCitationWidget extends WidgetType {
      */
     private registerCitationEvents() {
         if (this.el) {
-            this.el.addEventListener('mouseenter', async (event) => {
+            this.el.addEventListener('mouseenter', (event) => {
                 const ctrlKey = event.ctrlKey || event.metaKey;
                 if (ctrlKey) {
-                    await this.showPopover();
+                    void this.showPopover();
                 }
             });
         }

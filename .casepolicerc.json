@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "sentence": {
+      "match": "^[A-Z][^A-Z]*$",
+      "description": "Use sentence case for UI text"
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

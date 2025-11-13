@@ -11,7 +11,8 @@
 		"test": "npx jest",
 		"dbg": "npx jest ./tests/dbg.test.ts",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"check": "case-police"
 	},
 	"keywords": [],
 	"author": "FRIEDparrot",
@@ -29,7 +30,9 @@
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
+		"case-police": "^2.0.0",
 		"esbuild": "^0.25.8",
+		"eslint": "^8.57.1",
 		"jest": "^30.0.5",
 		"jest-environment-jsdom": "^30.0.5",
 		"jsdom": "^26.1.0",

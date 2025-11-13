@@ -12,7 +12,7 @@
 
 ---
 
-🚀 **快速开始**：请参阅 [完整教程与指南](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Quick%20Start.md) 了解基本规则、语法和最重要的操作。只需不到 5 分钟，即可让一切顺利运行。
+🚀 **快速开始**：请参阅 [快速开始](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Quick%20Start.md) 了解基本规则、语法和最重要的操作。只需不到 5 分钟，即可让一切顺利运行。
 
 ✨ **完整功能与更新**：详见 [更新日志](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md)。
 
