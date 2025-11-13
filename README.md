@@ -74,7 +74,10 @@ If you encounter any bug, please **provide the following information** on the is
 I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. 
 
 **Contributors and maintainers are always welcome** :
-- You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done (**Please test your code carefully before submitting!**).   
+- You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done 
+- Before submitting a PR, please make sure following things are done: 
+  - 1. **Please test your code carefully before submitting!**.
+  - 2. run `npm run check` and `npm run build` before submitting PR to avoid pitfalls. 
 - I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
 
 Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.

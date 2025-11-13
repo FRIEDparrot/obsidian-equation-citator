@@ -161,7 +161,8 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const mdView = this.plugin.app.workspace.activeEditor?.editor;
         if (!mdView) return null;
 
-        // @ts-ignore 
+        // @ts-expect-error editor.cm exists
+ 
         const editorView: EditorView = editor.cm;
         if (!editorView) return null;
         if (isSourceMode(editorView) && !enableCitationInSourceMode) {

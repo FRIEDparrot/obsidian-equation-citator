@@ -195,7 +195,7 @@ export default class EquationCitator extends Plugin {
         // iterate over all the views and update the extensions
         this.app.workspace.iterateAllLeaves((leaf) => {
             const view = leaf.view;
-            // @ts-ignore
+            // @ts-expect-error editor.cm exists
             const cm = view?.editor?.cm; // get the CodeMirror instance
             if (cm && !cm.state.destroyed) {
                 // reload the extension for each view
