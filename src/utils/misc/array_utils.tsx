@@ -8,7 +8,7 @@
  * @returns 
  */
 function buildNext<T>(pattern: T[]): number[] {
-    const next = new Array(pattern.length).fill(0);
+    const next: number[] = new Array(pattern.length).fill(0);
     // use j to = calculate the next[i]
     let j = 0;
     for (let i = 1; i < pattern.length; i++) {
@@ -30,7 +30,7 @@ function buildNext<T>(pattern: T[]): number[] {
  * @returns  the index of the first occurrence of pattern in target, 
  *           if pattern is not found, return -1  
  */
-export function find_array<T>(pattern: T[], target: T[]) {
+export function find_array<T>(pattern: T[], target: T[]): number {
     const targetLength = target.length;
     const patternLength = pattern.length;
     if (patternLength === 0) {

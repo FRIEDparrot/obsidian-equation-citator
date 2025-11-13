@@ -14,7 +14,7 @@ export abstract class BaseCacheSimple<T> {
     protected cache: Map<string, CachedData<T>> = new Map();
     protected maxCacheSize = 30;
     protected forceUpdateTimeout: number;
-    private cleanupTimer: NodeJS.Timer | null = null;
+    private cleanupTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(protected plugin: EquationCitator) {
         this.forceUpdateTimeout = plugin.settings.cacheUpdateTime ?? 5000;

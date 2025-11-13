@@ -38,7 +38,7 @@ export const dropCursorField = StateField.define<DecorationSet>({
 
 export function clearDragCursor(targetView: MarkdownView): void {
     const editor = targetView.editor;
-    // @ts-ignore
+    // @ts-expect-error editor.cm exists
     const cm6View = editor.cm;
     if (!cm6View) return;
 
@@ -52,7 +52,8 @@ export function getEditorDropLocation(
     editor: Editor,
     evt: DragEvent,
 ): { line: number, ch: number } | null {
-    // @ts-ignore
+    // @ts-expect-error editor.cm exists
+
     const cm6View = editor.cm;
     if (!cm6View) return null;
 
@@ -72,7 +73,8 @@ export function drawCursorAtDragPosition(
     targetView: MarkdownView
 ): void {
     const editor = targetView.editor;
-    // @ts-ignore
+    // @ts-expect-error editor.cm exists
+
     const cm6View = editor.cm;
     if (!cm6View) return;
 

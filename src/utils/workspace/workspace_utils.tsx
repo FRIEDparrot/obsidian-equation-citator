@@ -16,6 +16,7 @@ export function getLeafByElement(app: App, el: HTMLElement) : WorkspaceLeaf | nu
 export function isSourceMode(view: EditorView): boolean {
     const mdView = view.state.field(editorInfoField, false) as MarkdownView | undefined;
     const currentMode = mdView?.currentMode;
-    // @ts-ignore
+    // @ts-expect-error editor.cm exists
+
     return currentMode?.sourceMode ? true : false;
 }
