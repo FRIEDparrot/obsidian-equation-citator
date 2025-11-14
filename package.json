@@ -10,7 +10,7 @@
 		"dev": "powershell -Command \"Start-Process cmd '/c npm run watch:css' -WindowStyle Hidden; npm run dev:esbuild\"",
 		"test": "npx jest",
 		"dbg": "npx jest ./tests/dbg.test.ts",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build": "tsc -noEmit --skipLibCheck && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"check": "eslint .",
 		"check:case": "case-police"
@@ -41,11 +41,11 @@
 		"jest-environment-jsdom": "^30.0.5",
 		"jsdom": "^26.1.0",
 		"obsidian": "latest",
-		"obsidian-typings": "^4.63.0",
+		"obsidian-typings": "^3.13.2",
 		"ts-jest": "^29.4.0",
 		"ts-node": "^10.9.2",
 		"tslib": "2.4.0",
-		"typescript": "^4.9.5"
+		"typescript": "^5.9.3"
 	},
 	"dependencies": {
 		"sass": "^1.89.2"

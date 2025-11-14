@@ -75,10 +75,13 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 
 **Contributors and maintainers are always welcome** :
 - You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done 
-- Before submitting a PR, please make sure following things are done: 
+- Before submitting a PR, **please make sure following things are done**: 
   - 1. **Please test your code carefully before submitting!**.
-  - 2. run `npm run check` and `npm run build` before submitting PR to avoid pitfalls. 
-- I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
+  - 2. run `npm run check` before submitting PR to avoid pitfalls. 
+  - 3. run `npm run build` to check if it can be built successfully. 
+  - 4. download `tests` folder content from [this repo](https://github.com/FRIEDparrot/obsidian-equation-citator-test) and put them in src folder, then run `npm run test` to check if all tests passed.
+
+- 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
 
 Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
 

@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "types": ["node", "obsidian-typings"],
+    "types": ["node", "jest", "obsidian-typings"],
     "baseUrl": ".",
     "inlineSourceMap": true,
     "inlineSources": true, 
     "jsx": "react",
     "module": "ESNext",
     "target": "ES6",
+    "skipLibCheck": true,
     "allowJs": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
