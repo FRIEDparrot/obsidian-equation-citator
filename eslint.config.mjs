@@ -37,8 +37,8 @@ export default defineConfig([
             "obsidianmd/ui/sentence-case": [
                 "warn",
                 {
-                    brands: ["YourBrand"],
-                    acronyms: ["OK"],
+                    brands: ["Obsidian", "GitHub", "YouTube", "LaTeX", "macOS", "VSCode", "Markdown"],
+                    acronyms: ["OK", "PDF"],
                     enforceCamelCaseLower: true,
                 },
             ],
