@@ -41,6 +41,7 @@
 		"jest-environment-jsdom": "^30.0.5",
 		"jsdom": "^26.1.0",
 		"obsidian": "latest",
+		"obsidian-typings": "^4.63.0",
 		"ts-jest": "^29.4.0",
 		"ts-node": "^10.9.2",
 		"tslib": "2.4.0",

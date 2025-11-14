@@ -12,9 +12,7 @@ export function registerRightClickHandler(plugin: EquationCitator) {
         app.workspace.on("editor-menu", (menu: Menu, editor: Editor, view: MarkdownView): void => {
             let tagInfo: EditorSelectionInfo;
             try {
-                // @ts-expect-error editor.cm exists
-
-                const state: EditorState = editor.cm?.state
+                const state: EditorState = editor.cm.state
                 tagInfo = state.field(plugin.tagSelectedField);  // get the selected tag  
             }
             catch (e) {

@@ -1,4 +1,4 @@
-import { App, WorkspaceLeaf, MarkdownView, editorInfoField } from "obsidian";
+import { App, WorkspaceLeaf, MarkdownView, editorInfoField, editorLivePreviewField } from "obsidian";
 import { EditorView } from "@codemirror/view";
 
 export function getLeafByElement(app: App, el: HTMLElement) : WorkspaceLeaf | null { 
@@ -14,9 +14,5 @@ export function getLeafByElement(app: App, el: HTMLElement) : WorkspaceLeaf | nu
 }
 
 export function isSourceMode(view: EditorView): boolean {
-    const mdView = view.state.field(editorInfoField, false) as MarkdownView | undefined;
-    const currentMode = mdView?.currentMode;
-    // @ts-expect-error editor.cm exists
-
-    return currentMode?.sourceMode ? true : false;
+    return !view.state.field(editorLivePreviewField);
 }

@@ -37,13 +37,10 @@ export const dropCursorField = StateField.define<DecorationSet>({
 });
 
 export function clearDragCursor(targetView: MarkdownView): void {
-    const editor = targetView.editor;
-    // @ts-expect-error editor.cm exists
-    const cm6View = editor.cm;
-    if (!cm6View) return;
+    const cm = targetView.editor.cm;
 
     // Clear the drag cursor decoration
-    cm6View.dispatch({
+    cm.dispatch({
         effects: setDropCursorEffect.of(null)
     });
 }
@@ -52,15 +49,12 @@ export function getEditorDropLocation(
     editor: Editor,
     evt: DragEvent,
 ): { line: number, ch: number } | null {
-    // @ts-expect-error editor.cm exists
+    const cm = editor.cm;
 
-    const cm6View = editor.cm;
-    if (!cm6View) return null;
-
-    const pos = cm6View.posAtCoords({ x: evt.clientX, y: evt.clientY });
+    const pos = cm.posAtCoords({ x: evt.clientX, y: evt.clientY });
     if (pos === null) return null;
 
-    const lineInfo: Line = cm6View.state.doc.lineAt(pos); 
+    const lineInfo: Line = cm.state.doc.lineAt(pos);
     const line = lineInfo.number - 1; // CM6 uses 1-based line numbers
     const ch = pos - lineInfo.from;
 
@@ -72,17 +66,13 @@ export function drawCursorAtDragPosition(
     evt: DragEvent,
     targetView: MarkdownView
 ): void {
-    const editor = targetView.editor;
-    // @ts-expect-error editor.cm exists
+    const cm = targetView.editor.cm;
 
-    const cm6View = editor.cm;
-    if (!cm6View) return;
-
-    const pos = cm6View.posAtCoords({ x: evt.clientX, y: evt.clientY });
+    const pos = cm.posAtCoords({ x: evt.clientX, y: evt.clientY });
     if (pos === null || pos === lastDropPos) return;
 
     lastDropPos = pos;
-    cm6View.dispatch({
+    cm.dispatch({
         // use a common effect for the drag effect to render. 
         effects: setDropCursorEffect.of(pos)
     });
