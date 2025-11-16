@@ -176,6 +176,8 @@ function parseImageLine(line: string, lineNumber: number, imagePrefix: string): 
  * @param imagePrefix - The prefix to match (e.g., "fig:"), default is "fig:"
  * @returns Array of ImageMatch objects
  */
+export { parseImageLine };
+
 export function parseAllImagesFromMarkdown(
     markdown: string,
     imagePrefix: string): ImageMatch[] {
@@ -212,10 +214,10 @@ export function parseAllImagesFromMarkdown(
 
         // Try to parse as image
         const imageMatch = parseImageLine(processedLine, lineNum, imagePrefix);
-
+        
         if (imageMatch) {
             images.push(imageMatch);
-            Debugger.log(`Parsed image at line ${imageMatch.line}: type=${imageMatch.type}, label=${imageMatch.label}`);
+            // Debugger.log(`Parsed image at line ${imageMatch.line}: type=${imageMatch.type}, label=${imageMatch.label}`);
         }
     }
     Debugger.log(`Total images parsed: ${images.length}`);

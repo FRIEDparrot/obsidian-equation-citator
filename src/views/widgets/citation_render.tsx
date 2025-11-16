@@ -24,7 +24,7 @@ import { renderCalloutCitation } from "@/views/widgets/callout_citation_render";
 import { find_array } from "@/utils/misc/array_utils";
 import { fastHash } from "@/utils/misc/hash_utils";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
-import { parseAllImagesFromMarkdown, ImageMatch } from "@/utils/parsers/image_parser";
+import { parseAllImagesFromMarkdown, parseImageLine, ImageMatch } from "@/utils/parsers/image_parser";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -662,9 +662,43 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 return;
             }
 
-            const markdown = view.state.doc.toString();
-            const images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
+            // Get current cursor line for real-time parsing
+            const cursorPos = view.state.selection.main.head;
+            const cursorLine = view.state.doc.lineAt(cursorPos);
+            const cursorLineNumber = cursorLine.number;
+            const cursorLineText = cursorLine.text;
 
+            // Check if current line is an image line
+            const currentLineImage = parseImageLine(cursorLineText, cursorLineNumber, settings.figCitationPrefix);
+
+            let images: ImageMatch[];
+
+            // If current line is a valid image, parse all markdown directly for immediate feedback
+            if (currentLineImage) {
+                const markdown = view.state.doc.toString();
+                images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
+                
+                // Force-refresh the cache with the parsed images
+                plugin.imageCache.set(currentFile.path, images);
+            } else {
+                // Not typing on an image line, use cache (will be handled asynchronously)
+                void plugin.imageCache.getImagesForFile(currentFile.path).then(cachedImages => {
+                    if (!cachedImages || cachedImages.length === 0) {
+                        // No images in cache, remove all captions
+                        const allCaptions = view.dom.querySelectorAll('.em-image-caption');
+                        allCaptions.forEach(cap => cap.remove());
+                        return;
+                    }
+                    this.processAndRenderImages(cachedImages, view);
+                });
+                return;
+            }
+
+            // Process and render images synchronously when on image line
+            this.processAndRenderImages(images, view);
+        }
+
+        processAndRenderImages(images: ImageMatch[], view: EditorView) {
             // Only process images that have metadata to display
             const imagesWithMetadata = images.filter(img =>
                 img.tag !== undefined && (img.tag || img.title || img.desc)
