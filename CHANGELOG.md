@@ -193,7 +193,7 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 - [x] Add PDF export support for figures and callouts. 
 - [x] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
   - [x] **Outline View, filter and collapse** : Both List view and outline view are supported.
-  - [x] **Drag-and Drop to citation** : You can now drag-and-drop equation from equations management panel to cite it.
+  - [x] **Drag-and Drop to citation** : You can now drag-and-drop equation from equations manage panel to cite it.
   - [x] **Support the cross-file citations by dragging** 
   - [x] **Prompt when drag no-tag equations** 
   - [x] **Dynamic Update panel when change file and type in editor**
@@ -212,13 +212,25 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 
 ### Version 1.3.1 (Coming) 
 
+Version 1.3.1 - New features, Refactors, Main improvements and User friendly improvements.
+
 ⭐ New Features :
 - [x] Add support for typst (by [azyarashi](https://github.com/azyarashi) in PR [#73](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/73))
 
+
+🐛 Bug Fixes :
+- [x] Fix [bug #78](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/78), now equation panel can correctly refreshed when firstly open equations manage panel. 
+
+
 🚀Enhancements : 
 - [x] Add Eslint obsidian plugin for better code check before submitting, run `npm run check` before submitting PR
+- [x] Add lock button [#88](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/88) into equations manage panel
+- [x] Add show headings only panel, so in outline view, we can just use it as outline panel.
+- [x] Optimize `renderImageCaptions` function, now it will not parse Markdown every time when fast typing.
 
-🏗️ Refactors :
+
+
+🏗️ Refactors For review :
 - [x] Change `fetch` to `requestUrl` for fetching equations
 - [x] Fixed async & await functions 
 - [x] Remove unicode in quoteRegex
@@ -226,7 +238,8 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 - [x] removed unnecessary assertions 
 - [x] use `then` to replace `await` in eventListener to avoid ts error
 - [x] fixed some incorrect `debugger.error`
-- [x]  
+- [x] fixed UI text case 
+- [ ] fix style managers and hoverpopover style problems.  
 
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 

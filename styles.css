@@ -702,6 +702,29 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
   margin: 5px 20px 10px;
 }
 
+.ec-toolbar-sub-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  max-width: 100%;
+  overflow: hidden;
+  transition: grid-template-rows 0.3s ease, margin 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  margin: 0 20px;
+}
+.ec-toolbar-sub-panel.is-expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin: 5px 20px 10px;
+}
+.ec-toolbar-sub-panel > div {
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 15px;
+  align-items: center;
+}
+
 .ec-search-input {
   flex: 1;
   padding: 5px 10px;
