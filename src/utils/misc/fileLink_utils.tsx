@@ -1,6 +1,8 @@
 
 // use this.plugin.app.metadataCache.resolvedLinks; as the links parameter 
 
+// for single case usage, use const destFile = app.metadataCache.getFirstLinkpathDest(linkText, sourceFilePath);
+
 /** 
  * get the backlinks of a file 
  * @param links 

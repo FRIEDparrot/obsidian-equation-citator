@@ -220,7 +220,7 @@ Version 1.3.1 - some features, Refactors, bug fixes and many enhancements.
 
 🐛 Bug Fixes :
 - [x] Fix [bug #78](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/78), now equation panel can correctly refreshed when firstly open equations manage panel. 
-- [ ] Fix [bug #89](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/89), drag-drop will correctly recognize current footnote 
+- [x] Fix [bug #89](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/89), drag-drop will correctly recognize current footnote 
 
 🚀Enhancements : 
 - [x] Add Eslint obsidian plugin for better code check before submitting, run `npm run check` before submitting PR
