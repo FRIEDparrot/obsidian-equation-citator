@@ -228,7 +228,7 @@ Version 1.3.1 - some features, Refactors, bug fixes and many enhancements.
 - [x] Add enhancement [#81](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/81), add show headings only panel, so in outline view, we can just use it as outline panel.
 - [x] Optimize `renderImageCaptions` function, now it will not parse Markdown every time when fast typing.
 - [x] Add enhancement [#91](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/91), stop auto-numbering when theres content after equation block.
-- [ ] Add colorful callout support [#88](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/88)
+- [x] Add colorful callout support [#88](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/88)
 - [x] Add `render title and description in figure preview` option in settings tab.
 - [x] Remove `Continuous Citation Delimiter` from advanced settings.
 
