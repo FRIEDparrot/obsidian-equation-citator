@@ -47,17 +47,10 @@ export interface EquationCitatorSettings {
     //#endregion
 
     //#region style settings  
-    citationPopoverContainerWidth: number; // Equation preview widget width in pixels
-    citationPopoverContainerHeight: number; // Equation preview widget height in pixels 
+    citationPopoverSize: string; // Widget size: 'xs', 'sm', 'md', 'lg', 'xl'
     enableRenderLocalFileName: boolean; // Render local file name for citations 
-    fileSuperScriptColor: string;
-    fileSuperScriptHoverColor: string;
     enableCenterTableInCallout: boolean; // Center table in callout  
     enableRenderFigureInfoInPreview: boolean; // Render figure title and description in figure preview widget 
-    citationColor: string; // Citation display color for equations 
-    citationHoverColor: string; // Citation display hover color for equations 
-    citationWidgetColor: string[]; // Citation widget color for different types of citations  
-    citationWidgetColorDark: string[]; // Citation widget color for different types of citations in dark mode 
     //#endregion
 
     // auto numbering settings  
@@ -100,8 +93,7 @@ export interface EquationCitatorSettings {
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
-    citationPopoverContainerWidth: 500, // Default to 370px for preview widget width 
-    citationPopoverContainerHeight: 400, // Default to 400px for preview widget height 
+    citationPopoverSize: "md", // Default to medium size
     citationPrefix: "eq:", // Default prefix for citations
     citationFormat: "(#)", // Default display format for citations
     figCitationPrefix: "fig:", // prefix for cite figures
@@ -110,10 +102,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         { prefix: "table:", format: "Table. #" },
     ],
 
-    citationColor: "#a288f9",
     enableRenderFigureInfoInPreview: true, // enable rendering figure title and description in figure preview widget
     enableCenterTableInCallout: true,  // enable centering tables in callout for butiful rendering 
-    citationHoverColor: "#c5b6fc",
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
     multiCitationDelimiterRender: ", ", // Default rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: true, // Default to true for convenience 
@@ -123,8 +113,6 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
 
     enableCrossFileCitation: true, // Default to true
     fileCiteDelimiter: "^", // Default delimiter for file citations 
-    fileSuperScriptColor: "#8e77e1",
-    fileSuperScriptHoverColor: "#6d50e0",
 
     cacheUpdateTime: 5000, // Max time for cache to refresh (5s)
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes) 
@@ -144,8 +132,6 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     deleteRepeatTagsInAutoNumber: true, // Default to true, delete repeat tags in auto numbering 
     deleteUnusedTagsInAutoNumber: false, // Default to true, delete unused tags in auto numbering 
 
-    citationWidgetColor: ["#ffffff", "#f8f9fa", "#f5f6f7", "#e9ecef", "#dee2e6"],
-    citationWidgetColorDark: ["#1e1e1e", "#2d2d2d", "#252525", "#3a3a3a", "#404040"],
     enableTypstMode: false,
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
     // settings UI defaults
@@ -155,7 +141,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberDepth",
         "autoNumberNoHeadingPrefix",
         "enableAutoNumberGlobalPrefix",
-        "citationPopoverContainerWidth",
+        "citationPopoverSize",
         "enableCenterTableInCallout",
     ],
     advancedSettingsKeys: [
@@ -173,8 +159,6 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "enableTypstMode",
         "cacheUpdateTime",
         "cacheCleanTime",
-        "citationWidgetColor",
-        "citationWidgetColorDark",
         "debugMode",
     ],
     equationManagePanelLazyUpdateTime: 5000,
@@ -408,64 +392,12 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             CacheSettingsTab.cacheCleanTime(el, plugin);
         }
     },
-    citationPopoverContainerWidth: {
-        name: "Equation Preview Widget Width",
-        desc: "Width of the equation preview widget in pixels",
-        type: "number",
+    citationPopoverSize: {
+        name: "Preview Widget Size",
+        desc: "Size for citation preview widgets (equations, figures, callouts)",
+        type: "select",
         renderCallback: (el, plugin) => {
-            StyleSettingsTab.citationPopoverContainerWidth(el, plugin);
-        }
-    },
-
-    citationPopoverContainerHeight: {
-        name: "Equation Preview Widget Height",
-        desc: "Max Height of the equation preview widget in pixels",
-        type: "number",
-        renderCallback: (el, plugin) => {
-            StyleSettingsTab.citationPopoverContainerHeight(el, plugin);
-        }
-    },
-    citationColor: {
-        name: "Citation Display Color",
-        desc: "Citation display color for equations",
-        type: "color",
-        renderCallback: (el, plugin) => {
-            StyleSettingsTab.citationColor(el, plugin);
-        }
-    },
-    citationHoverColor: {
-        name: "Citation Hover Color",
-        desc: "Citation display hover color for equations",
-        type: "color",
-        renderCallback: (el, plugin) => {
-            StyleSettingsTab.citationHoverColor(el, plugin);
-        }
-    },
-
-    fileSuperScriptColor: {
-        name: "File Citation Color",
-        desc: "Color for file citation superscript",
-        type: "color",
-        renderCallback: (el, plugin) => {
-            StyleSettingsTab.fileSuperScriptColor(el, plugin);
-        }
-    },
-
-    fileSuperScriptHoverColor: {
-        name: "File Citation Hover Color",
-        desc: "Color for file citation superscript when hovering",
-        type: "color",
-        renderCallback: (el, plugin) => {
-            StyleSettingsTab.fileSuperScriptHoverColor(el, plugin);
-        }
-    },
-
-    citationWidgetColor: {
-        name: "Light Theme Widget Colors",
-        desc: "Widget colors for light theme",
-        type: "array",
-        renderCallback: (el, plugin) => {
-            StyleSettingsTab.citationWidgetColor(el, plugin);
+            StyleSettingsTab.citationPopoverSize(el, plugin);
         }
     },
 
@@ -493,15 +425,6 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             StyleSettingsTab.enableRenderLocalFileName(el, plugin);
-        }
-    },
-
-    citationWidgetColorDark: {
-        name: "Dark Theme Widget Colors",
-        desc: "Widget colors for dark theme",
-        type: "array",
-        renderCallback: (el, plugin) => {
-            StyleSettingsTab.citationWidgetColorDark(el, plugin);
         }
     },
 

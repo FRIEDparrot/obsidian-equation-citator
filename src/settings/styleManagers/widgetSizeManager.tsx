@@ -1,97 +1,64 @@
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
 
-export enum WidgetSizeVariable {
-    ContainerWidth = '--em-citation-popover-container-width',
-    ContainerHeight = '--em-citation-popover-container-height',
+export enum WidgetSize {
+    ExtraSmall = 'xs',
+    Small = 'sm',
+    Medium = 'md',
+    Large = 'lg',
+    ExtraLarge = 'xl'
 }
 
+export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
+    [WidgetSize.ExtraSmall]: 'Extra Small (350×300)',
+    [WidgetSize.Small]: 'Small (425×350)',
+    [WidgetSize.Medium]: 'Medium (500×400)',
+    [WidgetSize.Large]: 'Large (600×500)',
+    [WidgetSize.ExtraLarge]: 'Extra Large (750×600)'
+};
+
 export class WidgetSizeManager {
-    private static styleElement: HTMLStyleElement | null = null;
-    private static readonly STYLE_ID = 'equation-citator-sizes';
+    private static currentSize: WidgetSize = WidgetSize.Medium;
 
     /**
-     * Set a CSS size variable
+     * Get the CSS class name for a widget size
      */
-    static set(variable: WidgetSizeVariable, size: number): void {
-        this.ensureStyleElement();
-
-        const cssVariable = variable;
-        const cssValue = `${size}px`;
-
-        if (this.styleElement) {
-            // Get existing content or create new
-            let existingRules = this.styleElement.textContent || ':root {\n}';
-
-            // Remove existing rule for this variable if it exists
-            const variableRegex = new RegExp(`\\s*${cssVariable}:[^;]*;`, 'g');
-            existingRules = existingRules.replace(variableRegex, '');
-
-            // Add new rule before the closing brace
-            const newRule = `  ${cssVariable}: ${cssValue};`;
-            existingRules = existingRules.replace('}', `${newRule}\n}`);
-            this.styleElement.textContent = existingRules;
-        }
+    static getClassName(size: WidgetSize): string {
+        return `em-widget-size-${size}`;
     }
 
     /**
-     * Set multiple size variables at once
+     * Get the current widget size class name
      */
-    static setMultiple(sizes: Record<WidgetSizeVariable, number>): void {
-        this.ensureStyleElement();
-
-        const cssRules: string[] = [':root {'];
-
-        // Add each size rule
-        Object.entries(sizes).forEach(([key, value]) => {
-            const cssVariable = key as WidgetSizeVariable;
-            if (cssVariable && typeof value === 'number') {
-                cssRules.push(`  ${cssVariable}: ${value}px;`);
-            }
-        });
-        cssRules.push('}');
-        if (this.styleElement) {
-            this.styleElement.textContent = cssRules.join('\n');
-        }
+    static getCurrentClassName(): string {
+        return this.getClassName(this.currentSize);
     }
 
     /**
-     * Ensure that the style element exists in the document head
+     * Set the widget size
      */
-    private static ensureStyleElement(): void {
-        if (!this.styleElement) {
-            // Remove any existing style element first
-            const existing = document.getElementById(this.STYLE_ID);
-            if (existing) {
-                existing.remove();
-            }
-
-            this.styleElement = document.createElement('style');
-            this.styleElement.id = this.STYLE_ID;
-            document.head.appendChild(this.styleElement);
-        }
+    static setSize(size: WidgetSize): void {
+        this.currentSize = size;
     }
 
     /**
-     * Clean up - remove the style element
+     * Get the current widget size
+     */
+    static getSize(): WidgetSize {
+        return this.currentSize;
+    }
+
+    /**
+     * Update widget size from settings
+     */
+    static updateFromSettings(settings: EquationCitatorSettings): void {
+        const sizeStr = settings.citationPopoverSize || 'md';
+        this.currentSize = sizeStr as WidgetSize;
+    }
+
+    /**
+     * No cleanup needed since we're using CSS classes
      */
     public static cleanUp(): void {
-        if (this.styleElement && this.styleElement.parentNode) {
-            this.styleElement.parentNode.removeChild(this.styleElement);
-            this.styleElement = null;
-        }
-    }
-
-    public static resetAllSizes(defaultSettings: EquationCitatorSettings): void {
-        this.setMultiple({
-            [WidgetSizeVariable.ContainerWidth]: defaultSettings.citationPopoverContainerWidth,
-            [WidgetSizeVariable.ContainerHeight]: defaultSettings.citationPopoverContainerHeight,
-        });
-    }
-
-    public static updateAllSizes(settings: EquationCitatorSettings): void {
-        this.setMultiple({
-            [WidgetSizeVariable.ContainerWidth]: settings.citationPopoverContainerWidth,
-            [WidgetSizeVariable.ContainerHeight]: settings.citationPopoverContainerHeight,
-        });
+        // No-op: CSS classes don't need cleanup
     }
 }

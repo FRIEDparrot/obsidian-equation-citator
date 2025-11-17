@@ -70,14 +70,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "enableRenderLocalFileName",
                 "enableRenderFigureInfoInPreview",
                 "enableCenterTableInCallout",
-                "citationPopoverContainerWidth",
-                "citationPopoverContainerHeight",
-                "citationColor",
-                "citationHoverColor",
-                "fileSuperScriptColor",
-                "fileSuperScriptHoverColor",
-                "citationWidgetColor",
-                "citationWidgetColorDark",
+                "citationPopoverSize",
             ]
         },
         {
