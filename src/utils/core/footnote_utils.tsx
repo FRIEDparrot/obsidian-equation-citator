@@ -26,7 +26,11 @@ export async function checkFootnoteExists(
     if (!existingFootnotes) return null; 
     
     // Check if footnote for this source file already exists
-    const existingFootnote = existingFootnotes.find(fn => fn?.path === sourceFilePath);
+    const existingFootnote = existingFootnotes.find((fn) => {
+        if(!fn?.path) return false;
+        const file = plugin.app.metadataCache.getFirstLinkpathDest(fn.path, targetFilePath);
+        return file?.path === sourceFilePath;
+    });
     if(existingFootnote) {
         return existingFootnote.num;
     }
