@@ -27,7 +27,6 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "Citation",
             settingKeys: [
                 "enableCitationInSourceMode",
-                "enableRenderLocalFileName",
                 "citationPrefix",
                 "citationFormat",
                 "multiCitationDelimiter",
@@ -68,6 +67,9 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             id: "style",
             title: "Style",
             settingKeys: [
+                "enableRenderLocalFileName",
+                "enableRenderFigureInfoInPreview",
+                "enableCenterTableInCallout",
                 "citationPopoverContainerWidth",
                 "citationPopoverContainerHeight",
                 "citationColor",

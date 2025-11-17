@@ -212,7 +212,7 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 
 ### Version 1.3.1 (Coming) 
 
-Version 1.3.1 - New features, Refactors, Main improvements and User friendly improvements.
+Version 1.3.1 - some features, Refactors, bug fixes and many enhancements.
 
 ⭐ New Features :
 - [x] Add support for typst (by [azyarashi](https://github.com/azyarashi) in PR [#73](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/73))
@@ -220,16 +220,17 @@ Version 1.3.1 - New features, Refactors, Main improvements and User friendly imp
 
 🐛 Bug Fixes :
 - [x] Fix [bug #78](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/78), now equation panel can correctly refreshed when firstly open equations manage panel. 
-
+- [ ] Fix [bug #89](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/89), drag-drop will correctly recognize current footnote 
 
 🚀Enhancements : 
 - [x] Add Eslint obsidian plugin for better code check before submitting, run `npm run check` before submitting PR
 - [x] Add lock button [#88](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/88) into equations manage panel
-- [x] Add show headings only panel, so in outline view, we can just use it as outline panel.
+- [x] Add enhancement [#81](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/81), add show headings only panel, so in outline view, we can just use it as outline panel.
 - [x] Optimize `renderImageCaptions` function, now it will not parse Markdown every time when fast typing.
 - [x] Add enhancement [#91](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/91), stop auto-numbering when theres content after equation block.
-
-
+- [ ] Add colorful callout support [#88](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/88)
+- [x] Add `render title and description in figure preview` option in settings tab.
+- [x] Remove `Continuous Citation Delimiter` from advanced settings.
 
 🏗️ Refactors For review :
 - [x] Change `fetch` to `requestUrl` for fetching equations

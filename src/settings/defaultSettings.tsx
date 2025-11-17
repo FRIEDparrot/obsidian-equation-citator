@@ -53,6 +53,7 @@ export interface EquationCitatorSettings {
     fileSuperScriptColor: string;
     fileSuperScriptHoverColor: string;
     enableCenterTableInCallout: boolean; // Center table in callout  
+    enableRenderFigureInfoInPreview: boolean; // Render figure title and description in figure preview widget 
     citationColor: string; // Citation display color for equations 
     citationHoverColor: string; // Citation display hover color for equations 
     citationWidgetColor: string[]; // Citation widget color for different types of citations  
@@ -110,6 +111,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     ],
 
     citationColor: "#a288f9",
+    enableRenderFigureInfoInPreview: true, // enable rendering figure title and description in figure preview widget
     enableCenterTableInCallout: true,  // enable centering tables in callout for butiful rendering 
     citationHoverColor: "#c5b6fc",
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
@@ -164,7 +166,6 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "multiCitationDelimiter",
         "multiCitationDelimiterRender",
         "enableContinuousCitation",
-        "continuousDelimiters",
         "quoteCitationPrefixes",
         "autoNumberDelimiter",
         "enableAutoNumberEquationsInQuotes",
@@ -209,14 +210,6 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.enableCitationInSourceMode(el, plugin);
-        }
-    },
-    enableRenderLocalFileName: {
-        name: "Render Local File Name in Equation Preview",
-        desc: "Render local file name for citations",
-        type: "boolean",
-        renderCallback: (el, plugin) => {
-            CitationSettingsTab.enableRenderLocalFileName(el, plugin);
         }
     },
     citationPrefix: {
@@ -484,7 +477,25 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             StyleSettingsTab.enableCenterTableInCallout(el, plugin);
         }
     },
-    
+
+    enableRenderFigureInfoInPreview: {
+        name: "Render Figure Info in Preview",
+        desc: "If disabled, figure title and description will not be rendered in preview.",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            StyleSettingsTab.enableRenderFigureInfoInPreview(el, plugin);
+        }
+    },
+
+    enableRenderLocalFileName: {
+        name: "Render Local File Name in Equation Preview",
+        desc: "Render local file name for citations",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            StyleSettingsTab.enableRenderLocalFileName(el, plugin);
+        }
+    },
+
     citationWidgetColorDark: {
         name: "Dark Theme Widget Colors",
         desc: "Widget colors for dark theme",

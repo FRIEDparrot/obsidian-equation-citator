@@ -146,6 +146,19 @@ export const StyleSettingsTab = {
         }
     },
 
+    enableRenderLocalFileName(containerEl: HTMLElement, plugin: EquationCitator) {
+        const enableLocalFileNameSetting = new Setting(containerEl);
+        enableLocalFileNameSetting.setName(SETTINGS_METADATA.enableRenderLocalFileName.name)
+            .setDesc(SETTINGS_METADATA.enableRenderLocalFileName.desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableRenderLocalFileName);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableRenderLocalFileName = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
     enableCenterTableInCallout(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.enableCenterTableInCallout;
         const setting = new Setting(containerEl);
@@ -158,6 +171,19 @@ export const StyleSettingsTab = {
                     plugin.settings.enableCenterTableInCallout = value;
                     await plugin.saveSettings();
                     CalloutTableStyleManager.update(plugin.settings);
+                });
+            });
+    },
+    enableRenderFigureInfoInPreview(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.enableRenderFigureInfoInPreview;
+        const setting = new Setting(containerEl);
+        setting.setName(name)
+            .setDesc(desc)
+            .addToggle(toggle => {
+                toggle.setValue(plugin.settings.enableRenderFigureInfoInPreview);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableRenderFigureInfoInPreview = value;
+                    await plugin.saveSettings();
                 });
             });
     },
@@ -176,5 +202,7 @@ export function addStyleSettingsTab(containerEl: HTMLElement, plugin: EquationCi
     StyleSettingsTab.fileSuperScriptHoverColor(containerEl, plugin);
     StyleSettingsTab.citationWidgetColor(containerEl, plugin);
     StyleSettingsTab.citationWidgetColorDark(containerEl, plugin);
+    StyleSettingsTab.enableRenderLocalFileName(containerEl, plugin);
     StyleSettingsTab.enableCenterTableInCallout(containerEl, plugin);
+    StyleSettingsTab.enableRenderFigureInfoInPreview(containerEl, plugin);
 }
