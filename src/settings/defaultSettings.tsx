@@ -393,7 +393,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     citationPopoverSize: {
-        name: "Preview Widget Size",
+        name: "Preview widget size",
         desc: "Size for citation preview widgets (equations, figures, callouts)",
         type: "select",
         renderCallback: (el, plugin) => {

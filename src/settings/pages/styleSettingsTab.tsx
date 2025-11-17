@@ -1,25 +1,20 @@
-import { WidgetSizeManager, WidgetSize, WIDGET_SIZE_LABELS } from "../styleManagers/widgetSizeManager";
 import EquationCitator from "@/main";
 import { Setting } from "obsidian";
 import { SETTINGS_METADATA } from "../defaultSettings";
 import { CalloutTableStyleManager } from "../styleManagers/calloutTabManager";
+import { WidgetSizeManager, WidgetSize, WIDGET_SIZE_LABELS } from "../styleManagers/widgetSizeManager";
 
 
 export const StyleSettingsTab = {
     citationPopoverSize(containerEl: HTMLElement, plugin: EquationCitator) {
         const setting = new Setting(containerEl);
-
-        setting.setName("Preview Widget Size")
+        setting.setName("Preview widget size")
             .setDesc("Select the size for citation preview widgets. Sizes apply to all popovers (equations, figures, callouts).")
             .addDropdown((dropdown) => {
-                // Add all size options
                 Object.entries(WIDGET_SIZE_LABELS).forEach(([size, label]) => {
                     dropdown.addOption(size, label);
                 });
-
-                // Set current value
                 dropdown.setValue(plugin.settings.citationPopoverSize || WidgetSize.Medium);
-                
                 dropdown.onChange(async (value) => {
                     plugin.settings.citationPopoverSize = value as WidgetSize;
                     WidgetSizeManager.setSize(value as WidgetSize);

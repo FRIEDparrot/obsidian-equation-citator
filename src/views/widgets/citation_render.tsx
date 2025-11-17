@@ -1,7 +1,7 @@
 import { Prec, RangeSetBuilder, StateField } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { HoverParent, MarkdownPostProcessorContext, Notice, TFile } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
 import { editorInfoField, MarkdownView } from "obsidian";

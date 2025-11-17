@@ -19,7 +19,7 @@
 .em-citation-header {
     padding: 10px 16px 8px;
     background: var(--background-secondary-alt);
-    border-bottom: 1px solid var(--em-background-modifier-border);
+    border-bottom: 0.5px solid var(--text-muted);
 }
 
 .em-citation-title-note{
@@ -105,10 +105,9 @@
 }
 
 .em-equation-wrapper:hover {
-    border-color: var(--em-interactive-accent);
-    background: var(--em-background-primary-alt);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
+    background-color: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .em-equation-label-container {
@@ -184,7 +183,7 @@
 .em-citation-footer {
     padding: 6px 16px 8px;
     background: var(--background-secondary-alt);
-    border-top: 1px solid var(--em-background-modifier-border);
+    border-top: 0.5px solid var(--text-muted);
     font-size: 10px;
     color: var(--em-text-muted);
     text-align: center;
@@ -328,10 +327,9 @@
 
 .em-callout-wrapper:hover,
 .em-callout-wrapper.em-callout-hover {
-    border-color: var(--em-interactive-accent);
-    background: var(--em-background-primary-alt);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
+    background-color: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .em-callout-wrapper.em-callout-clicked {
@@ -491,10 +489,9 @@
 
 .em-figure-wrapper:hover,
 .em-figure-wrapper.em-figure-hover {
-    border-color: var(--em-interactive-accent);
-    background: var(--em-background-primary-alt);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
+    background-color: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .em-figure-wrapper.em-figure-clicked {

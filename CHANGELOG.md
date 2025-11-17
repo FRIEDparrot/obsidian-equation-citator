@@ -241,7 +241,7 @@ Version 1.3.1 - some features, Refactors, bug fixes and many enhancements.
 - [x] use `then` to replace `await` in eventListener to avoid ts error
 - [x] fixed some incorrect `debugger.error`
 - [x] fixed UI text case 
-- [ ] fix style managers and hoverpopover style problems.  
+- [x] rafactor style settings, fix style managers, remove style settings code from hoverpopover.  
 
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 

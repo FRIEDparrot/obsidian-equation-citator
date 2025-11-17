@@ -1,4 +1,4 @@
-import { App, WorkspaceLeaf, MarkdownView, editorInfoField, editorLivePreviewField } from "obsidian";
+import { App, WorkspaceLeaf, MarkdownView, editorLivePreviewField } from "obsidian";
 import { EditorView } from "@codemirror/view";
 
 export function getLeafByElement(app: App, el: HTMLElement) : WorkspaceLeaf | null { 

@@ -1,6 +1,6 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField } from "obsidian";
+import { HoverParent, MarkdownView, editorInfoField } from "obsidian";
 import { CitationPopover } from "@/views/popovers/citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
