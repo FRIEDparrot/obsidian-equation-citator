@@ -33,7 +33,7 @@ export class FigureCitationWidget extends WidgetType {
     toDOM(view: EditorView): HTMLElement {
         this.view = view;
 
-        const parent = this.getActiveLeaf() as HoverParent | null;
+        const parent = this.getMarkdownView() as HoverParent | null;
         const el = renderFigureCitation(
             this.plugin,
             this.sourcePath,
@@ -76,10 +76,10 @@ export class FigureCitationWidget extends WidgetType {
         }
     }
 
-    private getActiveLeaf(): WorkspaceLeaf | null {
+    private getMarkdownView(): MarkdownView | null {
         const mdView = this.view.state.field(editorInfoField, false) as MarkdownView | undefined;
-        if (mdView && mdView.leaf) {
-            return mdView.leaf;
+        if (mdView) {
+            return mdView;
         }
         return null;
     }
@@ -88,7 +88,7 @@ export class FigureCitationWidget extends WidgetType {
      * Show popover with figure preview content
      */
     private async showPopover() {
-        const parent = this.getActiveLeaf() as HoverParent | null;
+        const parent = this.getMarkdownView() as HoverParent | null;
         if (this.popover !== null) return;  // already showing popover
         if (!parent || !this.el) {
             Debugger.error(`parent is not equal with citationEl, can't show popover`);

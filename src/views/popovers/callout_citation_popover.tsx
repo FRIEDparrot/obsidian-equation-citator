@@ -17,17 +17,19 @@ import { getLeafByElement } from "@/utils/workspace/workspace_utils";
  */
 export class CalloutCitationPopover extends HoverPopover {
     private calloutsToRender: RenderedCallout[] = [];
+    private targetEl: HTMLElement;
 
     constructor(
         private plugin: EquationCitator,
         parent: HoverParent,
-        private targetEl: HTMLElement | null,
+        targetEl: HTMLElement,
         private prefix: string,  // e.g., "table:", "thm:", "def:"
         calloutsToRender: RenderedCallout[],
         private sourcePath: string,
         waitTime?: number
     ) {
-        super(parent, targetEl, waitTime, null);
+        super(parent, targetEl, waitTime);
+        this.targetEl = targetEl;
         // Only render valid callouts (must have tag and content)
         this.calloutsToRender = calloutsToRender.filter(c =>
             c.tag && c.sourcePath && c.content
@@ -40,7 +42,6 @@ export class CalloutCitationPopover extends HoverPopover {
     onload(): void {
         this.onOpen();
         void this.showCallouts();
-        this.adjustPosition();
     }
 
     onunload(): void {
@@ -118,40 +119,6 @@ export class CalloutCitationPopover extends HoverPopover {
         const totalCallouts = this.calloutsToRender.length;
         footer.addClass("em-citation-footer");
         footer.textContent = `${totalCallouts} ${displayName.toLowerCase()}${totalCallouts !== 1 ? 's' : ''}`;
-    }
-
-    /**
-     * Dynamically adjust the position of the popover to avoid it going outside the viewport
-     */
-    private adjustPosition() {
-        const popoverRect = this.hoverEl.getBoundingClientRect();
-        const targetRect = this.targetEl?.getBoundingClientRect();
-        if (!targetRect) {
-            return;
-        }
-
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-
-        let left = targetRect.right;
-        let top = targetRect.bottom;
-
-        if (left + popoverRect.width > viewportWidth) {
-            left = targetRect.left - popoverRect.width;
-            if (left < 0) {
-                left = Math.max(10, targetRect.left - popoverRect.width);
-            }
-        }
-
-        if (top + popoverRect.height > viewportHeight) {
-            top = targetRect.top - popoverRect.height;
-            if (top < 0) {
-                top = Math.max(10, targetRect.top - popoverRect.height);
-            }
-        }
-
-        this.hoverEl.style.left = `${left}px`;
-        this.hoverEl.style.top = `${top}px`;
     }
 }
 

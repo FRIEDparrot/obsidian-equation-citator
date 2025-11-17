@@ -25,6 +25,7 @@ import { find_array } from "@/utils/misc/array_utils";
 import { fastHash } from "@/utils/misc/hash_utils";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
 import { parseAllImagesFromMarkdown, parseImageLine, ImageMatch } from "@/utils/parsers/image_parser";
+import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -445,7 +446,7 @@ function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTML
         span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            void showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath);
+            void showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath, event);
         })
     })
 }
@@ -456,7 +457,7 @@ function addReadingModeFigurePreviewListener(plugin: EquationCitator, citationEl
         span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            void showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath);
+            void showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath, event);
         })
     })
 }
@@ -465,11 +466,11 @@ async function showReadingModeFigurePopover(
     plugin: EquationCitator,
     citationEl: HTMLElement,
     figureTagsAll: string[],
-    sourcePath: string
+    sourcePath: string,
+    event: MouseEvent
 ): Promise<void> {
-    const mdView: MarkdownView | null = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-    const activeLeaf: WorkspaceLeaf | undefined = mdView?.leaf;
-    if (!activeLeaf) return;  // no active leaf found, skip popover
+    const mdView: MarkdownView | null = getMarkdownViewFromEvent(plugin.app.workspace, event);
+    if (!mdView) return;  // no view found for event, skip popover
 
     const figures = await plugin.figureServices.getFiguresByTags(figureTagsAll, sourcePath);
     const cleanedFigures = figures.filter(fig => fig.tag && fig.sourcePath && (fig.imagePath || fig.imageLink));
@@ -481,7 +482,7 @@ async function showReadingModeFigurePopover(
 
     let popover: FigureCitationPopover | null = new FigureCitationPopover(
         plugin,
-        activeLeaf,
+        mdView,
         citationEl,
         figures,
         sourcePath,
@@ -505,7 +506,7 @@ function addReadingModeCalloutPreviewListener(
         span.addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            void showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath);
+            void showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath, event);
         })
     })
 }
@@ -515,11 +516,11 @@ async function showReadingModeCalloutPopover(
     citationEl: HTMLElement,
     prefix: string,
     calloutTagsAll: string[],
-    sourcePath: string
+    sourcePath: string,
+    event: MouseEvent
 ): Promise<void> {
-    const mdView: MarkdownView | null = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-    const activeLeaf: WorkspaceLeaf | undefined = mdView?.leaf;
-    if (!activeLeaf) return;  // no active leaf found, skip popover
+    const mdView: MarkdownView | null = getMarkdownViewFromEvent(plugin.app.workspace, event);
+    if (!mdView) return;  // no view found for event, skip popover
 
     const callouts = await plugin.calloutServices.getCalloutsByTags(calloutTagsAll, prefix, sourcePath);
     const cleanedCallouts = callouts.filter(c => c.tag && c.sourcePath && c.content);
@@ -531,7 +532,7 @@ async function showReadingModeCalloutPopover(
 
     let popover: CalloutCitationPopover | null = new CalloutCitationPopover(
         plugin,
-        activeLeaf,
+        mdView,
         citationEl,
         prefix,
         callouts,
@@ -594,11 +595,11 @@ async function showReadingModePopover(
     plugin: EquationCitator,
     citationEl: HTMLElement,
     eqNumbersAll: string[],
-    sourcePath: string
+    sourcePath: string,
+    event: MouseEvent
 ): Promise<void> {
-    const mdView: MarkdownView | null = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-    const activeLeaf: WorkspaceLeaf | undefined = mdView?.leaf;
-    if (!activeLeaf) return;  // no active leaf found, skip popover
+    const mdView: MarkdownView | null = getMarkdownViewFromEvent(plugin.app.workspace, event);
+    if (!mdView) return;  // no view found for event, skip popover
 
     const equations = await plugin.equationServices.getEquationsByTags(eqNumbersAll, sourcePath);
     const cleanedEquations = equations.filter(eq => eq.md && eq.sourcePath);
@@ -610,7 +611,7 @@ async function showReadingModePopover(
 
     let popover: CitationPopover | null = new CitationPopover(
         plugin,
-        activeLeaf,
+        mdView,
         citationEl,
         equations,
         sourcePath,

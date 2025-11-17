@@ -16,16 +16,18 @@ import { getLeafByElement } from "@/utils/workspace/workspace_utils";
  */
 export class FigureCitationPopover extends HoverPopover {
     private figuresToRender: RenderedFigure[] = [];
+    private targetEl: HTMLElement;
 
     constructor(
         private plugin: EquationCitator,
         parent: HoverParent,
-        private targetEl: HTMLElement | null,
+        targetEl: HTMLElement,
         figuresToRender: RenderedFigure[],
         private sourcePath: string,
         waitTime?: number
     ) {
-        super(parent, targetEl, waitTime, null);
+        super(parent, targetEl, waitTime);
+        this.targetEl = targetEl;
         // Only render valid figures (must have tag and either imagePath or imageLink)
         this.figuresToRender = figuresToRender.filter(fig =>
             fig.tag && fig.sourcePath && (fig.imagePath || fig.imageLink)
@@ -38,7 +40,6 @@ export class FigureCitationPopover extends HoverPopover {
     onload(): void {
         this.onOpen();
         this.showFigures();
-        this.adjustPosition();
     }
 
     onunload() {
@@ -105,40 +106,6 @@ export class FigureCitationPopover extends HoverPopover {
         const totalFigures = this.figuresToRender.length;
         footer.addClass("em-citation-footer");
         footer.textContent = `${totalFigures} figure${totalFigures !== 1 ? 's' : ''}`;
-    }
-
-    /**
-     * Dynamically adjust the position of the popover to avoid it going outside the viewport
-     */
-    private adjustPosition() {
-        const popoverRect = this.hoverEl.getBoundingClientRect();
-        const targetRect = this.targetEl?.getBoundingClientRect();
-        if (!targetRect) {
-            return;
-        }
-
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-
-        let left = targetRect.right;
-        let top = targetRect.bottom;
-
-        if (left + popoverRect.width > viewportWidth) {
-            left = targetRect.left - popoverRect.width;
-            if (left < 0) {
-                left = Math.max(10, targetRect.left - popoverRect.width);
-            }
-        }
-
-        if (top + popoverRect.height > viewportHeight) {
-            top = targetRect.top - popoverRect.height;
-            if (top < 0) {
-                top = Math.max(10, targetRect.top - popoverRect.height);
-            }
-        }
-
-        this.hoverEl.style.left = `${left}px`;
-        this.hoverEl.style.top = `${top}px`;
     }
 }
 
