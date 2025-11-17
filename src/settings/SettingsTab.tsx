@@ -1,7 +1,6 @@
 import EquationCitator from "@/main";
 import { PluginSettingTab, App, Setting, Notice, setIcon } from "obsidian";
 import { DEFAULT_SETTINGS } from "./defaultSettings";
-import { ColorManager } from "./styleManagers/colorManager";
 import { WidgetSizeManager } from "./styleManagers/widgetSizeManager";
 
 import { addPdfExportSettingsTab } from "@/settings/pages/pdfExportSettingsTab";
@@ -25,22 +24,18 @@ export interface UserSettingGroupConfig {
 
 //#region Style Settings Utilities
 export function loadStyles(): void {
-    ColorManager.updateAllColors(DEFAULT_SETTINGS);
-    WidgetSizeManager.updateAllSizes(DEFAULT_SETTINGS);
+    WidgetSizeManager.updateFromSettings(DEFAULT_SETTINGS);
     CalloutTableStyleManager.update(DEFAULT_SETTINGS);
 }
 
 export function resetStyles(): void {
-    ColorManager.resetAllColors(DEFAULT_SETTINGS);
-    WidgetSizeManager.resetAllSizes(DEFAULT_SETTINGS);
     CalloutTableStyleManager.cleanup();
 }
 
 /**
- * @summary Cleans up all custom styles by removing style elements related to color and widget size.
+ * @summary Cleans up all custom styles by removing style elements.
  */
 export function cleanUpStyles() {
-    ColorManager.cleanup(); // remove the style element
     WidgetSizeManager.cleanUp();
     CalloutTableStyleManager.cleanup();
 }

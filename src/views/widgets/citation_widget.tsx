@@ -1,6 +1,6 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField } from "obsidian";
+import { HoverParent, MarkdownView, editorInfoField } from "obsidian";
 import { CitationPopover } from "@/views/popovers/citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
@@ -38,7 +38,7 @@ export class CitationWidget extends WidgetType {
     toDOM(view: EditorView): HTMLElement {
         this.view = view;
 
-        const parent = this.getActiveLeaf() as HoverParent | null;
+        const parent = this.getMarkdownView() as HoverParent | null;
         const el = renderEquationCitation(
             this.plugin,
             this.sourcePath,
@@ -78,10 +78,10 @@ export class CitationWidget extends WidgetType {
             })
         }
     }
-    private getActiveLeaf(): WorkspaceLeaf | null {
+    private getMarkdownView(): MarkdownView | null {
         const mdView = this.view.state.field(editorInfoField, false) as MarkdownView | undefined;
-        if (mdView && mdView.leaf) {
-            return mdView.leaf;
+        if (mdView) {
+            return mdView;
         }
         return null;
     }
@@ -91,7 +91,7 @@ export class CitationWidget extends WidgetType {
      * @returns 
      */
     private async showPopover() {
-        const parent = this.getActiveLeaf() as HoverParent | null;
+        const parent = this.getMarkdownView() as HoverParent | null;
         if (this.popover !== null) return;  // already showing popover
         if (!parent || !this.el) {
             Debugger.error(

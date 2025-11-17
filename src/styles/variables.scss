@@ -1,49 +1,60 @@
 :root {
-    --em-math-citation-color: #cec2f4;
-    --em-math-citation-hover-color: #a18cec;
+    /* Citation colors - using default values, users should customize via CSS snippets */
+    --em-math-citation-color: #a288f9;
+    --em-math-citation-hover-color: #c5b6fc;
     --em-math-citation-file-superscript-color: #8e77e1;
     --em-math-citation-file-superscript-hover-color: #6d50e0;
+    
     --em-math-latex-font: "Latin Modern Roman", "Latin Modern Math", "CMU Serif",
         "Computer Modern", serif;
-    --em-citation-popover-container-width: 350px;
+
+    /* Widget size variables - default (medium) */
+    --em-citation-popover-container-width: 500px;
     --em-citation-popover-container-height: 400px;
 
-    /* Light theme colors */
-    --em-background-primary: #ffffff;
-    --em-background-secondary: #f8f9fa;
-    --em-background-primary-alt: #f5f6f7;
-    --em-background-modifier-hover: #e9ecef;
-    --em-background-modifier-border: #dee2e6;
-    --em-text-normal: #212529;
-    --em-text-muted: #6c757d;
-    --em-text-faint: #adb5bd;
-    --em-interactive-accent: #007acc;
-    --em-interactive-accent-rgb: 0, 122, 204;
-    --em-font-interface: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    
-    /* Dark theme colors */ 
-    --em-background-primary-dark: #1e1e1e;
-    --em-background-secondary-dark: #2d2d2d;
-    --em-background-primary-alt-dark: #252525;
-    --em-background-modifier-hover-dark: #3a3a3a;
-    --em-background-modifier-border-dark: #404040;
-    --em-text-normal-dark: #dcddde;
-    --em-text-muted-dark: #b9bbbe;
-    --em-text-faint-dark: #72767d;
-    --em-interactive-accent-dark: #5865f2;
-    --em-interactive-accent-rgb-dark: 88, 101, 242;
+    /* Widget colors - using Obsidian built-in variables */
+    /* Light theme */
+    --em-background-primary: var(--background-primary);
+    --em-background-secondary: var(--background-secondary);
+    --em-background-primary-alt: var(--background-primary-alt);
+    --em-background-modifier-hover: var(--background-modifier-hover);
+    --em-background-modifier-border: var(--background-modifier-border);
+    --em-text-normal: var(--text-normal);
+    --em-text-muted: var(--text-muted);
+    --em-text-faint: var(--text-faint);
+    --em-interactive-accent: var(--interactive-accent);
+    --em-interactive-accent-rgb: var(--interactive-accent-rgb);
+    --em-font-interface: var(--font-interface);
 }
 
-/* Dark theme colors */
-.theme-dark {
-    --em-background-primary: var(--em-background-primary-dark);
-    --em-background-secondary: var(--em-background-secondary-dark);
-    --em-background-primary-alt: var(--em-background-primary-alt-dark);
-    --em-background-modifier-hover: var(--em-background-modifier-hover-dark);
-    --em-background-modifier-border: var(--em-background-modifier-border-dark);
-    --em-text-normal: var(--em-text-normal-dark);
-    --em-text-muted: var(--em-text-muted-dark);
-    --em-text-faint: var(--em-text-faint-dark);
-    --em-interactive-accent: var(--em-interactive-accent-dark);
-    --em-interactive-accent-rgb: var(--em-interactive-accent-rgb-dark);
+/* Widget size classes */
+.em-widget-size-xs {
+    --em-citation-popover-container-width: 350px;
+    --em-citation-popover-container-height: 300px;
+}
+
+.em-widget-size-sm {
+    --em-citation-popover-container-width: 425px;
+    --em-citation-popover-container-height: 350px;
+}
+
+.em-widget-size-md {
+    --em-citation-popover-container-width: 500px;
+    --em-citation-popover-container-height: 400px;
+}
+
+.em-widget-size-lg {
+    --em-citation-popover-container-width: 600px;
+    --em-citation-popover-container-height: 500px;
+}
+
+.em-widget-size-xl {
+    --em-citation-popover-container-width: 750px;
+    --em-citation-popover-container-height: 600px;
+}
+
+/* Callout table centering - enabled by body class */
+body.em-center-callout-tables .callout table {
+    margin-left: auto;
+    margin-right: auto;
 }

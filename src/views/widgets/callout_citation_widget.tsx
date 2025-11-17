@@ -1,6 +1,6 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { HoverParent, WorkspaceLeaf, MarkdownView, editorInfoField, Notice } from "obsidian";
+import { HoverParent, MarkdownView, editorInfoField, Notice } from "obsidian";
 import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
@@ -35,14 +35,14 @@ export class CalloutCitationWidget extends WidgetType {
     toDOM(view: EditorView): HTMLElement {
         this.view = view;
 
-        const parent = this.getActiveLeaf() as HoverParent | null;
+        const parent = this.getMarkdownView() as HoverParent | null;
         const el = renderCalloutCitation(
             this.plugin,
             this.sourcePath,
             parent,
             this.prefix,
             this.calloutTagsAll,
-            false,  // need ctrl key to show popover in Live Preview mode
+            false  // need ctrl key to show popover in Live Preview mode
         );
 
         this.el = el;
@@ -80,10 +80,10 @@ export class CalloutCitationWidget extends WidgetType {
         }
     }
 
-    private getActiveLeaf(): WorkspaceLeaf | null {
+    private getMarkdownView(): MarkdownView | null {
         const mdView = this.view.state.field(editorInfoField, false) as MarkdownView | undefined;
-        if (mdView && mdView.leaf) {
-            return mdView.leaf;
+        if (mdView) {
+            return mdView;
         }
         return null;
     }
@@ -92,7 +92,7 @@ export class CalloutCitationWidget extends WidgetType {
      * Show popover with callout preview content
      */
     private async showPopover() {
-        const parent = this.getActiveLeaf() as HoverParent | null;
+        const parent = this.getMarkdownView() as HoverParent | null;
         if (this.popover !== null) return;  // already showing popover
         if (!parent || !this.el) {
             Debugger.error(`parent is not equal with citationEl, can't show popover`);
