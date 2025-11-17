@@ -48,9 +48,7 @@ export function renderFigureCitation(
         continuousDelimiters,
         multiCitationDelimiterRender,
     } = plugin.settings;
-
-    // TODO: Add figure-specific citation format to settings
-    // For now, use a hardcoded format
+    
     const figureCitationFormat = plugin.settings.figCitationFormat; // e.g., (fig:3.1)
 
     const el = document.createElement('span');

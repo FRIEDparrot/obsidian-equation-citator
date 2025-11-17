@@ -220,7 +220,7 @@ export function renderFigureWrapper(
     }
 
     // Render title and description if available
-    if (fig.title || fig.desc) {
+    if (plugin.settings.enableRenderFigureInfoInPreview && (fig.title || fig.desc)) {
         const metadataDiv = figureContentDiv.createDiv();
         metadataDiv.addClass("em-figure-metadata");
 

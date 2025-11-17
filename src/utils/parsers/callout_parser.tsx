@@ -19,10 +19,11 @@ export interface CalloutMatch {
 
 /**
  * Parse callout citation from the first line of a callout block
- * Format: > [!prefix:tag] or > [!type] where type matches a configured prefix
+ * Format: > [!prefix:tag] or > [!prefix:tag|color] where type matches a configured prefix
  * Examples:
  *   > [!table:1.1]
  *   > [!thm:2.3]
+ *   > [!table:1.1|yellow]
  *
  * @param line - The line to parse
  * @param prefixes - Array of configured citation prefixes
@@ -36,8 +37,10 @@ function parseCalloutCitation(
     const calloutMatch = line.match(/^\[!([^\]]+)\]/);
     if (!calloutMatch) return null;
 
-    const calloutContent = calloutMatch[1]; // e.g., "table:1.1" or "thm:2.3"
-
+    // Get only the first part before pipe (e.g., "table:1.1|yellow" -> "table:1.1")
+    // Parts after | are treated as metadata by Obsidian
+    const calloutContent = calloutMatch[1].split('|')[0].trim();
+    
     // Check each configured prefix
     for (const prefixConfig of prefixes) {
         const prefix = prefixConfig.prefix; // e.g., "table:", "thm:"

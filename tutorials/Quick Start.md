@@ -157,6 +157,7 @@ We can use $\ref{fig:1.3}$ to cite this **figure**
 > Some additional features like auto-number and auto-complete are not currently supported for figure and callout reference. 
 
 ### 2) Callout Citations 
+#### 1. grammar
 The plugin support citing callouts with customized types, **this give us flexibility to cite tables, theorems and any customized pieces**.  
 
 You can configure customized prefix in `Callout/Quote Citation Prefixes` settings, by default `table:` are enabled
@@ -171,6 +172,10 @@ So here we give an example  for how to cite a table :
 
 Cite the table using: `$\ref{table:2.1}$`, rendered as $\ref{table:2.1}$  
 
+**NOTE: We don't support render image in callout and cite it currently. So please not use images in callout.**
+
+#### 2. How to edit table in callout
+
 Since **edit table in callout would not be easy**, here I give a simple trick to you to edit table easier (also see [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7)):   
 1. When you want to edit table, use `Ctrl + shift` and drag the cursor vertically to duplicate cursor to the whole line and delete the quote mark `>`. (then you can edit the table as it is) 
 2. After editing, insert a callout (I use `ctrl+Q` for this) around the table (this adds `>`) to all lines) and then combine two pieces together 
@@ -178,6 +183,22 @@ Since **edit table in callout would not be easy**, here I give a simple trick to
 Also, callout citation should be strictly matched (including case match), e.g. `> [!NOTE:1]` should be cite with `$\ref:{NOTE:1}$` 
 
 All figure and callout citations support syntax and interactive features in [[#1. Basic Equation Citations]]. 
+
+#### 3. Custome Callout Colors
+
+We also support customize callout colors by adding [callout.css](https://gist.github.com/LucasOe/0bed268951b90e897002ee1e31479c9c) to `Settings > Apperance > CSS Snippets`, so you a beautiful callout like this (this take effect after adding this snippet):
+
+> [!table:1.1|red] Sales Data Q4 2024
+> 
+> This is a red callout table 
+>  
+> | Product | Revenue | Growth |
+> |---------|---------|--------|
+> | Widget A | 00K | +15% |
+> | Widget B | 150K | +22% |
+> | Widget C | 200K | +33% |
+
+Unfortunately, we don't support customize icon for callout yet. Since it use icon as `data-callout`. And we also use first field as citation label.
 
 ## 3. Equations Manage Panel (New in v1.3.0)
 

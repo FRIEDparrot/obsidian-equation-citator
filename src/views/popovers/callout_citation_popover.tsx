@@ -200,7 +200,7 @@ async function renderCalloutWrapper(
     const calloutContentDiv = calloutWrapper.createDiv();
     calloutContentDiv.addClass("em-callout-content");
 
-    // Render the callout content as markdown
+    // Create callout content container
     const contentContainer = calloutContentDiv.createDiv();
     contentContainer.addClass("em-callout-content-container");
 

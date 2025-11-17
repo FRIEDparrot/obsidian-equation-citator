@@ -22,19 +22,6 @@ export const CitationSettingsTab = {
             });
     },
 
-    enableRenderLocalFileName(containerEl: HTMLElement, plugin: EquationCitator) {
-        const enableLocalFileNameSetting = new Setting(containerEl);
-        enableLocalFileNameSetting.setName(SETTINGS_METADATA.enableRenderLocalFileName.name)
-            .setDesc(SETTINGS_METADATA.enableRenderLocalFileName.desc)
-            .addToggle((toggle) => {
-                toggle.setValue(plugin.settings.enableRenderLocalFileName);
-                toggle.onChange(async (value) => {
-                    plugin.settings.enableRenderLocalFileName = value;
-                    await plugin.saveSettings();
-                });
-            });
-    },
-
     citationPrefix(containerEl: HTMLElement, plugin: EquationCitator) {
         const citePrefixSetting = new Setting(containerEl);
         citePrefixSetting.setName(SETTINGS_METADATA.citationPrefix.name)
@@ -415,7 +402,6 @@ export const CitationSettingsTab = {
  */
 export function addCitationSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     CitationSettingsTab.enableCitationInSourceMode(containerEl, plugin);
-    CitationSettingsTab.enableRenderLocalFileName(containerEl, plugin);
     CitationSettingsTab.citationPrefix(containerEl, plugin);
     CitationSettingsTab.citationFormat(containerEl, plugin);
     CitationSettingsTab.figCitationPrefix(containerEl, plugin);
