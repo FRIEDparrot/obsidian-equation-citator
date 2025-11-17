@@ -79,8 +79,11 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
             return Promise.resolve(md);
         }
     );
-    await processor.execute();  // process current file content
-
+    const succeed = await processor.execute();  // process current file content
+    if (!succeed) {
+        new Notice("Some error occurred during auto numbering. Turn on debug mode for details.");
+        return;
+    }
     // remove "tagMapping.size > 0" -> update citations also if no tags are changed
     if (enableUpdateTags) {
         // Convert Map<string, string> to TagRenamePair[]

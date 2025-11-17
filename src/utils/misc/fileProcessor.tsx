@@ -12,19 +12,26 @@ export class MarkdownFileProcessor {
         private sourcePath: string,
         private callback: (content: string) => Promise<string>) { }
     
-    public async execute() {
+    public async execute() : Promise<boolean> {
         const file = this.plugin.app.vault.getAbstractFileByPath(this.sourcePath);
         if (!(file instanceof TFile)) {
             new Notice(`File ${this.sourcePath} not found.`);
-            return;
+            return true;
         }
         const content = await this.plugin.app.vault.read(file);  // read file content 
-        const processedContent = await this.callback(content);
-        if (processedContent) {
-            await this.plugin.app.vault.modify(file, processedContent);  // save processed content to file  
+        try {
+            const processedContent = await this.callback(content);
+            if (processedContent) {
+                await this.plugin.app.vault.modify(file, processedContent);  // save processed content to file  
+            }
+            else {
+                Debugger.log("No content processed.");
+            }
+            return true;
         }
-        else {
-            Debugger.log("No content processed.");
+        catch (error) {
+            Debugger.error("Error processing file:", error, ". Stop processing file");
+            return false;
         }
     }
 }

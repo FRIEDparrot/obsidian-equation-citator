@@ -1,4 +1,4 @@
-import { isCodeBlockToggle as isCbToggle, headingRegex, singleLineEqBlockPattern } from "@/utils/string_processing/regexp_utils";
+import { isCodeBlockToggle as isCbToggle, headingRegex, singleLineEqBlockPattern, equationBlockStartPattern, equationBlockEndPattern } from "@/utils/string_processing/regexp_utils";
 
 export const DISABLED_DELIMITER = `§¶∞&#&@∸∹≑≒≓≌≍≎≏⋤⋥≔≕≖≗≘≙≚≛≜≝≞≟≠≇≈≉≊≋⋦⋧⋨⋩⋪⋫⋬⋭⋮⋯⋰⋱`
 
@@ -391,9 +391,9 @@ export function parseMarkdownLine(
 
     // Check for multi-line equation block start/end
     const trimmedLine = cleanedLine.trim();
-    const isEquationBlockStart = /^\$\$(?!\$)/.test(trimmedLine);
-    const isEquationBlockEnd = /(?<!\\)\$\$(?!\$)$/.test(trimmedLine);
-
+    const isEquationBlockStart = equationBlockStartPattern.test(trimmedLine);
+    const isEquationBlockEnd = equationBlockEndPattern.test(trimmedLine);
+    
     // Check if line is an image (starts with !)
     const isImage = trimmedLine.startsWith('!');
 

@@ -44,6 +44,12 @@ this  is an $$ equation
 $$ block  # not write content before or after equation block in one line!
 ```
 
+**Q : Why we don't support this**? 
+
+A : Deliberately writing text after equation block can cause equation render problem in reading mode (also cause issue in our auto-number). In that case, we will stop auto-number and give you a warning. You can open reading mode to check where this problem is.
+
+![pitfall](tutorial_pitfall.png)
+
 If you still don't understand, goto [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74) for clarification.
 
 ### (3) Citing Clarity  
