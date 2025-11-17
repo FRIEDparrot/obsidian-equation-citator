@@ -1,5 +1,5 @@
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
-import { escapeRegExp, createEquationTagRegex, isCodeBlockToggle } from "@/utils/string_processing/regexp_utils";
+import { escapeRegExp, createEquationTagRegex, isCodeBlockToggle, equationBlockStartPatternWithWhiteSpace, equationBlockEndPatternWithWhiteSpace } from "@/utils/string_processing/regexp_utils";
 
 /// This file contains utility functions for working with equations tag 
 /// and also process equation blocks 
@@ -42,7 +42,7 @@ export function isValidEquationPart(part: string, validDelimiters: string[]): bo
  */
 export function parseEquationTag(eqn: string, enableTypstMode = false): EquationParseResult {
     // Remove $$ if present 
-    const contentWithTag = eqn.replace(/^\s*\$\$\s*/, "").replace(/\s*\$\$\s*$/, "").trim();
+    const contentWithTag = eqn.replace(equationBlockStartPatternWithWhiteSpace, "").replace(equationBlockEndPatternWithWhiteSpace, "").trim();
     const pattern = createEquationTagRegex(false, null, enableTypstMode); 
     const match = contentWithTag.match(pattern);   // only match first tag 
     // trim equations 

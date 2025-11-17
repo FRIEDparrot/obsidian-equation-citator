@@ -1,9 +1,9 @@
 import { parseHeadingsInMarkdown, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
-import { createEquationTagString, singleLineEqBlockPattern } from "@/utils/string_processing/regexp_utils";
+import { createEquationTagString, equationBlockBracePattern, singleLineEqBlockPattern } from "@/utils/string_processing/regexp_utils";
 import assert from "assert";
-import { EditorPosition } from "obsidian";
+import { EditorPosition, Notice } from "obsidian";
 
 export enum AutoNumberingType {
     Relative = "Relative",
@@ -96,7 +96,7 @@ export function getAutoNumberInCursor(
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
     assert(cursorPos.line >= 0 && cursorPos.line < lines.length, "Invalid cursor position");
-    
+
     let inCodeBlock = false;
     let inEquationBlock = false;
     let newTag: string | null = null;
@@ -113,10 +113,10 @@ export function getAutoNumberInCursor(
         globalPrefix,
         noHeadingEquationPrefix
     };
-    
+
     // maintain two unique counters for non-heading and heading equations 
-    let currentHeadingIndex = 0; 
-    
+    let currentHeadingIndex = 0;
+
     for (let i = 0; i <= cursorPos.line; i++) {
         const line = lines[i];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
@@ -181,6 +181,14 @@ export function getAutoNumberInCursor(
         }
     }
     return null;
+}
+
+export function detectIllegalEquationBuffer(buffer: string[]): boolean {
+    const full = buffer.join("\n").replace(/\n/g, "").trim();
+    const indexes = [...full.matchAll(equationBlockBracePattern)].map(m => m.index);
+    if (indexes.length < 2) return false;
+    const first = indexes[0], last = indexes[indexes.length - 1];
+    return indexes.some(i => i > first && i < last);
 }
 
 /**
@@ -259,11 +267,21 @@ export function autoNumberEquations(
             newTagMapping.set(oldTag, newTag);
         }
     }
+
+    const handleIllegalEquationBuffer = (lineNum: number) => {
+        // detect illegal equation buffer first 
+        const illegal = detectIllegalEquationBuffer(equationBuffer);
+        if (illegal) {
+            new Notice(`Detected illegal nested $$ in equation block around line ${lineNum + 1}. Please fix the equation block first.`);
+            throw new Error(`Markdown parsing error: Illegal nested $$ in equation block around line ${lineNum + 1}. This could lead to serious auto number error, so stop parsing.`);
+        }
+    }
+
     let quotePrefix = "";
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
-        
+
         // Update code block state
         if (parseResult.isCodeBlockToggle) inCodeBlock = !inCodeBlock;
         if (inCodeBlock) {
@@ -289,10 +307,11 @@ export function autoNumberEquations(
         if (inEquationBlock) {
             equationBuffer.push(parseResult.cleanedLine.trim());
             if (parseResult.isEquationBlockEnd) {
+                handleIllegalEquationBuffer(i);
                 quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
                 inEquationBlock = false;
                 const { content, tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), enableTypstMode);
-                const { eq, tag: newTag } = getTaggedEquation(content); 
+                const { eq, tag: newTag } = getTaggedEquation(content);
                 addTagMapping(oldTag, newTag);
                 const fullEquationLines = `$$\n${eq}\n$$`.split("\n");
                 result.push(fullEquationLines.map((c) => quotePrefix + c).join("\n"));
@@ -303,6 +322,11 @@ export function autoNumberEquations(
         // Handle single-line equations
         if (parseResult.isSingleLineEquation && parseResult.singleLineEquationMatch) {
             const rawEquationContent = parseResult.singleLineEquationMatch[1].trim();
+            // detect illegal equation buffer 
+            if (equationBlockBracePattern.test(rawEquationContent)) {
+                new Notice(`Detected illegal nested $$ in single-line equation at line ${i + 1}. Please fix the equation first.`);
+                throw new Error(`Markdown parsing error: Illegal nested $$ in single-line equation at line ${i + 1}. This could lead to serious auto number error, so stop parsing.`);
+            }
 
             // now not clear equation Content 
             const { content, tag: oldTag } = parseEquationTag(rawEquationContent, enableTypstMode);
@@ -324,10 +348,11 @@ export function autoNumberEquations(
 
     // Handle unclosed equation blocks
     if (inEquationBlock && equationBuffer.length > 0) {
+        handleIllegalEquationBuffer(lines.length - 1);
         const equation_raw = equationBuffer.join("\n");
         const { content, tag: oldTag } = parseEquationTag(equation_raw, enableTypstMode);
         const { eq, tag: NewTag } = getTaggedEquation(content);
-        
+
         // add tag mapping 
         addTagMapping(oldTag, NewTag);
         const fullEquationLines = `$$\n${eq}\n$$`.split("\n");

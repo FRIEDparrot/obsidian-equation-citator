@@ -1,5 +1,5 @@
 import { escapeString, removeBraces, removeInlineCodeBlocks } from "@/utils/string_processing/string_utils";
-import { inlineMathPattern, isCodeBlockToggle, matchCitationsInLine, matchNestedCitation } from "@/utils/string_processing/regexp_utils";
+import { equationBlockBracePattern, inlineMathPattern, isCodeBlockToggle, matchCitationsInLine, matchNestedCitation } from "@/utils/string_processing/regexp_utils";
 import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/parsers/equation_parser";
 
 export interface CitationRef {
@@ -316,7 +316,7 @@ export function replaceCitationsInMarkdownWithSpan(
             return line; // In code block - skip processing
         }
         // Handles display math block state
-        const displayMathMatches = line.match(/\$\$/g);
+        const displayMathMatches = line.match(equationBlockBracePattern);
         if (displayMathMatches) {
             for (let i = 0; i < displayMathMatches.length; i++) {
                 inDisplayMath = !inDisplayMath;

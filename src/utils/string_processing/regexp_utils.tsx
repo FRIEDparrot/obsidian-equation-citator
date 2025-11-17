@@ -32,6 +32,14 @@ export const pureWeblinkFootnoteRegex = /^\[(\^[^\]]+)\]:\s*\[([^\]]+)\]\((\S+?)
 // 1 : num , 2: url 
 export const pureBarelinkFootnoteRegex =/^\[(\^[^\]]+)\]:\s*(https?:\/\/\S+)/; 
 
+// Equations block match part (Hint: we dont consider \\$ double escape case since its too malicious)
+export const singleLineEqBlockPattern = /^\s*\$\$(?!\$)([\s\S]*?)(?<!\$)\$\$\s*$/; 
+export const equationBlockStartPattern = /^\$\$(?!\$)/;
+export const equationBlockEndPattern = /(?<!\\)\$\$(?!\$)$/;
+export const equationBlockStartPatternWithWhiteSpace = /^\s*(?<!\\)\$\$(?!\$)\s*/;
+export const equationBlockEndPatternWithWhiteSpace = /\s*(?<!\\)\$\$(?!\$)\s*$/;
+export const equationBlockBracePattern = /(?<!\\)\$\$/g;
+
 /**
  * parse the citation with ref inside the formula 
  * usage :  matches = processedLine.matchAll(inlineRefRegex); (remove inline code blocks first) 
@@ -39,8 +47,6 @@ export const pureBarelinkFootnoteRegex =/^\[(\^[^\]]+)\]:\s*(https?:\/\/\S+)/;
  */
 // export const inlineRefRegex = /(?<!\$)\$(?!\$)(?! )([^$]*?\\ref\{([^}]*)\}[^$]*?)(?<! )\$(?!\$)/g; 
 export const inlineMathPattern = /(?<!\\)(?<!\$)\$(?!\$)(?! )((?:\\\$|[^$])*?)(?<! )\$(?!\$)/g;
-export const singleLineEqBlockPattern = /^\s*\$\$(?!\$)([\s\S]*?)(?<!\$)\$\$\s*$/; 
-
 
 export interface RefMatch {
     fullMatch: string; // full match of the regex 
@@ -190,7 +196,7 @@ export function createEquationTagRegex(
             ? new RegExp(`^#label\\(\\s*"${escapedTagName}"\\s*\\)$`)
             : new RegExp(`#label\\(\\s*"${escapedTagName}"\\s*\\)`)
         : fullMatch
-            ? new RegExp(`^\\\\tag\\{\\s*${tagName}\\s*\\}$`)
+            ? new RegExp(`^\\\\tag\\{\\s*${escapedTagName}\\s*\\}$`)
             : new RegExp(`\\\\tag\\{\\s*${escapedTagName}\\s*\\}`);
 }
 
