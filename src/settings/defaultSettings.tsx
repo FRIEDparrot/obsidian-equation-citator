@@ -11,6 +11,7 @@ import { EquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
 export interface QuoteCitationPrefix {
     prefix: string;   // e.g., "table:", "thm:", "def:"
     format: string;   // e.g., "Table. #", "Theorem #", "Definition #"
+    icon?: string;    // Optional icon name for data-callout attribute (e.g., "table", "lightbulb")
 }
 
 export interface SettingsMetadata {
@@ -107,7 +108,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     figCitationPrefix: "fig:", // prefix for cite figures
     figCitationFormat: "Fig. #", // citation format for figures
     quoteCitationPrefixes: [
-        { prefix: "table:", format: "Table. #" },
+        { prefix: "table:", format: "Table. #", icon: "" },
     ],
 
     citationColor: "#a288f9",

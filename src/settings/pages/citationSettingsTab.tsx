@@ -352,6 +352,20 @@ export const CitationSettingsTab = {
                         }
                     };
                 });
+
+                // Add icon input
+                setting.addText((text) => {
+                    text.inputEl.classList.add("ec-delimiter-input");
+                    text.setValue(item.icon || "");
+                    text.setPlaceholder("Icon (optional)");
+                    text.inputEl.onblur = async () => {
+                        const newValue = text.getValue().trim();
+                        if (newValue !== (item.icon || "")) {
+                            plugin.settings.quoteCitationPrefixes[index].icon = newValue || "";
+                            await plugin.saveSettings();
+                        }
+                    };
+                });
                 
                 // Add remove button after text inputs
                 setting.addButton((button) => {
@@ -382,7 +396,8 @@ export const CitationSettingsTab = {
                             }
                             plugin.settings.quoteCitationPrefixes.push({
                                 prefix: newPrefix,
-                                format: "Custom. #"
+                                format: "Custom. #",
+                                icon: ""
                             });
                             await plugin.saveSettings();
                             renderPrefixList();

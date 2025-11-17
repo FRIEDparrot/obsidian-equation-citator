@@ -2,7 +2,6 @@ import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile,
 import { RenderedEquation } from "@/services/equation_services";
 import { findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvironment, removePairedBraces } from "@/utils/string_processing/string_utils";
 import { renderEquationWrapper, TargetElComponent } from "@/views/popovers/citation_popover";
-import { EditorView } from "@codemirror/view";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
 import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/string_processing/regexp_utils";
 import EquationCitator from "@/main";
