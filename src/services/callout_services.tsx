@@ -14,7 +14,6 @@ export interface RenderedCallout {
     footnoteIndex: string | null; // index of the footnote (if any)
     lineStart: number;  // starting line number
     lineEnd: number;  // ending line number
-    icon?: string;  // Optional icon name for data-callout attribute
 }
 
 /**
@@ -61,10 +60,6 @@ export class CalloutServices {
 
             // Extract type from prefix (remove trailing colon)
             const type = prefix.endsWith(':') ? prefix.slice(0, -1) : prefix;
-            
-            // Get icon from prefix config if available
-            const prefixConfig = settings.quoteCitationPrefixes.find(p => p.prefix === prefix);
-            const icon = prefixConfig?.icon || undefined;
 
             return {
                 type,
@@ -75,8 +70,7 @@ export class CalloutServices {
                 filename: filename,
                 footnoteIndex: crossFile,
                 lineStart: 0,  // Will be filled by fillCalloutsContent
-                lineEnd: 0,     // Will be filled by fillCalloutsContent
-                icon: icon
+                lineEnd: 0     // Will be filled by fillCalloutsContent
             };
         });
 

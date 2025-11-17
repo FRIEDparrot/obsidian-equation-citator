@@ -203,11 +203,6 @@ async function renderCalloutWrapper(
     // Create callout content container
     const contentContainer = calloutContentDiv.createDiv();
     contentContainer.addClass("em-callout-content-container");
-    
-    // Add data-callout attribute if icon is specified
-    if (callout.icon && callout.icon.trim() !== '') {
-        contentContainer.setAttribute('data-callout', callout.icon.trim());
-    }
 
     if (callout.content) {
         try {

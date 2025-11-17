@@ -37,9 +37,10 @@ function parseCalloutCitation(
     const calloutMatch = line.match(/^\[!([^\]]+)\]/);
     if (!calloutMatch) return null;
 
-    // Split by pipe to ignore color modifiers (e.g., "table:1.1|yellow" -> "table:1.1")
-    const calloutContent = calloutMatch[1].split('|')[0].trim(); // e.g., "table:1.1" or "thm:2.3"
-
+    // Get only the first part before pipe (e.g., "table:1.1|yellow" -> "table:1.1")
+    // Parts after | are treated as metadata by Obsidian
+    const calloutContent = calloutMatch[1].split('|')[0].trim();
+    
     // Check each configured prefix
     for (const prefixConfig of prefixes) {
         const prefix = prefixConfig.prefix; // e.g., "table:", "thm:"
