@@ -210,9 +210,9 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 - [x] Remake Readme file to be more friendly and concise. Also add a Chinese translation of Readme. 
 
 
-### Version 1.3.1 (Coming) 
+### Version 1.3.1
 
-Version 1.3.1 - some features, Refactors, bug fixes and many enhancements.
+Version 1.3.1 - some new features, Refactors, bug fixes and many enhancements.
 
 ⭐ New Features :
 - [x] Add support for typst (by [azyarashi](https://github.com/azyarashi) in PR [#73](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/73))
