@@ -231,6 +231,8 @@ Version 1.3.1 - some features, Refactors, bug fixes and many enhancements.
 - [x] Add colorful callout support [#88](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/88)
 - [x] Add `render title and description in figure preview` option in settings tab.
 - [x] Remove `Continuous Citation Delimiter` from advanced settings.
+- [x] Remove precise width and height settings for equation widgets, use multiple sizes instead. 
+- [x] Remove settings for `display widget style`, and now the style of widgets will automatically change according to the theme applied.
 
 🏗️ Refactors For review :
 - [x] Change `fetch` to `requestUrl` for fetching equations
@@ -241,7 +243,7 @@ Version 1.3.1 - some features, Refactors, bug fixes and many enhancements.
 - [x] use `then` to replace `await` in eventListener to avoid ts error
 - [x] fixed some incorrect `debugger.error`
 - [x] fixed UI text case 
-- [x] rafactor style settings, fix style managers, remove style settings code from hoverpopover.  
+- [x] rafactor style settings, fix style managers, remove style settings code from hoverpopover.
 
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 
