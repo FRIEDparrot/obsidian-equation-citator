@@ -220,9 +220,9 @@ Use the command `Auto-number current file equations` or the toolbar button can a
 
 **Numbering Methods:**
 - **Relative**: Numbers based on relative  heading hierarchy (2.1.1, 2.1.2, etc.)
-- **Absolute**: Sequential numbering (1, 2, 3, etc.)
+- **Absolute**: Auto-number using the absolute heading level (1.1, 1.2 for #, etc.) 
 
-**Numbering depth (1-6)** : controls the max level to auto-number`(1.1)`  
+**Numbering depth (1-6)** : controls the max level to auto-number `(1.1), (1.1.1)`  
 
 ### 2) Citation Updates During Auto-numbering 
 When auto-numbering runs, all citations are automatically updated to match new numbers. This allows you insert an  equation any where  
