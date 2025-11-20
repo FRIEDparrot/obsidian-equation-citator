@@ -220,9 +220,9 @@ Use the command `Auto-number current file equations` or the toolbar button can a
 
 **Numbering Methods:**
 - **Relative**: Numbers based on relative  heading hierarchy (2.1.1, 2.1.2, etc.)
-- **Absolute**: Sequential numbering (1, 2, 3, etc.)
+- **Absolute**: Auto-number using the absolute heading level (1.1, 1.2 for #, etc.) 
 
-**Numbering depth (1-6)** : controls the max level to auto-number`(1.1)`  
+**Numbering depth (1-6)** : controls the max level to auto-number `(1.1), (1.1.1)`  
 
 ### 2) Citation Updates During Auto-numbering 
 When auto-numbering runs, all citations are automatically updated to match new numbers. This allows you insert an  equation any where  
@@ -231,12 +231,14 @@ When auto-numbering runs, all citations are automatically updated to match new n
 
 You need to run `Make markdown copy to export PDF` to export a markdown to ensure the styles are exported correctly.  
 
-Note images may not centered after export, so I recommend add a simple snippet  (https://www.youtube.com/watch?v=ngcocqUPiE8), or just download a theme with image centered like `Blue Topaz`
+Note images may not centered after export, so I recommend you to add a simple snippet  (https://www.youtube.com/watch?v=ngcocqUPiE8), or just download a theme with image centered like `Blue Topaz`
 
 ## 6. Beta Features 
 
-Citations will failed to render in callout part. Since its a built-in problem for obsidian, we won't fully supported write citations in callouts (Including not auto-update and not auto export). So I strongly recommend you not use this Feature. 
+Citations will failed to render in callout part. Since its a built-in problem for obsidian, we won't fully supported write citations in callouts (Including not auto-update and not auto export). So I strongly recommend you not to use this Feature. 
 
-So Congrats 🎉! You are all ready to use this plugin😄 !
+--------- 
+
+Congrats 🎉! You are all ready to use this plugin😄 !
 
 *Created for Equation Citator v1.3.0 - For updates and issues, visit the [GitHub repository](https://github.com/FRIEDparrot/obsidian-equation-citator)* 
