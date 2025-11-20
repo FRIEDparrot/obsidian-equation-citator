@@ -1,5 +1,5 @@
 {
-	"name": "equation_citator",
+	"name": "equation-citator",
 	"version": "1.3.1",
 	"description": "An Equation Citator Allows you to cite equations in your Obsidian notes.",
 	"main": "main.js",
