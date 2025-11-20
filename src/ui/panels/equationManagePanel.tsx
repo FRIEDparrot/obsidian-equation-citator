@@ -173,10 +173,10 @@ export class EquationArrangePanel extends ItemView {
         const initialFile = this.app.workspace.getActiveFile();
         this.currentActiveFile = initialFile?.path || "";
         
-        // remove refreshView Here to avoid unsuccessful refresh 
-
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
+        // remove refreshView Here to avoid unsuccessful refresh 
+        await this.refreshView();
     }
     onunload(): void {
         // Clean up debounce timers
