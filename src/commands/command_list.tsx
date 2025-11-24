@@ -6,7 +6,7 @@ import { insertTextWithCursorOffset } from '@/utils/workspace/insertTextOnCursor
 import { createCitationString, createEquationTagString } from '@/utils/string_processing/regexp_utils';
 import { Notice } from 'obsidian';
 import { invokeView } from '@/utils/workspace/invokePanelView';
-import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
+import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel/mainPanel';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({

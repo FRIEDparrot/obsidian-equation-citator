@@ -10,6 +10,7 @@ import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor
 import TagInputModal from "@/ui/modals/tagInputModal";
 import { checkFootnoteExists } from "@/utils/core/footnote_utils";
 import { scrollToEquationByTag } from "@/utils/workspace/equation_navigation";
+import { updateModeButtons } from "./toolbar";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -25,23 +26,25 @@ interface EquationGroup {
 
 export class EquationArrangePanel extends ItemView {
     // UI Element objects  
+    public viewModeButton!: HTMLElement;
+    public viewPanel!: HTMLElement;
+    public lockFileModeButton: HTMLElement;
+    public lockRefreshButton: HTMLElement;
+    public searchButton!: HTMLElement;
+    public searchInput!: HTMLInputElement;
+    public quitSearchButton!: HTMLElement;
+    public enableRenderHeadingOnlyButton: HTMLElement;
+    public extendToolBarButton: HTMLElement;
+    public subToolbarPanel!: HTMLElement;
+    public sortButton!: HTMLElement;
+    public collapseButton!: HTMLElement;
+    public expandButton!: HTMLElement;
+    public toggleTagShowButton: HTMLElement;
+    public filterEmptyHeadingsButton: HTMLElement;
+    
+    // State variables  
     private viewMode: ViewMode = "list";
     private sortMode: SortType = "seq";
-    private viewModeButton!: HTMLElement;
-    private viewPanel!: HTMLElement;
-    private lockFileModeButton: HTMLElement;
-    private searchButton!: HTMLElement;
-    private searchInput!: HTMLInputElement;
-    private quitSearchButton!: HTMLElement;
-    private enableRenderHeadingOnlyButton: HTMLElement;
-    private extendToolBarButton: HTMLElement;
-    private subToolbarPanel!: HTMLElement;
-    private sortButton!: HTMLElement;
-    private collapseButton!: HTMLElement;
-    private expandButton!: HTMLElement;
-    private toggleTagShowButton: HTMLElement;
-    private filterEmptyHeadingsButton: HTMLElement;
-
     private showEquationTags = false;
     private isSearchMode = false;
     private searchQuery = "";
@@ -63,6 +66,7 @@ export class EquationArrangePanel extends ItemView {
     private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
     private currentHeadings: Heading[] = [];
 
+    // Event handlers for drag-drop 
     private dropHandler: (evt: DragEvent) => void;
     private dragoverHandler: (evt: DragEvent) => void;
     private dragendHandler: () => void;
@@ -120,7 +124,7 @@ export class EquationArrangePanel extends ItemView {
         setTooltip(this.sortButton, `Sort mode : ${mode == "tag" ? "tag" : "line number"}`);
     }
 
-    updateLockMode(enabled: boolean): void {
+    updateFileLockMode(enabled: boolean): void {
         this.lockFileModeEnabled = enabled;
         this.lockFileModeButton.toggleClass("is-active", enabled);
         // when unlock, refresh view 
@@ -210,158 +214,7 @@ export class EquationArrangePanel extends ItemView {
         }
     }
 
-    private renderToolbar(panelWrapper: HTMLElement): void {
-        const toolbar = panelWrapper.createDiv("ec-manage-panel-toolbar");
-
-        // View mode button
-        this.viewModeButton = toolbar.createDiv("ec-view-mode-button clickable-icon");
-        this.viewModeButton.addEventListener('click', () => {
-            const newViewMode = this.viewMode === "outline" ? "list" : "outline";
-            this.updateViewMode(newViewMode);
-            this.updateModeButtons();
-            void this.refreshView();
-        });
-
-        // Lock file mode button
-        this.lockFileModeButton = toolbar.createEl("button", {
-            cls: "clickable-icon ec-mode-button",
-            attr: { "aria-label": "Lock mode" },
-        });
-        setIcon(this.lockFileModeButton, "lock");
-        setTooltip(this.lockFileModeButton, "Lock to current file");
-        this.lockFileModeButton.addEventListener("click", () => {
-            this.lockFileModeEnabled = !this.lockFileModeEnabled;
-            this.updateLockMode(this.lockFileModeEnabled);
-        });
-        this.updateLockMode(this.lockFileModeEnabled);
-
-        // Search button
-        this.searchButton = toolbar.createEl("button", {
-            cls: "clickable-icon ec-mode-button",
-            attr: { "aria-label": "Search equations" },
-        });
-        setIcon(this.searchButton, "search");
-        setTooltip(this.searchButton, "Search equations");
-        this.searchButton.addEventListener("click", () => {
-            void this.toggleSearchMode(true);
-        });
-
-        // Extend toolbar button (opens sub-panel)
-        this.extendToolBarButton = toolbar.createEl("button", {
-            cls: "clickable-icon ec-mode-button",
-            attr: { "aria-label": "More options" },
-        });
-        setIcon(this.extendToolBarButton, "chevron-down");
-        setTooltip(this.extendToolBarButton, "More options");
-        this.extendToolBarButton.addEventListener("click", () => {
-            const isExpanded = this.extendToolBarButton.hasClass("is-active");
-            this.extendToolBarButton.toggleClass("is-active", !isExpanded);
-            this.subToolbarPanel.toggleClass("is-expanded", !isExpanded);
-            setIcon(this.extendToolBarButton, !isExpanded ? "chevron-up" : "chevron-down");
-        });
-
-        // Quit search button (hidden by default)
-        this.quitSearchButton = toolbar.createEl("button", {
-            cls: "clickable-icon ec-mode-button ec-quit-search-button",
-            attr: { "aria-label": "Exit search" },
-        });
-        setIcon(this.quitSearchButton, "x");
-        setTooltip(this.quitSearchButton, "Exit search");
-        this.quitSearchButton.addEventListener("click", () => {
-            void this.toggleSearchMode(false);
-        });
-        this.quitSearchButton.hide();
-
-        // Search input (hidden by default)
-        this.searchInput = toolbar.createEl("input", {
-            cls: "ec-search-input",
-            attr: {
-                type: "text",
-                placeholder: "Search equations..."
-            },
-        });
-        this.searchInput.addEventListener("input", () => {
-            this.searchQuery = this.searchInput.value;
-            this.scheduleRefreshView();
-        });
-        this.searchInput.hide();
-
-        // Create sub-panel for additional options
-        this.subToolbarPanel = panelWrapper.createDiv("ec-toolbar-sub-panel");
-        const subPanelContent = this.subToolbarPanel.createDiv();
-        this.renderToolBarSubPanel(subPanelContent);
-    }
     
-    private renderToolBarSubPanel(subPanel: HTMLElement): void {
-        // Show headings only button (only visible in outline mode)
-        this.enableRenderHeadingOnlyButton = subPanel.createEl("button", {
-            cls: "clickable-icon ec-mode-button",
-            attr: { "aria-label": "Show headings only" },
-        });
-        setIcon(this.enableRenderHeadingOnlyButton, "list-tree");
-        setTooltip(this.enableRenderHeadingOnlyButton, "Show headings only");
-        this.enableRenderHeadingOnlyButton.addEventListener("click", () => {
-            this.enableRenderHeadingOnly = !this.enableRenderHeadingOnly;
-            this.updateHeadingOnlyButton();
-            void this.refreshView();
-        });
-        this.updateHeadingOnlyButton();
-        this.enableRenderHeadingOnlyButton.hide();
-
-        this.sortButton = subPanel.createEl("button", {
-            cls: "clickable-icon ec-mode-button",
-            attr: { "aria-label": "Sort equations" },
-        });
-
-        this.sortButton.addEventListener("click", () => {
-            const sortMode = this.sortMode === "tag" ? "seq" : "tag";
-            this.updateSortMode(sortMode);
-            void this.refreshView();
-        });
-
-        this.expandButton = subPanel.createEl("button", {
-            cls: "clickable-icon ec-mode-button",
-            attr: { "aria-label": "Expand all" },
-        });
-        setIcon(this.expandButton, "chevrons-up-down");
-        setTooltip(this.expandButton, "Expand all");
-        this.expandButton.addEventListener("click", () => {
-            void this.handleExpandAll();
-        });
-
-        this.collapseButton = subPanel.createEl("button", {
-            cls: "clickable-icon ec-mode-button",
-            attr: { "aria-label": "Collapse all" },
-        });
-        setIcon(this.collapseButton, "chevrons-down-up");
-        setTooltip(this.collapseButton, "Collapse all");
-        this.collapseButton.addEventListener("click", () => {
-            void this.handleCollapseAll();
-        });
-
-        // hide tag button
-        this.toggleTagShowButton = subPanel.createEl("button", {
-            cls: "clickable-icon ec-mode-button ec-tag-hide-button",
-            attr: { "aria-label": "Hide tag button" },
-        });  // placeholder for tag button
-        this.toggleTagShowButton.addEventListener("click", () => {
-            const mode = this.showEquationTags ? false : true;
-            this.toggleTagShow(mode);
-        });
-
-        // Filter empty headings button (only visible in outline mode)
-        this.filterEmptyHeadingsButton = subPanel.createEl("button", {
-            cls: "clickable-icon ec-mode-button",
-            attr: { "aria-label": "Filter empty headings" },
-        });
-        this.filterEmptyHeadingsButton.addEventListener("click", () => {
-            this.filterEmptyHeadings = !this.filterEmptyHeadings;
-            this.updateFilterButton();
-            void this.refreshView();
-        });
-        this.updateFilterButton(); // Set initial state
-        this.filterEmptyHeadingsButton.hide();
-    }
 
     private registerDropEquationHandler(): void {
         // Dragover handler - show visual cursor and allow drop
@@ -548,7 +401,7 @@ export class EquationArrangePanel extends ItemView {
             this.searchQuery = "";
             // Refresh view to show all equations
             await this.refreshView();
-            this.updateModeButtons();
+            updateModeButtons(this);
         }
     }
 
@@ -557,16 +410,6 @@ export class EquationArrangePanel extends ItemView {
         setIcon(this.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");
         setTooltip(this.toggleTagShowButton, mode ? "tags: show" : "tags: hidden");
         document.body.classList.toggle("ec-tag-show", mode);
-    }
-
-    private updateModeButtons(): void {
-        const listMode = this.viewMode === "list";
-        this.sortButton.toggle(listMode);
-
-        this.collapseButton.toggle(!listMode);
-        this.expandButton.toggle(!listMode);
-        this.filterEmptyHeadingsButton.toggle(!listMode);
-        this.enableRenderHeadingOnlyButton.toggle(!listMode);
     }
 
     private updateFilterButton(): void {
@@ -639,7 +482,7 @@ export class EquationArrangePanel extends ItemView {
     /**
      * refresh the equations render view
      */
-    private async refreshView(): Promise<void> {
+    public async refreshView(): Promise<void> {
         // Get the active file path (respecting lock mode)
         const activeFilePath = this.getCurrentActiveFile();
         
