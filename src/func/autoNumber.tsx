@@ -45,7 +45,8 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     const {
         deleteRepeatTagsInAutoNumber: deleteRepeatTags,
         deleteUnusedTagsInAutoNumber: deleteUnusedTags,
-        enableUpdateTagsInAutoNumber: enableUpdateTags
+        enableUpdateTagsInAutoNumber: enableUpdateTags,
+        enableAutoNumberTaggedEquationsOnly: enableTaggedOnly,
     } = plugin.settings;
     const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
     let citationUpdateResult: TagRenameResult | undefined;
@@ -73,6 +74,7 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
                 autoNumberPrefix,
                 autoNumberEquationsInQuotes,
                 enableTypstMode,
+                enableTaggedOnly
             );
             tagMapping = tm;
             // rename tags by tagmapping
@@ -119,7 +121,12 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
     const cursorPos = editor.getCursor();
     const content = editor.getValue();
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
-        autoNumberNoHeadingPrefix, autoNumberGlobalPrefix: autoNumberPrefix, enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes, enableTypstMode } = plugin.settings;
+        autoNumberNoHeadingPrefix, 
+        autoNumberGlobalPrefix: autoNumberPrefix, 
+        enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes, 
+        enableTypstMode,
+        enableAutoNumberTaggedEquationsOnly: enableTaggedOnly
+    } = plugin.settings;
 
     const autoNumberTag = getAutoNumberInCursor(
         content,
@@ -129,7 +136,9 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
         autoNumberDelimiter,
         autoNumberNoHeadingPrefix,
         autoNumberPrefix,
-        autoNumberEquationsInQuotes);
+        autoNumberEquationsInQuotes,
+        enableTaggedOnly
+    );
     if (!autoNumberTag) {
         new Notice("Cursor is not in a valid equation block");
         return;

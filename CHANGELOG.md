@@ -251,7 +251,7 @@ Version 1.3.1 - some new features, Refactors, bug fixes and many enhancements.
 Version 1.3.2 - some new features, enhancements and bug fixes.
 
 ⭐ New Features :
-- [ ] Add [feature #104](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/104), add a button to forbid equation panel to be refreshed.
+- [x] Add [feature #104](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/104), add a button to forbid equation panel to be refreshed.
 - [ ] Add [feature #105](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/105). Add a settings in auto-numbering settings tab, only number equations already with tags.
 
 

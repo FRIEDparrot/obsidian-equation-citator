@@ -49,6 +49,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "enableAutoNumberGlobalPrefix",
                 "autoNumberGlobalPrefix",
                 "enableAutoNumberEquationsInQuotes",
+                "enableAutoNumberTaggedEquationsOnly",
                 "enableUpdateTagsInAutoNumber",
                 "deleteRepeatTagsInAutoNumber",
                 "deleteUnusedTagsInAutoNumber",
