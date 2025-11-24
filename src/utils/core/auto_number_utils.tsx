@@ -101,6 +101,7 @@ export function getAutoNumberInCursor(
     let inCodeBlock = false;
     let inEquationBlock = false;
     let newTag: string | null = null;
+    let equationBuffer: string[] = [];
     // Set Counters for equation numbering
     const levelCounters: number[] = new Array(maxDepth).fill(0);
 
@@ -142,20 +143,61 @@ export function getAutoNumberInCursor(
         }
 
         if (inEquationBlock) {
+            equationBuffer.push(parseResult.cleanedLine.trim());
+            
+            // Check if cursor is on this line
+            if (i === cursorPos.line) {
+                // Check if this equation has a tag already
+                let shouldNumber = true;
+                if (enableTaggedOnly) {
+                    const { tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), false);
+                    shouldNumber = !!oldTag;
+                }
+                
+                if (shouldNumber) {
+                    // Generate and return the tag for this equation
+                    return generateNextEquationTag(numberingState);
+                } else {
+                    // Cursor is in an untagged equation, but we're only numbering tagged ones
+                    return null;
+                }
+            }
+            
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
-            }
-            else if (i === cursorPos.line) {
-                return newTag;
+                // Check if this equation should be numbered
+                let shouldNumber = true;
+                if (enableTaggedOnly) {
+                    const { tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), false);
+                    shouldNumber = !!oldTag;
+                }
+                
+                if (shouldNumber) {
+                    newTag = generateNextEquationTag(numberingState);
+                } else {
+                    newTag = null;
+                }
+                equationBuffer = [];
             }
         }
         else if (parseResult.isSingleLineEquation) {
-            // get an equation tag to update counters   
-            newTag = generateNextEquationTag(numberingState);
+            // Check if this equation should be numbered
+            let shouldNumber = true;
+            if (enableTaggedOnly) {
+                const { tag: oldTag } = parseEquationTag(line, false);
+                shouldNumber = !!oldTag;
+            }
+            
+            if (shouldNumber) {
+                // get an equation tag to update counters   
+                newTag = generateNextEquationTag(numberingState);
+            } else {
+                newTag = null;
+            }
         }
         else if (parseResult.isEquationBlockStart) {
             if (!inEquationBlock) {
-                newTag = generateNextEquationTag(numberingState);
+                equationBuffer = [parseResult.cleanedLine.trim()];
                 inEquationBlock = true;
             }
         }
