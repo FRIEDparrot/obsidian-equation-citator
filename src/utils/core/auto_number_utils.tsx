@@ -91,7 +91,8 @@ export function getAutoNumberInCursor(
     delimiter: string,
     noHeadingEquationPrefix: string,
     globalPrefix: string,
-    parseQuotes = false
+    parseQuotes = false,
+    enableTaggedOnly = false,
 ): string | null {
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
@@ -100,6 +101,7 @@ export function getAutoNumberInCursor(
     let inCodeBlock = false;
     let inEquationBlock = false;
     let newTag: string | null = null;
+    let equationBuffer: string[] = [];
     // Set Counters for equation numbering
     const levelCounters: number[] = new Array(maxDepth).fill(0);
 
@@ -141,20 +143,61 @@ export function getAutoNumberInCursor(
         }
 
         if (inEquationBlock) {
+            equationBuffer.push(parseResult.cleanedLine.trim());
+            
+            // Check if cursor is on this line
+            if (i === cursorPos.line) {
+                // Check if this equation has a tag already
+                let shouldNumber = true;
+                if (enableTaggedOnly) {
+                    const { tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), false);
+                    shouldNumber = !!oldTag;
+                }
+                
+                if (shouldNumber) {
+                    // Generate and return the tag for this equation
+                    return generateNextEquationTag(numberingState);
+                } else {
+                    // Cursor is in an untagged equation, but we're only numbering tagged ones
+                    return null;
+                }
+            }
+            
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
-            }
-            else if (i === cursorPos.line) {
-                return newTag;
+                // Check if this equation should be numbered
+                let shouldNumber = true;
+                if (enableTaggedOnly) {
+                    const { tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), false);
+                    shouldNumber = !!oldTag;
+                }
+                
+                if (shouldNumber) {
+                    newTag = generateNextEquationTag(numberingState);
+                } else {
+                    newTag = null;
+                }
+                equationBuffer = [];
             }
         }
         else if (parseResult.isSingleLineEquation) {
-            // get an equation tag to update counters   
-            newTag = generateNextEquationTag(numberingState);
+            // Check if this equation should be numbered
+            let shouldNumber = true;
+            if (enableTaggedOnly) {
+                const { tag: oldTag } = parseEquationTag(line, false);
+                shouldNumber = !!oldTag;
+            }
+            
+            if (shouldNumber) {
+                // get an equation tag to update counters   
+                newTag = generateNextEquationTag(numberingState);
+            } else {
+                newTag = null;
+            }
         }
         else if (parseResult.isEquationBlockStart) {
             if (!inEquationBlock) {
-                newTag = generateNextEquationTag(numberingState);
+                equationBuffer = [parseResult.cleanedLine.trim()];
                 inEquationBlock = true;
             }
         }
@@ -209,6 +252,8 @@ export function detectIllegalEquationBuffer(buffer: string[]): boolean {
  * @param noHeadingEquationPrefix - Prefix for equations not under any heading.
  * @param globalPrefix - A global prefix to prepend to all equation tags.
  * @param parseQuotes - Whether to parse and handle quoted lines (default: false).
+ * @param enableTypstMode - Whether to use Typst mode for auto numbering (default: false).
+ * @param enableTaggedOnly - Whether to only auto number equations that are already tagged (default: false).
  * @returns An object containing the processed Markdown (`md`) and a mapping of old to new equation tags (`tagMapping`).
  */
 export function autoNumberEquations(
@@ -220,6 +265,7 @@ export function autoNumberEquations(
     globalPrefix: string,
     parseQuotes = false,
     enableTypstMode = false,
+    enableTaggedOnly = false,
 ): AutoNumberProceedResult {
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
@@ -245,12 +291,46 @@ export function autoNumberEquations(
     let currentHeadingIndex = 0;
 
     const newTagMapping = new Map<string, string>();  /** store new tag mapping */
-    const result: string[] = [];
-
+    cost result: string[] = [];
+    
     const addTagMapping = (oldTag: string | undefined, newTag: string) => {
         // add tag mapping only when there is no old tags (only map first occurrence)
         if (oldTag && !newTagMapping.has(oldTag)) {
             newTagMapping.set(oldTag, newTag);
+        }
+    }
+    
+    const getFormattedEquation = (equationBody: string, tag?: string): string => {
+        let newContent = equationBody.trimEnd();
+        const tagString = tag ?? "";
+
+        if (newContent.endsWith("\n")) {
+            newContent += ` ${tagString}\n`;
+        } else {
+            newContent += ` ${tagString} `;
+        }
+        return `$$${newContent}$$`;
+    };
+    
+    const processEquation = (rawEquation: string): string => {
+        // remove old tag
+        const {content, tag: oldTag } = parseEquationTag(content, enableTypstMode);
+        if (oldTag) {
+            const tagRegex = createEquationTagRegex(false, oldTag, enableTypstMode);
+            content = content.replace(tagRegex, "");
+        }
+        const getNewTag = !enableTaggedOnly || oldTag;
+        
+        if (getNewTag) {
+            // generate new tag
+            const newTag = generateNextEquationTag(numberingState);
+            const tagString = createEquationTagString(newTag, enableTypstMode);
+            eq = tagged.eq;
+            newTag = tagged.tag;
+            addTagMapping(oldTag, newTag);
+            return getFormatedEquation(content, newTag);
+        } else {
+            return getFormatedEquation(content, oldTag);
         }
     }
 
@@ -261,29 +341,6 @@ export function autoNumberEquations(
             new Notice(`Detected illegal nested $$ in equation block around line ${lineNum + 1}. Please fix the equation block first.`);
             throw new Error(`Markdown parsing error: Illegal nested $$ in equation block around line ${lineNum + 1}. This could lead to serious auto number error, so stop parsing.`);
         }
-    }
-
-    const processEquation = (rawEquation: string): string => {
-        let content = rawEquation.slice(2, -2);
-
-        // remove old tag
-        const { tag: oldTag } = parseEquationTag(content, enableTypstMode);
-        if (oldTag) {
-            const tagRegex = createEquationTagRegex(false, oldTag, enableTypstMode);
-            content = content.replace(tagRegex, "");
-        }
-
-        // generate new tag
-        const newTag = generateNextEquationTag(numberingState);
-        const tagString = createEquationTagString(newTag, enableTypstMode);
-        addTagMapping(oldTag, newTag);
-
-        // construct new content
-        let newContent = content.trimEnd();
-        if (content.endsWith("\n")) newContent += ` ${tagString}\n`;
-        else newContent += ` ${tagString} `;
-
-        return `$$${newContent}$$`;
     }
 
     let quotePrefix = "";

@@ -80,6 +80,7 @@ This will cause heading dismatch in Auto-numbering, and `# title` grammar is pro
 The citation syntax are summarized as following table,  if you think these are very simple, you can jump to [[#3. Equations Manage Panel (New in v1.3.0)|Manage Panel Tutorial]] directly. 
 
 > [!summary] Citation Syntax Table of below
+>
 > | Feature       | Syntax                                  | Example                        |
 > | ------------- | --------------------------------------- | ------------------------------ |
 > | Equation Tag  | `\tag{label}`                           | `\tag{2.1}`                    |
@@ -172,19 +173,16 @@ So here we give an example  for how to cite a table :
 
 Cite the table using: `$\ref{table:2.1}$`, rendered as $\ref{table:2.1}$  
 
+Citation inside callouts must match case exactly. Example:
+
+- Callout tag: `> [!NOTE:1]`
+- Cite with: `$\ref:{NOTE:1}$` (case-sensitive)   
+
 **NOTE: We don't support render image in callout and cite it currently. So please not use images in callout.**
-
-#### 2. How to edit table in callout
-
-Since **edit table in callout would not be easy**, here I give a simple trick to you to edit table easier (also see [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7)):   
-1. When you want to edit table, use `Ctrl + shift` and drag the cursor vertically to duplicate cursor to the whole line and delete the quote mark `>`. (then you can edit the table as it is) 
-2. After editing, insert a callout (I use `ctrl+Q` for this) around the table (this adds `>`) to all lines) and then combine two pieces together 
-
-Also, callout citation should be strictly matched (including case match), e.g. `> [!NOTE:1]` should be cite with `$\ref:{NOTE:1}$` 
 
 All figure and callout citations support syntax and interactive features in [[#1. Basic Equation Citations]]. 
 
-#### 3. Custome Callout Colors
+#### 2. Custom Callout Colors
 
 We also support customize callout colors by adding [callout.css](https://gist.github.com/LucasOe/0bed268951b90e897002ee1e31479c9c) to `Settings > Apperance > CSS Snippets`, so you a beautiful callout like this (this take effect after adding this snippet):
 
@@ -237,7 +235,7 @@ Note images may not centered after export, so I recommend you to add a simple sn
 
 Citations will failed to render in callout part. Since its a built-in problem for obsidian, we won't fully supported write citations in callouts (Including not auto-update and not auto export). So I strongly recommend you not to use this Feature. 
 
---------- 
+---------
 
 Congrats 🎉! You are all ready to use this plugin😄 !
 

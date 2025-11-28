@@ -1,0 +1,316 @@
+import { EquationArrangePanel } from "./mainPanel";
+import { setIcon, setTooltip } from "obsidian";
+
+// ============================================================================
+// Private Toolbar Update Functions
+// ============================================================================
+
+/**
+ * Update the mode buttons on the sub-toolbar based on current view mode
+ * @param panel 
+ */
+function updateModeButtons(panel: EquationArrangePanel): void {
+    const listMode = panel.viewMode === "list";
+    panel.sortButton.toggle(listMode);
+
+    panel.collapseButton.toggle(!listMode);
+    panel.expandButton.toggle(!listMode);
+    panel.filterEmptyHeadingsButton.toggle(!listMode);
+    panel.enableRenderHeadingOnlyButton.toggle(!listMode);
+}
+
+function updatePanelViewMode(panel: EquationArrangePanel, mode: "outline" | "list"): void {
+    panel.viewMode = mode;
+    setIcon(panel.viewModeButton, mode === "outline" ? "list" : "rows-4");
+    setTooltip(panel.viewModeButton, `View Mode : ${mode === "outline" ? "outline" : "list"}`);
+}
+
+function updateSortMode(panel: EquationArrangePanel, mode: "tag" | "seq"): void {
+    panel.sortMode = mode;
+    setIcon(panel.sortButton, mode === "tag" ? "tag" : "list-ordered");
+    setTooltip(panel.sortButton, `Sort mode : ${mode == "tag" ? "tag" : "line number"}`);
+}
+
+function updateFileLockMode(panel: EquationArrangePanel, enabled: boolean): void {
+    panel.lockFileModeEnabled = enabled;
+    panel.lockFileModeButton.toggleClass("is-active", enabled);
+    setIcon(panel.lockFileModeButton, enabled ? "lock" : "unlock");
+    // when unlock, refresh view 
+    if (!enabled) {
+        void panel.refreshView();
+    }
+}
+
+function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): void { 
+    panel.lockRefreshEnabled = enabled;
+    panel.lockRefreshButton.toggleClass("is-active", enabled);
+    setIcon(panel.lockRefreshButton, enabled ? "refresh-cw-off" : "refresh-cw");
+    // when unlock, refresh view
+    if (!enabled) {
+        void panel.refreshView();
+    }
+}
+
+function updateFilterButton(panel: EquationArrangePanel): void {
+    const iconName = panel.filterEmptyHeadings ? "filter" : "filter-x";
+    const tooltipText = panel.filterEmptyHeadings ? "Headings: Only Show not empty" : "Headings: Show All";
+    setIcon(panel.filterEmptyHeadingsButton, iconName);
+    setTooltip(panel.filterEmptyHeadingsButton, tooltipText);
+}
+
+function updateHeadingOnlyButton(panel: EquationArrangePanel): void {
+    panel.enableRenderHeadingOnlyButton.toggleClass("is-active", panel.enableRenderHeadingOnly);
+    const tooltipText = panel.enableRenderHeadingOnly ? "Show headings only: ON" : "Show headings only: OFF";
+    setTooltip(panel.enableRenderHeadingOnlyButton, tooltipText);
+}
+
+function toggleTagShow(panel: EquationArrangePanel, mode: boolean): void {
+    panel.showEquationTags = mode;
+    setIcon(panel.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");
+    setTooltip(panel.toggleTagShowButton, mode ? "tags: show" : "tags: hidden");
+    document.body.classList.toggle("ec-tag-show", mode);
+}
+
+async function toggleSearchMode(panel: EquationArrangePanel, enable: boolean): Promise<void> {
+    panel.isSearchMode = enable;
+
+    panel.searchInput.toggle(enable);
+    panel.quitSearchButton.toggle(enable);
+
+    // hide other buttons when search mode is enabled
+    panel.searchButton.toggle(!enable);
+    panel.viewModeButton.toggle(!enable);
+    panel.lockFileModeButton.toggle(!enable);
+    panel.lockRefreshButton.toggle(!enable);
+    panel.extendToolBarButton.toggle(!enable);
+    
+    // Hide sub-panel when in search mode
+    if (enable) {
+        panel.subToolbarPanel.removeClass("is-expanded");
+        panel.extendToolBarButton.removeClass("is-active");
+        setIcon(panel.extendToolBarButton, "chevron-down");
+    }
+    panel.subToolbarPanel.toggle(!enable);
+
+    if (enable) {
+        panel.searchInput.focus();
+    } else {
+        // Clear search input and query when exiting search mode
+        panel.searchInput.value = "";
+        panel.searchQuery = "";
+        // Refresh view to show all equations
+        await panel.refreshView();
+        updateModeButtons(panel);
+    }
+}
+
+async function handleCollapseAll(panel: EquationArrangePanel): Promise<void> {
+    const allHeadings = panel.viewPanel.querySelectorAll('.ec-heading-item');
+    allHeadings.forEach((heading) => {
+        const lineNum = parseInt(heading.getAttribute('data-line') || '0');
+        panel.collapsedHeadings.add(lineNum);
+    });
+    await panel.refreshView();
+}
+
+async function handleExpandAll(panel: EquationArrangePanel): Promise<void> {
+    panel.collapsedHeadings.clear();
+    await panel.refreshView();
+}
+
+// ============================================================================
+// Private Toolbar Rendering Functions
+// ============================================================================
+
+function renderToolBarSubPanel(panel: EquationArrangePanel, subPanel: HTMLElement): void {
+    // Show headings only button (only visible in outline mode)
+    panel.enableRenderHeadingOnlyButton = subPanel.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Show headings only" },
+    });
+    setIcon(panel.enableRenderHeadingOnlyButton, "list-tree");
+    setTooltip(panel.enableRenderHeadingOnlyButton, "Show headings only");
+    panel.enableRenderHeadingOnlyButton.addEventListener("click", () => {
+        panel.enableRenderHeadingOnly = !panel.enableRenderHeadingOnly;
+        updateHeadingOnlyButton(panel);
+        void panel.refreshView();
+    });
+    updateHeadingOnlyButton(panel);
+    panel.enableRenderHeadingOnlyButton.hide();
+
+    panel.sortButton = subPanel.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Sort equations" },
+    });
+
+    panel.sortButton.addEventListener("click", () => {
+        const sortMode = panel.sortMode === "tag" ? "seq" : "tag";
+        updateSortMode(panel, sortMode);
+        void panel.refreshView();
+    });
+
+    panel.expandButton = subPanel.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Expand all" },
+    });
+    setIcon(panel.expandButton, "chevrons-up-down");
+    setTooltip(panel.expandButton, "Expand all");
+    panel.expandButton.addEventListener("click", () => {
+        void handleExpandAll(panel);
+    });
+
+    panel.collapseButton = subPanel.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Collapse all" },
+    });
+    setIcon(panel.collapseButton, "chevrons-down-up");
+    setTooltip(panel.collapseButton, "Collapse all");
+    panel.collapseButton.addEventListener("click", () => {
+        void handleCollapseAll(panel);
+    });
+
+    // hide tag button
+    panel.toggleTagShowButton = subPanel.createEl("button", {
+        cls: "clickable-icon ec-mode-button ec-tag-hide-button",
+        attr: { "aria-label": "Hide tag button" },
+    });  // placeholder for tag button
+    panel.toggleTagShowButton.addEventListener("click", () => {
+        const mode = panel.showEquationTags ? false : true;
+        toggleTagShow(panel, mode);
+    });
+
+    // Filter empty headings button (only visible in outline mode)
+    panel.filterEmptyHeadingsButton = subPanel.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Filter empty headings" },
+    });
+    panel.filterEmptyHeadingsButton.addEventListener("click", () => {
+        panel.filterEmptyHeadings = !panel.filterEmptyHeadings;
+        updateFilterButton(panel);
+        void panel.refreshView();
+    });
+    updateFilterButton(panel); // Set initial state
+    panel.filterEmptyHeadingsButton.hide();
+}
+
+// ============================================================================
+// Public API - Only these functions are exposed to main panel part
+// ============================================================================
+
+/**
+ * Render the toolbar and sub-panel
+ * @param panel - The equation arrange panel instance
+ * @param panelWrapper - The wrapper element to attach the toolbar to
+ */
+export function renderToolbar(panel: EquationArrangePanel, panelWrapper: HTMLElement): void {
+    const toolbar = panelWrapper.createDiv("ec-manage-panel-toolbar");
+
+    // View mode button
+    panel.viewModeButton = toolbar.createDiv("ec-view-mode-button clickable-icon");
+    panel.viewModeButton.addEventListener('click', () => {
+        const newViewMode = panel.viewMode === "outline" ? "list" : "outline";
+        updatePanelViewMode(panel, newViewMode);
+        updateModeButtons(panel);
+        void panel.refreshView();
+    });
+
+    // Lock file mode button
+    panel.lockFileModeButton = toolbar.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+    });
+    setIcon(panel.lockFileModeButton, "lock");
+    setTooltip(panel.lockFileModeButton, "Lock to current file");
+    panel.lockFileModeButton.addEventListener("click", () => {
+        panel.lockFileModeEnabled = !panel.lockFileModeEnabled;
+        updateFileLockMode(panel, panel.lockFileModeEnabled);
+    });
+    updateFileLockMode(panel, panel.lockFileModeEnabled);
+
+    panel.lockRefreshButton = toolbar.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+    }); 
+    setIcon(panel.lockRefreshButton, "refresh-cw"); 
+    setTooltip(panel.lockRefreshButton, "Disable refresh");
+    panel.lockRefreshButton.addEventListener("click", () => {
+        panel.lockRefreshEnabled = !panel.lockRefreshEnabled;
+        updateRefreshLockMode(panel, panel.lockRefreshEnabled);
+    });
+
+    // Search button
+    panel.searchButton = toolbar.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Search equations" },
+    });
+    setIcon(panel.searchButton, "search");
+    setTooltip(panel.searchButton, "Search equations");
+    panel.searchButton.addEventListener("click", () => {
+        void toggleSearchMode(panel, true);
+    });
+
+    // Extend toolbar button (opens sub-panel)
+    panel.extendToolBarButton = toolbar.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "More options" },
+    });
+    setIcon(panel.extendToolBarButton, "chevron-down");
+    setTooltip(panel.extendToolBarButton, "More options");
+    panel.extendToolBarButton.addEventListener("click", () => {
+        const isExpanded = panel.extendToolBarButton.hasClass("is-active");
+        panel.extendToolBarButton.toggleClass("is-active", !isExpanded);
+        panel.subToolbarPanel.toggleClass("is-expanded", !isExpanded);
+        setIcon(panel.extendToolBarButton, !isExpanded ? "chevron-up" : "chevron-down");
+    });
+
+    // Quit search button (hidden by default)
+    panel.quitSearchButton = toolbar.createEl("button", {
+        cls: "clickable-icon ec-mode-button ec-quit-search-button",
+        attr: { "aria-label": "Exit search" },
+    });
+    setIcon(panel.quitSearchButton, "x");
+    setTooltip(panel.quitSearchButton, "Exit search");
+    panel.quitSearchButton.addEventListener("click", () => {
+        void toggleSearchMode(panel, false);
+    });
+    panel.quitSearchButton.hide();
+
+    // Search input (hidden by default)
+    panel.searchInput = toolbar.createEl("input", {
+        cls: "ec-search-input",
+        attr: {
+            type: "text",
+            placeholder: "Search equations..."
+        },
+    });
+    panel.searchInput.addEventListener("input", () => {
+        panel.searchQuery = panel.searchInput.value;
+        panel.scheduleRefreshView();
+    });
+    panel.searchInput.hide();
+
+    // Create sub-panel for additional options
+    panel.subToolbarPanel = panelWrapper.createDiv("ec-toolbar-sub-panel");
+    const subPanelContent = panel.subToolbarPanel.createDiv();
+    renderToolBarSubPanel(panel, subPanelContent);
+}
+
+/**
+ * Set the default state for the toolbar (view mode, sort mode, tag visibility, etc.)
+ * @param panel - The equation arrange panel instance
+ * @param defaultViewMode - The default view mode to set
+ */
+export function setToolbarDefaultState(
+    panel: EquationArrangePanel,
+    defaultViewMode: "outline" | "list"
+): void {
+    // Set default view mode
+    updatePanelViewMode(panel, defaultViewMode);
+    
+    // Set default sort mode
+    updateSortMode(panel, "seq");
+    
+    // Update mode buttons visibility
+    updateModeButtons(panel);
+    
+    // Set tag visibility
+    toggleTagShow(panel, true);
+}

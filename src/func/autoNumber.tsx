@@ -6,6 +6,7 @@ import { Notice } from "obsidian";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
+import { createEquationTagRegex } from "@/utils/string_processing/regexp_utils";
 
 /**
  * Restore cursor position with fallback strategies
@@ -45,7 +46,8 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
     const {
         deleteRepeatTagsInAutoNumber: deleteRepeatTags,
         deleteUnusedTagsInAutoNumber: deleteUnusedTags,
-        enableUpdateTagsInAutoNumber: enableUpdateTags
+        enableUpdateTagsInAutoNumber: enableUpdateTags,
+        enableAutoNumberTaggedEquationsOnly: enableTaggedOnly,
     } = plugin.settings;
     const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
     let citationUpdateResult: TagRenameResult | undefined;
@@ -73,6 +75,7 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
                 autoNumberPrefix,
                 autoNumberEquationsInQuotes,
                 enableTypstMode,
+                enableTaggedOnly
             );
             tagMapping = tm;
             // rename tags by tagmapping
@@ -119,7 +122,43 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
     const cursorPos = editor.getCursor();
     const content = editor.getValue();
     const { autoNumberType, autoNumberDepth, autoNumberDelimiter,
-        autoNumberNoHeadingPrefix, autoNumberGlobalPrefix: autoNumberPrefix, enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes, enableTypstMode } = plugin.settings;
+        autoNumberNoHeadingPrefix, 
+        autoNumberGlobalPrefix: autoNumberPrefix, 
+        enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes, 
+        enableTypstMode,
+        enableAutoNumberTaggedEquationsOnly: enableTaggedOnly
+    } = plugin.settings;
+
+    // Check if enableTaggedOnly is enabled and validate selection
+    if (enableTaggedOnly) {
+        const selections = editor.listSelections();
+        let hasValidTag = false;
+
+        if (selections && selections.length > 0) {
+            const selection = selections[0];
+            const start = selection.anchor;
+            const end = selection.head;
+            
+            // Check if there's a selection
+            if (start.line !== end.line || start.ch !== end.ch) {
+                const from = start.line < end.line || (start.line === end.line && start.ch < end.ch) ? start : end;
+                const to = start.line < end.line || (start.line === end.line && start.ch < end.ch) ? end : start;
+                const selectedText = editor.getRange(from, to).trim();
+                
+                // Check if the selected text matches tag format
+                const tagRegex = createEquationTagRegex(true, null, enableTypstMode);
+                
+                if (tagRegex.test(selectedText)) {
+                    hasValidTag = true;
+                }
+            }
+        }
+
+        if (!hasValidTag) {
+            new Notice("A tag must be selected when auto-numbering tagged equations only");
+            return;
+        }
+    }
 
     const autoNumberTag = getAutoNumberInCursor(
         content,
@@ -129,7 +168,9 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
         autoNumberDelimiter,
         autoNumberNoHeadingPrefix,
         autoNumberPrefix,
-        autoNumberEquationsInQuotes);
+        autoNumberEquationsInQuotes,
+        enableTaggedOnly
+    );
     if (!autoNumberTag) {
         new Notice("Cursor is not in a valid equation block");
         return;

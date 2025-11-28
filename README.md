@@ -85,8 +85,10 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 
 - 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
 
-> [!NOTE] 
-> **Now since the plugin haven't been published, you can commit to "master" branch**. And after release, I will create a new branch for collaborative development.
+> [!WARNING] 
+> 
+> For submitting a PR, please commit it to `dev-latest` branch, this is the latest development branch, this is for the convenience of us to test and debug, and I will always sync my dev branch to this branch to prevent potential merge conflicts.
+> 
 
 Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
 

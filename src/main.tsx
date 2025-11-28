@@ -30,7 +30,7 @@ import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
 import { registerRightClickHandler } from '@/handlers/rightButtonHandler';
 import { LineHashCache } from '@/cache/lineHashCache';
 import { isUpdateAvailable } from './api/updateChecking';
-import { EquationArrangePanel, EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
+import { EquationArrangePanel, EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel/mainPanel';
 import Debugger from './debug/debugger';
 import { dropCursorField } from '@/utils/workspace/drag_drop_event';
 

@@ -61,6 +61,7 @@ export interface EquationCitatorSettings {
     enableAutoNumberGlobalPrefix: boolean; // Setting for auto numbering prefix 
     autoNumberGlobalPrefix: string; // Global Auto numbering prefix for equations without any heading level  
     enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
+    enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
 
     // by default, auto-number rename the citation, I don't provide this as option 
     enableUpdateTagsInAutoNumber: boolean; // Update citation in auto numbering 
@@ -128,6 +129,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableAutoNumberGlobalPrefix: false,
     autoNumberGlobalPrefix: "", // Default to empty string for no prefix 
     enableAutoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes 
+    enableAutoNumberTaggedEquationsOnly: false, // Default to false, number all equations
     enableUpdateTagsInAutoNumber: true, // Default to true, update citation in auto numbering  
     deleteRepeatTagsInAutoNumber: true, // Default to true, delete repeat tags in auto numbering 
     deleteUnusedTagsInAutoNumber: false, // Default to true, delete unused tags in auto numbering 
@@ -141,6 +143,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberDepth",
         "autoNumberNoHeadingPrefix",
         "enableAutoNumberGlobalPrefix",
+        "enableAutoNumberTaggedEquationsOnly",
         "citationPopoverSize",
         "enableCenterTableInCallout",
     ],
@@ -349,6 +352,14 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberEquationsInQuotes(el, plugin);
+        }
+    },
+    enableAutoNumberTaggedEquationsOnly: {
+        name: "Auto Numbering Tagged Equations Only",
+        desc: "When auto-numbering, only update the equations that are already tagged",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.enableAutoNumberTaggedEquationsOnly(el, plugin);
         }
     },
     enableUpdateTagsInAutoNumber: {
