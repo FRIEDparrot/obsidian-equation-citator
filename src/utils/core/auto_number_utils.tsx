@@ -341,7 +341,8 @@ export function autoNumberEquations(
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
-
+        quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
+        
         // Update code block state
         if (parseResult.isCodeBlockToggle) inCodeBlock = !inCodeBlock;
         if (inCodeBlock) {
@@ -394,7 +395,6 @@ export function autoNumberEquations(
         // Handle start of multi-line equation blocks
         if (parseResult.isEquationBlockStart) {
             inEquationBlock = true;
-            quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
             equationBuffer.push(parseResult.cleanedLine.trim());
 
             continue;
