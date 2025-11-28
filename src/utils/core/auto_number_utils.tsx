@@ -1,7 +1,7 @@
 import { parseHeadingsInMarkdown, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
-import { createEquationTagString, equationBlockBracePattern, singleLineEqBlockPattern, createEquationTagRegex } from "@/utils/string_processing/regexp_utils";
+import { createEquationTagString, equationBlockBracePattern, singleLineEqBlockPattern } from "@/utils/string_processing/regexp_utils";
 import assert from "assert";
 import { EditorPosition, Notice } from "obsidian";
 
