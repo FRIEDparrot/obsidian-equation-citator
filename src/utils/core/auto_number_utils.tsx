@@ -291,45 +291,43 @@ export function autoNumberEquations(
     let currentHeadingIndex = 0;
 
     const newTagMapping = new Map<string, string>();  /** store new tag mapping */
-    const result: string[] = [];
-    const getFormatedEquation = (equationBody: string, tag: string | undefined): string => {
-        const tagAppendix = tag ? " " + createEquationTagString(tag, enableTypstMode) : "";
-        if (equationBody.endsWith("\n")) {
-            return equationBody.slice(0, -1) + tagAppendix + "\n";
-        } else {
-            return equationBody.trim() + tagAppendix;
-        }
-    }
-
-    const getTaggedEquation = (equationBody: string): { eq: string, tag: string } => {
-        const tag = generateNextEquationTag(numberingState);
-        return {
-            eq: getFormatedEquation(equationBody, tag),
-            tag: tag
-        }
-    }
-
+    cost result: string[] = [];
+    
     const addTagMapping = (oldTag: string | undefined, newTag: string) => {
         // add tag mapping only when there is no old tags (only map first occurrence)
         if (oldTag && !newTagMapping.has(oldTag)) {
             newTagMapping.set(oldTag, newTag);
         }
     }
+    
+    const getFormattedEquation = (equationBody: string, tag?: string): string => {
+        let newContent = equationBody.trimEnd();
+        const tagString = tag ?? "";
 
-    function processEquation(content: string, oldTag?: string) {
-        let eq: string;
-        let newTag: string | undefined;
+        if (newContent.endsWith("\n")) {
+            newContent += ` ${tagString}\n`;
+        } else {
+            newContent += ` ${tagString} `;
+        }
+        return `$$${newContent}$$`;
+    };
+    
+    const processEquation = (rawEquation: string): string => {
+        // remove old tag
+        const {content, tag: oldTag } = parseEquationTag(content, enableTypstMode);
         const getNewTag = !enableTaggedOnly || oldTag;
-
+		
         if (getNewTag) {
-            const tagged = getTaggedEquation(content);
+            // generate new tag
+            const newTag = generateNextEquationTag(numberingState);
+            const tagString = createEquationTagString(newTag, enableTypstMode);
             eq = tagged.eq;
             newTag = tagged.tag;
             addTagMapping(oldTag, newTag);
+            return getFormatedEquation(content, newTag);
         } else {
-            eq = getFormatedEquation(content, oldTag);
+            return getFormatedEquation(content, oldTag);
         }
-        return { eq, newTag };
     }
 
     const handleIllegalEquationBuffer = (lineNum: number) => {
@@ -372,11 +370,9 @@ export function autoNumberEquations(
             equationBuffer.push(parseResult.cleanedLine.trim());
             if (parseResult.isEquationBlockEnd) {
                 handleIllegalEquationBuffer(i);
-                quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
                 inEquationBlock = false;
-                const { content, tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), enableTypstMode);
-                const { eq } = processEquation(content, oldTag);
-                const fullEquationLines = `$$\n${eq}\n$$`.split("\n");
+                const finalEquation = processEquation(equationBuffer.join("\n"));
+                const fullEquationLines = finalEquation.split("\n");
                 result.push(fullEquationLines.map((c) => quotePrefix + c).join("\n"));
                 equationBuffer = [];
             }
@@ -384,24 +380,25 @@ export function autoNumberEquations(
         }
         // Handle single-line equations
         if (parseResult.isSingleLineEquation && parseResult.singleLineEquationMatch) {
-            const rawEquationContent = parseResult.singleLineEquationMatch[1].trim();
-            // detect illegal equation buffer 
-            if (equationBlockBracePattern.test(rawEquationContent)) {
+            const rawEquationContent = parseResult.singleLineEquationMatch[0];
+
+            // detect illegal equation buffer
+            if (equationBlockBracePattern.test(parseResult.singleLineEquationMatch[1])) {
                 new Notice(`Detected illegal nested $$ in single-line equation at line ${i + 1}. Please fix the equation first.`);
                 throw new Error(`Markdown parsing error: Illegal nested $$ in single-line equation at line ${i + 1}. This could lead to serious auto number error, so stop parsing.`);
             }
 
-            // now not clear equation Content 
-            const { content, tag: oldTag } = parseEquationTag(rawEquationContent, enableTypstMode);
-            const { eq } = processEquation(content, oldTag);
-            result.push(`${quotePrefix}$$ ${eq} $$`);
+            const finalEquation = processEquation(rawEquationContent);
+            result.push(`${quotePrefix}${finalEquation}`);
             continue;
         }
 
         // Handle start of multi-line equation blocks
         if (parseResult.isEquationBlockStart) {
             inEquationBlock = true;
-            equationBuffer.push(quotePrefix + parseResult.cleanedLine.trim());
+            quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
+            equationBuffer.push(parseResult.cleanedLine.trim());
+
             continue;
         }
         result.push(line);
@@ -410,10 +407,8 @@ export function autoNumberEquations(
     // Handle unclosed equation blocks
     if (inEquationBlock && equationBuffer.length > 0) {
         handleIllegalEquationBuffer(lines.length - 1);
-        const equation_raw = equationBuffer.join("\n");
-        const { content, tag: oldTag } = parseEquationTag(equation_raw, enableTypstMode);
-        const { eq } = processEquation(content, oldTag);
-        const fullEquationLines = `$$\n${eq}\n$$`.split("\n");
+        const finalEquation = processEquation(equationBuffer.join("\n"));
+        const fullEquationLines = finalEquation.split("\n");
         result.push(fullEquationLines.map((c) => quotePrefix + c).join("\n"));
         equationBuffer = [];
     }
