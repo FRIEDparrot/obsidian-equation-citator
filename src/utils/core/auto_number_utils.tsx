@@ -291,7 +291,7 @@ export function autoNumberEquations(
     let currentHeadingIndex = 0;
 
     const newTagMapping = new Map<string, string>();  /** store new tag mapping */
-    cost result: string[] = [];
+    const result: string[] = [];
     
     const addTagMapping = (oldTag: string | undefined, newTag: string) => {
         // add tag mapping only when there is no old tags (only map first occurrence)
@@ -314,19 +314,17 @@ export function autoNumberEquations(
     
     const processEquation = (rawEquation: string): string => {
         // remove old tag
-        const {content, tag: oldTag } = parseEquationTag(content, enableTypstMode);
+        const {content, tag: oldTag } = parseEquationTag(rawEquation, enableTypstMode);
         const getNewTag = !enableTaggedOnly || oldTag;
 		
         if (getNewTag) {
             // generate new tag
-            const newTag = generateNextEquationTag(numberingState);
-            const tagString = createEquationTagString(newTag, enableTypstMode);
-            eq = tagged.eq;
-            newTag = tagged.tag;
+            const newTagLabel = generateNextEquationTag(numberingState);
+            const newTag = createEquationTagString(newTagLabel, enableTypstMode);
             addTagMapping(oldTag, newTag);
-            return getFormatedEquation(content, newTag);
+            return getFormattedEquation(content, newTag);
         } else {
-            return getFormatedEquation(content, oldTag);
+            return getFormattedEquation(content, oldTag);
         }
     }
 
