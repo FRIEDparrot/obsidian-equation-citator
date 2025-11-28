@@ -1,7 +1,7 @@
 import { MarkdownView } from 'obsidian';
 import { autoNumberCurrentFileEquations } from '@/func/autoNumber';
 import EquationCitator from '@/main';
-import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel';
+import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel/mainPanel';
 import { invokeView } from '@/utils/workspace/invokePanelView';
 
 
