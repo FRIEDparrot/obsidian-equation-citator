@@ -315,12 +315,8 @@ export function autoNumberEquations(
     const processEquation = (rawEquation: string): string => {
         // remove old tag
         const {content, tag: oldTag } = parseEquationTag(content, enableTypstMode);
-        if (oldTag) {
-            const tagRegex = createEquationTagRegex(false, oldTag, enableTypstMode);
-            content = content.replace(tagRegex, "");
-        }
         const getNewTag = !enableTaggedOnly || oldTag;
-        
+		
         if (getNewTag) {
             // generate new tag
             const newTag = generateNextEquationTag(numberingState);
