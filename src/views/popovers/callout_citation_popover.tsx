@@ -18,7 +18,8 @@ import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 export class CalloutCitationPopover extends HoverPopover {
     private calloutsToRender: RenderedCallout[] = [];
     private targetEl: HTMLElement;
-
+    private targetComponent: TargetElComponent;
+    
     constructor(
         private plugin: EquationCitator,
         parent: HoverParent,
@@ -45,6 +46,7 @@ export class CalloutCitationPopover extends HoverPopover {
     }
 
     onunload(): void {
+        this.targetComponent?.unload();
         this.onClose();
     }
 
@@ -58,7 +60,7 @@ export class CalloutCitationPopover extends HoverPopover {
         }
 
         const container: HTMLElement = this.hoverEl.createDiv();
-        const targetComponent = new TargetElComponent(this.targetEl);
+        this.targetComponent = new TargetElComponent(this.targetEl);  // avoid memory leak  and unload
         container.addClass("em-citation-popover-container", "em-callout-citation-popover-container");
 
         // Create header
@@ -109,7 +111,7 @@ export class CalloutCitationPopover extends HoverPopover {
                 this.sourcePath,
                 callout,
                 calloutOptionContainer,
-                targetComponent,
+                this.targetComponent,
                 true
             );
         }

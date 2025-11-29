@@ -33,11 +33,16 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     inCodeBlockState = false; // whether the cursor is inside a code block or not 
     currentCursorLine: number; // only update codeblock state when cursor line change 
     lastCodeBlockStateUpdateTime = 0; // update codeblock state when last update time is more than 300ms
+    targetComponent: TargetElComponent;
 
     constructor(
         private plugin: EquationCitator
     ) {
         super(plugin.app);
+    }
+
+    onClose(): void {
+        this.targetComponent?.unload();
     }
 
     /**
@@ -242,11 +247,11 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (!sourcePath) return;
         el.addClass("em-equation-option-container");
         const targetEl = el.createDiv();
-        const targetComponent = new TargetElComponent(targetEl);
+        this.targetComponent = new TargetElComponent(targetEl);
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
 
-        void renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent);
+        void renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, this.targetComponent);
     }
 
     selectSuggestion(value: RenderedEquation, evt: MouseEvent | KeyboardEvent): void {
