@@ -304,7 +304,7 @@ export function autoNumberEquations(
         let newContent = equationBody.trimEnd();
         const tagString = tag ?? "";
 
-        if (newContent.endsWith("\n")) {
+        if (equationBody.endsWith("\n")) {
             newContent += ` ${tagString}\n`;
         } else {
             newContent += ` ${tagString} `;
@@ -314,7 +314,7 @@ export function autoNumberEquations(
     
     const processEquation = (rawEquation: string): string => {
         // remove old tag
-        const {content, tag: oldTag } = parseEquationTag(rawEquation, enableTypstMode);
+        const { content, tag: oldTag } = parseEquationTag(rawEquation, enableTypstMode, false);
         const getNewTag = !enableTaggedOnly || oldTag;
 		
         if (getNewTag) {

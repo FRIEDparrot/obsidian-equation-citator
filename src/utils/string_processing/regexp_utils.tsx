@@ -36,8 +36,8 @@ export const pureBarelinkFootnoteRegex =/^\[(\^[^\]]+)\]:\s*(https?:\/\/\S+)/;
 export const singleLineEqBlockPattern = /^\s*\$\$(?!\$)([\s\S]*?)(?<!\$)\$\$\s*$/; 
 export const equationBlockStartPattern = /^\$\$(?!\$)/;
 export const equationBlockEndPattern = /(?<!\\)\$\$(?!\$)$/;
-export const equationBlockStartPatternWithWhiteSpace = /^\s*(?<!\\)\$\$(?!\$)\s*/;
-export const equationBlockEndPatternWithWhiteSpace = /\s*(?<!\\)\$\$(?!\$)\s*$/;
+export const equationBlockStartPatternWithWhiteSpace = /^\s*(?<!\\)\$\$(?!\$)/;
+export const equationBlockEndPatternWithWhiteSpace = /(?<!\\)\$\$(?!\$)\s*$/;
 export const equationBlockBracePattern = /(?<!\\)\$\$/g;
 
 /**
