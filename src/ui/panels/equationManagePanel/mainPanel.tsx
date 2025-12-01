@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, setIcon, MarkdownRenderer, Notice, MarkdownView, TFile } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, Notice, MarkdownView, TFile, loadMathJax } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
@@ -885,25 +885,17 @@ export class EquationArrangePanel extends ItemView {
             tagDiv.createSpan({ text: equation.tag, cls: "ec-tag-text" });
         }
 
-        // Equation content
+        // Create equation content div
         const contentDiv = eqDiv.createDiv("ec-equation-content");
-
-        // Render the equation using MathJax or Obsidian's renderer
         const mathDiv = contentDiv.createDiv("ec-equation-math");
 
-        // Use Obsidian's markdown renderer to render the equation
-        const equationMd = `$$\n${equation.content}\n$$`;
-        const currentFile = this.app.workspace.getActiveFile();
-        await MarkdownRenderer.render(
-            this.plugin.app,
-            equationMd,
-            mathDiv,
-            currentFile?.path || "",
-            this
-        );
+        // Render the equation
+        if (!window.MathJax) await loadMathJax();
+        mathDiv.replaceChildren(window.MathJax!.tex2chtml(equation.content, { display: true }));
 
         // Add click handler to jump to equation in the editor
         // Ctrl/Cmd + double click always creates new panel on right
+        const currentFile = this.app.workspace.getActiveFile();
         eqDiv.addEventListener('dblclick', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
             if (ctrlKey && equation.tag && currentFile) {
@@ -971,4 +963,3 @@ export class EquationArrangePanel extends ItemView {
         }
     }
 }
-
