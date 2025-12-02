@@ -321,7 +321,7 @@ export function autoNumberEquations(
             // generate new tag
             const newTagLabel = generateNextEquationTag(numberingState);
             const newTag = createEquationTagString(newTagLabel, enableTypstMode);
-            addTagMapping(oldTag, newTag);
+            addTagMapping(oldTag, newTagLabel);
             return getFormattedEquation(content, newTag);
         } else {
             return getFormattedEquation(content, oldTag);
