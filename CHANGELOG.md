@@ -255,6 +255,10 @@ Version 1.3.2 - some new features, enhancements and bug fixes.
 - [x] Add [feature #105](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/105). Add a settings in auto-numbering settings tab, only number equations already with tags.
 - [ ] Add [feature #107](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/107) 
 
+🚀Enhancements :
+- [x] Use `MathJax` to render equations instead of `MarkdownRenderer` (in [PR #108](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/108)), improve performance greately.
+
+
 🐛 Bug Fixes :
 - [x] Fix [bug #112](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/112), equations now correctly auto-numbered when `auto number equations in quotes` is enabled.
 - [x] Fix [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74), retain better equation written format after auto-numbering. 
