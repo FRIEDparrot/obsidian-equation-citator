@@ -10,10 +10,11 @@ import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor
 import TagInputModal from "@/ui/modals/tagInputModal";
 import { checkFootnoteExists } from "@/utils/core/footnote_utils";
 import { scrollToEquationByTag } from "@/utils/workspace/equation_navigation";
-import { 
+import {
     renderToolbar,
     setToolbarDefaultState
 } from "./toolbar";
+import { isMarkdownFilePath } from "@/utils/misc/fileProcessor";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -44,7 +45,8 @@ export class EquationArrangePanel extends ItemView {
     public expandButton!: HTMLElement;
     public toggleTagShowButton: HTMLElement;
     public filterEmptyHeadingsButton: HTMLElement;
-    
+    public filterTagOnlyEquationButton: HTMLElement;
+
     // State variables  
     public viewMode: ViewMode = "list";
     public sortMode: SortType = "seq";
@@ -52,12 +54,13 @@ export class EquationArrangePanel extends ItemView {
     public isSearchMode = false;
     public searchQuery = "";
     public filterEmptyHeadings = false; // Default to outline view (show all headings)
+    public filterTagOnlyEquation = false;
     public collapsedHeadings: Set<number> = new Set();
     public lockFileModeEnabled = false;
     public lockRefreshEnabled = false;
     public enableRenderHeadingOnly = false; // in outline mode, only render headings without equations 
 
-    
+
     private lastDragTargetView: MarkdownView | null = null;
     private refreshDebounceTimer: number | null = null;
     private searchDebounceTimer: number | null = null;
@@ -118,12 +121,12 @@ export class EquationArrangePanel extends ItemView {
     getIcon(): string {
         return "square-pi";
     }
-    
+
     async onOpen(): Promise<void> {
         const { containerEl } = this;
         containerEl.empty();
         const panelWrapper = containerEl.createDiv("ec-manage-panel-wrapper");
-        
+
         // Render toolbar and sub-panel
         renderToolbar(this, panelWrapper);
 
@@ -132,8 +135,6 @@ export class EquationArrangePanel extends ItemView {
 
         // Set default toolbar state
         setToolbarDefaultState(this, this.plugin.settings.equationManagePanelDefaultViewType);
-
-        
 
         // Register event listeners for dynamic updates
         this.registerEvent(
@@ -160,7 +161,7 @@ export class EquationArrangePanel extends ItemView {
         // Initialize current active file
         const initialFile = this.app.workspace.getActiveFile();
         this.currentActiveFile = initialFile?.path || "";
-        
+
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
         // remove refreshView Here to avoid unsuccessful refresh 
@@ -403,14 +404,14 @@ export class EquationArrangePanel extends ItemView {
         }
         // Get the active file path (respecting lock mode)
         const activeFilePath = this.getCurrentActiveFile();
-        
+
         // Update currentActiveFile state if not in lock mode
         if (!this.lockFileModeEnabled && activeFilePath) {
             this.currentActiveFile = activeFilePath;
         }
 
         // Handle no active file case
-        if (!activeFilePath) {
+        if (!activeFilePath || !isMarkdownFilePath(activeFilePath)) {
             if (this.viewPanel) {
                 this.viewPanel.empty();
                 this.viewPanel.createDiv({ text: "No active file", cls: "ec-empty-message" });
@@ -432,16 +433,16 @@ export class EquationArrangePanel extends ItemView {
 
         // Fetch and filter equations for the current file
         const equations = await this.getEquationsToRender(activeFilePath);
-        
+
         // In outline mode, always render headings even if no equations
         if (this.viewMode === "outline") {
             // Parse headings from the current file (respects lock mode)
             const fileContent = await this.app.vault.cachedRead(currentFile);
             const headings = parseHeadingsInMarkdown(fileContent);
-            
+
             // If headings-only mode is enabled, render without equations
             const displayEquations = this.enableRenderHeadingOnly ? [] : (equations || []);
-            
+
             const equationsHash = hashEquations(displayEquations);
             const setsEqual = (
                 this.currentCollapseHeadings.size === this.collapsedHeadings.size &&
@@ -476,7 +477,7 @@ export class EquationArrangePanel extends ItemView {
             await this.renderOutlineView(displayEquations, headings);
             return;
         }
-        
+
         // List mode: Handle no equations case
         if (!equations || equations.length === 0) {
             if (this.viewPanel) {
@@ -489,7 +490,7 @@ export class EquationArrangePanel extends ItemView {
             this.currentEquationHash = hashEquations([]);
             return;
         }
-        
+
         const equationsHash = hashEquations(equations);
         const setsEqual = (
             this.currentCollapseHeadings.size === this.collapsedHeadings.size &&
@@ -520,19 +521,21 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private filterEquations(equations: EquationMatch[]): EquationMatch[] {
-        if (!this.searchQuery || this.searchQuery.trim().length === 0) return equations;
+        const tagFilter = (eq: EquationMatch) => !this.filterTagOnlyEquation || (eq.tag && eq.tag.trim().length > 0);
+
+        if (!this.searchQuery || this.searchQuery.trim().length === 0) {
+            return equations.filter(tagFilter);
+        }
 
         const query = this.searchQuery.toLowerCase();
         return equations.filter(eq => {
             // Search in content (without $$ delimiters)
             const searchContent = eq.content.toLowerCase();
             if (searchContent.includes(query)) return true;
-
             // Search in tag if exists
             if (eq.tag && eq.tag.toLowerCase().includes(query)) return true;
-
             return false;
-        });
+        }).filter(tagFilter);
     }
 
     private sortEquations(equations: EquationMatch[]): EquationMatch[] {
@@ -841,12 +844,15 @@ export class EquationArrangePanel extends ItemView {
                 e.stopPropagation(); // Prevent event bubbling
                 const isCurrentlyCollapsed = this.collapsedHeadings.has(headingKey);
 
+                // also refresh the previous state automatically
                 if (isCurrentlyCollapsed) {
                     this.collapsedHeadings.delete(headingKey);
+                    this.currentCollapseHeadings.delete(headingKey);
                     setIcon(iconElement, "chevron-down");
                     contentContainer.show();
                 } else {
                     this.collapsedHeadings.add(headingKey);
+                    this.currentCollapseHeadings.add(headingKey);
                     setIcon(iconElement, "chevron-right");
                     contentContainer.hide();
                 }

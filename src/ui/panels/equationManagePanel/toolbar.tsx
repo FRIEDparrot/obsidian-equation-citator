@@ -41,6 +41,14 @@ function updateFileLockMode(panel: EquationArrangePanel, enabled: boolean): void
     }
 }
 
+function updateTagOnlyButton(panel: EquationArrangePanel): void {
+    const iconName = panel.filterTagOnlyEquation ? "filter" : "filter-x";
+    panel.filterTagOnlyEquationButton.toggleClass("is-active", panel.filterTagOnlyEquation);
+    const tooltipText = panel.filterTagOnlyEquation ? "Only show equations with tag" : "Show all equations";
+    setIcon(panel.filterTagOnlyEquationButton, iconName);
+    setTooltip(panel.filterTagOnlyEquationButton, tooltipText);
+}
+
 function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): void { 
     panel.lockRefreshEnabled = enabled;
     panel.lockRefreshButton.toggleClass("is-active", enabled);
@@ -51,9 +59,10 @@ function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): v
     }
 }
 
-function updateFilterButton(panel: EquationArrangePanel): void {
-    const iconName = panel.filterEmptyHeadings ? "filter" : "filter-x";
+function updateHeadingsFilterButton(panel: EquationArrangePanel): void {
+    const iconName = panel.filterEmptyHeadings ? "book-x" : "book-check";
     const tooltipText = panel.filterEmptyHeadings ? "Headings: Only Show not empty" : "Headings: Show All";
+    panel.filterEmptyHeadingsButton.toggleClass("is-active", panel.filterEmptyHeadings);
     setIcon(panel.filterEmptyHeadingsButton, iconName);
     setTooltip(panel.filterEmptyHeadingsButton, tooltipText);
 }
@@ -136,7 +145,6 @@ function renderToolBarSubPanel(panel: EquationArrangePanel, subPanel: HTMLElemen
         void panel.refreshView();
     });
     updateHeadingOnlyButton(panel);
-    panel.enableRenderHeadingOnlyButton.hide();
 
     panel.sortButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
@@ -186,11 +194,24 @@ function renderToolBarSubPanel(panel: EquationArrangePanel, subPanel: HTMLElemen
     });
     panel.filterEmptyHeadingsButton.addEventListener("click", () => {
         panel.filterEmptyHeadings = !panel.filterEmptyHeadings;
-        updateFilterButton(panel);
+        updateHeadingsFilterButton(panel);
         void panel.refreshView();
     });
-    updateFilterButton(panel); // Set initial state
-    panel.filterEmptyHeadingsButton.hide();
+    updateHeadingsFilterButton(panel); // Set initial state
+    
+    // Filter tag only equations button
+    panel.filterTagOnlyEquationButton = subPanel.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Show equations with tag only" },
+    });
+    setIcon(panel.filterTagOnlyEquationButton, "tag");
+    setTooltip(panel.filterTagOnlyEquationButton, "Only show equations with tag");
+    panel.filterTagOnlyEquationButton.addEventListener("click", () => {
+        panel.filterTagOnlyEquation = !panel.filterTagOnlyEquation;
+        updateTagOnlyButton(panel); 
+        void panel.refreshView();
+    });
+    updateTagOnlyButton(panel); // Set initial state
 }
 
 // ============================================================================

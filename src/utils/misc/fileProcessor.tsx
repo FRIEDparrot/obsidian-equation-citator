@@ -2,6 +2,22 @@ import { Notice, TFile } from "obsidian";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 
+const PROHIBIT_SUFFIXES = [
+    ".excalidraw.md",
+]
+
+export function isMarkdownFilePath(filePath: string) : boolean {
+    if (!filePath.endsWith(".md")) {
+        return false;
+    }
+    for (const suffix of PROHIBIT_SUFFIXES) {
+        if (filePath.endsWith(suffix)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
  * Fix :
  * Not use current file processor 

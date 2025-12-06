@@ -903,7 +903,7 @@ body.em-center-callout-tables .callout table {
 
 .ec-collapse-icon {
   flex-shrink: 0;
-  width: 16px;
+  width: 20px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -921,8 +921,8 @@ body.em-center-callout-tables .callout table {
 
 .ec-collapse-icon-placeholder {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 }
 
 .ec-heading-text {
