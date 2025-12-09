@@ -26,6 +26,7 @@ export class CitationPopover extends HoverPopover {
     tags: string[] = []; // list of tags to be cited
     private equationsToRender: RenderedEquation[] = [];
     private targetEl: HTMLElement;
+    private targetComponent: TargetElComponent;
     
     constructor(
         private plugin: EquationCitator,
@@ -39,6 +40,8 @@ export class CitationPopover extends HoverPopover {
         this.targetEl = targetEl;
         // only render valid equations 
         this.equationsToRender = equationsToRender.filter(eq => eq.tag && eq.md && eq.sourcePath);
+        // Create targetComponent once to avoid memory leaks
+        this.targetComponent = new TargetElComponent(this.targetEl);
     }
     public onOpen() { }
     public onClose() { }
@@ -48,6 +51,7 @@ export class CitationPopover extends HoverPopover {
         this.showEquations();
     }
     onunload(): void {
+        this.targetComponent.unload();
         this.onClose();
     }
 
@@ -61,7 +65,6 @@ export class CitationPopover extends HoverPopover {
             return;
         }
         const container: HTMLElement = this.hoverEl.createDiv();
-        const targetComponent = new TargetElComponent(this.targetEl);
         container.addClass("em-citation-popover-container");
 
         // Create header
@@ -92,7 +95,7 @@ export class CitationPopover extends HoverPopover {
         this.equationsToRender.forEach((eq, index) => {
             const equationOptionContainer = equationsContainer.createDiv();
             equationOptionContainer.addClass("em-equation-option-container");
-            void renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, targetComponent, true);
+            void renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, this.targetComponent, true);
         });
 
         // Add footer with equation count

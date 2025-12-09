@@ -10,6 +10,7 @@ module.exports = {
     ...tsJestTransformCfg,
   },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^obsidian$': '<rootDir>/tests/mocks/obsidian.ts',
   }
 };

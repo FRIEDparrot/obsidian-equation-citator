@@ -17,6 +17,7 @@ import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 export class FigureCitationPopover extends HoverPopover {
     private figuresToRender: RenderedFigure[] = [];
     private targetEl: HTMLElement;
+    private targetComponent: TargetElComponent;
 
     constructor(
         private plugin: EquationCitator,
@@ -32,6 +33,8 @@ export class FigureCitationPopover extends HoverPopover {
         this.figuresToRender = figuresToRender.filter(fig =>
             fig.tag && fig.sourcePath && (fig.imagePath || fig.imageLink)
         );
+        // Create targetComponent once to avoid memory leaks
+        this.targetComponent = new TargetElComponent(this.targetEl);
     }
 
     public onOpen() { }
@@ -42,7 +45,8 @@ export class FigureCitationPopover extends HoverPopover {
         this.showFigures();
     }
 
-    onunload() {
+    onunload(): void {
+        this.targetComponent.unload();
         this.onClose();
     }
 
@@ -56,7 +60,6 @@ export class FigureCitationPopover extends HoverPopover {
         }
 
         const container: HTMLElement = this.hoverEl.createDiv();
-        const targetComponent = new TargetElComponent(this.targetEl);
         container.addClass("em-citation-popover-container", "em-figure-citation-popover-container");
 
         // Create header
@@ -96,7 +99,7 @@ export class FigureCitationPopover extends HoverPopover {
                 this.sourcePath,
                 fig,
                 figureOptionContainer,
-                targetComponent,
+                this.targetComponent,
                 true
             );
         });

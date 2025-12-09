@@ -35,6 +35,8 @@ export class CalloutCitationPopover extends HoverPopover {
         this.calloutsToRender = calloutsToRender.filter(c =>
             c.tag && c.sourcePath && c.content
         );
+        // Create targetComponent once to avoid memory leaks
+        this.targetComponent = new TargetElComponent(this.targetEl);
     }
 
     public onOpen() { }
@@ -46,7 +48,7 @@ export class CalloutCitationPopover extends HoverPopover {
     }
 
     onunload(): void {
-        this.targetComponent?.unload();
+        this.targetComponent.unload();
         this.onClose();
     }
 
@@ -60,7 +62,6 @@ export class CalloutCitationPopover extends HoverPopover {
         }
 
         const container: HTMLElement = this.hoverEl.createDiv();
-        this.targetComponent = new TargetElComponent(this.targetEl);  // avoid memory leak  and unload
         container.addClass("em-citation-popover-container", "em-callout-citation-popover-container");
 
         // Create header

@@ -248,7 +248,7 @@ Version 1.3.1 - some new features, Refactors, bug fixes and many enhancements.
 
 ### Version 1.3.2
 
-Version 1.3.2 - some new features, enhancements and bug fixes.
+Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 
 ⭐ New Features :
 - [x] Add [feature #104](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/104), add a button to forbid equation panel to be refreshed.
@@ -259,12 +259,19 @@ Version 1.3.2 - some new features, enhancements and bug fixes.
 🚀Enhancements :
 - [x] Use `MathJax` to render equations instead of `MarkdownRenderer` (in [PR #108](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/108)), improve performance greately.
 
+🏗️ Refactors : 
+- [ ] Fix bugs mentioned in [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298)
+  - [x] Change `innerHTML` to `.empty()`
+  - [x] for every `TargetElCompoponent`, now it create  in constructor and reuse it.
+
 
 🐛 Bug Fixes :
 - [x] Fix [bug #112](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/112), equations now correctly auto-numbered when `auto number equations in quotes` is enabled.
 - [x] Fix [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74), retain better equation written format after auto-numbering. 
+- [x] Fix [issue #113](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/113), remove `.github` in gitignore file, and then add CI workflow.
 - [ ] Fix [bug #110](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/110), PDF won't be parsed for equation display. 
-- [ ] Fix bugs mentioned in [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298)
+- [ ] New introduced bugs of too small equation autocomplete suggest widget. 
+
 
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 
