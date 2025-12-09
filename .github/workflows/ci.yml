@@ -28,6 +28,13 @@ jobs:
       - name: Checkout plugin
         uses: actions/checkout@v4
 
+      - name: Checkout tests
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TEST_REPO }}
+          ref: ${{ env.TEST_REPO_REF }}
+          path: tests
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
