@@ -272,7 +272,7 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 - [x] Fix [bug #112](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/112), equations now correctly auto-numbered when `auto number equations in quotes` is enabled.
 - [x] Fix [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74), retain better equation written format after auto-numbering. 
 - [x] Fix [issue #113](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/113), remove `.github` in gitignore file, and then add CI workflow.
-- [ ] Fix [bug #110](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/110), PDF won't be parsed for equation display. 
+- [x] Fix [bug #110](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/110), PDF won't be parsed for equation display. 
 - [ ] New introduced bugs of too small equation autocomplete suggest widget. 
 
 
