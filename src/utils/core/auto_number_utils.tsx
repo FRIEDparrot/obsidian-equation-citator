@@ -81,6 +81,7 @@ function generateNextEquationTag(state: EquationNumberingState): string {
  * @param noHeadingEquationPrefix - The prefix to use for equations not under any heading.
  * @param globalPrefix - The global prefix to prepend to all equation tags.
  * @param parseQuotes - Optional. Whether to parse quoted lines as equations. Defaults to `false`.
+ * @param enableTaggedOnly - Optional. Use tagged only sequence (only count the equation with tag to increase counter).
  * @returns The equation tag string if the cursor is inside an equation, or `null` otherwise.
  */
 export function getAutoNumberInCursor(
@@ -119,6 +120,18 @@ export function getAutoNumberInCursor(
     // maintain two unique counters for non-heading and heading equations 
     let currentHeadingIndex = 0;
 
+    function generateNewTag(eqText: string): string | null {
+        let shouldNumber = true;
+        if (enableTaggedOnly) {
+            const { tag: oldTag } = parseEquationTag(eqText, false);
+            shouldNumber = !!oldTag;
+        }
+        if (shouldNumber) {
+            return generateNextEquationTag(numberingState);
+        }
+        return null;
+    }
+
     for (let i = 0; i <= cursorPos.line; i++) {
         const line = lines[i];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
@@ -144,56 +157,20 @@ export function getAutoNumberInCursor(
 
         if (inEquationBlock) {
             equationBuffer.push(parseResult.cleanedLine.trim());
-            
             // Check if cursor is on this line
             if (i === cursorPos.line) {
-                // Check if this equation has a tag already
-                let shouldNumber = true;
-                if (enableTaggedOnly) {
-                    const { tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), false);
-                    shouldNumber = !!oldTag;
-                }
-                
-                if (shouldNumber) {
-                    // Generate and return the tag for this equation
-                    return generateNextEquationTag(numberingState);
-                } else {
-                    // Cursor is in an untagged equation, but we're only numbering tagged ones
-                    return null;
-                }
+                return generateNextEquationTag(numberingState);
             }
-            
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
                 // Check if this equation should be numbered
-                let shouldNumber = true;
-                if (enableTaggedOnly) {
-                    const { tag: oldTag } = parseEquationTag(equationBuffer.join("\n"), false);
-                    shouldNumber = !!oldTag;
-                }
-                
-                if (shouldNumber) {
-                    newTag = generateNextEquationTag(numberingState);
-                } else {
-                    newTag = null;
-                }
+                newTag = generateNewTag(equationBuffer.join('\n'));
                 equationBuffer = [];
             }
         }
         else if (parseResult.isSingleLineEquation) {
             // Check if this equation should be numbered
-            let shouldNumber = true;
-            if (enableTaggedOnly) {
-                const { tag: oldTag } = parseEquationTag(line, false);
-                shouldNumber = !!oldTag;
-            }
-            
-            if (shouldNumber) {
-                // get an equation tag to update counters   
-                newTag = generateNextEquationTag(numberingState);
-            } else {
-                newTag = null;
-            }
+            newTag = generateNewTag(line);
         }
         else if (parseResult.isEquationBlockStart) {
             if (!inEquationBlock) {
@@ -292,14 +269,14 @@ export function autoNumberEquations(
 
     const newTagMapping = new Map<string, string>();  /** store new tag mapping */
     const result: string[] = [];
-    
+
     const addTagMapping = (oldTag: string | undefined, newTag: string) => {
         // add tag mapping only when there is no old tags (only map first occurrence)
         if (oldTag && !newTagMapping.has(oldTag)) {
             newTagMapping.set(oldTag, newTag);
         }
     }
-    
+
     const getFormattedEquation = (equationBody: string, tag?: string): string => {
         let newContent = equationBody.trimEnd();
         const tagString = tag ?? "";
@@ -311,12 +288,12 @@ export function autoNumberEquations(
         }
         return `$$${newContent}$$`;
     };
-    
+
     const processEquation = (rawEquation: string): string => {
         // remove old tag
         const { content, tag: oldTag } = parseEquationTag(rawEquation, enableTypstMode, false);
         const getNewTag = !enableTaggedOnly || oldTag;
-		
+
         if (getNewTag) {
             // generate new tag
             const newTagLabel = generateNextEquationTag(numberingState);
@@ -342,7 +319,7 @@ export function autoNumberEquations(
         const line = lines[i];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
         quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
-        
+
         // Update code block state
         if (parseResult.isCodeBlockToggle) inCodeBlock = !inCodeBlock;
         if (inCodeBlock) {

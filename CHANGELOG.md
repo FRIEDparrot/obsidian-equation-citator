@@ -253,7 +253,7 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 ⭐ New Features :
 - [x] Add [feature #104](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/104), add a button to forbid equation panel to be refreshed.
 - [x] Add [feature #105](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/105). Add a settings in auto-numbering settings tab, only number equations already with tags.
-  - [ ] Correct the behavior when insert equation with tags into specific file (only count the number before cursor).  
+  - [x] Correct the behavior when insert equation with tags into specific file (only count the number before cursor).  
 - [x] Add [feature #107](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/107), show only tagged equations in equations manage panel.  
 - [x] Fixed bugs in heading collapse hehavior in equations manage panel, now it behavior correctly after chevron clicked to change collapsed state.
 

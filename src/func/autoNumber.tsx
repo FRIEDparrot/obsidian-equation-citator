@@ -6,7 +6,7 @@ import { Notice } from "obsidian";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
-import { createEquationTagRegex } from "@/utils/string_processing/regexp_utils";
+
 
 /**
  * Restore cursor position with fallback strategies
@@ -128,38 +128,7 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
         enableTypstMode,
         enableAutoNumberTaggedEquationsOnly: enableTaggedOnly
     } = plugin.settings;
-
-    // Check if enableTaggedOnly is enabled and validate selection
-    if (enableTaggedOnly) {
-        const selections = editor.listSelections();
-        let hasValidTag = false;
-
-        if (selections && selections.length > 0) {
-            const selection = selections[0];
-            const start = selection.anchor;
-            const end = selection.head;
-            
-            // Check if there's a selection
-            if (start.line !== end.line || start.ch !== end.ch) {
-                const from = start.line < end.line || (start.line === end.line && start.ch < end.ch) ? start : end;
-                const to = start.line < end.line || (start.line === end.line && start.ch < end.ch) ? end : start;
-                const selectedText = editor.getRange(from, to).trim();
-                
-                // Check if the selected text matches tag format
-                const tagRegex = createEquationTagRegex(true, null, enableTypstMode);
-                
-                if (tagRegex.test(selectedText)) {
-                    hasValidTag = true;
-                }
-            }
-        }
-
-        if (!hasValidTag) {
-            new Notice("A tag must be selected when auto-numbering tagged equations only");
-            return;
-        }
-    }
-
+    
     const autoNumberTag = getAutoNumberInCursor(
         content,
         cursorPos,
