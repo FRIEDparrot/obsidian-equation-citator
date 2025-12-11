@@ -259,7 +259,12 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 
 🚀Enhancements :
 - [x] Use `MathJax` to render equations instead of `MarkdownRenderer` (in [PR #108](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/108)), improve performance greately.
-- [ ] Remove `Lock to current file` button, now `Disable-Refresh` do all the job.
+- [x] Remove `Lock to current file` button, now `Disable-Refresh` do all the job.
+  - New behavior : `Disable-Refresh` will diable the change of `file` and `equations`, but will still refresh if : 
+    1. View mode changed (from `outline` to `list`) 
+    2. other view selections (like `sort mode`, `filter options`, etc) 
+    3. search query changed  
+  - During the refresh, it would never re-read any file, which is friendly for performance on very large markdown files.
 
 
 🏗️ Refactors : 
@@ -273,7 +278,7 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 - [x] Fix [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74), retain better equation written format after auto-numbering. 
 - [x] Fix [issue #113](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/113), remove `.github` in gitignore file, and then add CI workflow.
 - [x] Fix [bug #110](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/110), PDF won't be parsed for equation display. 
-- [ ] New introduced bugs of too small equation autocomplete suggest widget. 
+- [ ] New introduced bugs of too small equation autocomplete suggest widget, and the equation widget size. 
 
 
 ### 🚢 Comming Soon : 

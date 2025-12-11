@@ -32,7 +32,6 @@ export class EquationArrangePanel extends ItemView {
     // UI Element objects  
     public viewModeButton!: HTMLElement;
     public viewPanel!: HTMLElement;
-    public lockFileModeButton: HTMLElement;
     public lockRefreshButton: HTMLElement;
     public searchButton!: HTMLElement;
     public searchInput!: HTMLInputElement;
@@ -56,10 +55,8 @@ export class EquationArrangePanel extends ItemView {
     public filterEmptyHeadings = false; // Default to outline view (show all headings)
     public filterTagOnlyEquation = false;
     public collapsedHeadings: Set<number> = new Set();
-    public lockFileModeEnabled = false;
     public lockRefreshEnabled = false;
     public enableRenderHeadingOnly = false; // in outline mode, only render headings without equations 
-
 
     private lastDragTargetView: MarkdownView | null = null;
     private refreshDebounceTimer: number | null = null;
@@ -75,6 +72,10 @@ export class EquationArrangePanel extends ItemView {
     private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
     private currentHeadings: Heading[] = [];
 
+    // Cached data for lock refresh mode (public for toolbar access)
+    public cachedEquations: EquationMatch[] = [];
+    public cachedFilePath: string = "";
+
     // Event handlers
     private updateHandler: () => void;
     private dropHandler: (evt: DragEvent) => void;
@@ -88,6 +89,8 @@ export class EquationArrangePanel extends ItemView {
 
         // Debounced handler for file modifications
         this.updateHandler = () => {
+            if (this.lockRefreshEnabled) return; // Skip automatic update when locked
+            
             const activeFile = this.app.workspace.getActiveFile();
             if (!activeFile) return;
 
@@ -144,10 +147,12 @@ export class EquationArrangePanel extends ItemView {
 
         // Poll to check if active file changed (using current setting value)
         this.fileCheckInterval = window.setInterval(() => {
+            if (this.lockRefreshEnabled) return; // Skip check when locked
+            
             const currentFile = this.app.workspace.getActiveFile();
             const currentPath = currentFile?.path || "";
             // Only refresh if file changed
-            if (!this.lockFileModeEnabled && currentPath !== this.currentActiveFile) {
+            if (currentPath !== this.currentActiveFile) {
                 this.currentActiveFile = currentPath;
 
                 void this.refreshView();
@@ -360,23 +365,39 @@ export class EquationArrangePanel extends ItemView {
      * @returns The file path if available, null otherwise
      */
     private getCurrentActiveFile(): string | null {
-        if (this.lockFileModeEnabled) {
-            // In lock mode, use cached file path
-            return this.currentActiveFile || null;
+        if (this.lockRefreshEnabled) {
+            // lock refresh returns cached file path
+            return this.cachedFilePath || null;
         } else {
             // In normal mode, get current active file
             const activeFile = this.app.workspace.getActiveFile();
-            return activeFile?.path || null;
+            const path = activeFile?.path;
+            if (!path || !isMarkdownFilePath(path)) return null;
+            return path;
         }
     }
 
     private async getEquationsToRender(filePath: string): Promise<EquationMatch[]> {
-        // Fetch equations for the given file path
-        const equations = await this.plugin.equationCache.getEquationsForFile(filePath);
-        if (!equations || equations.length === 0) {
+        let equations: EquationMatch[];
+        
+        if (this.lockRefreshEnabled) {
+            // Use cached equations when lock is enabled
+            equations = this.cachedEquations;
+        } else {
+            // Fetch equations for the given file path
+            const fetchedEquations = await this.plugin.equationCache.getEquationsForFile(filePath);
+            equations = fetchedEquations || [];
+            
+            // Update cache when not locked
+            this.cachedEquations = equations;
+            this.cachedFilePath = filePath;
+        }
+        
+        if (equations.length === 0) {
             return [];
         }
-        // Filter equations based on search query
+        
+        // Filter equations based on search query (always applied)
         const filteredEquations = this.filterEquations(equations);
         return filteredEquations;
     }
@@ -399,19 +420,16 @@ export class EquationArrangePanel extends ItemView {
      * refresh the equations render view
      */
     public async refreshView(): Promise<void> {
-        if (this.lockRefreshEnabled) {
-            return;  // force not refresh when in lock refresh mode 
-        }
         // Get the active file path (respecting lock mode)
         const activeFilePath = this.getCurrentActiveFile();
-
-        // Update currentActiveFile state if not in lock mode
-        if (!this.lockFileModeEnabled && activeFilePath) {
-            this.currentActiveFile = activeFilePath;
+        
+        // Update currentActiveFile only when not locked
+        if (!this.lockRefreshEnabled) {
+            this.currentActiveFile = activeFilePath || "";
         }
 
         // Handle no active file case
-        if (!activeFilePath || !isMarkdownFilePath(activeFilePath)) {
+        if (!activeFilePath) {
             if (this.viewPanel) {
                 this.viewPanel.empty();
                 this.viewPanel.createDiv({ text: "No active file", cls: "ec-empty-message" });
@@ -430,10 +448,10 @@ export class EquationArrangePanel extends ItemView {
             this.currentEquationHash = hashEquations([]);
             return;
         }
-
+        
         // Fetch and filter equations for the current file
         const equations = await this.getEquationsToRender(activeFilePath);
-
+        
         // In outline mode, always render headings even if no equations
         if (this.viewMode === "outline") {
             // Parse headings from the current file (respects lock mode)

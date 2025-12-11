@@ -31,16 +31,6 @@ function updateSortMode(panel: EquationArrangePanel, mode: "tag" | "seq"): void 
     setTooltip(panel.sortButton, `Sort mode : ${mode == "tag" ? "tag" : "line number"}`);
 }
 
-function updateFileLockMode(panel: EquationArrangePanel, enabled: boolean): void {
-    panel.lockFileModeEnabled = enabled;
-    panel.lockFileModeButton.toggleClass("is-active", enabled);
-    setIcon(panel.lockFileModeButton, enabled ? "lock" : "unlock");
-    // when unlock, refresh view 
-    if (!enabled) {
-        void panel.refreshView();
-    }
-}
-
 function updateTagOnlyButton(panel: EquationArrangePanel): void {
     const iconName = panel.filterTagOnlyEquation ? "filter" : "filter-x";
     panel.filterTagOnlyEquationButton.toggleClass("is-active", panel.filterTagOnlyEquation);
@@ -53,8 +43,11 @@ function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): v
     panel.lockRefreshEnabled = enabled;
     panel.lockRefreshButton.toggleClass("is-active", enabled);
     setIcon(panel.lockRefreshButton, enabled ? "refresh-cw-off" : "refresh-cw");
-    // when unlock, refresh view
+    
+    // when unlock, clear cached data and refresh view
     if (!enabled) {
+        panel.cachedEquations = [];
+        panel.cachedFilePath = "";
         void panel.refreshView();
     }
 }
@@ -89,7 +82,6 @@ async function toggleSearchMode(panel: EquationArrangePanel, enable: boolean): P
     // hide other buttons when search mode is enabled
     panel.searchButton.toggle(!enable);
     panel.viewModeButton.toggle(!enable);
-    panel.lockFileModeButton.toggle(!enable);
     panel.lockRefreshButton.toggle(!enable);
     panel.extendToolBarButton.toggle(!enable);
     
@@ -234,18 +226,6 @@ export function renderToolbar(panel: EquationArrangePanel, panelWrapper: HTMLEle
         updateModeButtons(panel);
         void panel.refreshView();
     });
-
-    // Lock file mode button
-    panel.lockFileModeButton = toolbar.createEl("button", {
-        cls: "clickable-icon ec-mode-button",
-    });
-    setIcon(panel.lockFileModeButton, "lock");
-    setTooltip(panel.lockFileModeButton, "Lock to current file");
-    panel.lockFileModeButton.addEventListener("click", () => {
-        panel.lockFileModeEnabled = !panel.lockFileModeEnabled;
-        updateFileLockMode(panel, panel.lockFileModeEnabled);
-    });
-    updateFileLockMode(panel, panel.lockFileModeEnabled);
 
     panel.lockRefreshButton = toolbar.createEl("button", {
         cls: "clickable-icon ec-mode-button",
