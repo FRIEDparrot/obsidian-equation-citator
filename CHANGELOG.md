@@ -261,17 +261,24 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 - [x] Use `MathJax` to render equations instead of `MarkdownRenderer` (in [PR #108](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/108)), improve performance greately.
 - [x] Remove `Lock to current file` button, now `Disable-Refresh` do all the job.
   - New behavior : `Disable-Refresh` will diable the change of `file` and `equations`, but will still refresh if : 
-    1. View mode changed (from `outline` to `list`) 
-    2. other view selections (like `sort mode`, `filter options`, etc) 
-    3. search query changed  
-  - During the refresh, it would never re-read any file, which is friendly for performance on very large markdown files.
+    1. View mode changed (from `outline` to `list`) or other view selections (like `sort mode`, `filter options`, etc) 
+    2. search query changed  
+  - This design is more user friendly, and also during refresh process, there would no file reading, which improves performance on large markdown files.
+- [ ] Add setting buttons for some default state of equation panel.
 
 
 🏗️ Refactors : 
 - [ ] Fix bugs mentioned in [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298)
+  - [ ] Change README title banner image. 
   - [x] Change `innerHTML` to `.empty()`
   - [x] for every `TargetElCompoponent`, now it create  in constructor and reuse it.
-
+  - [x] replace `app.vault.modify()` by `app.vault.process()` 
+  - [ ] Change UI text to sentence case 
+    - [x] Settings tab
+    - [ ] Equation panel and other pages
+  - [ ] Avoid render title on  settings tab 
+  - [ ] Remove check updates button
+  - [ ] Refactor section headings creation. 
 
 🐛 Bug Fixes :
 - [x] Fix [bug #112](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/112), equations now correctly auto-numbered when `auto number equations in quotes` is enabled.

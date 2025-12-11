@@ -40,7 +40,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "auto-numbering",
-            title: "Auto Numbering",
+            title: "Auto numbering",
             settingKeys: [
                 "autoNumberDelimiter",
                 "autoNumberDepth",
