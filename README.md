@@ -1,35 +1,5 @@
 <center><div>
-  <div class="banner-text">Equation Citator</div>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Jersey+25&family=Knewave&family=Londrina+Outline&family=Special+Elite&family=Vast+Shadow&display=swap" rel="stylesheet">
-  <style>
-    .banner-text {
-      font-family: "Londrina Outline", sans-serif;
-      max-width: 700px;
-      font-size: 52px;
-      font-weight: 10;
-      letter-spacing: 4px;
-      color: transparent;
-      -webkit-text-stroke: 3px transparent;
-      background: linear-gradient(
-        90deg,
-        #ff6b6b,
-        #ffa86b,
-        #f3ff6b,
-        #6bff88,
-        #6bffe8,
-        #6bb0ff,
-        #b16bff
-      );
-      background-clip: text;
-      -webkit-background-clip: text;
-      text-shadow:
-        0 0 6px rgba(255,255,255,0.25),
-        0 0 12px rgba(255,255,255,0.2),
-        0 0 20px rgba(255,255,255,0.15);
-    }
-  </style>
+  <img src="img/Heading_img.png" width="83%", alt="Stars">
 </div></center>
 
 <center><div width="100%"><span>
