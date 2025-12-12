@@ -269,8 +269,8 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 
 
 🏗️ Refactors : 
-- [ ] Fix bugs mentioned in [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298)
-  - [ ] Change README title banner image. 
+- [x] Fix bugs mentioned in [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298)
+  - [x] Change README title banner image. 
   - [x] Change `innerHTML` to `.empty()`
   - [x] for every `TargetElCompoponent`, now it create  in constructor and reuse it.
   - [x] replace `app.vault.modify()` by `app.vault.process()` 
