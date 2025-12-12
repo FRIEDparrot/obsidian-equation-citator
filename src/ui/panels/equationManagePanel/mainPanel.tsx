@@ -176,7 +176,7 @@ export class EquationArrangePanel extends ItemView {
             });
         });
     }
-    
+
     onunload(): void {
         // Clean up debounce timers
         if (this.refreshDebounceTimer !== null) {
@@ -875,8 +875,9 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private async jumpToHeading(heading: Heading): Promise<void> {
-        const currentFile = this.app.workspace.getActiveFile();
-        if (!currentFile) return;
+        const filePath = this.getCurrentActiveFile();
+        const currentFile = filePath ? this.app.vault.getAbstractFileByPath(filePath) : null;
+        if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
 
         // Open the file and jump to the heading line
         const leaf = this.app.workspace.getLeaf(false);
@@ -967,8 +968,9 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private async jumpToEquation(equation: EquationMatch): Promise<void> {
-        const currentFile = this.app.workspace.getActiveFile();
-        if (!currentFile) return;
+        const filePath = this.getCurrentActiveFile();
+        const currentFile = filePath ? this.app.vault.getAbstractFileByPath(filePath) : null;
+        if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
 
         // Open the file and jump to the line
         const leaf = this.app.workspace.getLeaf(false);

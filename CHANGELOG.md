@@ -289,7 +289,7 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 - [x] Fix [issue #113](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/113), remove `.github` in gitignore file, and then add CI workflow.
 - [x] Fix [bug #110](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/110), PDF won't be parsed for equation display. 
 - [x] Fix the bug that change widget size settings don't take effect.
-- [ ] Fix [bug #119](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/119), Cross file jump and citation now work correctly when equation panel locks refresh. 
+- [x] Fix [bug #119](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/119), Cross file jump and citation now work correctly when equation panel locks refresh. 
 - [ ] Fix [bug #118](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/118), when file is firstly opened, the panel should be rendered correctly.
 
 ### 🚢 Comming Soon : 
