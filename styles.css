@@ -34,22 +34,22 @@ This is SCSS file for compile the CSS file for equation_citator plugin.
 }
 
 .em-widget-size-sm {
-  --em-citation-popover-container-width: 425px;
+  --em-citation-popover-container-width: 450px;
   --em-citation-popover-container-height: 350px;
 }
 
 .em-widget-size-md {
-  --em-citation-popover-container-width: 500px;
+  --em-citation-popover-container-width: 550px;
   --em-citation-popover-container-height: 400px;
 }
 
 .em-widget-size-lg {
-  --em-citation-popover-container-width: 600px;
+  --em-citation-popover-container-width: 650px;
   --em-citation-popover-container-height: 500px;
 }
 
 .em-widget-size-xl {
-  --em-citation-popover-container-width: 750px;
+  --em-citation-popover-container-width: 800px;
   --em-citation-popover-container-height: 600px;
 }
 
@@ -1088,6 +1088,13 @@ body.em-center-callout-tables .callout table {
   font-size: 24px;
   margin-bottom: 10px;
   display: flex;
+}
+
+.ec-settings-section-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 8px;
 }
 
 .theme-dark .ec-concise-title {

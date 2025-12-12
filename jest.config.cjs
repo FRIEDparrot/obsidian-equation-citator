@@ -1,4 +1,4 @@
-import { createDefaultPreset } from "ts-jest";
+const { createDefaultPreset } = require("ts-jest");
 
 const tsJestTransformCfg = createDefaultPreset().transform;
 
@@ -10,6 +10,7 @@ module.exports = {
     ...tsJestTransformCfg,
   },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^obsidian$': '<rootDir>/tests/mocks/obsidian.ts',
   }
 };

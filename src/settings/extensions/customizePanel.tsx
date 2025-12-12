@@ -15,7 +15,7 @@ export function createCustomizePanel(
 
     // Header with description
     const header = customizeContainer.createDiv({ cls: "ec-customize-header" });
-    header.createEl("h3", { text: "Customize settings display", cls: "ec-customize-title" });
+    new Setting(header).setName("Customize settings display").setHeading();
     header.createEl("p", {
         text: "Choose which settings to show in basic or advanced sections. Settings can only appear in one section at a time.",
         cls: "ec-customize-desc"

@@ -61,6 +61,7 @@ export interface EquationCitatorSettings {
     enableAutoNumberGlobalPrefix: boolean; // Setting for auto numbering prefix 
     autoNumberGlobalPrefix: string; // Global Auto numbering prefix for equations without any heading level  
     enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
+    enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
 
     // by default, auto-number rename the citation, I don't provide this as option 
     enableUpdateTagsInAutoNumber: boolean; // Update citation in auto numbering 
@@ -82,11 +83,13 @@ export interface EquationCitatorSettings {
 
     // equation management panel Settings 
     equationManagePanelLazyUpdateTime: number,
-    equationManagePanelfileCheckInterval: number,
+    equationManagePanelFileCheckInterval: number,
     equationManagePanelDefaultViewType: "outline" | "list",
-
+    equationManagePanelFilterTagOnlyEquation: boolean;
+    equationManagePanelEnableRenderHeadingsOnly: boolean;
+    
     // settings UI
-    settingsDisplayMode: "categorical" | "concise"; // settings tab display mode
+    settingsDisplayMode: "categorical" | "concise" | "list"; // settings tab display mode
     basicSettingsKeys: string[]; // keys shown in Basic section for concise mode
     advancedSettingsKeys: string[]; // keys shown in Advanced section for concise mode
 }
@@ -128,10 +131,11 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableAutoNumberGlobalPrefix: false,
     autoNumberGlobalPrefix: "", // Default to empty string for no prefix 
     enableAutoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes 
+    enableAutoNumberTaggedEquationsOnly: false, // Default to false, number all equations
     enableUpdateTagsInAutoNumber: true, // Default to true, update citation in auto numbering  
     deleteRepeatTagsInAutoNumber: true, // Default to true, delete repeat tags in auto numbering 
     deleteUnusedTagsInAutoNumber: false, // Default to true, delete unused tags in auto numbering 
-
+    
     enableTypstMode: false,
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
     // settings UI defaults
@@ -141,6 +145,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberDepth",
         "autoNumberNoHeadingPrefix",
         "enableAutoNumberGlobalPrefix",
+        "enableAutoNumberTaggedEquationsOnly",
+        "equationManagePanelFilterTagOnlyEquation",
         "citationPopoverSize",
         "enableCenterTableInCallout",
     ],
@@ -162,34 +168,36 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "debugMode",
     ],
     equationManagePanelLazyUpdateTime: 5000,
-    equationManagePanelfileCheckInterval: 1000,
+    equationManagePanelFileCheckInterval: 1000,
     equationManagePanelDefaultViewType: "list",
+    equationManagePanelFilterTagOnlyEquation: false,
+    equationManagePanelEnableRenderHeadingsOnly: false,
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
     settingsDisplayMode: {
-        name: "Settings Display Mode",
+        name: "Settings display mode",
         desc: "Settings display mode",
         type: "select",
         renderCallback: (el, plugin) => { }  // toolbar settings no need that 
     },
 
     basicSettingsKeys: {
-        name: "Basic Settings Keys",
-        desc: "Keys shown in Basic section for concise mode",
+        name: "Basic settings keys",
+        desc: "Keys shown in basic section for concise mode",
         type: "array",
         renderCallback: (el, plugin) => { }  // to be implemented
     },
 
     advancedSettingsKeys: {
-        name: "Advanced Settings Keys",
-        desc: "Keys shown in Advanced section for concise mode",
+        name: "Advanced settings keys",
+        desc: "Keys shown in advanced section for concise mode",
         type: "array",
         renderCallback: (el, plugin) => { }  // to be implemented
     },
 
     enableCitationInSourceMode: {
-        name: "Enable in Source Mode",
+        name: "Enable in source mode",
         desc: "Enable citation in source mode",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -197,7 +205,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     citationPrefix: {
-        name: "Citation Prefix",
+        name: "Citation prefix",
         desc: "Prefix used for citations, e.g. 'eq:' means use `\\ref{eq:1.1}` for citation",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -205,7 +213,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     citationFormat: {
-        name: "Citation Display Format",
+        name: "Citation display format",
         desc: "Display format for citations, use '#' for equation number",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -213,7 +221,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figCitationPrefix: {
-        name: "Figure Citation Prefix",
+        name: "Figure citation prefix",
         desc: "Prefix used for figure citations, e.g. 'fig:' means use `\\ref{fig:1.1}` for citation",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -221,7 +229,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figCitationFormat: {
-        name: "Figure Citation Display Format",
+        name: "Figure citation display format",
         desc: "Display format for figure citations, use '#' for figure number",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -229,15 +237,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     quoteCitationPrefixes: {
-        name: "Callout/Quote Citation Prefixes",
-        desc: "Prefixes for citing callouts/quotes. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions. Format: > [!table:1.1] or > [!thm:2.3]",
+        name: "Callout citation prefixes",
+        desc: "Prefixes for citing callouts/quotes. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions.",
         type: "array",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.quoteCitationPrefixes(el, plugin);
         }
     },
     multiCitationDelimiter: {
-        name: "Multiple Citation Delimiter",
+        name: "Multiple citation delimiter",
         desc: "Delimiter used for multiple citations, e.g. comma for '\\ref{1.2, 1.3}'",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -245,7 +253,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     multiCitationDelimiterRender: {
-        name: "Multiple Citation Rendered Delimiter",
+        name: "Multiple citation rendered delimiter",
         desc: "Delimiter shown between citations when rendered (purely visual)",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -253,7 +261,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableContinuousCitation: {
-        name: "Enable Continuous Citations",
+        name: "Enable continuous citations",
         desc: "Enable continuous  citation format, also render citations in continuous format",
         type: "boolean",
         hasSubPanel: true, // it is a subpanel setting 
@@ -262,7 +270,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     continuousRangeSymbol: {
-        name: "Continuous Citation Range Symbol",
+        name: "Continuous citation range symbol",
         desc: "Range symbol for continuous citations, e.g. '~' for '1~2'",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -270,7 +278,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     continuousDelimiters: {
-        name: "Continuous Citation Delimiters",
+        name: "Continuous citation delimiters",
         desc: "Delimiter for recognition of continuous citations, split by space",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -278,7 +286,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableCrossFileCitation: {
-        name: "Enable Cross-File Citations",
+        name: "Enable cross-file citations",
         desc: "Enable using pure footnote style citations to cite equations across files",
         type: "boolean",
         hasSubPanel: true, // it is a subpanel setting 
@@ -287,7 +295,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     fileCiteDelimiter: {
-        name: "File Citation Delimiter",
+        name: "File citation delimiter",
         desc: "Delimiter for file citations, e.g. '^' for '1^{1.1}'",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -295,7 +303,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberDelimiter: {
-        name: "Auto Numbering Delimiter",
+        name: "Auto numbering delimiter",
         desc: "Delimiter used for numbering equations, e.g. '.' for '1.1', '-' for '1-1', etc.",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -303,7 +311,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberDepth: {
-        name: "Auto Numbering Depth",
+        name: "Auto numbering depth",
         desc: "Maximum depth for equation numbers (e.g., depth of 2 gives '1.1', depth of 3 gives '1.1.1')",
         type: "number",
         renderCallback: (el, plugin) => {
@@ -311,7 +319,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberType: {
-        name: "Auto Numbering Method",
+        name: "Auto numbering method",
         desc: "Use absolute or relative heading level for auto numbering",
         type: "select",
         renderCallback: (el, plugin) => {
@@ -319,7 +327,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberNoHeadingPrefix: {
-        name: "Auto Numbering No Heading Prefix",
+        name: "Auto numbering no heading prefix",
         desc: "Prefix for equations without any heading level (e.g., 'P1', 'P2', etc.)",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -327,7 +335,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberGlobalPrefix: {
-        name: "Enable Auto-number prefix",
+        name: "Enable auto-number prefix",
         desc: "Auto equation numbering prefix for purpose like chapter",
         type: "boolean",
         hasSubPanel: true,
@@ -336,23 +344,31 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberGlobalPrefix: {
-        name: "Auto Numbering Global Prefix",
-        desc: "Global Auto equation numbering prefix for purpose like chapter",
+        name: "Auto numbering global prefix",
+        desc: "Global auto equation numbering prefix for purpose like chapter",
         type: "string",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.autoNumberGlobalPrefix(el, plugin);
         }
     },
     enableAutoNumberEquationsInQuotes: {
-        name: "Auto Numbering Equations in Quotes",
+        name: "Auto numbering equations in quotes",
         desc: "Enable auto numbering for equations in quotes",
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberEquationsInQuotes(el, plugin);
         }
     },
+    enableAutoNumberTaggedEquationsOnly: {
+        name: "Auto numbering tagged equations only",
+        desc: "When auto-numbering, only update the equations that are already tagged",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.enableAutoNumberTaggedEquationsOnly(el, plugin);
+        }
+    },
     enableUpdateTagsInAutoNumber: {
-        name: "Auto Update Citations in Auto Numbering",
+        name: "Auto update citations in auto numbering",
         desc: "Enable auto update citations during auto numbering",
         type: "boolean",
         hasSubPanel: true,
@@ -361,7 +377,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     deleteRepeatTagsInAutoNumber: {
-        name: "Auto Delete Conflicting Tag Citations",
+        name: "Auto delete conflicting tag citations",
         desc: "Automatically delete conflicting tag citations during auto numbering.",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -369,7 +385,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     deleteUnusedTagsInAutoNumber: {
-        name: "Auto Delete Unused Tags Citations",
+        name: "Auto delete unused tags citations",
         desc: "Automatically delete unused tag citations during auto numbering.",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -377,7 +393,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     cacheUpdateTime: {
-        name: "Cache Update Time",
+        name: "Cache update time",
         desc: "Time refresh cache (in ms), for very large document, consider increase this",
         type: "number",
         renderCallback: (el, plugin) => {
@@ -385,7 +401,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     cacheCleanTime: {
-        name: "Cache Clean Time",
+        name: "Cache clean time",
         desc: "Time to automatically clean cache",
         type: "select",
         renderCallback: (el, plugin) => {
@@ -402,7 +418,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     enableCenterTableInCallout: {
-        name: "Center Tables in Callouts",
+        name: "Center tables in callouts",
         desc: "If enabled, tables inside callouts will be centered within the callout box.",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -411,7 +427,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     enableRenderFigureInfoInPreview: {
-        name: "Render Figure Info in Preview",
+        name: "Render figure info in preview",
         desc: "If disabled, figure title and description will not be rendered in preview.",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -420,7 +436,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     enableRenderLocalFileName: {
-        name: "Render Local File Name in Equation Preview",
+        name: "Render local file name in equation preview",
         desc: "Render local file name for citations",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -429,7 +445,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     citationColorInPdf: {
-        name: "Citation Color for PDF",
+        name: "Citation color for PDF",
         desc: "Citation color for PDF export",
         type: "color",
         renderCallback: (el, plugin) => {
@@ -437,7 +453,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableTypstMode: {
-        name: "Enable Typst Mode",
+        name: "Enable typst mode",
         desc: "Enable compatibility with Typst syntax",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -445,7 +461,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     debugMode: {
-        name: "Debug Mode",
+        name: "Debug mode",
         desc: "Enables developer debug mode for this plugin",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -453,15 +469,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableCiteWithCodeBlockInCallout: {
-        name: "(Beta) Cite with Inline Code Block in Callout",
+        name: "Cite with inline code block in callout",
         desc: "Enable citation by inline code block in callout",
         type: "boolean",
         renderCallback: (el, plugin) => {
             OtherSettingsTab.enableCiteWithCodeBlockInCallout(el, plugin);
         }
     },
-    equationManagePanelfileCheckInterval: {
-        name: "Equation Panel File Check Interval",
+    equationManagePanelFileCheckInterval: {
+        name: "Equation panel file check interval",
         desc: "Time interval to check for newly opened files and refresh the equation panel (in ms)",
         type: "number",
         renderCallback: (el, plugin) => {
@@ -469,7 +485,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     equationManagePanelLazyUpdateTime: {
-        name: "Equation Panel Lazy Update Time",
+        name: "Equation panel lazy update time",
         desc: "Time interval to update the equation panel while editing (in ms)",
         type: "number",
         renderCallback: (el, plugin) => {
@@ -477,11 +493,27 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     equationManagePanelDefaultViewType: {
-        name: "Equation Panel Default View Type",
+        name: "Equation panel default view type",
         desc: "Default view type for the equation panel (outline or list)",
         type: "select",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelDefaultViewType(el, plugin);
+        }
+    },
+    equationManagePanelFilterTagOnlyEquation : {
+        name: "Filter tag only equation",
+        desc: "Default value for filter tag only equations",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationManagePanelFilterTagOnlyEquation(el, plugin);
+        }
+    },
+    equationManagePanelEnableRenderHeadingsOnly : {
+        name: "Render headings only",
+        desc: "Default value for render headings only in outline view",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationManagePanelEnableRenderHeadingsOnly(el, plugin);
         }
     },
 }

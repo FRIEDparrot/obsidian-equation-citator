@@ -245,6 +245,52 @@ Version 1.3.1 - some new features, Refactors, bug fixes and many enhancements.
 - [x] fixed UI text case 
 - [x] rafactor style settings, fix style managers, remove style settings code from hoverpopover.
 
+
+### Version 1.3.2
+
+Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
+
+⭐ New Features :
+- [x] Add [feature #104](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/104), add a button to forbid equation panel to be refreshed.
+- [x] Add [feature #105](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/105). Add a settings in auto-numbering settings tab, only number equations already with tags.
+  - [x] Correct the behavior when insert equation with tags into specific file (only count the number before cursor).  
+- [x] Add [feature #107](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/107), show only tagged equations in equations manage panel.  
+- [x] Fixed bugs in heading collapse hehavior in equations manage panel, now it behavior correctly after chevron clicked to change collapsed state.
+- [x] Add List view in settings tab for search purpose.
+
+🚀Enhancements :
+- [x] Use `MathJax` to render equations instead of `MarkdownRenderer` (in [PR #108](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/108)), improve performance greately.
+- [x] Remove `Lock to current file` button, now `Disable-Refresh` do all the job.
+  - New behavior : `Disable-Refresh` will diable the change of `file` and `equations`, but will still refresh if : 
+    1. View mode changed (from `outline` to `list`) or other view selections (like `sort mode`, `filter options`, etc) 
+    2. search query changed  
+  - This design is more user friendly, and also during refresh process, there would no file reading, which improves performance on large markdown files.
+- [x] Add setting buttons for some default state of equation panel when opened.
+
+
+🏗️ Refactors : 
+- [x] Fix bugs mentioned in [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298)
+  - [x] Change README title banner image. 
+  - [x] Change `innerHTML` to `.empty()`
+  - [x] for every `TargetElCompoponent`, now it create  in constructor and reuse it.
+  - [x] replace `app.vault.modify()` by `app.vault.process()` 
+  - [x] Change UI text to sentence case 
+    - [x] Settings tab
+    - [x] Equation panel
+    - [x] other pages
+  - [x] Avoid render title on settings tab
+  - [x] Avoid "Settings" in settings tab 
+  - [x] Remove check updates button 
+  - [x] Refactor section headings creation to use `new Settings().setName().setTitle()`
+
+🐛 Bug Fixes :
+- [x] Fix [bug #112](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/112), equations now correctly auto-numbered when `auto number equations in quotes` is enabled.
+- [x] Fix [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74), retain better equation written format after auto-numbering. 
+- [x] Fix [issue #113](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/113), remove `.github` in gitignore file, and then add CI workflow.
+- [x] Fix [bug #110](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/110), PDF won't be parsed for equation display. 
+- [x] Fix the bug that change widget size settings don't take effect.
+
+
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 
 2. Check citations of figures and tables, all in one 😄

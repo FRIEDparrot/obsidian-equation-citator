@@ -36,11 +36,14 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "continuousDelimiters",
                 "enableCrossFileCitation",
                 "fileCiteDelimiter",
+                "figCitationPrefix",
+                "figCitationFormat",
+                "quoteCitationPrefixes",
             ]
         },
         {
             id: "auto-numbering",
-            title: "Auto Numbering",
+            title: "Auto numbering",
             settingKeys: [
                 "autoNumberDelimiter",
                 "autoNumberDepth",
@@ -49,6 +52,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "enableAutoNumberGlobalPrefix",
                 "autoNumberGlobalPrefix",
                 "enableAutoNumberEquationsInQuotes",
+                "enableAutoNumberTaggedEquationsOnly",
                 "enableUpdateTagsInAutoNumber",
                 "deleteRepeatTagsInAutoNumber",
                 "deleteUnusedTagsInAutoNumber",
@@ -56,11 +60,13 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "equation-panel",
-            title: "Equation Panel",
+            title: "Equation panel",
             settingKeys: [
                 "equationManagePanelDefaultViewType",
+                "equationManagePanelFilterTagOnlyEquation",
+                "equationManagePanelEnableRenderHeadingsOnly",
                 "equationManagePanelLazyUpdateTime",
-                "equationManagePanelfileCheckInterval",
+                "equationManagePanelFileCheckInterval",
             ]
         },
         {
@@ -75,7 +81,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "pdf-export",
-            title: "PDF Export",
+            title: "PDF export",
             settingKeys: [
                 "citationColorInPdf",
             ]
@@ -90,7 +96,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "other",
-            title: "Other / Beta",
+            title: "Others",
             settingKeys: [
                 "enableTypstMode",
                 "debugMode",

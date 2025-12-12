@@ -34,7 +34,7 @@ export const OtherSettingsTab = {
                     Debugger.debugMode = toggle.getValue();
                     plugin.settings.debugMode = Debugger.debugMode;
                     await plugin.saveSettings();
-                    new Notice("Equation Citator : Debug mode" + (value ? " enabled" : " disabled"));
+                    new Notice("Equation Citator: Debug mode" + (value ? " enabled" : " disabled"));
                 });
             });
     },
@@ -53,7 +53,7 @@ export const OtherSettingsTab = {
             .addButton((button) => {
                 button.setIcon("reset");
                 button.onClick(async () => {
-                    new Notice("Restoring settings ...");
+                    new Notice("Restoring settings...");
                     
                     // Add a small delay to show the animation
                     await new Promise(resolve => setTimeout(resolve, 200));
@@ -89,6 +89,6 @@ export function addOtherSettingsTab(containerEl: HTMLElement, plugin: EquationCi
     OtherSettingsTab.debugMode(containerEl, plugin);
     OtherSettingsTab.resetSettings(containerEl, plugin, settingsTab);
     // ==================  Beta features settings ==========   
-    containerEl.createEl("h2", { text: "Beta features", cls: "ec-settings-header" });
+    new Setting(containerEl).setName("Beta features").setHeading();
     OtherSettingsTab.enableCiteWithCodeBlockInCallout(containerEl, plugin);
 }

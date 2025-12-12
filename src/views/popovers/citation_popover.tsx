@@ -1,7 +1,6 @@
-import { Notice, WorkspaceLeaf } from "obsidian";
+import { loadMathJax, Notice, WorkspaceLeaf } from "obsidian";
 import EquationCitator from "@/main";
 import {
-    MarkdownRenderer,
     Component,
     HoverPopover,
     HoverParent,
@@ -18,6 +17,8 @@ export class TargetElComponent extends Component {
 import { RenderedEquation } from "@/services/equation_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigation";
+import { parseEquationTag } from "@/utils/parsers/equation_parser";
+import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 
 /**
  * Citaton Popover Class, render the equations in the popover 
@@ -26,6 +27,7 @@ export class CitationPopover extends HoverPopover {
     tags: string[] = []; // list of tags to be cited
     private equationsToRender: RenderedEquation[] = [];
     private targetEl: HTMLElement;
+    private targetComponent: TargetElComponent;
     
     constructor(
         private plugin: EquationCitator,
@@ -39,6 +41,8 @@ export class CitationPopover extends HoverPopover {
         this.targetEl = targetEl;
         // only render valid equations 
         this.equationsToRender = equationsToRender.filter(eq => eq.tag && eq.md && eq.sourcePath);
+        // Create targetComponent once to avoid memory leaks
+        this.targetComponent = new TargetElComponent(this.targetEl);
     }
     public onOpen() { }
     public onClose() { }
@@ -48,6 +52,7 @@ export class CitationPopover extends HoverPopover {
         this.showEquations();
     }
     onunload(): void {
+        this.targetComponent.unload();
         this.onClose();
     }
 
@@ -61,8 +66,7 @@ export class CitationPopover extends HoverPopover {
             return;
         }
         const container: HTMLElement = this.hoverEl.createDiv();
-        const targetComponent = new TargetElComponent(this.targetEl);
-        container.addClass("em-citation-popover-container");
+        container.addClass("em-citation-popover-container", WidgetSizeManager.getCurrentClassName());
 
         // Create header
         const header = container.createDiv();
@@ -92,7 +96,7 @@ export class CitationPopover extends HoverPopover {
         this.equationsToRender.forEach((eq, index) => {
             const equationOptionContainer = equationsContainer.createDiv();
             equationOptionContainer.addClass("em-equation-option-container");
-            void renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, targetComponent, true);
+            void renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, this.targetComponent, true);
         });
 
         // Add footer with equation count
@@ -145,14 +149,10 @@ export async function renderEquationWrapper(
     const equationDiv = equationWrapper.createDiv();
     equationDiv.addClass("em-equation-content");
 
-    // Render the markdown equation
-    await MarkdownRenderer.render(
-        plugin.app,
-        eq.md,
-        equationDiv,
-        sourcePath,
-        targetComponent
-    );
+    // Render the equation
+    if (!window.MathJax) await loadMathJax();
+    const eqTag = parseEquationTag(eq.md);
+    equationDiv.replaceChildren(window.MathJax!.tex2chtml(eqTag.content, { display: true }));
     // Add click effects to each equation
     addClickEffects(equationWrapper);
     if (addLinkJump) {

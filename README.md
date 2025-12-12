@@ -1,4 +1,6 @@
-<center><div width="100%"><img src="./img/Equation_Citator_header.png" width="65%"></div></center>
+<center><div>
+  <img src="img/Heading_img.png" style="max-height:100px; max-width:65%" alt="Stars">
+</div></center>
 
 <center><div width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.1-blue" alt="Release">
@@ -16,6 +18,8 @@
 ✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details. 
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
+
+> This plugin supports [typst-style autonumber](https://github.com/azyarashi/obsidian-typst-mate). You can use `Settings > Categorical > Other settings > enable typst mode` to enable it.
 
 ## 🛠️ Installation 
 1.  You can download it from community plugins After this plugin is published in obsidian vault (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`). 
@@ -73,20 +77,20 @@ If you encounter any bug, please **provide the following information** on the is
 
 I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. 
 
-**Contributors and maintainers are always welcome** :
-- You can contribute to this plugin by simply forking this repo, submitting a PR and describe what you have done 
-- Before submitting a PR, **please make sure following things are done**: 
-  - 1. **Please test your code carefully before submitting!**.
-  - 2. run `npm run check` before submitting PR to avoid pitfalls. 
-  - 3. run `npm run build` to check if it can be built successfully. 
-  - 4. download `tests` folder content from [this repo](https://github.com/FRIEDparrot/obsidian-equation-citator-test) and put them in src folder, then run `npm run test` to check if all tests passed.
-  - 5. add what you have done into `CHANGELOG.md`. (Use the next patch version number)
-
-
 - 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
 
-> [!NOTE] 
-> **Now since the plugin haven't been published, you can commit to "master" branch**. And after release, I will create a new branch for collaborative development.
+**Contributors and maintainers are always welcome** :
+- You can contribute to this plugin by simply forking this repo and submitting a PR:
+  - 1. **Please test your code carefully before submitting a PR!**. 
+  - 2. add what you have done into `CHANGELOG.md`. (Use the next patch version number if a neww minor version is not planned in `CHANGELOG.md`)
+  - 3. We have some CI check before merging PR, please make sure your code passes all the checks. (For SonarCloaud check, don't worry about its problems now)
+
+> [!WARNING] 
+> 
+> For submitting a PR, please commit it to `dev-latest` branch, this is the latest development branch, this is for the convenience of us to test and debug, and I will always sync my dev branch to this branch to prevent potential merge conflicts.
+
+
+Thanks to [@azyarashi](https://github.com/azyarashi) for collaboration and substantial improvements to the plugin. I also appreciate all the users who suggested useful new features and enhancements.
 
 Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
 

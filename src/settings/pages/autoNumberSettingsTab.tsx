@@ -142,6 +142,21 @@ export const AutoNumberSettingsTab = {
             });
     },
 
+    enableAutoNumberTaggedEquationsOnly(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.enableAutoNumberTaggedEquationsOnly;
+        const autoNumberingTaggedOnlySetting = new Setting(containerEl);
+        autoNumberingTaggedOnlySetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableAutoNumberTaggedEquationsOnly);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableAutoNumberTaggedEquationsOnly = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
+
     enableUpdateTagsInAutoNumber(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = true) {
         const { name, desc } = SETTINGS_METADATA.enableUpdateTagsInAutoNumber;
         const enableUpdateTagsInAutoNumberSetting = new Setting(containerEl);
@@ -204,5 +219,6 @@ export function addAutoNumberSettingsTab(containerEl: HTMLElement, plugin: Equat
     AutoNumberSettingsTab.autoNumberNoHeadingPrefix(containerEl, plugin);
     AutoNumberSettingsTab.enableAutoNumberGlobalPrefix(containerEl, plugin, true);
     AutoNumberSettingsTab.enableAutoNumberEquationsInQuotes(containerEl, plugin);
+    AutoNumberSettingsTab.enableAutoNumberTaggedEquationsOnly(containerEl, plugin);
     AutoNumberSettingsTab.enableUpdateTagsInAutoNumber(containerEl, plugin, true);
 }

@@ -33,11 +33,18 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     inCodeBlockState = false; // whether the cursor is inside a code block or not 
     currentCursorLine: number; // only update codeblock state when cursor line change 
     lastCodeBlockStateUpdateTime = 0; // update codeblock state when last update time is more than 300ms
+    private suggestionComponents: TargetElComponent[] = [];
 
     constructor(
         private plugin: EquationCitator
     ) {
         super(plugin.app);
+    }
+
+    onClose(): void {
+        // Clean up all suggestion components when the suggest closes
+        this.suggestionComponents.forEach(component => component.unload());
+        this.suggestionComponents = [];
     }
 
     /**
@@ -86,7 +93,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         };
     }
 
-    
+
     /**
      * Parses citation information from the provided equation content string, extracting details
      * about the citation label and tags at the current cursor position.
@@ -159,7 +166,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         // judge if it's source mode or not 
         const mdView = this.plugin.app.workspace.activeEditor?.editor;
         if (!mdView) return null;
- 
+
         const cm = editor.cm;
         if (isSourceMode(cm) && !enableCitationInSourceMode) {
             return null; // do not suggest in source mode if not enabled in settings
@@ -184,7 +191,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (!check.valid) return null;  // invalid citation form  
 
         // get the last tag for suggestion 
-    const eqLabel = eqContent.substring(check.index + CITATION_PADDING, eqContent.length).substring(citationPrefix.length);
+        const eqLabel = eqContent.substring(check.index + CITATION_PADDING, eqContent.length).substring(citationPrefix.length);
         const isNewTag = eqLabel.trim().endsWith(multiCitationDelimiter);
         const lastTag = isNewTag ? "" : (eqLabel.split(multiCitationDelimiter || ",").pop() ?? "");
 
@@ -209,9 +216,9 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (cleanedTag.contains("}")) return [];  // closed citation, do not suggest 
         const sourcePath = context.file?.path || null;
         if (!sourcePath) return [];
-        
+
         const { enableContinuousCitation, continuousRangeSymbol, continuousDelimiters } = this.plugin.settings;
-        
+
         if (enableContinuousCitation && cleanedTag.endsWith(continuousRangeSymbol) && cleanedTag.length > 1) {
             const validDelimiters = continuousDelimiters.split(" ").filter(d => d); // split by space and remove empty string
             const tagPrev = cleanedTag.slice(0, -continuousRangeSymbol.length).trim();
@@ -236,13 +243,15 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
             return equations;
         }
     }
-    
+
     renderSuggestion(value: RenderedEquation, el: HTMLElement): void {
         const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || null;
         if (!sourcePath) return;
         el.addClass("em-equation-option-container");
         const targetEl = el.createDiv();
+        // Create a new component for each suggestion and track it for cleanup
         const targetComponent = new TargetElComponent(targetEl);
+        this.suggestionComponents.push(targetComponent);
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
 
@@ -270,7 +279,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (!mathInfo) return;
         const citationInfo = this.parseCitationInfo(mathInfo.eqContent, cursor.ch, mathInfo.eqStart);
         if (!citationInfo.valid) return;
-        
+
         // ======== begin creating new tags for citation complete ====================== 
         const lastTag = this.context.query;  // last tag for suggestion 
         const isRangeContinuation = lastTag.endsWith(continuousRangeSymbol) && lastTag.length > 1;
@@ -278,7 +287,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         if (isRangeContinuation && enableContinuousCitation) {
             // infer next number from chosen equation
             const basePart = lastTag.slice(0, -continuousRangeSymbol.length);
-            const nextNum = extractLastNumberFromTag(value.tag, validDelimiters); 
+            const nextNum = extractLastNumberFromTag(value.tag, validDelimiters);
             if (nextNum === null) return; // should not happen 
             // parse local part 
             const local = enableCrossFileCitation ? splitFileCitation(basePart, fileCiteDelimiter).local : value.tag;

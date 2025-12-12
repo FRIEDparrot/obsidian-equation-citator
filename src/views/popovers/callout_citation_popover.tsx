@@ -10,6 +10,7 @@ import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedCallout } from "@/services/callout_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
+import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 
 /**
  * Callout Citation Popover Class
@@ -18,7 +19,8 @@ import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 export class CalloutCitationPopover extends HoverPopover {
     private calloutsToRender: RenderedCallout[] = [];
     private targetEl: HTMLElement;
-
+    private targetComponent: TargetElComponent;
+    
     constructor(
         private plugin: EquationCitator,
         parent: HoverParent,
@@ -34,6 +36,8 @@ export class CalloutCitationPopover extends HoverPopover {
         this.calloutsToRender = calloutsToRender.filter(c =>
             c.tag && c.sourcePath && c.content
         );
+        // Create targetComponent once to avoid memory leaks
+        this.targetComponent = new TargetElComponent(this.targetEl);
     }
 
     public onOpen() { }
@@ -45,6 +49,7 @@ export class CalloutCitationPopover extends HoverPopover {
     }
 
     onunload(): void {
+        this.targetComponent.unload();
         this.onClose();
     }
 
@@ -58,8 +63,7 @@ export class CalloutCitationPopover extends HoverPopover {
         }
 
         const container: HTMLElement = this.hoverEl.createDiv();
-        const targetComponent = new TargetElComponent(this.targetEl);
-        container.addClass("em-citation-popover-container", "em-callout-citation-popover-container");
+        container.addClass("em-citation-popover-container", "em-callout-citation-popover-container", WidgetSizeManager.getCurrentClassName());
 
         // Create header
         const header = container.createDiv();
@@ -109,7 +113,7 @@ export class CalloutCitationPopover extends HoverPopover {
                 this.sourcePath,
                 callout,
                 calloutOptionContainer,
-                targetComponent,
+                this.targetComponent,
                 true
             );
         }

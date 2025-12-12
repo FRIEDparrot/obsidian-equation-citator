@@ -938,7 +938,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
 
         updateCaption(captionEl: HTMLElement, image: ImageMatch, settings: EquationCitatorSettings) {
             // Clear existing content
-            captionEl.innerHTML = '';
+            captionEl.empty();
 
             // First line: Fig. X.X title
             if (image.tag || image.title) {

@@ -2,6 +2,22 @@ import { Notice, TFile } from "obsidian";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 
+const PROHIBIT_SUFFIXES = [
+    ".excalidraw.md",
+]
+
+export function isMarkdownFilePath(filePath: string) : boolean {
+    if (!filePath.endsWith(".md")) {
+        return false;
+    }
+    for (const suffix of PROHIBIT_SUFFIXES) {
+        if (filePath.endsWith(suffix)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
  * Fix :
  * Not use current file processor 
@@ -18,15 +34,11 @@ export class MarkdownFileProcessor {
             new Notice(`File ${this.sourcePath} not found.`);
             return true;
         }
-        const content = await this.plugin.app.vault.read(file);  // read file content 
+        
         try {
+            const content = await this.plugin.app.vault.read(file);
             const processedContent = await this.callback(content);
-            if (processedContent) {
-                await this.plugin.app.vault.modify(file, processedContent);  // save processed content to file  
-            }
-            else {
-                Debugger.log("No content processed.");
-            }
+            await this.plugin.app.vault.process(file, () => processedContent);
             return true;
         }
         catch (error) {

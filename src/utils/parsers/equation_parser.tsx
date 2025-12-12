@@ -40,13 +40,17 @@ export function isValidEquationPart(part: string, validDelimiters: string[]): bo
  * @param eqn : Raw equation block with $$ $$ bracket, also can have no $$ bracket 
  * @returns 
  */
-export function parseEquationTag(eqn: string, enableTypstMode = false): EquationParseResult {
+export function parseEquationTag(
+    eqn: string, 
+    enableTypstMode = false,
+    trimContent = false,
+): EquationParseResult {
     // Remove $$ if present 
-    const contentWithTag = eqn.replace(equationBlockStartPatternWithWhiteSpace, "").replace(equationBlockEndPatternWithWhiteSpace, "").trim();
+    const contentWithTag = eqn.replace(equationBlockStartPatternWithWhiteSpace, "").replace(equationBlockEndPatternWithWhiteSpace, "");
     const pattern = createEquationTagRegex(false, null, enableTypstMode); 
     const match = contentWithTag.match(pattern);   // only match first tag 
     // trim equations 
-    const content = contentWithTag.replace(pattern, '').trim();
+    const content = trimContent ? contentWithTag.replace(pattern, '').trim() : contentWithTag.replace(pattern, '');
     return {
         content,
         contentWithTag,

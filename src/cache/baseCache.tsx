@@ -1,5 +1,6 @@
 import { Notice, TFile } from 'obsidian';
 import EquationCitator from '@/main';
+import { isMarkdownFilePath } from '@/utils/misc/fileProcessor';
 import Debugger from '@/debug/debugger';
 
 interface CachedData<T> {
@@ -156,7 +157,8 @@ export abstract class BaseCache<T> extends BaseCacheSimple<T> {
         const key = sourcePath;
         // Check if file exists in the vault
         const file = this.plugin.app.vault.getAbstractFileByPath(sourcePath);
-        if (!(file instanceof TFile)) {
+        // only use valid markdown files 
+        if (!(isMarkdownFilePath(sourcePath) && file instanceof TFile)) {
             this.cache.delete(key);
             return [];
         }
@@ -174,7 +176,7 @@ export abstract class BaseCache<T> extends BaseCacheSimple<T> {
 
         const key = sourcePath;
         const file = this.plugin.app.vault.getAbstractFileByPath(sourcePath);
-        if (!(file instanceof TFile)) {
+        if (!(isMarkdownFilePath(sourcePath) && file instanceof TFile)) {
             this.cache.delete(key);
             return;
         }

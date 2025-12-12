@@ -9,6 +9,7 @@ import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedFigure } from "@/services/figure_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
+import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 
 /**
  * Figure Citation Popover Class
@@ -17,6 +18,7 @@ import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 export class FigureCitationPopover extends HoverPopover {
     private figuresToRender: RenderedFigure[] = [];
     private targetEl: HTMLElement;
+    private targetComponent: TargetElComponent;
 
     constructor(
         private plugin: EquationCitator,
@@ -32,6 +34,8 @@ export class FigureCitationPopover extends HoverPopover {
         this.figuresToRender = figuresToRender.filter(fig =>
             fig.tag && fig.sourcePath && (fig.imagePath || fig.imageLink)
         );
+        // Create targetComponent once to avoid memory leaks
+        this.targetComponent = new TargetElComponent(this.targetEl);
     }
 
     public onOpen() { }
@@ -42,7 +46,8 @@ export class FigureCitationPopover extends HoverPopover {
         this.showFigures();
     }
 
-    onunload() {
+    onunload(): void {
+        this.targetComponent.unload();
         this.onClose();
     }
 
@@ -56,8 +61,7 @@ export class FigureCitationPopover extends HoverPopover {
         }
 
         const container: HTMLElement = this.hoverEl.createDiv();
-        const targetComponent = new TargetElComponent(this.targetEl);
-        container.addClass("em-citation-popover-container", "em-figure-citation-popover-container");
+        container.addClass("em-citation-popover-container", "em-figure-citation-popover-container", WidgetSizeManager.getCurrentClassName());
 
         // Create header
         const header = container.createDiv();
@@ -96,7 +100,7 @@ export class FigureCitationPopover extends HoverPopover {
                 this.sourcePath,
                 fig,
                 figureOptionContainer,
-                targetComponent,
+                this.targetComponent,
                 true
             );
         });
