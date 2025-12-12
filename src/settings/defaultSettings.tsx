@@ -83,9 +83,11 @@ export interface EquationCitatorSettings {
 
     // equation management panel Settings 
     equationManagePanelLazyUpdateTime: number,
-    equationManagePanelfileCheckInterval: number,
+    equationManagePanelFileCheckInterval: number,
     equationManagePanelDefaultViewType: "outline" | "list",
-
+    equationManagePanelFilterTagOnlyEquation: boolean;
+    equationManagePanelEnableRenderHeadingsOnly: boolean;
+    
     // settings UI
     settingsDisplayMode: "categorical" | "concise"; // settings tab display mode
     basicSettingsKeys: string[]; // keys shown in Basic section for concise mode
@@ -133,7 +135,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableUpdateTagsInAutoNumber: true, // Default to true, update citation in auto numbering  
     deleteRepeatTagsInAutoNumber: true, // Default to true, delete repeat tags in auto numbering 
     deleteUnusedTagsInAutoNumber: false, // Default to true, delete unused tags in auto numbering 
-
+    
     enableTypstMode: false,
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
     // settings UI defaults
@@ -146,6 +148,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "enableAutoNumberTaggedEquationsOnly",
         "citationPopoverSize",
         "enableCenterTableInCallout",
+        "equationManagePanelFilterTagOnlyEquation",
     ],
     advancedSettingsKeys: [
         "enableCitationInSourceMode",
@@ -165,8 +168,10 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "debugMode",
     ],
     equationManagePanelLazyUpdateTime: 5000,
-    equationManagePanelfileCheckInterval: 1000,
+    equationManagePanelFileCheckInterval: 1000,
     equationManagePanelDefaultViewType: "list",
+    equationManagePanelFilterTagOnlyEquation: false,
+    equationManagePanelEnableRenderHeadingsOnly: false,
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
@@ -471,7 +476,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             OtherSettingsTab.enableCiteWithCodeBlockInCallout(el, plugin);
         }
     },
-    equationManagePanelfileCheckInterval: {
+    equationManagePanelFileCheckInterval: {
         name: "Equation panel file check interval",
         desc: "Time interval to check for newly opened files and refresh the equation panel (in ms)",
         type: "number",
@@ -493,6 +498,22 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "select",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelDefaultViewType(el, plugin);
+        }
+    },
+    equationManagePanelFilterTagOnlyEquation : {
+        name: "Filter tag only equation",
+        desc: "Default value for filter tag only equations",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationManagePanelFilterTagOnlyEquation(el, plugin);
+        }
+    },
+    equationManagePanelEnableRenderHeadingsOnly : {
+        name: "Render headings only",
+        desc: "Default value for render headings only in outline view",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationManagePanelEnableRenderHeadingsOnly(el, plugin);
         }
     },
 }

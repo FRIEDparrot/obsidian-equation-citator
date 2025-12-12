@@ -23,16 +23,16 @@ export const EquationPanelSettingsTab = {
     },
 
     equationManagePanelFileCheckInterval(containerEl: HTMLElement, plugin: EquationCitator) {
-        const { name, desc } = SETTINGS_METADATA.equationManagePanelfileCheckInterval;
+        const { name, desc } = SETTINGS_METADATA.equationManagePanelFileCheckInterval;
         new Setting(containerEl)
             .setName(name)
             .setDesc(desc)
             .addSlider((slider) => {
                 slider.setLimits(500, 5000, 100);
-                slider.setValue(plugin.settings.equationManagePanelfileCheckInterval);
+                slider.setValue(plugin.settings.equationManagePanelFileCheckInterval);
                 slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
-                    plugin.settings.equationManagePanelfileCheckInterval = value;
+                    plugin.settings.equationManagePanelFileCheckInterval = value;
                     await plugin.saveSettings();
                 });
             });
@@ -52,6 +52,32 @@ export const EquationPanelSettingsTab = {
                     await plugin.saveSettings();
                 });
             });
+    },
+    equationManagePanelFilterTagOnlyEquation(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.equationManagePanelFilterTagOnlyEquation;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.equationManagePanelFilterTagOnlyEquation);
+                toggle.onChange(async (value) => {
+                    plugin.settings.equationManagePanelFilterTagOnlyEquation = value;
+                    await plugin.saveSettings();
+                });
+            })
+    },
+    equationManagePanelEnableRenderHeadingsOnly(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.equationManagePanelEnableRenderHeadingsOnly;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.equationManagePanelEnableRenderHeadingsOnly);
+                toggle.onChange(async (value) => {
+                    plugin.settings.equationManagePanelEnableRenderHeadingsOnly = value;
+                    await plugin.saveSettings();
+                });
+            })
     }
 };
 
@@ -62,6 +88,8 @@ export const EquationPanelSettingsTab = {
  */
 export function addEquationPanelSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     EquationPanelSettingsTab.equationManagePanelDefaultViewType(containerEl, plugin);
+    EquationPanelSettingsTab.equationManagePanelFilterTagOnlyEquation(containerEl, plugin);
+    EquationPanelSettingsTab.equationManagePanelEnableRenderHeadingsOnly(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelLazyUpdateTime(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelFileCheckInterval(containerEl, plugin);
 }

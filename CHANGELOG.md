@@ -264,7 +264,7 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
     1. View mode changed (from `outline` to `list`) or other view selections (like `sort mode`, `filter options`, etc) 
     2. search query changed  
   - This design is more user friendly, and also during refresh process, there would no file reading, which improves performance on large markdown files.
-- [ ] Add setting buttons for some default state of equation panel.
+- [x] Add setting buttons for some default state of equation panel when opened.
 
 
 🏗️ Refactors : 
@@ -275,9 +275,10 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
   - [x] replace `app.vault.modify()` by `app.vault.process()` 
   - [ ] Change UI text to sentence case 
     - [x] Settings tab
-    - [ ] Equation panel and other pages
+    - [x] Equation panel
+    - [ ] other pages
   - [ ] Avoid render title on  settings tab 
-  - [ ] Remove check updates button
+  - [ ] Remove check updates button 
   - [ ] Refactor section headings creation. 
 
 🐛 Bug Fixes :

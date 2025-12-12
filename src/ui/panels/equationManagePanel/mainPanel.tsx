@@ -137,7 +137,7 @@ export class EquationArrangePanel extends ItemView {
         this.viewPanel = panelWrapper.createDiv("ec-equation-list-panel");
 
         // Set default toolbar state
-        setToolbarDefaultState(this, this.plugin.settings.equationManagePanelDefaultViewType);
+        setToolbarDefaultState(this, this.plugin);
 
         // Register event listeners for dynamic updates
         this.registerEvent(
@@ -162,7 +162,7 @@ export class EquationArrangePanel extends ItemView {
                     this.refreshDebounceTimer = null;
                 }
             }
-        }, this.plugin.settings.equationManagePanelfileCheckInterval);
+        }, this.plugin.settings.equationManagePanelFileCheckInterval);
         // Initialize current active file
         const initialFile = this.app.workspace.getActiveFile();
         this.currentActiveFile = initialFile?.path || "";

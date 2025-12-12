@@ -60,8 +60,10 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "Equation Panel",
             settingKeys: [
                 "equationManagePanelDefaultViewType",
+                "equationManagePanelFilterTagOnlyEquation",
+                "equationManagePanelEnableRenderHeadingsOnly",
                 "equationManagePanelLazyUpdateTime",
-                "equationManagePanelfileCheckInterval",
+                "equationManagePanelFileCheckInterval",
             ]
         },
         {

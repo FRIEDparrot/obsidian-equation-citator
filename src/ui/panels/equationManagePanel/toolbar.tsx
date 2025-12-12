@@ -1,3 +1,4 @@
+import EquationCitator from "@/main";
 import { EquationArrangePanel } from "./mainPanel";
 import { setIcon, setTooltip } from "obsidian";
 
@@ -22,7 +23,7 @@ function updateModeButtons(panel: EquationArrangePanel): void {
 function updatePanelViewMode(panel: EquationArrangePanel, mode: "outline" | "list"): void {
     panel.viewMode = mode;
     setIcon(panel.viewModeButton, mode === "outline" ? "list" : "rows-4");
-    setTooltip(panel.viewModeButton, `View Mode : ${mode === "outline" ? "outline" : "list"}`);
+    setTooltip(panel.viewModeButton, `View mode: ${mode === "outline" ? "outline" : "list"}`);
 }
 
 function updateSortMode(panel: EquationArrangePanel, mode: "tag" | "seq"): void {
@@ -54,7 +55,7 @@ function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): v
 
 function updateHeadingsFilterButton(panel: EquationArrangePanel): void {
     const iconName = panel.filterEmptyHeadings ? "book-x" : "book-check";
-    const tooltipText = panel.filterEmptyHeadings ? "Headings: Only Show not empty" : "Headings: Show All";
+    const tooltipText = panel.filterEmptyHeadings ? "Headings: Only show not empty" : "Headings: Show all";
     panel.filterEmptyHeadingsButton.toggleClass("is-active", panel.filterEmptyHeadings);
     setIcon(panel.filterEmptyHeadingsButton, iconName);
     setTooltip(panel.filterEmptyHeadingsButton, tooltipText);
@@ -62,7 +63,7 @@ function updateHeadingsFilterButton(panel: EquationArrangePanel): void {
 
 function updateHeadingOnlyButton(panel: EquationArrangePanel): void {
     panel.enableRenderHeadingOnlyButton.toggleClass("is-active", panel.enableRenderHeadingOnly);
-    const tooltipText = panel.enableRenderHeadingOnly ? "Show headings only: ON" : "Show headings only: OFF";
+    const tooltipText = panel.enableRenderHeadingOnly ? "Show headings only: On" : "Show headings only: Off";
     setTooltip(panel.enableRenderHeadingOnlyButton, tooltipText);
 }
 
@@ -301,8 +302,13 @@ export function renderToolbar(panel: EquationArrangePanel, panelWrapper: HTMLEle
  */
 export function setToolbarDefaultState(
     panel: EquationArrangePanel,
-    defaultViewMode: "outline" | "list"
+    plugin: EquationCitator,
 ): void {
+    const {
+        equationManagePanelDefaultViewType: defaultViewMode,
+        equationManagePanelEnableRenderHeadingsOnly: enableRenderHeadingsOnly,
+        equationManagePanelFilterTagOnlyEquation: filterTagOnlyEquation,
+    } = plugin.settings;
     // Set default view mode
     updatePanelViewMode(panel, defaultViewMode);
     
@@ -311,7 +317,12 @@ export function setToolbarDefaultState(
     
     // Update mode buttons visibility
     updateModeButtons(panel);
+
+    panel.filterTagOnlyEquation = filterTagOnlyEquation;
+    updateTagOnlyButton(panel);
     
+    panel.enableRenderHeadingOnly = enableRenderHeadingsOnly;
+    updateHeadingOnlyButton(panel);
     // Set tag visibility
     toggleTagShow(panel, true);
 }
