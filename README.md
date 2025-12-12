@@ -77,20 +77,20 @@ If you encounter any bug, please **provide the following information** on the is
 
 I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. 
 
+- 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
+
 **Contributors and maintainers are always welcome** :
 - You can contribute to this plugin by simply forking this repo and submitting a PR:
   - 1. **Please test your code carefully before submitting a PR!**. 
   - 2. add what you have done into `CHANGELOG.md`. (Use the next patch version number if a neww minor version is not planned in `CHANGELOG.md`)
   - 3. We have some CI check before merging PR, please make sure your code passes all the checks. (For SonarCloaud check, don't worry about its problems now)
 
-- 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
-
 > [!WARNING] 
 > 
 > For submitting a PR, please commit it to `dev-latest` branch, this is the latest development branch, this is for the convenience of us to test and debug, and I will always sync my dev branch to this branch to prevent potential merge conflicts.
 
 
-Thanks to [@azyarashi](https://github.com/azyarashi) for collaboration and substantial improvements to the plugin. I also appreciate all the users who suggested new features and enhancements through the issue page.
+Thanks to [@azyarashi](https://github.com/azyarashi) for collaboration and substantial improvements to the plugin. I also appreciate all the users who suggested useful new features and enhancements.
 
 Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
 

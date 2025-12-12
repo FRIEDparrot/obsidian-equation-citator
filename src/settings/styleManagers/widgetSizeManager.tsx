@@ -9,11 +9,11 @@ export enum WidgetSize {
 }
 
 export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
-    [WidgetSize.ExtraSmall]: 'Extra Small (350×300)',
-    [WidgetSize.Small]: 'Small (425×350)',
-    [WidgetSize.Medium]: 'Medium (500×400)',
-    [WidgetSize.Large]: 'Large (600×500)',
-    [WidgetSize.ExtraLarge]: 'Extra Large (750×600)'
+    [WidgetSize.ExtraSmall]: 'Extra Small (350x300)',
+    [WidgetSize.Small]: 'Small (450x350)',
+    [WidgetSize.Medium]: 'Medium (550x400)',
+    [WidgetSize.Large]: 'Large (650x500)',
+    [WidgetSize.ExtraLarge]: 'Extra Large (800x600)'
 };
 
 export class WidgetSizeManager {

@@ -10,6 +10,7 @@ import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedCallout } from "@/services/callout_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
+import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 
 /**
  * Callout Citation Popover Class
@@ -62,7 +63,7 @@ export class CalloutCitationPopover extends HoverPopover {
         }
 
         const container: HTMLElement = this.hoverEl.createDiv();
-        container.addClass("em-citation-popover-container", "em-callout-citation-popover-container");
+        container.addClass("em-citation-popover-container", "em-callout-citation-popover-container", WidgetSizeManager.getCurrentClassName());
 
         // Create header
         const header = container.createDiv();

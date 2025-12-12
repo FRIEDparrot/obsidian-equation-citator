@@ -9,6 +9,7 @@ import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedFigure } from "@/services/figure_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
+import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 
 /**
  * Figure Citation Popover Class
@@ -60,7 +61,7 @@ export class FigureCitationPopover extends HoverPopover {
         }
 
         const container: HTMLElement = this.hoverEl.createDiv();
-        container.addClass("em-citation-popover-container", "em-figure-citation-popover-container");
+        container.addClass("em-citation-popover-container", "em-figure-citation-popover-container", WidgetSizeManager.getCurrentClassName());
 
         // Create header
         const header = container.createDiv();

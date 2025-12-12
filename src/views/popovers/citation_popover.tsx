@@ -18,6 +18,7 @@ import { RenderedEquation } from "@/services/equation_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigation";
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
+import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 
 /**
  * Citaton Popover Class, render the equations in the popover 
@@ -65,7 +66,7 @@ export class CitationPopover extends HoverPopover {
             return;
         }
         const container: HTMLElement = this.hoverEl.createDiv();
-        container.addClass("em-citation-popover-container");
+        container.addClass("em-citation-popover-container", WidgetSizeManager.getCurrentClassName());
 
         // Create header
         const header = container.createDiv();
