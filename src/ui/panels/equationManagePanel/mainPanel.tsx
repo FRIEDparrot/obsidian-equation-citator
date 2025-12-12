@@ -169,12 +169,7 @@ export class EquationArrangePanel extends ItemView {
 
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
-        // remove refreshView Here to avoid unsuccessful refresh 
-        this.plugin.app.workspace.onLayoutReady(() => {
-            requestAnimationFrame(() => {
-                void this.refreshView();
-            });
-        });
+        await this.refreshView();
     }
 
     onunload(): void {
