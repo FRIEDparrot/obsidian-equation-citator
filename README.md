@@ -19,6 +19,8 @@
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
+> This plugin supports [typst-style autonumber](https://github.com/azyarashi/obsidian-typst-mate). You can use `Settings > Categorical > Other settings > enable typst mode` to enable it.
+
 ## 🛠️ Installation 
 1.  You can download it from community plugins After this plugin is published in obsidian vault (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`). 
 
@@ -86,7 +88,9 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 > [!WARNING] 
 > 
 > For submitting a PR, please commit it to `dev-latest` branch, this is the latest development branch, this is for the convenience of us to test and debug, and I will always sync my dev branch to this branch to prevent potential merge conflicts.
-> 
+
+
+Thanks to [@azyarashi](https://github.com/azyarashi) for collaboration and substantial improvements to the plugin. I also appreciate all the users who suggested new features and enhancements through the issue page.
 
 Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
 

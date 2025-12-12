@@ -453,7 +453,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableTypstMode: {
-        name: "Enable Typst mode",
+        name: "Enable typst mode",
         desc: "Enable compatibility with Typst syntax",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -469,7 +469,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableCiteWithCodeBlockInCallout: {
-        name: "(Beta) Cite with inline code block in callout",
+        name: "Cite with inline code block in callout",
         desc: "Enable citation by inline code block in callout",
         type: "boolean",
         renderCallback: (el, plugin) => {
