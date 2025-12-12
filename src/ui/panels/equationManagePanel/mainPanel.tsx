@@ -300,10 +300,7 @@ export class EquationArrangePanel extends ItemView {
                 equationData.lineEnd,
                 tag
             );
-            if (!success) {
-                new Notice('Failed to add tag to equation. Make sure the source file is open.');
-                return;
-            }
+            if (!success) return;
             await this.refreshView();  // refresh view after renaming 
         }
 
@@ -321,11 +318,8 @@ export class EquationArrangePanel extends ItemView {
                 true  // Create footnote if it doesn't exist
             );
 
-            if (!footnoteNum) {
-                new Notice('Failed to create footnote for cross-file citation');
-                return;
-            }
-
+            if (!footnoteNum) return;
+            
             // Build cross-file citation: $\ref{citationPrefix}{footnoteNum}^{tag}}$
             citation = `$\\ref{${citationPrefix}${footnoteNum}^{${tag}}}$`;
         } else {
