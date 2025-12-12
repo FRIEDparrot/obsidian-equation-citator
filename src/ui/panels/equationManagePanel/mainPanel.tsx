@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, setIcon, Notice, MarkdownView, TFile, loadMathJax } from "obsidian";
+import { ItemView, WorkspaceLeaf, setIcon, MarkdownView, TFile, loadMathJax } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
@@ -319,7 +319,7 @@ export class EquationArrangePanel extends ItemView {
             );
 
             if (!footnoteNum) return;
-            
+
             // Build cross-file citation: $\ref{citationPrefix}{footnoteNum}^{tag}}$
             citation = `$\\ref{${citationPrefix}${footnoteNum}^{${tag}}}$`;
         } else {
