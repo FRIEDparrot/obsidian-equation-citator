@@ -170,8 +170,13 @@ export class EquationArrangePanel extends ItemView {
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
         // remove refreshView Here to avoid unsuccessful refresh 
-        await this.refreshView();
+        this.plugin.app.workspace.onLayoutReady(() => {
+            requestAnimationFrame(() => {
+                void this.refreshView();
+            });
+        });
     }
+
     onunload(): void {
         // Clean up debounce timers
         if (this.refreshDebounceTimer !== null) {
@@ -415,12 +420,8 @@ export class EquationArrangePanel extends ItemView {
      */
     public async refreshView(): Promise<void> {
         // Get the active file path (respecting lock mode)
-        const activeFilePath = this.getCurrentActiveFile();
-        
-        // Update currentActiveFile only when not locked
-        if (!this.lockRefreshEnabled) {
-            this.currentActiveFile = activeFilePath || "";
-        }
+        const activeFilePath = this.getCurrentActiveFile() || "";
+        this.currentActiveFile = activeFilePath;   // used for record current state 
 
         // Handle no active file case
         if (!activeFilePath) {
@@ -442,10 +443,10 @@ export class EquationArrangePanel extends ItemView {
             this.currentEquationHash = hashEquations([]);
             return;
         }
-        
+
         // Fetch and filter equations for the current file
         const equations = await this.getEquationsToRender(activeFilePath);
-        
+
         // In outline mode, always render headings even if no equations
         if (this.viewMode === "outline") {
             // Parse headings from the current file (respects lock mode)
@@ -874,8 +875,9 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private async jumpToHeading(heading: Heading): Promise<void> {
-        const currentFile = this.app.workspace.getActiveFile();
-        if (!currentFile) return;
+        const filePath = this.getCurrentActiveFile();
+        const currentFile = filePath ? this.app.vault.getAbstractFileByPath(filePath) : null;
+        if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
 
         // Open the file and jump to the heading line
         const leaf = this.app.workspace.getLeaf(false);
@@ -966,8 +968,9 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private async jumpToEquation(equation: EquationMatch): Promise<void> {
-        const currentFile = this.app.workspace.getActiveFile();
-        if (!currentFile) return;
+        const filePath = this.getCurrentActiveFile();
+        const currentFile = filePath ? this.app.vault.getAbstractFileByPath(filePath) : null;
+        if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
 
         // Open the file and jump to the line
         const leaf = this.app.workspace.getLeaf(false);
