@@ -83,7 +83,7 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 - You can contribute to this plugin by simply forking this repo and submitting a PR:
   - 1. **Please test your code carefully before submitting a PR!**. 
   - 2. add what you have done into `CHANGELOG.md`. (Use the next patch version number if a neww minor version is not planned in `CHANGELOG.md`)
-  - 3. We have some CI check before merging PR, please make sure your code passes all the checks. (For SonarCloaud check, don't worry about its problems now)
+  - 3. We have some CI check before merging PR, please make sure your code passes all the checks (new code should pass quality checks).
 
 > [!WARNING] 
 > 
