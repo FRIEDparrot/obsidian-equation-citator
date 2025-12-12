@@ -1,5 +1,5 @@
 <center><div>
-  <img src="img/Heading_img.png" width="83%", alt="Stars">
+  <img src="img/Heading_img.png" style="max-height:100px; max-width:65%" alt="Stars">
 </div></center>
 
 <center><div width="100%"><span>
