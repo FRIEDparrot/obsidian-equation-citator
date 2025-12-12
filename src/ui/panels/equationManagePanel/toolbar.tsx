@@ -29,7 +29,7 @@ function updatePanelViewMode(panel: EquationArrangePanel, mode: "outline" | "lis
 function updateSortMode(panel: EquationArrangePanel, mode: "tag" | "seq"): void {
     panel.sortMode = mode;
     setIcon(panel.sortButton, mode === "tag" ? "tag" : "list-ordered");
-    setTooltip(panel.sortButton, `Sort mode : ${mode == "tag" ? "tag" : "line number"}`);
+    setTooltip(panel.sortButton, `Sort mode: ${mode == "tag" ? "tag" : "line number"}`);
 }
 
 function updateTagOnlyButton(panel: EquationArrangePanel): void {
@@ -70,7 +70,7 @@ function updateHeadingOnlyButton(panel: EquationArrangePanel): void {
 function toggleTagShow(panel: EquationArrangePanel, mode: boolean): void {
     panel.showEquationTags = mode;
     setIcon(panel.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");
-    setTooltip(panel.toggleTagShowButton, mode ? "tags: show" : "tags: hidden");
+    setTooltip(panel.toggleTagShowButton, mode ? "Tags: Show" : "Tags: Hidden");
     document.body.classList.toggle("ec-tag-show", mode);
 }
 

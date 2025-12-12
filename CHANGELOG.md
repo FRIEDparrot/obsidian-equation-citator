@@ -256,6 +256,7 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
   - [x] Correct the behavior when insert equation with tags into specific file (only count the number before cursor).  
 - [x] Add [feature #107](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/107), show only tagged equations in equations manage panel.  
 - [x] Fixed bugs in heading collapse hehavior in equations manage panel, now it behavior correctly after chevron clicked to change collapsed state.
+- [x] Add List view in settings tab for search purpose.
 
 🚀Enhancements :
 - [x] Use `MathJax` to render equations instead of `MarkdownRenderer` (in [PR #108](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/108)), improve performance greately.
@@ -273,13 +274,14 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
   - [x] Change `innerHTML` to `.empty()`
   - [x] for every `TargetElCompoponent`, now it create  in constructor and reuse it.
   - [x] replace `app.vault.modify()` by `app.vault.process()` 
-  - [ ] Change UI text to sentence case 
+  - [x] Change UI text to sentence case 
     - [x] Settings tab
     - [x] Equation panel
-    - [ ] other pages
-  - [ ] Avoid render title on  settings tab 
-  - [ ] Remove check updates button 
-  - [ ] Refactor section headings creation. 
+    - [x] other pages
+  - [x] Avoid render title on settings tab
+  - [x] Avoid "Settings" in settings tab 
+  - [x] Remove check updates button 
+  - [x] Refactor section headings creation to use `new Settings().setName().setTitle()`
 
 🐛 Bug Fixes :
 - [x] Fix [bug #112](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/112), equations now correctly auto-numbered when `auto number equations in quotes` is enabled.

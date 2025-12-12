@@ -903,7 +903,7 @@ body.em-center-callout-tables .callout table {
 
 .ec-collapse-icon {
   flex-shrink: 0;
-  width: 20px;
+  width: 16px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -921,8 +921,8 @@ body.em-center-callout-tables .callout table {
 
 .ec-collapse-icon-placeholder {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .ec-heading-text {
@@ -1088,6 +1088,13 @@ body.em-center-callout-tables .callout table {
   font-size: 24px;
   margin-bottom: 10px;
   display: flex;
+}
+
+.ec-settings-section-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 8px;
 }
 
 .theme-dark .ec-concise-title {

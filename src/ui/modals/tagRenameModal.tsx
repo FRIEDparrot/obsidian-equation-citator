@@ -11,7 +11,7 @@ export class TagRenameModal extends Modal {
     constructor(
         private plugin: EquationCitator,
         private oldTag: string, sourceFile: string,
-        private heading = "Rename This Tag to :"
+        private heading = "Rename this tag to:"
     ) {
         super(plugin.app);
     }
@@ -110,7 +110,7 @@ export class TagRenameModal extends Modal {
                 } // do nothing when cancel button is clicked
             }
             const modal = new PromiseOptionsModal(this.app,
-                "Citation Conflict",
+                "Citation conflict",
                 "There are citations with this name already, delete them or keep them?",
                 [deleteOption, keepOption, cancelOption])
             await modal.openWithPromise();

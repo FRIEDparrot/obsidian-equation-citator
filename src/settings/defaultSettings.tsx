@@ -89,7 +89,7 @@ export interface EquationCitatorSettings {
     equationManagePanelEnableRenderHeadingsOnly: boolean;
     
     // settings UI
-    settingsDisplayMode: "categorical" | "concise"; // settings tab display mode
+    settingsDisplayMode: "categorical" | "concise" | "list"; // settings tab display mode
     basicSettingsKeys: string[]; // keys shown in Basic section for concise mode
     advancedSettingsKeys: string[]; // keys shown in Advanced section for concise mode
 }
@@ -146,9 +146,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberNoHeadingPrefix",
         "enableAutoNumberGlobalPrefix",
         "enableAutoNumberTaggedEquationsOnly",
+        "equationManagePanelFilterTagOnlyEquation",
         "citationPopoverSize",
         "enableCenterTableInCallout",
-        "equationManagePanelFilterTagOnlyEquation",
     ],
     advancedSettingsKeys: [
         "enableCitationInSourceMode",

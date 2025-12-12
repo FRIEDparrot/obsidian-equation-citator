@@ -27,7 +27,7 @@ export async function isUpdateAvailable(plugin: EquationCitator, use_notice=true
     }
     catch (error) {
         console.error("Error checking for updates:", error);
-        new Notice("Error to check for updates, check console for details.");
+        new Notice("Error checking for updates, check console for details.");
         return false;
     }
 }

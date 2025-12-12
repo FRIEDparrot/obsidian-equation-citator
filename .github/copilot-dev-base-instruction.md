@@ -84,3 +84,18 @@ ELSE
 
 ## Short Reference String (For Fast Retrieval)
 Default base = dev-latest unless explicit master commit requested.
+
+
+------ 
+
+Other instructions :
+1. Avoid using `innerHTML`. Use `empty()` and DOM methods instead for security and compatibility.
+2. For section headings in settings, use:
+    `new Setting(containerEl).setName('Section name').setHeading();`
+    Do not use `<h2>` or similar HTML tags for headings in settings.
+3. Do not add a top-level heading in the settings tab (such as 'General', 'Settings', or the plugin name).
+4. Do not implement your own update checker; Obsidian provides a 'Check for plugin updates' button.
+5. Always use sentence case for UI text. Product/brand names should follow the casing set by the respective owner.
+6. Avoid 'settings' in section headings (e.g., use 'Basic', 'Advanced', not 'Basic Settings').
+7. When creating components that attach to DOM elements, ensure they are properly unloaded/disposed to avoid memory leaks.
+8. Prefer `this.app.vault.process` over `this.app.vault.read` for reading file content atomically.

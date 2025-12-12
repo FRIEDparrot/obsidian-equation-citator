@@ -44,6 +44,7 @@ export function cleanUpStyles() {
 export enum SettingsDisplayMode {
     Concise = "concise",
     Categorical = "categorical",
+    List = "list"
 }
 
 export class SettingsTabView extends PluginSettingTab {
@@ -68,13 +69,6 @@ export class SettingsTabView extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        // render title 
-        const titleContainer = containerEl.createDiv({ cls: "ec-settings-header-container" });
-        const settingsTitleText = `Equation Citator v${this.plugin.manifest.version}`;
-
-        titleContainer.createEl("span", { text: settingsTitleText, cls: "ec-settings-header-background" });
-        titleContainer.createEl("span", { text: settingsTitleText, cls: "ec-settings-header-foreground" });
-
         // Toolbar with mode toggle and group selector placeholder
         const toolbar_wrapper = containerEl.createDiv({ cls: "ec-settings-toolbar-wrapper" })
         const toolbar = toolbar_wrapper.createEl("div", { cls: "ec-settings-toolbar" });
@@ -86,6 +80,7 @@ export class SettingsTabView extends PluginSettingTab {
             .addDropdown((dd) => {
                 dd.addOption(SettingsDisplayMode.Concise, "Concise");
                 dd.addOption(SettingsDisplayMode.Categorical, "Categorical");
+                dd.addOption(SettingsDisplayMode.List, "List");
                 dd.setValue(this.plugin.settings.settingsDisplayMode ?? SettingsDisplayMode.Concise);
                 dd.onChange(async (value) => {
                     this.plugin.settings.settingsDisplayMode = value as SettingsDisplayMode.Concise | SettingsDisplayMode.Categorical;
@@ -93,19 +88,7 @@ export class SettingsTabView extends PluginSettingTab {
                     this.display();
                 });
             });
-
-        // Update check button 
-        const updateDiv = toolbar.createDiv({ cls: "ec-settings-update-check" });
-        new Setting(updateDiv)
-            .setName("Check updates")
-            .addButton((btn) => {
-                btn.setButtonText("Check now");
-                btn.setIcon("refresh-cw");
-                btn.onClick(async () => {
-                    await this.plugin.checkForUpdates(true);
-                });
-            });
-            
+        
         const searchDiv = toolbar.createDiv({ cls: "ec-settings-search-textbox-wrapper" })
         const searchSetting = new Setting(searchDiv)
         searchSetting.setClass("ec-settings-search-setting")
@@ -129,10 +112,16 @@ export class SettingsTabView extends PluginSettingTab {
         this.contentContainer.empty();
 
         const mode = this.plugin.settings.settingsDisplayMode ?? "concise";
-        if (mode === "categorical") {
-            this.renderCategorical(this.contentContainer);
-        } else {
-            this.renderConcise(this.contentContainer);
+        switch (mode) {
+            case "categorical":
+                this.renderCategorical(this.contentContainer);
+                break;
+            case "concise":
+                this.renderConcise(this.contentContainer);
+                break;
+            case "list":
+                this.renderList(this.contentContainer);
+                break;
         }
     }
     
@@ -160,12 +149,12 @@ export class SettingsTabView extends PluginSettingTab {
     private renderCategorical(containerEl: HTMLElement) {
         const groups = [
             { id: "ec-group-citation", title: "Citation", icon: "feather" },
-            { id: "ec-group-auto", title: "Auto Numbering", icon: "hash" },
-            { id: "ec-group-panel", title: "Equation Panel", icon: "layout-panel-left" },
+            { id: "ec-group-auto", title: "Auto numbering", icon: "hash" },
+            { id: "ec-group-panel", title: "Equation panel", icon: "layout-panel-left" },
             { id: "ec-group-style", title: "Style", icon: "palette" },
-            { id: "ec-group-pdf", title: "PDF Export", icon: "file-down" },
+            { id: "ec-group-pdf", title: "PDF export", icon: "file-down" },
             { id: "ec-group-cache", title: "Cache", icon: "database" },
-            { id: "ec-group-other", title: "Other / Beta", icon: "settings" }
+            { id: "ec-group-other", title: "Other settings", icon: "settings" }
         ];
 
         // Create a wrapper container for both selector and content
@@ -218,7 +207,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Render Basic Settings
         createFoldablePanel(
             containerEl,
-            "Basic Settings",
+            "Basic",
             (panel) => {
                 this.renderSettingsPanel(panel, this.plugin.settings.basicSettingsKeys, "basic");
             },
@@ -231,7 +220,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Render Advanced Settings
         createFoldablePanel(
             containerEl,
-            "Advanced Settings",
+            "Advanced",
             (panel) => {
                 this.renderSettingsPanel(panel, this.plugin.settings.advancedSettingsKeys, "advanced");
             },
@@ -244,7 +233,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Render Customize Panel
         createFoldablePanel(
             containerEl,
-            "Customize settings display",
+            "Customize display sections",
             (panel) => {
                 createCustomizePanel(
                     panel,
@@ -261,6 +250,37 @@ export class SettingsTabView extends PluginSettingTab {
                 this.foldStates.set("customize-settings", newState);
             }
         );
+    }
+
+    /**
+     * Render all settings as a simple list (for search)
+     */
+    private renderList(containerEl: HTMLElement): void {
+        const allCategories = getAllSettingsByCategory();
+        let hasResults = false;
+
+        allCategories.forEach((category) => {
+            // Filter settings in this category based on search
+            const filteredKeys = this.searchQuery
+                ? category.settingKeys.filter(key => this.settingMatchesSearch(key as string))
+                : category.settingKeys;
+
+            // Skip category if no settings match
+            if (filteredKeys.length === 0) return;
+            hasResults = true;
+            // Render each filtered setting
+            filteredKeys.forEach(key => {
+                const metadata = SETTINGS_METADATA[key];
+                if (!metadata || !metadata.renderCallback) return;
+                metadata.renderCallback(containerEl, this.plugin, true);
+            });
+        });
+
+        // Show message if search returned no results
+        if (this.searchQuery && !hasResults) {
+            const noResults = containerEl.createDiv({ cls: "ec-settings-no-results" });
+            noResults.textContent = "No settings found matching your search.";
+        }
     }
 
     /**
@@ -399,7 +419,7 @@ export class SettingsTabView extends PluginSettingTab {
                 .addButton((button) => {
                     button.setIcon("reset");
                     button.onClick(async () => {
-                        new Notice("Restoring settings ...");
+                        new Notice("Restoring settings...");
                         await new Promise((resolve) => setTimeout(resolve, 200));
                         this.plugin.settings = { ...DEFAULT_SETTINGS };
                         resetStyles();

@@ -63,7 +63,6 @@ export const CacheSettingsTab = {
  * @param plugin 
  */
 export function addCacheSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
-    containerEl.createEl("h2", { text: "Cache settings", cls: "ec-settings-header" });
     CacheSettingsTab.cacheUpdateTime(containerEl, plugin);
     CacheSettingsTab.cacheCleanTime(containerEl, plugin);
     CacheSettingsTab.clearCache(containerEl, plugin);

@@ -16,6 +16,13 @@
     display: flex;
 }
 
+.ec-settings-section-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 8px;
+}
+
 .theme-dark .ec-concise-title {
     color: var(--interactive-accent);
 }

@@ -60,7 +60,7 @@ export class PromiseOptionsModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        contentEl.createEl("h2", { text: this.title });
+        new Setting(this.containerEl).setName("Beta features").setHeading();
         contentEl.createEl("p", { text: this.question });
         const setting = new Setting(this.contentEl);
         this.options.forEach(opt => {

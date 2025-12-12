@@ -48,7 +48,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
                     await finishExport(newFilePath);
                 }
                 catch (error) {
-                    new Notice(`Export Failed: ${error.message}`);
+                    new Notice(`Export failed: ${error.message}`);
                 }
             }
         }

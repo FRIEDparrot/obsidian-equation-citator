@@ -17,7 +17,7 @@ export default function registerRibbonButton(plugin: EquationCitator) {
         }, 50); // delay to allow the editor to update the scroll position
     });
 
-    plugin.addRibbonIcon('square-pi', 'Open equation arrange panel', async() => {
+    plugin.addRibbonIcon('square-pi', 'Open equation manage panel', async() => {
         await invokeView(plugin, EQUATION_MANAGE_PANEL_TYPE);       
     });
 }

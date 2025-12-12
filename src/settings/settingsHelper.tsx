@@ -36,6 +36,9 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "continuousDelimiters",
                 "enableCrossFileCitation",
                 "fileCiteDelimiter",
+                "figCitationPrefix",
+                "figCitationFormat",
+                "quoteCitationPrefixes",
             ]
         },
         {
@@ -57,7 +60,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "equation-panel",
-            title: "Equation Panel",
+            title: "Equation panel",
             settingKeys: [
                 "equationManagePanelDefaultViewType",
                 "equationManagePanelFilterTagOnlyEquation",
@@ -78,7 +81,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "pdf-export",
-            title: "PDF Export",
+            title: "PDF export",
             settingKeys: [
                 "citationColorInPdf",
             ]
@@ -93,7 +96,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "other",
-            title: "Other / Beta",
+            title: "Others",
             settingKeys: [
                 "enableTypstMode",
                 "debugMode",
