@@ -90,7 +90,7 @@ export class EquationArrangePanel extends ItemView {
         // Debounced handler for file modifications
         this.updateHandler = () => {
             if (this.lockRefreshEnabled) return; // Skip automatic update when locked
-            
+
             const activeFile = this.app.workspace.getActiveFile();
             if (!activeFile) return;
 
@@ -148,7 +148,7 @@ export class EquationArrangePanel extends ItemView {
         // Poll to check if active file changed (using current setting value)
         this.fileCheckInterval = window.setInterval(() => {
             if (this.lockRefreshEnabled) return; // Skip check when locked
-            
+
             const currentFile = this.app.workspace.getActiveFile();
             const currentPath = currentFile?.path || "";
             // Only refresh if file changed
@@ -170,6 +170,25 @@ export class EquationArrangePanel extends ItemView {
         // Register drop handler for equation drag-drop
         this.registerDropEquationHandler();
         await this.refreshView();
+    }
+
+    private async forceMathRefresh(container?: HTMLElement) {
+        // Pick the math container if not provided
+        const el = container ?? this.viewPanel;
+        if (!el) return;
+        // Ensure MathJax exists
+        if (!window.MathJax) await loadMathJax();
+
+        // Flush DOM writes and wait for layout to settle
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 16)); // ~1 frame at 60Hz
+
+        try {
+            // Re-typeset only within this panel to avoid global work
+            await window.MathJax!.typesetPromise([el]);
+        } catch (e) {
+            console.error("Math refresh failed", e);
+        }
     }
 
     onunload(): void {
@@ -373,7 +392,7 @@ export class EquationArrangePanel extends ItemView {
 
     private async getEquationsToRender(filePath: string): Promise<EquationMatch[]> {
         let equations: EquationMatch[];
-        
+
         if (this.lockRefreshEnabled) {
             // Use cached equations when lock is enabled
             equations = this.cachedEquations;
@@ -381,16 +400,16 @@ export class EquationArrangePanel extends ItemView {
             // Fetch equations for the given file path
             const fetchedEquations = await this.plugin.equationCache.getEquationsForFile(filePath);
             equations = fetchedEquations || [];
-            
+
             // Update cache when not locked
             this.cachedEquations = equations;
             this.cachedFilePath = filePath;
         }
-        
+
         if (equations.length === 0) {
             return [];
         }
-        
+
         // Filter equations based on search query (always applied)
         const filteredEquations = this.filterEquations(equations);
         return filteredEquations;
@@ -907,6 +926,7 @@ export class EquationArrangePanel extends ItemView {
         // Render the equation
         if (!window.MathJax) await loadMathJax();
         mathDiv.replaceChildren(window.MathJax!.tex2chtml(equation.content, { display: true }));
+        await this.forceMathRefresh(mathDiv);
 
         // Add click handler to jump to equation in the editor
         // Ctrl/Cmd + double click always creates new panel on right
