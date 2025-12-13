@@ -15,6 +15,7 @@ import {
     setToolbarDefaultState
 } from "./toolbar";
 import { isMarkdownFilePath } from "@/utils/misc/fileProcessor";
+import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -90,7 +91,7 @@ export class EquationArrangePanel extends ItemView {
         // Debounced handler for file modifications
         this.updateHandler = () => {
             if (this.lockRefreshEnabled) return; // Skip automatic update when locked
-            
+
             const activeFile = this.app.workspace.getActiveFile();
             if (!activeFile) return;
 
@@ -148,7 +149,7 @@ export class EquationArrangePanel extends ItemView {
         // Poll to check if active file changed (using current setting value)
         this.fileCheckInterval = window.setInterval(() => {
             if (this.lockRefreshEnabled) return; // Skip check when locked
-            
+
             const currentFile = this.app.workspace.getActiveFile();
             const currentPath = currentFile?.path || "";
             // Only refresh if file changed
@@ -171,7 +172,7 @@ export class EquationArrangePanel extends ItemView {
         this.registerDropEquationHandler();
         await this.refreshView();
     }
-
+    
     onunload(): void {
         // Clean up debounce timers
         if (this.refreshDebounceTimer !== null) {
@@ -373,7 +374,7 @@ export class EquationArrangePanel extends ItemView {
 
     private async getEquationsToRender(filePath: string): Promise<EquationMatch[]> {
         let equations: EquationMatch[];
-        
+
         if (this.lockRefreshEnabled) {
             // Use cached equations when lock is enabled
             equations = this.cachedEquations;
@@ -381,16 +382,16 @@ export class EquationArrangePanel extends ItemView {
             // Fetch equations for the given file path
             const fetchedEquations = await this.plugin.equationCache.getEquationsForFile(filePath);
             equations = fetchedEquations || [];
-            
+
             // Update cache when not locked
             this.cachedEquations = equations;
             this.cachedFilePath = filePath;
         }
-        
+
         if (equations.length === 0) {
             return [];
         }
-        
+
         // Filter equations based on search query (always applied)
         const filteredEquations = this.filterEquations(equations);
         return filteredEquations;
@@ -907,6 +908,7 @@ export class EquationArrangePanel extends ItemView {
         // Render the equation
         if (!window.MathJax) await loadMathJax();
         mathDiv.replaceChildren(window.MathJax!.tex2chtml(equation.content, { display: true }));
+        await forceMathRefresh(mathDiv);
 
         // Add click handler to jump to equation in the editor
         // Ctrl/Cmd + double click always creates new panel on right

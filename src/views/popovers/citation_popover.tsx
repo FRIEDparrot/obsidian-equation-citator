@@ -19,6 +19,7 @@ import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigation";
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
+import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
 
 /**
  * Citaton Popover Class, render the equations in the popover 
@@ -153,6 +154,7 @@ export async function renderEquationWrapper(
     if (!window.MathJax) await loadMathJax();
     const eqTag = parseEquationTag(eq.md);
     equationDiv.replaceChildren(window.MathJax!.tex2chtml(eqTag.content, { display: true }));
+    await forceMathRefresh(equationDiv);
     // Add click effects to each equation
     addClickEffects(equationWrapper);
     if (addLinkJump) {
