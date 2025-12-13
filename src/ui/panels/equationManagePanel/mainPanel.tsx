@@ -181,7 +181,7 @@ export class EquationArrangePanel extends ItemView {
 
         // Flush DOM writes and wait for layout to settle
         await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 16)); // ~1 frame at 60Hz
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 20)); // changed to 50Hz
 
         try {
             // Re-typeset only within this panel to avoid global work
