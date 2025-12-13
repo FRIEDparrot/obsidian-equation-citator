@@ -15,6 +15,7 @@ import {
     setToolbarDefaultState
 } from "./toolbar";
 import { isMarkdownFilePath } from "@/utils/misc/fileProcessor";
+import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -171,26 +172,7 @@ export class EquationArrangePanel extends ItemView {
         this.registerDropEquationHandler();
         await this.refreshView();
     }
-
-    private async forceMathRefresh(container?: HTMLElement) {
-        // Pick the math container if not provided
-        const el = container ?? this.viewPanel;
-        if (!el) return;
-        // Ensure MathJax exists
-        if (!window.MathJax) await loadMathJax();
-
-        // Flush DOM writes and wait for layout to settle
-        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-        await new Promise<void>(resolve => setTimeout(() => resolve(), 20)); // changed to 50Hz
-
-        try {
-            // Re-typeset only within this panel to avoid global work
-            await window.MathJax!.typesetPromise([el]);
-        } catch (e) {
-            console.error("Math refresh failed", e);
-        }
-    }
-
+    
     onunload(): void {
         // Clean up debounce timers
         if (this.refreshDebounceTimer !== null) {
@@ -926,7 +908,7 @@ export class EquationArrangePanel extends ItemView {
         // Render the equation
         if (!window.MathJax) await loadMathJax();
         mathDiv.replaceChildren(window.MathJax!.tex2chtml(equation.content, { display: true }));
-        await this.forceMathRefresh(mathDiv);
+        await forceMathRefresh(mathDiv);
 
         // Add click handler to jump to equation in the editor
         // Ctrl/Cmd + double click always creates new panel on right
