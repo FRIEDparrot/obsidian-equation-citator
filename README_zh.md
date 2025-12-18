@@ -1,4 +1,6 @@
-<center><div width="100%"><img src="./img/Equation_Citator_header.png" width="65%"></div></center>
+<center><div>
+  <img src="img/Heading_img.png" style="max-height:100px; max-width:65%" alt="Stars">
+</div></center>
 
 <center><div width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.1-blue" alt="Release">
@@ -12,15 +14,17 @@
 
 ---
 
-🚀 **快速开始**：请参阅 [快速开始](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Quick%20Start.md) 了解基本规则、语法和最重要的操作。只需不到 5 分钟，即可让一切顺利运行。
+🚀 **快速开始**：请参阅 [快速开始](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) 了解基本规则、语法和最重要的操作。只需不到 5 分钟，即可让一切顺利运行。
 
 ✨ **完整功能与更新**：详见 [更新日志](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md)。
 
 📹 **视频教程**：如果本插件下载量达到 5000 或本仓库获得 50 个星标，即将推出。
 
+> 本插件支持 [typst 风格自动编号](https://github.com/azyarashi/obsidian-typst-mate)。您可以使用 `设置 > 分类 > 其他设置 > 启用 typst 模式` 来启用它。
+
 ## 🛠️ 安装方法
 
-1.  您可以在 Obsidian 社区插件中下载（`设置` > `第三方插件` > `浏览` 并搜索 `equation-citator`）。
+1.  在该插件发布到 Obsidian 社区插件后，您可以从社区插件中下载（`设置` > `第三方插件` > `浏览` 并搜索 `equation-citator`）。
 
 2.  或者，您也可以直接从最新发布页面下载 `main.js`、`manifest.json` 和 `style.css` 文件，然后将它们放入您 Obsidian 库根目录下的 `.obsidian/plugins/equation-citator` 文件夹中。
 
@@ -74,12 +78,19 @@
 
 我作为业余爱好开发了这个插件，并在日常工作中使用它。它完全免费供所有人使用。
 
-**随时欢迎贡献者和维护者**：
+- 💖 如果有人能帮助我维护这个插件，我将非常高兴（因为我在学校期间很忙）。
 
-- 您可以通过 Fork 本仓库、提交 PR 并描述您所做的更改来为这个插件做出贡献（**提交前请仔细测试您的代码！**）。
-- 如果有人能帮助我维护这个插件，我将非常高兴（因为我在学校期间很忙）。
+**贡献者和维护者随时欢迎**：
+- 您可以通过简单地 Fork 此仓库并提交 PR 来为这个插件做出贡献：
+  - 1. **提交 PR 前请仔细测试您的代码！**。
+  - 2. 将您所做的更改添加到 `CHANGELOG.md` 中。（如果 `CHANGELOG.md` 中没有计划新的次要版本，请使用下一个补丁版本号）
+  - 3. 我们有 CI 检查在合并 PR 之前，请确保您的代码通过所有检查。
 
-同时，如果您对这个插件有建议和问题，请随时在 issue 页面留言。
+> [!WARNING]
+> 
+> 提交 PR 时，请将其提交到 `dev-latest` 分支，这是最新的开发分支，为了方便我们测试和调试，我会始终将我的开发分支同步到此分支，以防止潜在的合并冲突。
+
+感谢 [@azyarashi](https://github.com/azyarashi) 的合作和对插件的重大改进。我也感谢所有建议有用新功能和增强的用户。
 
 最后，如果您觉得这个插件对您有帮助，可以考虑在此赞助 ☕️：
 

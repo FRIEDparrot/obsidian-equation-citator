@@ -13,7 +13,7 @@
 
 ---
 
-🚀 **Quick Start** : see [Quick Start](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials/Quick%20Start.md) for basic rules, syntax, and most important operations. It only takes < 5 mins but will make everything go smoothly.
+🚀 **Quick Start** : see [Quick Start](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for basic rules, syntax, and most important operations. It only takes < 5 mins but will make everything go smoothly.
 
 ✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details. 
 
@@ -69,6 +69,8 @@ If you encounter any bug, please **provide the following information** on the is
 2.  The relevant markdown text that triggers the issue.  
 3.  Enable debug mode in the settings tab, and provide the console log (Ctrl + Shift + I in Obsidian). 
 
+Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
+
 > [!TIP] 
 > Since this plugin have cache mechanism for better performance, normal delay or no in-time update is a normal cache-related behavior. So you may wait several seconds, or re-open file or restart obsidian to ensure your issue is not just a normal cache-related behavior.
 
@@ -83,7 +85,7 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 - You can contribute to this plugin by simply forking this repo and submitting a PR:
   - 1. **Please test your code carefully before submitting a PR!**. 
   - 2. add what you have done into `CHANGELOG.md`. (Use the next patch version number if a neww minor version is not planned in `CHANGELOG.md`)
-  - 3. We have some CI check before merging PR, please make sure your code passes all the checks (new code should pass quality checks).
+  - 3. We have some CI check before merging PR, please make sure your code passes all the checks.
 
 > [!WARNING] 
 > 
@@ -91,8 +93,6 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 
 
 Thanks to [@azyarashi](https://github.com/azyarashi) for collaboration and substantial improvements to the plugin. I also appreciate all the users who suggested useful new features and enhancements.
-
-Also, if u have suggestions and questions for this plugin, feel free to leave it in the issue page.
 
 Finally, if you find this plugin helpful, consider buy me a cup of ☕️:
 

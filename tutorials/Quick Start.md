@@ -20,7 +20,7 @@ Code block
 
 ### (2) Equation block  
 1.  We only cite equation blocks, not cite inline equations. 
-2. For a correct-written equation block,  **NOT WRITE ANY OTHER CONTENT IN THE  LINE OF EQUATION BLOCK**. e.g. :  
+2. For a correct-written equation block,  **NOT WRITE ANY OTHER CONTENT IN THE  LINE OF EQUATION BLOCK** (except the quote sign before it). e.g. :  
 
 ✅ CORRECT EXAMPLES :   
 ```latex
