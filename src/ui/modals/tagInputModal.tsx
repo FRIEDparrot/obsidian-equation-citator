@@ -22,7 +22,7 @@ export default class TagInputModal extends Modal {
 
         this.inputEl = contentEl.createEl('input', {
             type: 'text',
-            placeholder: 'e.g., eq:1.2.3',
+            placeholder: 'e.g., 1.2.3',
             cls: 'ec-tag-input-modal'
         });
 
