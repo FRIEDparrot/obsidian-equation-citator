@@ -203,12 +203,29 @@ export function getAutoNumberInCursor(
     return null;
 }
 
-export function detectIllegalEquationBuffer(buffer: string[]): boolean {
-    const full = buffer.join("\n").replace(/\n/g, "").trim();
-    const indexes = [...full.matchAll(equationBlockBracePattern)].map(m => m.index);
-    if (indexes.length < 2) return false;
+/**
+ * Detect illegal nested $$ in equation string 
+ * @param eqStr 
+ * @returns line number of illegal, -1 if no illegal 
+ */
+export function detectIllegalEquation(eqStr: string): number {
+    const indexes = [...eqStr.matchAll(equationBlockBracePattern)].map(m => m.index);
+    if (indexes.length < 2) return -1;  // no illegal
     const first = indexes[0], last = indexes[indexes.length - 1];
-    return indexes.some(i => i > first && i < last);
+    // 1. if there is any $$ in between first and last, then illegal
+    // 2. if the last index is not the end of string-2, then illegal 
+    // 3. since we only parse line startwith $$, no need to detect prefix 
+    const suffix = eqStr.slice(last + 2);
+    if (suffix.trim().length > 0) {
+        const lines = eqStr.substring(0, last).split("\n");
+        return lines.length - 1;  // return line number of illegal
+    }
+    const illegalIndex = indexes.find(i => i > first && i < last);
+    if (illegalIndex !== undefined) {
+        const lines = eqStr.substring(0, illegalIndex).split("\n");
+        return lines.length - 1;  // return line number of illegal
+    }
+    return -1;  // no illegal
 }
 
 /**
@@ -306,11 +323,13 @@ export function autoNumberEquations(
     }
 
     const handleIllegalEquationBuffer = (lineNum: number) => {
-        // detect illegal equation buffer first 
-        const illegal = detectIllegalEquationBuffer(equationBuffer);
-        if (illegal) {
-            new Notice(`Detected illegal nested $$ in equation block around line ${lineNum + 1}. Please fix the equation block first.`);
-            throw new Error(`Markdown parsing error: Illegal nested $$ in equation block around line ${lineNum + 1}. This could lead to serious auto number error, so stop parsing.`);
+        // detect illegal equation buffer first (single line will considered as buffer if illegal)
+        const eqStr = equationBuffer.join("\n");
+        const illegal = detectIllegalEquation(eqStr);
+        if (illegal >= 0) {
+            const lineNumOfIllegal = lineNum - (equationBuffer.length - 1) + illegal;
+            new Notice(`Illegal $$ in equation block at line ${lineNumOfIllegal + 1}. Please fix it first.`);
+            throw new Error(`Markdown parsing error: Illegal nested $$ in equation block around line ${lineNumOfIllegal + 1}. This could lead to serious auto number error, so stop parsing.`);
         }
     }
 
