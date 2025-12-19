@@ -286,6 +286,7 @@ export function autoNumberEquations(
 
     const newTagMapping = new Map<string, string>();  /** store new tag mapping */
     const result: string[] = [];
+    let currentEqBlockStartLine = -1;
 
     const addTagMapping = (oldTag: string | undefined, newTag: string) => {
         // add tag mapping only when there is no old tags (only map first occurrence)
@@ -327,7 +328,7 @@ export function autoNumberEquations(
         const eqStr = equationBuffer.join("\n");
         const illegal = detectIllegalEquation(eqStr);
         if (illegal >= 0) {
-            const lineNumOfIllegal = lineNum - (equationBuffer.length - 1) + illegal;
+            const lineNumOfIllegal = lineNum + illegal;
             new Notice(`Illegal $$ in equation block at line ${lineNumOfIllegal + 1}. Please fix it first.`);
             throw new Error(`Markdown parsing error: Illegal nested $$ in equation block around line ${lineNumOfIllegal + 1}. This could lead to serious auto number error, so stop parsing.`);
         }
@@ -364,7 +365,7 @@ export function autoNumberEquations(
         if (inEquationBlock) {
             equationBuffer.push(parseResult.cleanedLine.trim());
             if (parseResult.isEquationBlockEnd) {
-                handleIllegalEquationBuffer(i);
+                handleIllegalEquationBuffer(currentEqBlockStartLine);
                 inEquationBlock = false;
                 const finalEquation = processEquation(equationBuffer.join("\n"));
                 const fullEquationLines = finalEquation.split("\n");
@@ -392,7 +393,7 @@ export function autoNumberEquations(
         if (parseResult.isEquationBlockStart) {
             inEquationBlock = true;
             equationBuffer.push(parseResult.cleanedLine.trim());
-
+            currentEqBlockStartLine = i;
             continue;
         }
         result.push(line);
@@ -400,7 +401,7 @@ export function autoNumberEquations(
 
     // Handle unclosed equation blocks
     if (inEquationBlock && equationBuffer.length > 0) {
-        handleIllegalEquationBuffer(lines.length - 1);
+        handleIllegalEquationBuffer(currentEqBlockStartLine);
         const finalEquation = processEquation(equationBuffer.join("\n"));
         const fullEquationLines = finalEquation.split("\n");
         result.push(fullEquationLines.map((c) => quotePrefix + c).join("\n"));
