@@ -7,6 +7,7 @@
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
     <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads" alt="Downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
+  <img src="https://sonarcloud.io/api/project_badges/measure?project=FRIEDparrot_obsidian-equation-citator&metric=alert_status" alt="Quality Gate">
 </span></div></center>
 <center><b>English</b> | <a href="README_zh.md" target="_blank"><b>简体中文</b></a></center>
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4> </center> 

@@ -291,6 +291,10 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 - [x] Fix the bug that change widget size settings don't take effect.
 - [x] Fix [bug #119](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/119), Cross file jump and citation now work correctly when equation panel locks refresh. 
 - [x] Fix [bug #118](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/118), when file is firstly opened, the panel should be rendered correctly.
+- [x] Fix [bug #126](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/126).
+  1. when put text to make illegal equaion at the last equation position, the auto-numbering will stop. 
+  2. corrected the line number information shown in notice.
+  3. detect single-line illegal equation.
 
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 
