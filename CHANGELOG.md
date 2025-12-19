@@ -295,6 +295,7 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
   1. when put text to make illegal equaion at the last equation position, the auto-numbering will stop. 
   2. corrected the line number information shown in notice.
   3. detect single-line illegal equation.
+  4. For some case, the code block is counted in, which leads to incorrect line number information. Now fixed.
 
 ### 🚢 Comming Soon : 
 1. Auto-number and citation complete add for tables and figures 
