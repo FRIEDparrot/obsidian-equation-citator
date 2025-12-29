@@ -1007,6 +1007,11 @@ body.em-center-callout-tables .callout table {
     opacity: 0.3;
   }
 }
+/* Dark theme specific adjustments for drag cursor */
+.theme-dark .ec-drag-cursor {
+  background-color: var(--interactive-accent, #7c3aed);
+}
+
 .ec-equation-tag {
   position: absolute;
   display: none;
