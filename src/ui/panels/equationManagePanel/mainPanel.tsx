@@ -426,6 +426,7 @@ export class EquationArrangePanel extends ItemView {
                 this.viewPanel.createDiv({ text: "No active file", cls: "ec-empty-message" });
             }
             this.currentEquationHash = hashEquations([]);
+            this.currentViewMode = this.viewMode;
             return;
         }
 
@@ -437,6 +438,7 @@ export class EquationArrangePanel extends ItemView {
                 this.viewPanel.createDiv({ text: "File not found", cls: "ec-empty-message" });
             }
             this.currentEquationHash = hashEquations([]);
+            this.currentViewMode = this.viewMode;
             return;
         }
 
@@ -497,6 +499,7 @@ export class EquationArrangePanel extends ItemView {
                 });
             }
             this.currentEquationHash = hashEquations([]);
+            this.currentViewMode = this.viewMode;
             return;
         }
 
