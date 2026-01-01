@@ -282,6 +282,7 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
   - [x] Avoid "Settings" in settings tab 
   - [x] Remove check updates button 
   - [x] Refactor section headings creation to use `new Settings().setName().setTitle()`
+- [x] Refactored the rendering function for equation Manage Panel to improve readability and maintainability.
 
 🐛 Bug Fixes :
 - [x] Fix [bug #112](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/112), equations now correctly auto-numbered when `auto number equations in quotes` is enabled.
