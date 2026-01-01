@@ -60,9 +60,9 @@ export class EquationArrangePanel extends ItemView {
     public enableRenderHeadingOnly = false; // in outline mode, only render headings without equations 
 
     private lastDragTargetView: MarkdownView | null = null;
-    private refreshDebounceTimer: number | null = null;
-    private searchDebounceTimer: number | null = null;
-    private fileCheckInterval: number | null = null;
+    private refreshDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    private fileCheckInterval: ReturnType<typeof setTimeout> | null = null;
 
     // last state stored for avoid frequent refresh
     private currentEquationHash = "";
@@ -78,12 +78,12 @@ export class EquationArrangePanel extends ItemView {
     public cachedFilePath: string = "";
 
     // Event handlers
-    private updateHandler: () => void;
+    private readonly updateHandler: () => void;
     private dropHandler: (evt: DragEvent) => void;
     private dragoverHandler: (evt: DragEvent) => void;
     private dragendHandler: () => void;
 
-    constructor(private plugin: EquationCitator, leaf: WorkspaceLeaf) {
+    constructor(private readonly plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
 
         this.currentActiveFile = "";  // enforce refresh when the panel is opened
@@ -105,7 +105,7 @@ export class EquationArrangePanel extends ItemView {
             }
 
             // Schedule refresh using current setting value
-            this.refreshDebounceTimer = window.setTimeout(
+            this.refreshDebounceTimer = globalThis.setTimeout(
                 () => {
                     void this.refreshView();
                     this.refreshDebounceTimer = null;
@@ -147,7 +147,7 @@ export class EquationArrangePanel extends ItemView {
         );
 
         // Poll to check if active file changed (using current setting value)
-        this.fileCheckInterval = window.setInterval(() => {
+        this.fileCheckInterval = globalThis.setInterval(() => {
             if (this.lockRefreshEnabled) return; // Skip check when locked
 
             const currentFile = this.app.workspace.getActiveFile();
@@ -211,20 +211,20 @@ export class EquationArrangePanel extends ItemView {
             // Check if we're dragging equation data
             const types = evt.dataTransfer?.types || [];
 
-            if (evt.dataTransfer && types.includes('ec-equations/drop-citaions')) {
+            if (evt.dataTransfer && types.includes('ec-equations/drop-citations')) {
                 // show different type of cursor according to if its editor 
                 const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
                 if (this.lastDragTargetView && targetView !== this.lastDragTargetView) {
                     clearDragCursor(this.lastDragTargetView);  // clear previous drag cursor
                 }
                 this.lastDragTargetView = targetView;
-                if (!targetView || !targetView.editor) {
-                    evt.dataTransfer.dropEffect = 'none';
-                } else {
+                if (targetView?.editor) {
                     evt.preventDefault();
                     evt.dataTransfer.dropEffect = 'copy';
                     // Move the actual editor cursor to the drag position
                     drawCursorAtDragPosition(evt, targetView);
+                } else {
+                    evt.dataTransfer.dropEffect = 'none';
                 }
             }
         };
@@ -238,7 +238,7 @@ export class EquationArrangePanel extends ItemView {
             clearDragCursor(targetView);
 
             // Try to get equation data
-            const data = evt.dataTransfer?.getData('ec-equations/drop-citaions');
+            const data = evt.dataTransfer?.getData('ec-equations/drop-citations');
             if (!data) return;   // no data to drop
 
             evt.preventDefault();
@@ -310,7 +310,10 @@ export class EquationArrangePanel extends ItemView {
         const citationPrefix = this.plugin.settings.citationPrefix;
         let citation: string;
 
-        if (!isTargetSameAsSource) {
+        if (isTargetSameAsSource) {
+            // Same-file citation: $\ref{citationPrefix}{tag}$
+            citation = String.raw`$\ref{${citationPrefix}${tag}}$`;
+        } else {
             // Cross-file citation: need to create or find footnote
             const footnoteNum = await checkFootnoteExists(
                 this.plugin,
@@ -320,12 +323,8 @@ export class EquationArrangePanel extends ItemView {
             );
 
             if (!footnoteNum) return;
-
             // Build cross-file citation: $\ref{citationPrefix}{footnoteNum}^{tag}}$
-            citation = `$\\ref{${citationPrefix}${footnoteNum}^{${tag}}}$`;
-        } else {
-            // Same-file citation: $\ref{citationPrefix}{tag}$
-            citation = `$\\ref{${citationPrefix}${tag}}$`;
+            citation = String.raw`$\ref{${citationPrefix}${footnoteNum}^{${tag}}}$`;
         }
 
         let dropPosition = getEditorDropLocation(editor, evt);
@@ -405,7 +404,7 @@ export class EquationArrangePanel extends ItemView {
             clearTimeout(this.searchDebounceTimer);
             this.searchDebounceTimer = null;
         }
-        this.searchDebounceTimer = window.setTimeout(() => {
+        this.searchDebounceTimer = globalThis.setTimeout(() => {
             void this.refreshView();
             this.searchDebounceTimer = null;
         }, timeout); // adjust delay as needed
@@ -542,7 +541,7 @@ export class EquationArrangePanel extends ItemView {
             const searchContent = eq.content.toLowerCase();
             if (searchContent.includes(query)) return true;
             // Search in tag if exists
-            if (eq.tag && eq.tag.toLowerCase().includes(query)) return true;
+            if (eq.tag?.toLowerCase().includes(query)) return true;
             return false;
         }).filter(tagFilter);
     }
@@ -673,7 +672,7 @@ export class EquationArrangePanel extends ItemView {
 
     private groupEquationsByHeadings(equations: EquationMatch[], headings: Heading[]): EquationGroup[] {
         const groups: EquationGroup[] = [];
-        const eqs_sorted = equations.sort((a, b) => a.lineStart - b.lineStart);
+        const eqs_sorted = equations.toSorted((a, b) => a.lineStart - b.lineStart);
 
         // Group non-heading equations first (if any exist before first heading)
         const nonHeadingEquations = headings.length > 0
@@ -867,7 +866,6 @@ export class EquationArrangePanel extends ItemView {
                 }
             });
         }
-        return;
     }
 
     private async jumpToHeading(heading: Heading): Promise<void> {
@@ -892,8 +890,8 @@ export class EquationArrangePanel extends ItemView {
 
         // Make equation draggable
         eqDiv.draggable = true;
-        eqDiv.setAttribute('data-equation-tag', equation.tag || '');
-        eqDiv.setAttribute('data-equation-content', equation.content);
+        eqDiv.dataset.equationTag = equation.tag || '';
+        eqDiv.dataset.equationContent = equation.content;
 
         // Tag section (if exists)
         if (equation.tag) {
@@ -953,7 +951,7 @@ export class EquationArrangePanel extends ItemView {
                 lineEnd: equation.lineEnd
             };
             const dataString = JSON.stringify(equationData);
-            event.dataTransfer.setData('ec-equations/drop-citaions', dataString);
+            event.dataTransfer.setData('ec-equations/drop-citations', dataString);
             event.dataTransfer.effectAllowed = 'copy';
         });
 

@@ -257,7 +257,7 @@
     } 
     /* Visual cue on the dragged equation */
     &.ec-is-dragging {
-        opacity: 0.8;
+        opacity: 0.5;
         transition: opacity 0.2s ease;
         &:hover {
             cursor: grabbing;

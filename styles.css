@@ -979,7 +979,7 @@ body.em-center-callout-tables .callout table {
   /* Visual cue on the dragged equation */
 }
 .ec-equation-item.ec-is-dragging {
-  opacity: 0.8;
+  opacity: 0.5;
   transition: opacity 0.2s ease;
 }
 .ec-equation-item.ec-is-dragging:hover {
