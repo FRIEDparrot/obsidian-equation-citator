@@ -109,7 +109,7 @@ async function toggleSearchMode(panel: EquationArrangePanel, enable: boolean): P
 async function handleCollapseAll(panel: EquationArrangePanel): Promise<void> {
     const allHeadings = panel.viewPanel.querySelectorAll('.ec-heading-item');
     allHeadings.forEach((heading) => {
-        const lineNum = parseInt(heading.getAttribute('data-line') || '0');
+        const lineNum = Number.parseInt((heading as HTMLElement).dataset.line || '0');
         panel.collapsedHeadings.add(lineNum);
     });
     await panel.refreshView();
@@ -176,7 +176,7 @@ function renderToolBarSubPanel(panel: EquationArrangePanel, subPanel: HTMLElemen
         attr: { "aria-label": "Hide tag button" },
     });  // placeholder for tag button
     panel.toggleTagShowButton.addEventListener("click", () => {
-        const mode = panel.showEquationTags ? false : true;
+        const mode = !panel.showEquationTags;
         toggleTagShow(panel, mode);
     });
 
@@ -260,7 +260,7 @@ export function renderToolbar(panel: EquationArrangePanel, panelWrapper: HTMLEle
         const isExpanded = panel.extendToolBarButton.hasClass("is-active");
         panel.extendToolBarButton.toggleClass("is-active", !isExpanded);
         panel.subToolbarPanel.toggleClass("is-expanded", !isExpanded);
-        setIcon(panel.extendToolBarButton, !isExpanded ? "chevron-up" : "chevron-down");
+        setIcon(panel.extendToolBarButton, isExpanded ? "chevron-down" : "chevron-up");
     });
 
     // Quit search button (hidden by default)

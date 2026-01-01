@@ -172,7 +172,7 @@ export class EquationArrangePanel extends ItemView {
         this.registerDropEquationHandler();
         await this.refreshView();
     }
-    
+
     onunload(): void {
         // Clean up debounce timers
         if (this.refreshDebounceTimer !== null) {
@@ -410,6 +410,75 @@ export class EquationArrangePanel extends ItemView {
         }, timeout); // adjust delay as needed
     }
 
+    private renderEmptyPanelView(): void {
+        if (this.viewPanel) {
+            this.viewPanel.createDiv({
+                text: this.searchQuery ? "No equation match your search" : "No equation found in current file",
+                cls: "ec-empty-message"
+            });
+        }
+        this.currentEquationHash = hashEquations([]);
+    }
+
+    public async handleOutlineViewRefresh(
+        equations: EquationMatch[],
+        headings: Heading[],
+        viewStateEqual: boolean
+    ): Promise<void> {
+        // If headings-only mode is enabled, render without equations
+        const displayEquations = this.enableRenderHeadingOnly ? [] : (equations || []);
+
+        const equationsHash = hashEquations(displayEquations);
+        const equationsEqual = (equationsHash === this.currentEquationHash);
+        const collapseEqual = (
+            this.currentCollapseHeadings.size === this.collapsedHeadings.size &&
+            [...this.currentCollapseHeadings].every(x => this.collapsedHeadings.has(x))
+        );
+        const headingsEqual = (
+            headings.length === this.currentHeadings.length &&
+            headings.every((h, i) => h.level === this.currentHeadings[i].level && h.text === this.currentHeadings[i].text)
+        );
+        // viewState + equation + headings + collapsed state all equal 
+        if (viewStateEqual && equationsEqual && headingsEqual && collapseEqual) {
+            Debugger.log("View state equal, no need to refresh");
+            return;
+        }
+
+        // Update state
+        this.currentEquationHash = equationsHash;
+        this.currentCollapseHeadings = new Set(this.collapsedHeadings);
+        this.currentHeadings = headings;
+
+        this.viewPanel?.empty();
+        if (headings.length === 0 && displayEquations.length === 0) {
+            this.renderEmptyPanelView();
+            return;
+        }
+        await this.renderOutlineView(displayEquations, headings);
+    }
+    
+    public async handleListViewRefresh(
+        equations: EquationMatch[],
+        viewStateEqual: boolean,
+    ): Promise<void> {
+        // List mode: Handle no equations case
+        const equationsHash = hashEquations(equations);
+        const equationsEqual = (equationsHash === this.currentEquationHash);
+
+        if (viewStateEqual && equationsEqual) {
+            Debugger.log("View state equal, no need to refresh");
+            return;
+        }
+        // Update state
+        this.currentEquationHash = equationsHash;
+        this.viewPanel?.empty();
+        if (equations.length === 0) {
+            this.renderEmptyPanelView();
+            return;
+        }
+        await this.renderRowsView(equations);
+    }
+
     /**
      * refresh the equations render view
      */
@@ -442,90 +511,27 @@ export class EquationArrangePanel extends ItemView {
         // Fetch and filter equations for the current file
         const equations = await this.getEquationsToRender(activeFilePath);
 
+        // viewState => tool bar state
+        const viewStateEqual = (
+            this.viewMode === this.currentViewMode &&
+            this.sortMode === this.currentSortMode &&
+            this.filterEmptyHeadings === this.currentFilterEmptyHeadings
+        );
+        // re-assign view State  
+        this.currentViewMode = this.viewMode;
+        this.currentSortMode = this.sortMode;
+        this.currentFilterEmptyHeadings = this.filterEmptyHeadings;
+
         // In outline mode, always render headings even if no equations
         if (this.viewMode === "outline") {
             // Parse headings from the current file (respects lock mode)
             const fileContent = await this.app.vault.cachedRead(currentFile);
             const headings = parseHeadingsInMarkdown(fileContent);
-
-            // If headings-only mode is enabled, render without equations
-            const displayEquations = this.enableRenderHeadingOnly ? [] : (equations || []);
-
-            const equationsHash = hashEquations(displayEquations);
-            const setsEqual = (
-                this.currentCollapseHeadings.size === this.collapsedHeadings.size &&
-                [...this.currentCollapseHeadings].every(x => this.collapsedHeadings.has(x))
-            );
-            const headingsEqual = (
-                headings.length === this.currentHeadings.length &&
-                headings.every((h, i) => h.level === this.currentHeadings[i].level && h.text === this.currentHeadings[i].text)
-            );
-            const viewStateEqual = (
-                equationsHash === this.currentEquationHash &&
-                this.viewMode === this.currentViewMode &&
-                this.sortMode === this.currentSortMode &&
-                this.filterEmptyHeadings === this.currentFilterEmptyHeadings &&
-                setsEqual
-            );
-
-            // Update state
-            this.currentEquationHash = equationsHash;
-            this.currentViewMode = this.viewMode;
-            this.currentCollapseHeadings = new Set(this.collapsedHeadings);
-            this.currentSortMode = this.sortMode;
-            this.currentFilterEmptyHeadings = this.filterEmptyHeadings;
-            this.currentHeadings = headings;
-
-            if (viewStateEqual && headingsEqual) {
-                Debugger.log("View state equal, no need to refresh");
-                return;
-            }
-
-            this.viewPanel?.empty();
-            await this.renderOutlineView(displayEquations, headings);
-            return;
+            await this.handleOutlineViewRefresh(equations, headings, viewStateEqual);
         }
-
-        // List mode: Handle no equations case
-        if (!equations || equations.length === 0) {
-            if (this.viewPanel) {
-                this.viewPanel.empty();
-                this.viewPanel.createDiv({
-                    text: this.searchQuery ? "No equation match your search" : "No equation found in current file",
-                    cls: "ec-empty-message"
-                });
-            }
-            this.currentEquationHash = hashEquations([]);
-            return;
+        else {
+            await this.handleListViewRefresh(equations, viewStateEqual);
         }
-
-        const equationsHash = hashEquations(equations);
-        const setsEqual = (
-            this.currentCollapseHeadings.size === this.collapsedHeadings.size &&
-            [...this.currentCollapseHeadings].every(x => this.collapsedHeadings.has(x))
-        );
-        const viewStateEqual = (
-            equationsHash === this.currentEquationHash &&
-            this.viewMode === this.currentViewMode &&
-            this.sortMode === this.currentSortMode &&
-            this.filterEmptyHeadings === this.currentFilterEmptyHeadings &&
-            setsEqual
-        );
-
-        // Update state
-        this.currentEquationHash = equationsHash;
-        this.currentViewMode = this.viewMode;
-        this.currentCollapseHeadings = new Set(this.collapsedHeadings);
-        this.currentSortMode = this.sortMode;
-        this.currentFilterEmptyHeadings = this.filterEmptyHeadings;
-
-        if (viewStateEqual) {
-            Debugger.log("View state equal, no need to refresh");
-            return;
-        }
-
-        this.viewPanel?.empty();
-        await this.renderRowsView(equations);
     }
 
     private filterEquations(equations: EquationMatch[]): EquationMatch[] {
@@ -739,6 +745,37 @@ export class EquationArrangePanel extends ItemView {
         return subheadingIndices;
     }
 
+    private getHeadingMetadata(
+        group: EquationGroup,
+        allGroups: EquationGroup[],
+        currentIndex: number,
+        allEquations: EquationMatch[],
+        allHeadings: Heading[]
+    ) {
+        const hasDirectEquations = group.equations.length > 0;
+        const hasSubheadings = this.hasSubheadings(allGroups, currentIndex);
+        const hasContent = hasDirectEquations || hasSubheadings;
+
+        const headingIndexInAll = group.heading ? allHeadings.findIndex(h => h.line === group.heading?.line) : -1;
+        const totalEquationCount = headingIndexInAll >= 0
+            ? this.getTotalEquationsForHeading(allEquations, allHeadings, headingIndexInAll)
+            : group.equations.length;
+
+        const headingKey = group.heading ? group.heading.line : -1;
+        const isNoHeadingGroup = group.heading === null;
+        const isCollapsed = this.collapsedHeadings.has(headingKey);
+
+        return {
+            hasDirectEquations,
+            hasSubheadings,
+            hasContent,
+            totalEquationCount,
+            headingKey,
+            isNoHeadingGroup,
+            isCollapsed
+        };
+    }
+
     private async renderHeadingGroup(
         container: HTMLElement,
         allGroups: EquationGroup[],
@@ -747,74 +784,12 @@ export class EquationArrangePanel extends ItemView {
         allHeadings: Heading[]
     ): Promise<void> {
         const group = allGroups[currentIndex];
-        // Determine if this heading should have a chevron (has equations or subheadings)
-        const hasDirectEquations = group.equations.length > 0;
-        const hasSubheadings = this.hasSubheadings(allGroups, currentIndex);
-        const hasContent = hasDirectEquations || hasSubheadings;
+        const metadata = this.getHeadingMetadata(group, allGroups, currentIndex, allEquations, allHeadings);
+        const { hasDirectEquations, hasContent, headingKey, isCollapsed } = metadata;
 
-        // Calculate total equation count (including subheadings) for display
-        const headingIndexInAll = group.heading ? allHeadings.findIndex(h => h.line === group.heading?.line) : -1;
-        const totalEquationCount = headingIndexInAll >= 0
-            ? this.getTotalEquationsForHeading(allEquations, allHeadings, headingIndexInAll)
-            : group.equations.length;
-
-        // Use a special key for non-heading groups
-        const headingKey = group.heading ? group.heading.line : -1;
-        const isNoHeadingGroup = group.heading === null;
-
-        // Check if collapsed (no-heading group can be collapsed too)
-        const isCollapsed = this.collapsedHeadings.has(headingKey);
-
-        // Use special class for no-heading group
-        const headingClasses = isNoHeadingGroup
-            ? "ec-heading-item ec-no-heading-group"
-            : `ec-heading-item ec-heading-level-${group.relativeLevel}`;
-
-        const headingDiv = container.createDiv({
-            cls: headingClasses,
-            attr: { 'data-line': headingKey.toString() }   // Store the line number as data attribute 
-        });
-
-        // click to jump to heading location 
-        const headingHeader = headingDiv.createDiv("ec-heading-header ec-clickable");
-
-        // Collapse/expand icon - only show if has content
-        let collapseIcon: HTMLElement | null = null;
-        if (hasContent) {
-            collapseIcon = headingHeader.createSpan(`ec-collapse-icon ec-heading-collapse-icon-${group.absoluteLevel}`);
-            setIcon(collapseIcon, isCollapsed ? "chevron-right" : "chevron-down");
-        } else {
-            // Add empty space to align text properly
-            headingHeader.createSpan({ cls: "ec-collapse-icon-placeholder" });
-        }
-
-        // Heading text
-        const headingText = group.heading ? group.heading.text : "Equations without heading";
-        const headingTextSpan = headingHeader.createSpan({
-            cls: `ec-heading-text ec-heading-text-${group.absoluteLevel}`,  // here we use absolute level
-            text: headingText
-        });
-
-        // Make heading text clickable if it's a real heading (not no-heading group)
-        if (group.heading) {
-            headingTextSpan.addClass('ec-clickable');
-            // Click handler for heading text - jump to heading location
-            headingTextSpan.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent event bubbling
-                if (group.heading) {
-                    void this.jumpToHeading(group.heading);
-                }
-            });
-        }
-
-        // Equation count badge - show total count (including subheadings)
-        if (totalEquationCount > 0) {
-            headingHeader.createSpan({
-                cls: "ec-equation-count",
-                text: totalEquationCount.toString()
-            });
-        }
-
+        const headingDiv = this.createHeadingDiv(container, group, metadata);
+        const { collapseIcon } = this.createHeadingHeader(headingDiv, group, metadata);
+        
         // Create a content container that will hold subheadings and equations
         const contentContainer = headingDiv.createDiv("ec-heading-content");
 
@@ -845,27 +820,85 @@ export class EquationArrangePanel extends ItemView {
             );
         }
 
-        // Click handler for chevron - collapse/expand
-        if (hasContent && collapseIcon) {
-            const iconElement = collapseIcon;
-            collapseIcon.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent event bubbling
-                const isCurrentlyCollapsed = this.collapsedHeadings.has(headingKey);
+        this.attachCollapseHandler(hasContent, collapseIcon, headingKey, contentContainer);
+    }
 
-                // also refresh the previous state automatically
-                if (isCurrentlyCollapsed) {
-                    this.collapsedHeadings.delete(headingKey);
-                    this.currentCollapseHeadings.delete(headingKey);
-                    setIcon(iconElement, "chevron-down");
-                    contentContainer.show();
-                } else {
-                    this.collapsedHeadings.add(headingKey);
-                    this.currentCollapseHeadings.add(headingKey);
-                    setIcon(iconElement, "chevron-right");
-                    contentContainer.hide();
+    private createHeadingDiv(container: HTMLElement, group: EquationGroup, metadata: ReturnType<typeof this.getHeadingMetadata>): HTMLElement {
+        const headingClasses = metadata.isNoHeadingGroup
+            ? "ec-heading-item ec-no-heading-group"
+            : `ec-heading-item ec-heading-level-${group.relativeLevel}`;
+
+        return container.createDiv({
+            cls: headingClasses,
+            attr: { 'data-line': metadata.headingKey.toString() }
+        });
+    }
+
+    private createHeadingHeader(headingDiv: HTMLElement, group: EquationGroup, metadata: ReturnType<typeof this.getHeadingMetadata>) {
+        const headingHeader = headingDiv.createDiv("ec-heading-header ec-clickable");
+        const collapseIcon = this.createCollapseIcon(headingHeader, group, metadata);
+        this.createHeadingText(headingHeader, group);
+        this.createEquationCountBadge(headingHeader, metadata.totalEquationCount);
+
+        return { headingHeader, collapseIcon };
+    }
+
+    private createCollapseIcon(headingHeader: HTMLElement, group: EquationGroup, metadata: ReturnType<typeof this.getHeadingMetadata>): HTMLElement | null {
+        if (metadata.hasContent) {
+            const collapseIcon = headingHeader.createSpan(`ec-collapse-icon ec-heading-collapse-icon-${group.absoluteLevel}`);
+            setIcon(collapseIcon, metadata.isCollapsed ? "chevron-right" : "chevron-down");
+            return collapseIcon;
+        }
+        headingHeader.createSpan({ cls: "ec-collapse-icon-placeholder" });
+        return null;
+    }
+
+    private createHeadingText(headingHeader: HTMLElement, group: EquationGroup): void {
+        const headingText = group.heading ? group.heading.text : "Equations without heading";
+        const headingTextSpan = headingHeader.createSpan({
+            cls: `ec-heading-text ec-heading-text-${group.absoluteLevel}`,
+            text: headingText
+        });
+
+        if (group.heading) {
+            headingTextSpan.addClass('ec-clickable');
+            headingTextSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (group.heading) {
+                    void this.jumpToHeading(group.heading);
                 }
             });
         }
+    }
+
+    private createEquationCountBadge(headingHeader: HTMLElement, totalEquationCount: number): void {
+        if (totalEquationCount > 0) {
+            headingHeader.createSpan({
+                cls: "ec-equation-count",
+                text: totalEquationCount.toString()
+            });
+        }
+    }
+
+    private attachCollapseHandler(hasContent: boolean, collapseIcon: HTMLElement | null, headingKey: number, contentContainer: HTMLElement): void {
+        if (!hasContent || !collapseIcon) return;
+
+        collapseIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isCurrentlyCollapsed = this.collapsedHeadings.has(headingKey);
+
+            if (isCurrentlyCollapsed) {
+                this.collapsedHeadings.delete(headingKey);
+                this.currentCollapseHeadings.delete(headingKey);
+                setIcon(collapseIcon, "chevron-down");
+                contentContainer.show();
+            } else {
+                this.collapsedHeadings.add(headingKey);
+                this.currentCollapseHeadings.add(headingKey);
+                setIcon(collapseIcon, "chevron-right");
+                contentContainer.hide();
+            }
+        });
     }
 
     private async jumpToHeading(heading: Heading): Promise<void> {
