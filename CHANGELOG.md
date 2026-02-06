@@ -298,6 +298,6 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
   3. detect single-line illegal equation.
   4. For some case, the code block is counted in, which leads to incorrect line number information. Now fixed.
 
-### 🚢 Comming Soon : 
+### 🚢 Coming Soon : 
 1. Auto-number and citation complete add for  figures 
 2. Check citations of figures and tables, all in one 😄
