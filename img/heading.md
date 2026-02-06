@@ -1,3 +1,6 @@
+This is used for generate heading image in README.md, this file is not used for any other purpose.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,3 +44,4 @@
   <div class="banner-text">Equation Citator</div>
 </body>
 </html>
+```
