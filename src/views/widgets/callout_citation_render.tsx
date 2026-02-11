@@ -127,7 +127,7 @@ export function renderCalloutCitation(
 
         // Add multi-citation delimiter if needed
         if (multiCitationDelimiterRender && formattedCiteCalloutTags.length > 1 &&
-            tag !== formattedCiteCalloutTags[formattedCiteCalloutTags.length - 1] // not last one
+            tag !== formattedCiteCalloutTags.at(-1) // not last one
         ) {
             const multiDelimEl = document.createElement('span');
             multiDelimEl.className = 'em-math-citation-multi-delimiter em-callout-citation-multi-delimiter';

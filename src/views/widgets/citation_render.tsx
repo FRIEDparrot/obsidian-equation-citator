@@ -1,15 +1,14 @@
 import { Prec, RangeSetBuilder, StateField } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { HoverParent, MarkdownPostProcessorContext, Notice, TFile } from "obsidian";
+import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, editorInfoField, MarkdownView } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
-import { editorInfoField, MarkdownView } from "obsidian";
 import {
     CitationRef,
     splitContinuousCitationTags
 } from "@/utils/core/citation_utils";
-import { CitationWidget } from "@/views/widgets/citation_widget";
+import { CitationWidget, renderEquationCitation } from "@/views/widgets/citation_widget";
 import { FigureCitationWidget } from "@/views/widgets/figure_citation_widget";
 import { CalloutCitationWidget } from "@/views/widgets/callout_citation_widget";
 import { CitationCache } from "@/cache/citationCache";
@@ -18,7 +17,6 @@ import { CitationPopover } from "@/views/popovers/citation_popover";
 import { FigureCitationPopover } from "@/views/popovers/figure_citation_popover";
 import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popover";
 import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/string_processing/regexp_utils";
-import { renderEquationCitation } from "@/views/widgets/citation_widget";
 import { renderFigureCitation } from "@/views/widgets/figure_citation_render";
 import { renderCalloutCitation } from "@/views/widgets/callout_citation_render";
 import { find_array } from "@/utils/misc/array_utils";
@@ -60,7 +58,7 @@ function createTagSelectedField(settings: EquationCitatorSettings) {
             const sel = tr.state.selection.main;
             const selectedText = tr.state.sliceDoc(sel.from, sel.to).trim();
             const tagRegex = createEquationTagRegex(true, null, settings.enableTypstMode);
-            const tagContent = selectedText.match(tagRegex)?.[1] || null;
+            const tagContent = new RegExp(tagRegex).exec(selectedText)?.[1] || null;
 
             let tagSelected = false;
             if (tagRegex.test(selectedText)) {
@@ -137,7 +135,6 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                     update.focusChanged ||
                     update.selectionSet) {
                     this.decorations = this.buildDecorations(update.view);
-                    return;
                 }
             }
 
@@ -414,7 +411,6 @@ export async function mathCitationPostProcessor(
     if (citations.length === citeSpans.length && isFullArticle) {
         // render equation citation for each math span
         renderCiteSpans(citeSpans, citations);
-        return;  // finish rendering for this block 
     }
     else {
         // not full article, search part of the block for citations 
@@ -559,7 +555,7 @@ export function calloutCitationPostProcessor(
 
     codeCitations.forEach(code => {
         const citeContent = code.innerText.trim();
-        const match = citeContent.match(inlineMathPattern.source);
+        const match = new RegExp(inlineMathPattern.source).exec(citeContent);
 
         if (!match) return;
         const citation = matchNestedCitation(match[1], plugin.settings.citationPrefix);

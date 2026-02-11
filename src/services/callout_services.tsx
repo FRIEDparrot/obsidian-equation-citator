@@ -22,7 +22,7 @@ export interface RenderedCallout {
  */
 export class CalloutServices {
     constructor(
-        private plugin: EquationCitator
+        private readonly plugin: EquationCitator
     ) { }
 
     /**

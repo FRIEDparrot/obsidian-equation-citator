@@ -164,7 +164,7 @@ export const CitationSettingsTab = {
             .setDesc(SETTINGS_METADATA.continuousDelimiters.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-multi-delimiter-input");
-                text.setPlaceholder("e.g. '. - : \\_'");
+                text.setPlaceholder(String.raw`e.g. '. - : \_'`);
                 text.setValue(plugin.settings.continuousDelimiters);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
@@ -375,8 +375,8 @@ export const CitationSettingsTab = {
                             // Find a unique default prefix
                             let newPrefix = "custom:";
                             let counter = 1;
-                            const existingPrefixes = plugin.settings.calloutCitationPrefixes.map(p => p.prefix);
-                            while (existingPrefixes.includes(newPrefix)) {
+                            const existingPrefixes = new Set(plugin.settings.calloutCitationPrefixes.map(p => p.prefix));
+                            while (existingPrefixes.has(newPrefix)) {
                                 newPrefix = `custom${counter}:`;
                                 counter++;
                             }
