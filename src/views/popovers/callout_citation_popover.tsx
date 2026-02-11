@@ -70,7 +70,7 @@ export class CalloutCitationPopover extends HoverPopover {
         header.addClass("em-citation-header");
 
         // Find the matching prefix configuration to get the proper display name
-        const prefixConfig = this.plugin.settings.quoteCitationPrefixes.find(p => p.prefix === this.prefix);
+        const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === this.prefix);
         let displayName = "Items"; // Default fallback
 
         if (prefixConfig) {
@@ -155,7 +155,7 @@ async function renderCalloutWrapper(
     calloutLabel.addClass("em-callout-label", "em-callout-number");
 
     // Find the matching prefix configuration to get the format
-    const prefixConfig = plugin.settings.quoteCitationPrefixes.find(p => p.prefix === callout.prefix);
+    const prefixConfig = plugin.settings.calloutCitationPrefixes.find(p => p.prefix === callout.prefix);
     const format = prefixConfig?.format || `${callout.type}. #`;
     const formattedLabel = format.replace('#', callout.tag || '');
     calloutLabel.textContent = formattedLabel;

@@ -47,7 +47,7 @@ export function renderCalloutCitation(
         continuousRangeSymbol,
         continuousDelimiters,
         multiCitationDelimiterRender,
-        quoteCitationPrefixes,
+        calloutCitationPrefixes: quoteCitationPrefixes,
     } = plugin.settings;
 
     // Find the format for this prefix

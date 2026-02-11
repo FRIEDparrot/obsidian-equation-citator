@@ -12,7 +12,7 @@ export class CalloutCache extends BaseCache<CalloutMatch> {
     }
 
     protected parseMarkdown(markdown: string): CalloutMatch[] {
-        return parseAllCalloutsFromMarkdown(markdown, this.plugin.settings.quoteCitationPrefixes);
+        return parseAllCalloutsFromMarkdown(markdown, this.plugin.settings.calloutCitationPrefixes);
     }
 
     protected getCacheTypeName(): string {

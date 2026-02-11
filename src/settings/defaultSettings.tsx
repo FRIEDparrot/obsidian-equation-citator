@@ -8,7 +8,7 @@ import { PdfExportSettingsTab } from "./pages/pdfExportSettingsTab";
 import { OtherSettingsTab } from "./pages/OtherSettingsTab";
 import { EquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
 
-export interface QuoteCitationPrefix {
+export interface CalloutCitationPrefix {
     prefix: string;   // e.g., "table:", "thm:", "def:"
     format: string;   // e.g., "Table. #", "Theorem #", "Definition #"
 }
@@ -33,7 +33,7 @@ export interface EquationCitatorSettings {
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures
 
-    quoteCitationPrefixes: QuoteCitationPrefix[];  // Citation prefixes and formats for callouts/quotes 
+    calloutCitationPrefixes: CalloutCitationPrefix[];  // Citation prefixes and formats for callouts  
     
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
     multiCitationDelimiterRender: string; // Rendered delimiter for multiple citations in a single cite
@@ -102,7 +102,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationFormat: "(#)", // Default display format for citations
     figCitationPrefix: "fig:", // prefix for cite figures
     figCitationFormat: "Fig. #", // citation format for figures
-    quoteCitationPrefixes: [
+    calloutCitationPrefixes: [
         { prefix: "table:", format: "Table. #" },
     ],
 

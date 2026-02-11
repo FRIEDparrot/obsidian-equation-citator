@@ -190,7 +190,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                             // Try callout citations (check all configured prefixes)
                             let calloutCm: ReturnType<typeof matchNestedCitation> = null;
                             let matchedCalloutPrefix: string | null = null;
-                            for (const prefixConfig of settings.quoteCitationPrefixes) {
+                            for (const prefixConfig of settings.calloutCitationPrefixes) {
                                 const cm = matchNestedCitation(text, prefixConfig.prefix);
                                 if (cm) {
                                     calloutCm = cm;
@@ -343,7 +343,7 @@ export async function mathCitationPostProcessor(
             // Check for callout citations
             let isCalloutCitation = false;
             let calloutPrefix: string | null = null;
-            for (const prefixConfig of plugin.settings.quoteCitationPrefixes) {
+            for (const prefixConfig of plugin.settings.calloutCitationPrefixes) {
                 if (citation.label.startsWith(prefixConfig.prefix)) {
                     isCalloutCitation = true;
                     calloutPrefix = prefixConfig.prefix;

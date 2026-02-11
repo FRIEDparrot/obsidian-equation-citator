@@ -288,7 +288,7 @@ export const CitationSettingsTab = {
             prefixListContainer.empty();
 
             // Render each existing prefix with format
-            plugin.settings.quoteCitationPrefixes.forEach((item, index) => {
+            plugin.settings.calloutCitationPrefixes.forEach((item, index) => {
                 const setting = new Setting(prefixListContainer)
                     .setClass("ec-prefix-item");
 
@@ -320,7 +320,7 @@ export const CitationSettingsTab = {
                         }
                         if (newValue !== item.prefix) {
                             // Check for duplicates
-                            const exists = plugin.settings.quoteCitationPrefixes.some(
+                            const exists = plugin.settings.calloutCitationPrefixes.some(
                                 (p, i) => i !== index && p.prefix === newValue
                             );
                             if (exists) {
@@ -328,7 +328,7 @@ export const CitationSettingsTab = {
                                 text.setValue(item.prefix);
                                 return;
                             }
-                            plugin.settings.quoteCitationPrefixes[index].prefix = newValue;
+                            plugin.settings.calloutCitationPrefixes[index].prefix = newValue;
                             await plugin.saveSettings();
                         }
                     };
@@ -347,7 +347,7 @@ export const CitationSettingsTab = {
                             return;
                         }
                         if (newValue !== item.format) {
-                            plugin.settings.quoteCitationPrefixes[index].format = newValue;
+                            plugin.settings.calloutCitationPrefixes[index].format = newValue;
                             await plugin.saveSettings();
                         }
                     };
@@ -358,7 +358,7 @@ export const CitationSettingsTab = {
                     button.setButtonText("Remove")
                         .setClass("mod-warning")
                         .onClick(async () => {
-                            plugin.settings.quoteCitationPrefixes.splice(index, 1);
+                            plugin.settings.calloutCitationPrefixes.splice(index, 1);
                             await plugin.saveSettings();
                             renderPrefixList();
                         });
@@ -375,12 +375,12 @@ export const CitationSettingsTab = {
                             // Find a unique default prefix
                             let newPrefix = "custom:";
                             let counter = 1;
-                            const existingPrefixes = plugin.settings.quoteCitationPrefixes.map(p => p.prefix);
+                            const existingPrefixes = plugin.settings.calloutCitationPrefixes.map(p => p.prefix);
                             while (existingPrefixes.includes(newPrefix)) {
                                 newPrefix = `custom${counter}:`;
                                 counter++;
                             }
-                            plugin.settings.quoteCitationPrefixes.push({
+                            plugin.settings.calloutCitationPrefixes.push({
                                 prefix: newPrefix,
                                 format: "Custom. #"
                             });

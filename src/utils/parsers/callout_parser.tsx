@@ -1,6 +1,6 @@
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import Debugger from "@/debug/debugger";
-import { QuoteCitationPrefix } from "@/settings/defaultSettings";
+import { CalloutCitationPrefix } from "@/settings/defaultSettings";
 
 /**
  * The matched callout/quote information
@@ -31,7 +31,7 @@ export interface CalloutMatch {
  */
 function parseCalloutCitation(
     line: string,
-    prefixes: QuoteCitationPrefix[]
+    prefixes: CalloutCitationPrefix[]
 ): { type: string; tag: string; label: string; prefix: string } | null {
     // Match callout syntax: [!anything]
     const calloutMatch = line.match(/^\[!([^\]]+)\]/);
@@ -87,7 +87,7 @@ function parseCalloutCitation(
  */
 export function parseAllCalloutsFromMarkdown(
     markdown: string,
-    prefixes: QuoteCitationPrefix[]
+    prefixes: CalloutCitationPrefix[]
 ): CalloutMatch[] {
     if (!markdown.trim() || !prefixes || prefixes.length === 0) return [];
 
@@ -203,7 +203,7 @@ export function parseAllCalloutsFromMarkdown(
 export function parseFirstCalloutInMarkdown(
     markdown: string,
     tag: string,
-    prefixes: QuoteCitationPrefix[]
+    prefixes: CalloutCitationPrefix[]
 ): CalloutMatch | undefined {
     if (!markdown.trim() || !tag.trim() || !prefixes || prefixes.length === 0) {
         return undefined;

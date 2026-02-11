@@ -58,7 +58,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
     );
 
     // Step 3: Replace callout citations (table, theorem, definition, etc.)
-    for (const prefixConfig of settings.quoteCitationPrefixes) {
+    for (const prefixConfig of settings.calloutCitationPrefixes) {
         result = replaceCalloutCitationsInMarkdown(
             result,
             prefixConfig.prefix,

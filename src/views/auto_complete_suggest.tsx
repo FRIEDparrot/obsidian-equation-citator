@@ -265,6 +265,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
             fileCiteDelimiter,
             citationPrefix,
             figCitationPrefix,
+            calloutCitationPrefixes,
             enableContinuousCitation,
             continuousRangeSymbol,
             continuousDelimiters,

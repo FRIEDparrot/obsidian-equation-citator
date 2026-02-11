@@ -301,14 +301,24 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 ### Version 1.3.3
 Version 1.3.3 - bug fixes, new features and enhancements.
 
+--- 
+Settings Update : 
+- We refactor the variable name `quoteCitationPrefixes` to `calloutCitationPrefixes` for clarity. So your current settings for callout citation prefix will be restored. Be sure to re-set the settings for `callout citation prefix` in settings tab to make the callout citation work.
+
+--- 
+
 ⭐ New Features :
 - [ ] Autocomplete for figure citation and callout citations.
-- [ ] Autonumber for figures 
+- [ ] Autonumber and rename tags for figures. 
+  - [ ] Following figure citations should be updated after auto-numbering or renaming tags. 
+- [ ] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 
 
 🐛 Bug Fixes :
+- [ ] fix bug [#136](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/136), add tag for multi-line equation in callout now work correctly. 
+- [ ] fix glitch [#137](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/137), when the equation panel file and current active file is different, It will create a new window and jump to correct position.
+- [ ] fix bug [#135](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/135), when edit the file at location before some folded titles, it will not unfold now.
 
-
-enhancements :
+🚀 enhancements :
 - [x] fix the reorder button location style in settings tab.
 
 
