@@ -318,9 +318,10 @@ Settings Update :
 - [ ] fix glitch [#137](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/137), when the equation panel file and current active file is different, It will create a new window and jump to correct position.
 - [ ] fix bug [#135](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/135), when edit the file at location before some folded titles, it will not unfold now.
 
+
 🚀 enhancements :
 - [x] fix the reorder button location style in settings tab.
-
+- [ ] now hovering on Citation superscrip for callouts and figures will show the file links.
 
 ### 🚢 Coming Soon : 
 1. Auto-number and citation complete add for  figures 
