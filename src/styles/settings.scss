@@ -142,6 +142,7 @@
     width: 100%;
     align-items: center;
     justify-content: center;
+    margin: 0;
 }
 
 /* Settings toolbar */
@@ -156,30 +157,56 @@
     margin-bottom: 0px;
 }
 
+.ec-settings-display-mode-setting {
+    margin: 0;
+}
+
 .ec-settings-search-textbox-wrapper {
     position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
+    
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ec-settings-mode-toggle {
+    display: flex;
+    
+    margin: 0 !important;
+    padding: 0 !important;
+    
+    .div-setting-item {
+        width: 100%;
+        margin: 0;
+    }
 }
 
 .ec-settings-search-setting {
+    width: 100%;
+    height: 60px;
     border-top: none !important;
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-
+    border-bottom: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
     .setting-item-info {
         display: none;
     }
 
     .setting-item-control {
-        flex-grow: 1;
+        width: 100%;
+        height: 100%;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        padding: 0 !important;
+        margin: 0 10px;
+        padding-bottom: 4px;
     }
-}
-
-.ec-settings-search-textbox {
-    width: 200px !important;
-    height: 33px;
 }
 
 .ec-settings-icon {
@@ -244,6 +271,7 @@
 .ec-chip .ec-chip-text {
     display: none;
     white-space: nowrap;
+    font-size: 13px;
 }
 
 .ec-chip.is-active .ec-chip-text {
@@ -253,10 +281,6 @@
 .ec-chip .ec-chip-icon {
     width: 16px;
     height: 16px;
-}
-
-.ec-chip .ec-chip-text {
-    font-size: 13px;
 }
 
 /* Expandable categories */
@@ -459,20 +483,22 @@
 /* Settings with reorder buttons */
 .ec-setting-with-reorder {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
+    align-items: stretch;
+    height: 100%;
 }
 
 .ec-setting-reorder-buttons {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 1px 6px;
+    justify-content: space-between;
+    padding: 4px 6px;
+    min-height: 100%;
+    max-height: 75px;
 }
 
 .ec-reorder-btn {
-    width: 20px;
-    height: 16px;
+    width: 35px;
+    flex: 0 0 45%;
     padding: 0;
     display: flex;
     align-items: center;

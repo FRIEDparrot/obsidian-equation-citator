@@ -18,7 +18,7 @@ import { CalloutTableStyleManager } from '@/settings/styleManagers/calloutTabMan
 
 
 export interface UserSettingGroupConfig {
-    basic ?: string[];
+    basic?: string[];
     advanced?: string[];
 }
 
@@ -50,12 +50,12 @@ export enum SettingsDisplayMode {
 export class SettingsTabView extends PluginSettingTab {
     plugin: EquationCitator;
     private activeCategoryId: string | null = null;
-    private foldStates: Map<string, boolean> = new Map([
+    private readonly foldStates: Map<string, boolean> = new Map([
         ["basic-settings", true],
         ["advanced-settings", false],
         ["customize-settings", false],
     ]);
-    private customizeCategoryFoldStates: Map<string, boolean> = new Map();
+    private readonly customizeCategoryFoldStates: Map<string, boolean> = new Map();
     private showReorderButtons = false;
     private searchQuery = "";
     private contentContainer: HTMLElement | null = null;
@@ -77,6 +77,7 @@ export class SettingsTabView extends PluginSettingTab {
         const modeDiv = toolbar.createDiv({ cls: "ec-settings-mode-toggle" });
         new Setting(modeDiv)
             .setName("Display")
+            .setClass("ec-settings-display-mode-setting")
             .addDropdown((dd) => {
                 dd.addOption(SettingsDisplayMode.Concise, "Concise");
                 dd.addOption(SettingsDisplayMode.Categorical, "Categorical");
@@ -88,9 +89,9 @@ export class SettingsTabView extends PluginSettingTab {
                     this.display();
                 });
             });
-        
+
         const searchDiv = toolbar.createDiv({ cls: "ec-settings-search-textbox-wrapper" })
-        const searchSetting = new Setting(searchDiv)
+        const searchSetting = new Setting(searchDiv);
         searchSetting.setClass("ec-settings-search-setting")
         searchSetting.addSearch((text) => {
             text.inputEl.classList.add("ec-settings-search-textbox")
@@ -124,9 +125,9 @@ export class SettingsTabView extends PluginSettingTab {
                 break;
         }
     }
-    
+
     private renderGroupSelector(containerEl: HTMLElement, groups: { id: string; title: string; icon: string }[], onSelect: (id: string) => void) {
-        const selector = containerEl.createEl("div", { cls: "ec-settings-group-selector" });    
+        const selector = containerEl.createEl("div", { cls: "ec-settings-group-selector" });
         const setActive = (id: string) => {
             selector.querySelectorAll(".ec-chip").forEach((el) => el.classList.remove("is-active"));
             const activeEl = selector.querySelector(`.ec-chip[data-target='${id}']`);
@@ -145,7 +146,7 @@ export class SettingsTabView extends PluginSettingTab {
             if ((this.activeCategoryId ?? groups[0].id) === g.id) chip.classList.add("is-active");
         });
     }
-    
+
     private renderCategorical(containerEl: HTMLElement) {
         const groups = [
             { id: "ec-group-citation", title: "Citation", icon: "feather" },
@@ -175,21 +176,19 @@ export class SettingsTabView extends PluginSettingTab {
             // If there's a search query, filter the settings
             if (this.searchQuery) {
                 this.renderFilteredCategoricalSettings(content, activeId);
-            } else {
-                if (activeId === "ec-group-citation") addCitationSettingsTab(content, this.plugin);
-                else if (activeId === "ec-group-auto") addAutoNumberSettingsTab(content, this.plugin);
-                else if (activeId === "ec-group-panel") addEquationPanelSettingsTab(content, this.plugin);
-                else if (activeId === "ec-group-style") addStyleSettingsTab(content, this.plugin);
-                else if (activeId === "ec-group-pdf") addPdfExportSettingsTab(content, this.plugin);
-                else if (activeId === "ec-group-cache") addCacheSettingsTab(content, this.plugin);
-                else if (activeId === "ec-group-other") addOtherSettingsTab(content, this.plugin, this);
-            }
+            } else if (activeId === "ec-group-citation") addCitationSettingsTab(content, this.plugin);
+            else if (activeId === "ec-group-auto") addAutoNumberSettingsTab(content, this.plugin);
+            else if (activeId === "ec-group-panel") addEquationPanelSettingsTab(content, this.plugin);
+            else if (activeId === "ec-group-style") addStyleSettingsTab(content, this.plugin);
+            else if (activeId === "ec-group-pdf") addPdfExportSettingsTab(content, this.plugin);
+            else if (activeId === "ec-group-cache") addCacheSettingsTab(content, this.plugin);
+            else if (activeId === "ec-group-other") addOtherSettingsTab(content, this.plugin, this);
         };
 
         // initial render
         renderActive();
     }
-        
+
     private renderConcise(containerEl: HTMLElement) {
         // Add toggle button for reorder buttons
         const toggleContainer = containerEl.createDiv({ cls: "ec-reorder-toggle-container" });
@@ -271,7 +270,7 @@ export class SettingsTabView extends PluginSettingTab {
             // Render each filtered setting
             filteredKeys.forEach(key => {
                 const metadata = SETTINGS_METADATA[key];
-                if (!metadata || !metadata.renderCallback) return;
+                if (!metadata?.renderCallback) return;
                 metadata.renderCallback(containerEl, this.plugin, true);
             });
         });
@@ -317,7 +316,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Render each filtered setting
         filteredKeys.forEach(key => {
             const metadata = SETTINGS_METADATA[key];
-            if (!metadata || !metadata.renderCallback) return;
+            if (!metadata?.renderCallback) return;
             metadata.renderCallback(containerEl, this.plugin, true);
         });
     }
@@ -355,7 +354,7 @@ export class SettingsTabView extends PluginSettingTab {
 
         filteredKeys.forEach((key, index) => {
             const metadata = SETTINGS_METADATA[key as keyof typeof SETTINGS_METADATA];
-            if (!metadata || !metadata.renderCallback) return;
+            if (!metadata?.renderCallback) return;
 
             // Get the original index in the full array for proper reordering
             const originalIndex = settingKeys.indexOf(key);

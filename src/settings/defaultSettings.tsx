@@ -32,8 +32,9 @@ export interface EquationCitatorSettings {
 
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures
-    quoteCitationPrefixes: QuoteCitationPrefix[];  // Citation prefixes and formats for callouts/quotes 
 
+    quoteCitationPrefixes: QuoteCitationPrefix[];  // Citation prefixes and formats for callouts/quotes 
+    
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
     multiCitationDelimiterRender: string; // Rendered delimiter for multiple citations in a single cite
 
@@ -110,7 +111,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
     multiCitationDelimiterRender: ", ", // Default rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: true, // Default to true for convenience 
-    continuousDelimiters: ". - : \\_", // Default delimiter for continuous citations in a single cite
+    continuousDelimiters: String.raw`. - : \_`, // Default delimiter for continuous citations in a single cite
     continuousRangeSymbol: "~", // Default range symbol for continuous citations in a single cite 
     enableRenderLocalFileName: true, // Default to true 
 
@@ -154,6 +155,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "enableCitationInSourceMode",
         "citationPrefix",
         "citationFormat",
+        "figCitationPrefix",
+        "figCitationFormat",
+        "enableCrossFileCitation",
         "enableRenderLocalFileName",
         "multiCitationDelimiter",
         "multiCitationDelimiterRender",
@@ -246,7 +250,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
     multiCitationDelimiter: {
         name: "Multiple citation delimiter",
-        desc: "Delimiter used for multiple citations, e.g. comma for '\\ref{1.2, 1.3}'",
+        desc: String.raw`Delimiter used for multiple citations, e.g. comma for '\ref{1.2, 1.3}'`,
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.multiCitationDelimiter(el, plugin);
@@ -254,7 +258,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
     multiCitationDelimiterRender: {
         name: "Multiple citation rendered delimiter",
-        desc: "Delimiter shown between citations when rendered (purely visual)",
+        desc: String.raw`Delimiter shown between citations when rendered (purely visual)`,
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.multiCitationDelimiterRender(el, plugin);

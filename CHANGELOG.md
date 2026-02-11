@@ -298,6 +298,20 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
   3. detect single-line illegal equation.
   4. For some case, the code block is counted in, which leads to incorrect line number information. Now fixed.
 
+### Version 1.3.3
+Version 1.3.3 - bug fixes, new features and enhancements.
+
+⭐ New Features :
+- [ ] Autocomplete for figure citation and callout citations.
+- [ ] Autonumber for figures 
+
+🐛 Bug Fixes :
+
+
+enhancements :
+- [x] fix the reorder button location style in settings tab.
+
+
 ### 🚢 Coming Soon : 
 1. Auto-number and citation complete add for  figures 
-2. Check citations of figures and tables, all in one 😄
+2. Check citations of figures and tables, all in one 😄 

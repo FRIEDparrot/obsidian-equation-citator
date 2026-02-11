@@ -5,9 +5,9 @@ import { renderEquationWrapper, TargetElComponent } from "@/views/popovers/citat
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
 import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/string_processing/regexp_utils";
 import EquationCitator from "@/main";
-import assert from "assert";
 import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/parsers/equation_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
+import Debugger from "@/debug/debugger";
 
 
 const CITATION_PADDING = 5; // \\ref{ is 5 characters  
@@ -36,7 +36,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     private suggestionComponents: TargetElComponent[] = [];
 
     constructor(
-        private plugin: EquationCitator
+        private readonly plugin: EquationCitator
     ) {
         super(plugin.app);
     }
@@ -77,7 +77,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
 
         const linePart = line.substring(lastDollarIndex);
         const mathPattern = new RegExp(inlineMathPattern.source);
-        const match = linePart.match(mathPattern);
+        const match = new RegExp(mathPattern).exec(linePart);
 
         if (!match) return null;
         const eqContent = match[1];
@@ -122,14 +122,14 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const currentLabel = eqContent.substring(check.index + CITATION_PADDING, cursorCh - eqStart).trim().substring(citationPrefix.length);
 
         const delimiter = multiCitationDelimiter || ",";
-        const fullTags = fullLabel.split(delimiter).map(tag => tag.trim()).filter(tag => tag);
-        const currentTags = currentLabel.split(delimiter).map(tag => tag.trim()).filter(tag => tag);
+        const fullTags = fullLabel.split(delimiter).map(tag => tag.trim()).filter(Boolean);
+        const currentTags = currentLabel.split(delimiter).map(tag => tag.trim()).filter(Boolean);
 
-        assert(
-            fullTags.length >= currentTags.length,
-            `Invalid current label length ${currentTags.length} is bigger than full tags length ${fullTags.length};` +
-            `Current label: ${currentLabel}, Full label: ${fullLabel}`
-        );   // current label should be a subset of full label 
+        if(fullTags.length >= currentTags.length){
+            // current label should be a subset of full label 
+            Debugger.log(`Invalid current label length ${currentTags.length} is bigger than full tags length ${fullTags.length};` +
+            `Current label: ${currentLabel}, Full label: ${fullLabel}`)
+        }
 
         return {
             valid: true,
