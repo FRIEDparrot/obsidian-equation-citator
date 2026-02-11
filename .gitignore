@@ -31,3 +31,5 @@ data.json
 
 # Exclude eslint configuration files 
 .eslintrc
+
+tmpclaude-*

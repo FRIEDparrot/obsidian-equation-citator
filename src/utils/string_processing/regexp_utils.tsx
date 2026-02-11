@@ -2,7 +2,7 @@ export const headingRegex = /^(#{1,6})\s+(.*)$/;
 
 /** Change string RegExp to RegExp literal */
 export function escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return string.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 /**
@@ -72,12 +72,12 @@ export function isValidCitationForm(
 } {
     // Skip if multiple \ref{} in same formula
     const match = citation.match(/\\ref\{[^}]*\}/g);
-    if (!match || match.length !== 1) return { valid: false, index: -1 };
+    if (match?.length !== 1) return { valid: false, index: -1 };
 
     // Skip if citation does not start with prefix
     if (prefix) {
         // test if there is a \ref{ prefix...} format 
-        const referenceStrartRegex = new RegExp(`\\\\ref\\{\\s*${escapeRegExp(prefix)}[^}]*\\}`);
+        const referenceStrartRegex = new RegExp(String.raw`\\ref\{\s*${escapeRegExp(prefix)}[^}]*\}`);
         if (!referenceStrartRegex.test(citation)) return { valid: false, index: -1 }; // not start with prefix
     }
     return { valid: true, index: citation.indexOf(match[0]) };
@@ -175,7 +175,9 @@ export function createCitationString(
     withDollarBracket = true
 ): string {
     const eqContent = content || "";
-    const citationString = withDollarBracket ? `$\\ref{${prefix}${eqContent}}$` : `\\ref{${prefix}${eqContent}}`;
+    const citationString = withDollarBracket ? 
+        String.raw`$\ref{${prefix}${eqContent}}$` : 
+        String.raw`\ref{${prefix}${eqContent}}`;
     return citationString;
 }
 
@@ -186,21 +188,26 @@ export function createEquationTagRegex(
     typst = false,
 ): RegExp {
     if (!tagName) {
-        return typst
-            ? new RegExp(fullMatch ? /^#label\("([^"]*)"\)$/ : /#label\("([^"]*)"\)/)
-            : new RegExp(fullMatch ? /^\\tag\{([^}]*)\}$/ : /\\tag\{([^}]*)\}/);
+        const typstPattern = fullMatch ? /^#label\("([^"]*)"\)$/ : /#label\("([^"]*)"\)/;
+        const latexPattern = fullMatch ? /^\\tag\{([^}]*)\}$/ : /\\tag\{([^}]*)\}/;
+        const pattern: RegExp = typst ? new RegExp(typstPattern) : new RegExp(latexPattern);
+        return pattern;
     }
+
     const escapedTagName = escapeRegExp(tagName);
-    return typst
-        ? fullMatch
-            ? new RegExp(`^#label\\(\\s*"${escapedTagName}"\\s*\\)$`)
-            : new RegExp(`#label\\(\\s*"${escapedTagName}"\\s*\\)`)
-        : fullMatch
-            ? new RegExp(`^\\\\tag\\{\\s*${escapedTagName}\\s*\\}$`)
-            : new RegExp(`\\\\tag\\{\\s*${escapedTagName}\\s*\\}`);
+
+    if (typst) {
+        return fullMatch
+            ? new RegExp(String.raw`^#label\(\s*"${escapedTagName}"\s*\)$`)
+            : new RegExp(String.raw`#label\(\s*"${escapedTagName}"\s*\)`);
+    } else {
+        return fullMatch
+            ? new RegExp(String.raw`^\\tag\{\s*${escapedTagName}\s*\}$`)
+            : new RegExp(String.raw`\\tag\{\s*${escapedTagName}\s*\}`);
+    }
 }
 
 export function createEquationTagString(content: string, typst: boolean): string {
-    const tagString = typst ? `#label("${content}")` : `\\tag{${content}}`;
+    const tagString = typst ? `#label("${content}")` : String.raw`\tag{${content}}`;
     return tagString;
 }

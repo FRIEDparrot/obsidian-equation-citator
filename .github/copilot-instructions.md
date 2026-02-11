@@ -22,6 +22,11 @@ Explicit instructions that permit using `master` include phrases such as:
 
 Anything else defaults to `dev-latest`.
 
+
+## Style File for this Project
+- The style file for this project can be found at: `src/styles` foder, only modify the `.scss` files under that folder, not the compiled `.css` files.
+- Never modify `main.js` or `main.css` directly, they are generated files. 
+
 ## Build, Test, and Lint
 
 - **Build Plugin**: `npm run build` (runs TypeScript compiler and esbuild for production)

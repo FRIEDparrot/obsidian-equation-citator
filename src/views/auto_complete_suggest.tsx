@@ -220,7 +220,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const { enableContinuousCitation, continuousRangeSymbol, continuousDelimiters } = this.plugin.settings;
 
         if (enableContinuousCitation && cleanedTag.endsWith(continuousRangeSymbol) && cleanedTag.length > 1) {
-            const validDelimiters = continuousDelimiters.split(" ").filter(d => d); // split by space and remove empty string
+            const validDelimiters = continuousDelimiters.split(" ").filter(Boolean); // split by space and remove empty string
             const tagPrev = cleanedTag.slice(0, -continuousRangeSymbol.length).trim();
             // then get the prefix before last number 
             const prefix = extractPrefixBeforeLastNumber(tagPrev, validDelimiters);
@@ -264,11 +264,12 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
             enableCrossFileCitation,
             fileCiteDelimiter,
             citationPrefix,
+            figCitationPrefix,
             enableContinuousCitation,
             continuousRangeSymbol,
             continuousDelimiters,
         } = this.plugin.settings;
-        const validDelimiters = continuousDelimiters.split(" ").filter(d => d); // split by space and remove empty string 
+        const validDelimiters = continuousDelimiters.split(" ").filter(Boolean); // split by space and remove empty string 
 
         const editor = this.context?.editor;
         if (!this.context || !editor) return;
@@ -312,7 +313,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const eqDelimiter = multiCitationDelimiter + " " || ", ";
 
         const newContent = createCitationString(citationPrefix, `${citationInfo.fullTags.join(eqDelimiter)}, `, false);
-        const cursorContent = `\\ref{${citationPrefix}${citationInfo.currentTags.join(eqDelimiter)}, `;
+        const cursorContent = String.raw`\ref{${citationPrefix}${citationInfo.currentTags.join(eqDelimiter)}, `;
         const replaceStart = {
             line: this.context.start.line,
             ch: mathInfo.eqStart
