@@ -11,6 +11,7 @@ export interface CalloutMatch {
     tag: string;              // e.g., "1.1", "2.3" (without prefix like "table:")
     label: string;            // Full label with prefix, e.g., "table:1.1"
     prefix: string;           // The prefix used (e.g., "table:", "thm:")
+    title: string | null;     // Optional title text after the pipe (e.g., "My Table")
     content: string;          // The callout content (without the citation line)
     lineStart: number;        // Starting line number
     lineEnd: number;          // Ending line number
@@ -19,27 +20,32 @@ export interface CalloutMatch {
 
 /**
  * Parse callout citation from the first line of a callout block
- * Format: > [!prefix:tag] or > [!prefix:tag|color] where type matches a configured prefix
+ * Format: > [!prefix:tag|color] Title text here
  * Examples:
- *   > [!table:1.1]
- *   > [!thm:2.3]
- *   > [!table:1.1|yellow]
+ *   > [!table:1.1] Table of Results
+ *   > [!thm:2.3|blue] Pythagorean Theorem
+ *   > [!table:1.1|red]  Table of the test columns
  *
- * @param line - The line to parse
+ * @param line - The line to parse (after quote markers are removed)
  * @param prefixes - Array of configured citation prefixes
- * @returns Object with type, tag, label, prefix if found, null otherwise
+ * @returns Object with type, tag, label, prefix, title if found, null otherwise
  */
 function parseCalloutCitation(
     line: string,
     prefixes: CalloutCitationPrefix[]
-): { type: string; tag: string; label: string; prefix: string } | null {
-    // Match callout syntax: [!anything]
-    const calloutMatch = new RegExp(/^\[!([^\]]+)\]/).exec(line);
+): { type: string; tag: string; label: string; prefix: string; title: string | null } | null {
+    // Match callout syntax: [!anything] and capture everything after it
+    const calloutMatch = new RegExp(/^\[!([^\]]+)\](.*)$/).exec(line);
     if (!calloutMatch) return null;
 
-    // Get only the first part before pipe (e.g., "table:1.1|yellow" -> "table:1.1")
-    // Parts after | are treated as metadata by Obsidian
-    const calloutContent = calloutMatch[1].split('|')[0].trim();
+    // Get the content inside brackets and the title after brackets
+    const insideBrackets = calloutMatch[1];
+    const afterBrackets = calloutMatch[2].trim();
+    const title = afterBrackets || null;
+    
+    // Get only the first part before pipe (e.g., "table:1.1|red" -> "table:1.1")
+    // Parts after | are color/metadata for Obsidian
+    const calloutContent = insideBrackets.split('|')[0].trim();
     
     // Check each configured prefix
     for (const prefixConfig of prefixes) {
@@ -57,7 +63,8 @@ function parseCalloutCitation(
                     type,
                     tag,
                     label: `${prefix}${tag}`,
-                    prefix
+                    prefix,
+                    title
                 };
             }
         }
@@ -98,7 +105,7 @@ export function parseAllCalloutsFromMarkdown(
     let inCallout = false;
     let calloutStartLine = 0;
     let calloutBuffer: string[] = [];
-    let calloutCitation: { type: string; tag: string; label: string; prefix: string } | null = null;
+    let calloutCitation: { type: string; tag: string; label: string; prefix: string; title: string | null } | null = null;
     let calloutQuoteDepth = 0;
 
     for (let lineNum = 0; lineNum < lines.length; lineNum++) {
@@ -137,6 +144,7 @@ export function parseAllCalloutsFromMarkdown(
                         tag: calloutCitation.tag,
                         label: calloutCitation.label,
                         prefix: calloutCitation.prefix,
+                        title: calloutCitation.title,
                         content,
                         lineStart: calloutStartLine,
                         lineEnd: lineNum - 1,
@@ -179,6 +187,7 @@ export function parseAllCalloutsFromMarkdown(
             tag: calloutCitation.tag,
             label: calloutCitation.label,
             prefix: calloutCitation.prefix,
+            title: calloutCitation.title,
             content,
             lineStart: calloutStartLine,
             lineEnd: lines.length - 1,

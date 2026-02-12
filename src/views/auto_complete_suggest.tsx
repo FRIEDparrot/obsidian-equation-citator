@@ -372,7 +372,7 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
                 if (enableRichAutoComplete) {
                     void renderCalloutWrapper(this.plugin, view.leaf, value as RenderedCallout, el, targetComponent);
                 } else {
-                    // Simple rendering: show callout number (title parsing skipped as requested)
+                    // Simple rendering: show callout number and title
                     const callout = value as RenderedCallout;
                     const calloutContainer = el.createDiv();
                     calloutContainer.addClass("em-callout-autocomplete-item");
@@ -381,6 +381,12 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
                     const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === callout.prefix);
                     const format = prefixConfig?.format || `${callout.type}. #`;
                     calloutLabel.textContent = format.replace('#', callout.tag);
+                    // Add title if available
+                    if (callout.title) {
+                        const calloutTitle = calloutContainer.createSpan();
+                        calloutTitle.addClass("em-autocomplete-title");
+                        calloutTitle.textContent = ` - ${callout.title}`;
+                    }
                 }
                 break;
         }

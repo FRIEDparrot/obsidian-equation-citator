@@ -556,6 +556,12 @@
     border-radius: 4px;
 }
 
+/* Smaller figure images in autocomplete suggestions */
+.em-equation-option-container .em-figure-image {
+    max-width: 300px;
+    max-height: 200px;
+}
+
 /* Figure metadata (title and description) */
 .em-figure-metadata {
     margin-top: 8px;

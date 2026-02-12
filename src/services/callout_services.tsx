@@ -8,6 +8,7 @@ export interface RenderedCallout {
     type: string;  // type of callout (e.g., "table", "thm", "def")
     tag: string;  // tag of the callout (without prefix)
     prefix: string;  // the prefix used (e.g., "table:", "thm:")
+    title: string | null;  // optional title text (from callout header)
     content: string;  // callout content
     sourcePath: string | null; // source path of the callout file
     filename: string | null;  // filename label (alias) of the callout
@@ -65,6 +66,7 @@ export class CalloutServices {
                 type,
                 tag: local,
                 prefix,
+                title: null,  // Will be filled by fillCalloutsContent
                 content: '',  // Will be filled by fillCalloutsContent
                 sourcePath: path,
                 filename: filename,
@@ -117,6 +119,7 @@ export class CalloutServices {
 
             return {
                 ...callout,
+                title: matchedCallout?.title || null, // Extract title from matched callout
                 content: matchedCallout?.raw || '', // Use raw content to include tags and title
                 lineStart: matchedCallout?.lineStart || 0,
                 lineEnd: matchedCallout?.lineEnd || 0
@@ -164,6 +167,7 @@ export class CalloutServices {
             type,
             tag: callout.tag || '',
             prefix,
+            title: callout.title || null,
             content: callout.raw,
             sourcePath: path,
             filename,
