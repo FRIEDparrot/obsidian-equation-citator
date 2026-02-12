@@ -34,7 +34,7 @@ function parseCalloutCitation(
     prefixes: CalloutCitationPrefix[]
 ): { type: string; tag: string; label: string; prefix: string } | null {
     // Match callout syntax: [!anything]
-    const calloutMatch = line.match(/^\[!([^\]]+)\]/);
+    const calloutMatch = new RegExp(/^\[!([^\]]+)\]/).exec(line);
     if (!calloutMatch) return null;
 
     // Get only the first part before pipe (e.g., "table:1.1|yellow" -> "table:1.1")

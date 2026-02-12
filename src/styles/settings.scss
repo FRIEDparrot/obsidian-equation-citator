@@ -166,17 +166,17 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    
+
     margin: 0 !important;
     padding: 0 !important;
 }
 
 .ec-settings-mode-toggle {
     display: flex;
-    
+
     margin: 0 !important;
     padding: 0 !important;
-    
+
     .div-setting-item {
         width: 100%;
         margin: 0;
@@ -193,6 +193,7 @@
     display: flex !important;
     align-items: center;
     justify-content: center;
+
     .setting-item-info {
         display: none;
     }
@@ -484,7 +485,13 @@
 .ec-setting-with-reorder {
     display: flex;
     align-items: stretch;
+    width: 100%;
     height: 100%;
+}
+
+.ec-setting-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .ec-setting-reorder-buttons {
@@ -528,6 +535,9 @@
 .ec-prefix-list-container {
     margin-top: 10px;
     margin-left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* Individual prefix item */
@@ -549,10 +559,10 @@
     // Align controls - input left, button right
     .setting-item-control {
         display: flex;
-        align-items: center;  // Center vertical alignment
-        justify-content: space-between;  // Input left, button right
+        align-items: center; // Center vertical alignment
+        justify-content: space-between; // Input left, button right
         gap: 10px;
-        margin-left: 0;
+        margin: 5px 10px;
         padding-left: 0;
 
         // Make input take available space but not too long
@@ -566,7 +576,7 @@
         // Button aligned to right
         button {
             margin: 0;
-            margin-left: auto;  // Push to right
+            margin-left: auto; // Push to right
         }
     }
 }

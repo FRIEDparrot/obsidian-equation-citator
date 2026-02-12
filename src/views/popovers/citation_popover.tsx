@@ -99,7 +99,7 @@ export class CitationPopover extends HoverPopover {
         this.equationsToRender.forEach((eq, index) => {
             const equationOptionContainer = equationsContainer.createDiv();
             equationOptionContainer.addClass("em-equation-option-container");
-            void renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, this.targetComponent, true);
+            void renderEquationWrapper(this.plugin, leaf, eq, equationOptionContainer, this.targetComponent, true);
         });
 
         // Add footer with equation count
@@ -113,15 +113,15 @@ export class CitationPopover extends HoverPopover {
 /**
  * Render the equation container (shared function by reading and live preview mode)
  * @param plugin 
- * @param sourcePath 
+ * @param leaf 
  * @param eq 
  * @param container 
  * @param targetComponent 
+ * @param addLinkJump 
  */
 export async function renderEquationWrapper(
     plugin: EquationCitator,
     leaf: WorkspaceLeaf,
-    sourcePath: string,
     eq: RenderedEquation,
     container: HTMLElement,
     targetComponent: Component,

@@ -1,11 +1,15 @@
-import { WorkspaceLeaf, TFile, Notice, MarkdownView, EditorRange } from "obsidian";
-import EquationCitator from "@/main";
 import {
+    WorkspaceLeaf,
+    TFile,
+    Notice,
+    MarkdownView,
+    EditorRange,
     MarkdownRenderer,
     Component,
     HoverPopover,
     HoverParent,
 } from "obsidian";
+import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedCallout } from "@/services/callout_services";
@@ -17,17 +21,17 @@ import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
  * Displays callout/quote content previews in a popover when hovering over callout citations
  */
 export class CalloutCitationPopover extends HoverPopover {
-    private calloutsToRender: RenderedCallout[] = [];
-    private targetEl: HTMLElement;
-    private targetComponent: TargetElComponent;
+    private readonly calloutsToRender: RenderedCallout[] = [];
+    private readonly targetEl: HTMLElement;
+    private readonly targetComponent: TargetElComponent;
     
     constructor(
-        private plugin: EquationCitator,
+        private readonly plugin: EquationCitator,
         parent: HoverParent,
         targetEl: HTMLElement,
-        private prefix: string,  // e.g., "table:", "thm:", "def:"
+        private readonly prefix: string,  // e.g., "table:", "thm:", "def:"
         calloutsToRender: RenderedCallout[],
-        private sourcePath: string,
+        private readonly sourcePath: string,
         waitTime?: number
     ) {
         super(parent, targetEl, waitTime);
@@ -110,7 +114,6 @@ export class CalloutCitationPopover extends HoverPopover {
             await renderCalloutWrapper(
                 this.plugin,
                 leaf,
-                this.sourcePath,
                 callout,
                 calloutOptionContainer,
                 this.targetComponent,
@@ -122,17 +125,16 @@ export class CalloutCitationPopover extends HoverPopover {
         const footer = container.createDiv();
         const totalCallouts = this.calloutsToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${totalCallouts} ${displayName.toLowerCase()}${totalCallouts !== 1 ? 's' : ''}`;
+        footer.textContent = `${totalCallouts} ${displayName.toLowerCase()}${totalCallouts === 1 ? '' : 's'}`;
     }
 }
 
 /**
  * Render a single callout wrapper with content and metadata
  */
-async function renderCalloutWrapper(
+export async function renderCalloutWrapper(
     plugin: EquationCitator,
     leaf: WorkspaceLeaf,
-    sourcePath: string,
     callout: RenderedCallout,
     container: HTMLElement,
     targetComponent: Component,
@@ -289,7 +291,7 @@ async function openFileAndScrollToCallout(
     // Get callout from cache to find the line number
     const targetCallout = await plugin.calloutCache.getCalloutByTag(sourcePath, tag);
 
-    if (!targetCallout || targetCallout.prefix !== prefix) {
+    if (targetCallout?.prefix !== prefix) {
         Debugger.log("Cannot find callout with tag:", tag);
         new Notice(`${prefix}${tag} not found in ${file.name}`);
         return;

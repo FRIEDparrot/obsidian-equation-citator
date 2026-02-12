@@ -103,7 +103,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationFormat: "(#)", // Default display format for citations
     figCitationPrefix: "fig:", // prefix for cite figures
     figCitationFormat: "Fig. #", // citation format for figures
-    enableRichAutoComplete: true, // enable rich auto-complete suggestion by default
+    enableRichAutoComplete: false, // enable rich auto-complete suggestion by default
     calloutCitationPrefixes: [
         { prefix: "table:", format: "Table. #" },
     ],
@@ -244,7 +244,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableRichAutoComplete: {
-        name: "Enable image and callout preview in suggestions",
+        name: "Enable image and callout preview in auto complete suggestions",
         desc: "When enabled, citation suggestions display full image and callout content instead of only titles.",
         type: "boolean",
         renderCallback: (el, plugin) => {

@@ -1,10 +1,11 @@
-import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView, Component, WorkspaceLeaf } from "obsidian";
+import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView } from "obsidian";
 import { RenderedEquation } from "@/services/equation_services";
 import { RenderedFigure } from "@/services/figure_services";
 import { RenderedCallout } from "@/services/callout_services";
 import { findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvironment, removePairedBraces } from "@/utils/string_processing/string_utils";
 import { renderEquationWrapper, TargetElComponent } from "@/views/popovers/citation_popover";
 import { renderFigureWrapper } from "./popovers/figure_citation_popover";
+import { renderCalloutWrapper } from "./popovers/callout_citation_popover";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
 import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm, CITATION_PADDING } from "@/utils/string_processing/regexp_utils";
 import EquationCitator from "@/main";
@@ -333,8 +334,6 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
     }
 
     renderSuggestion(value: CitationItem, el: HTMLElement): void {
-        const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || null;
-        if (!sourcePath) return;
         el.addClass("em-equation-option-container");
         const targetEl = el.createDiv();
         // Create a new component for each suggestion and track it for cleanup
@@ -343,52 +342,48 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
 
+        const { enableRichAutoComplete } = this.plugin.settings;
+
         // Render based on citation type
         switch (this.currentCitationType) {
             case 'equation':
-                void renderEquationWrapper(this.plugin, view.leaf, sourcePath, value as RenderedEquation, el, targetComponent);
+                // show equation rendering
+                void renderEquationWrapper(this.plugin, view.leaf, value as RenderedEquation, el, targetComponent);
                 break;
             case 'figure':
-                void this.renderFigureSuggestion(value as RenderedFigure, view.leaf, el, targetComponent);
+                if (enableRichAutoComplete) {
+                    renderFigureWrapper(this.plugin, view.leaf, value as RenderedFigure, el, targetComponent);
+                } else {
+                    // Simple rendering: show figure number and title
+                    const fig = value as RenderedFigure;
+                    const figContainer = el.createDiv();
+                    figContainer.addClass("em-figure-autocomplete-item");
+                    const figLabel = figContainer.createSpan();
+                    figLabel.addClass("em-autocomplete-label");
+                    figLabel.textContent = `${this.plugin.settings.figCitationFormat.replace('#', fig.tag)}`;
+                    if (fig.title) {
+                        const figTitle = figContainer.createSpan();
+                        figTitle.addClass("em-autocomplete-title");
+                        figTitle.textContent = ` - ${fig.title}`;
+                    }
+                }
                 break;
             case 'callout':
-                // For callouts, display tag and type
-                void this.renderCalloutSuggestions(value as RenderedCallout, el, targetComponent);
+                if (enableRichAutoComplete) {
+                    void renderCalloutWrapper(this.plugin, view.leaf, value as RenderedCallout, el, targetComponent);
+                } else {
+                    // Simple rendering: show callout number (title parsing skipped as requested)
+                    const callout = value as RenderedCallout;
+                    const calloutContainer = el.createDiv();
+                    calloutContainer.addClass("em-callout-autocomplete-item");
+                    const calloutLabel = calloutContainer.createSpan();
+                    calloutLabel.addClass("em-autocomplete-label");
+                    const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === callout.prefix);
+                    const format = prefixConfig?.format || `${callout.type}. #`;
+                    calloutLabel.textContent = format.replace('#', callout.tag);
+                }
                 break;
         }
-    }
-
-    async renderFigureSuggestion(figure: RenderedFigure, leaf: WorkspaceLeaf, sourcePath, container: HTMLElement, targetComponent: Component): Promise<void> {
-        // For figures, display tag and title
-        const { enableRichAutoComplete } = this.plugin.settings;
-
-        if (enableRichAutoComplete) {
-            renderFigureWrapper(this.plugin, leaf, sourcePath, figure, container, targetComponent);
-        }
-        else {
-            const figContainer = container.createDiv();
-            figContainer.addClass("em-figure-autocomplete-item");
-            const figLabel = figContainer.createSpan();
-            figLabel.addClass("em-autocomplete-label");
-            figLabel.textContent = `${this.plugin.settings.figCitationFormat.replace('#', figure.tag)}`;
-            if (figure.title) {
-                const figTitle = figContainer.createSpan();
-                figTitle.addClass("em-autocomplete-title");
-                figTitle.textContent = ` - ${figure.title}`;
-            }
-        }
-
-    }
-
-    async renderCalloutSuggestions(value: RenderedCallout, container: HTMLElement, targetComponent: Component): Promise<void> {
-        const callout = value;
-        const calloutContainer = container.createDiv();
-        calloutContainer.addClass("em-callout-autocomplete-item");
-        const calloutLabel = calloutContainer.createSpan();
-        calloutLabel.addClass("em-autocomplete-label");
-        const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === callout.prefix);
-        const format = prefixConfig?.format || `${callout.type}. #`;
-        calloutLabel.textContent = format.replace('#', callout.tag);
     }
 
     selectSuggestion(value: CitationItem, evt: MouseEvent | KeyboardEvent): void {

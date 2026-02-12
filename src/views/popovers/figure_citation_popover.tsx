@@ -101,7 +101,6 @@ export class FigureCitationPopover extends HoverPopover {
             renderFigureWrapper(
                 this.plugin,
                 leaf,
-                this.sourcePath,
                 fig,
                 figureOptionContainer,
                 this.targetComponent,
@@ -123,7 +122,6 @@ export class FigureCitationPopover extends HoverPopover {
 export function renderFigureWrapper(
     plugin: EquationCitator,
     leaf: WorkspaceLeaf,
-    sourcePath: string,
     fig: RenderedFigure,
     container: HTMLElement,
     targetComponent: Component,
