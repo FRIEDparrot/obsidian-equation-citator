@@ -1,5 +1,7 @@
 export const headingRegex = /^(#{1,6})\s+(.*)$/;
 
+export const CITATION_PADDING = 5; // \\ref{ is 5 characters
+
 /** Change string RegExp to RegExp literal */
 export function escapeRegExp(string: string): string {
     return string.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
@@ -41,12 +43,11 @@ export const equationBlockEndPatternWithWhiteSpace = /(?<!\\)\$\$(?!\$)\s*$/;
 export const equationBlockBracePattern = /(?<!\\)\$\$/g;
 
 /**
- * parse the citation with ref inside the formula 
- * usage :  matches = processedLine.matchAll(inlineRefRegex); (remove inline code blocks first) 
- * const [fullMatch, content, label] = match; 
+ * parse the inline math blocks, used for parsing citations.
+ * 
+ * warning: since we support nested citation format, 
+ *    there is no fixed citationRegex (it will always parse wrongly)
  */
-export const citationRegex = /\\ref\{([^}]*)\}/g;
-// export const inlineRefRegex = /(?<!\$)\$(?!\$)(?! )([^$]*?\\ref\{([^}]*)\}[^$]*?)(?<! )\$(?!\$)/g; 
 export const inlineMathPattern = /(?<!\\)(?<!\$)\$(?!\$)(?! )((?:\\\$|[^$])*?)(?<!\\)(?<! )\$(?!\$)/g;
 
 export interface RefMatch {
@@ -74,15 +75,12 @@ export function isValidCitationForm(
     index: number;
 } {
     // Skip if multiple \ref{} in same formula
-    const match = [...citation.matchAll(citationRegex)];
-    if (match.length !== 1) return { valid: false, label: null, index: -1 };
+    const result = matchNestedCitation(citation, prefix);
+    if (!result) return { valid: false, label: null, index: -1 };
 
     // Skip if citation does not start with prefix
-    const label = match[0][1];
-    const index = match[0].index ?? -1;  // not use || here (since it overrides 0)
-    if (prefix && !label.trim().startsWith(prefix)) {
-        return { valid: false, label: null, index: -1 };
-    }
+    const label = result.label;
+    const index = citation.indexOf(result.content);  // not use || here (since it overrides 0)
     return {
         valid: true,
         label: label.trim(),
@@ -106,10 +104,12 @@ export function matchNestedCitation(
     const MAX_NESTING_DEPTH = 10; // limit nesting depth to prevent infinite loop
     if (citation.length > MAX_INPUT_LENGTH) return null;
 
-    const { valid, index } = isValidCitationForm(citation, prefix);
-    if (!valid) return null;
+    // parse the ref{} in the citation (only should be 1)
+    const match = citation.match(/\\ref\{[^}]*\}/g);
+    if (!match || match?.length !== 1) return null;
 
-    const braceIndex = index + 5; // position after \\ref{
+    const index = citation.indexOf(match[0]);
+    const braceIndex = index + CITATION_PADDING; // position after \\ref{
     let braceCount = 1;
     let currentIndex = braceIndex;
     let currentDepth = 1; // current depth of nested citation   

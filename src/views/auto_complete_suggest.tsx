@@ -6,14 +6,14 @@ import { findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvir
 import { renderEquationWrapper, TargetElComponent } from "@/views/popovers/citation_popover";
 import { renderFigureWrapper } from "./popovers/figure_citation_popover";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
-import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/string_processing/regexp_utils";
+import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm, CITATION_PADDING } from "@/utils/string_processing/regexp_utils";
 import EquationCitator from "@/main";
 import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/parsers/equation_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
 import Debugger from "@/debug/debugger";
 
 
-const CITATION_PADDING = 5; // \\ref{ is 5 characters
+
 
 type CitationType = 'equation' | 'figure' | 'callout';
 type CitationItem = RenderedEquation | RenderedFigure | RenderedCallout;
