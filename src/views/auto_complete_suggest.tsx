@@ -1,4 +1,4 @@
-import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView, Component } from "obsidian";
+import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView, Component, WorkspaceLeaf } from "obsidian";
 import { RenderedEquation } from "@/services/equation_services";
 import { RenderedFigure } from "@/services/figure_services";
 import { RenderedCallout } from "@/services/callout_services";
@@ -11,8 +11,6 @@ import EquationCitator from "@/main";
 import { extractLastNumberFromTag, extractPrefixBeforeLastNumber } from "@/utils/parsers/equation_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
 import Debugger from "@/debug/debugger";
-
-
 
 
 type CitationType = 'equation' | 'figure' | 'callout';
@@ -141,6 +139,11 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         if (!valid || label === null || index === -1 || refLengthBeforeCursor < 0) {
             return invalidResult;
         }
+        // Check if citation is closed 
+        const contentBeforeCursor = eqContent.substring(index + CITATION_PADDING, cursorPadding);
+        if (removePairedBraces(contentBeforeCursor).includes("}")) {
+            return invalidResult;
+        }
         // Detect citation type from the prefix inline
         let detectedType: CitationType | null = null;
         let detectedPrefix: string = citationPrefix;
@@ -165,14 +168,13 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
 
         // Remove the detected prefix from the label
         let fullLabel = label.substring(detectedPrefix.length);
-        const spacesBeforeLabel = eqContent.substring(index + CITATION_PADDING, cursorPadding).indexOf(detectedPrefix)
+        const spacesBeforeLabel = contentBeforeCursor.indexOf(detectedPrefix)
         const currentLabelLengthWithPrefix = refLengthBeforeCursor - spacesBeforeLabel;
         if (currentLabelLengthWithPrefix < detectedPrefix.length) {
             return invalidResult;
         }
         const currentLabel = label.substring(detectedPrefix.length, currentLabelLengthWithPrefix)
 
-        console.log("Full label:", fullLabel, "Current label:", currentLabel);
         const delimiter = multiCitationDelimiter || ",";
         const fullTags = fullLabel.split(delimiter).map(tag => tag.trim()).filter(Boolean);
         const currentTags = currentLabel.split(delimiter).map(tag => tag.trim()).filter(Boolean);
@@ -266,8 +268,6 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
     async getSuggestions(context: EditorSuggestContext): Promise<CitationItem[]> {
         const lastTag = context.query;  // last tag for suggestion
         const cleanedTag = removePairedBraces(lastTag); // remove paired braces and trim space
-
-        if (cleanedTag.contains("}")) return [];  // closed citation, do not suggest
         const sourcePath = context.file?.path || null;
         if (!sourcePath) return [];
 
@@ -292,7 +292,7 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
                     items = await this.plugin.figureServices.getFiguresForAutocomplete(prefix, sourcePath);
                     break;
                 case 'callout':
-                    items = await this.plugin.calloutServices.getCalloutsForAutocomplete(prefix, this.currentCitationPrefix, sourcePath);
+                    items = await this.plugin.calloutServices.getCalloutsForAutocomplete(cleanedTag, prefix, sourcePath);
                     break;
                 default:
                     return [];
@@ -349,7 +349,7 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
                 void renderEquationWrapper(this.plugin, view.leaf, sourcePath, value as RenderedEquation, el, targetComponent);
                 break;
             case 'figure':
-                void this.renderFigureSuggestion(value as RenderedFigure, el, targetComponent);
+                void this.renderFigureSuggestion(value as RenderedFigure, view.leaf, el, targetComponent);
                 break;
             case 'callout':
                 // For callouts, display tag and type
@@ -358,11 +358,12 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         }
     }
 
-    async renderFigureSuggestion(figure: RenderedFigure, container: HTMLElement, targetComponent: Component): Promise<void> {
+    async renderFigureSuggestion(figure: RenderedFigure, leaf: WorkspaceLeaf, sourcePath, container: HTMLElement, targetComponent: Component): Promise<void> {
         // For figures, display tag and title
         const { enableRichAutoComplete } = this.plugin.settings;
 
         if (enableRichAutoComplete) {
+            renderFigureWrapper(this.plugin, leaf, sourcePath, figure, container, targetComponent);
         }
         else {
             const figContainer = container.createDiv();
