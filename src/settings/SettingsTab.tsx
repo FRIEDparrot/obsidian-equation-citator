@@ -155,7 +155,7 @@ export class SettingsTabView extends PluginSettingTab {
             { id: "ec-group-style", title: "Style", icon: "palette" },
             { id: "ec-group-pdf", title: "PDF export", icon: "file-down" },
             { id: "ec-group-cache", title: "Cache", icon: "database" },
-            { id: "ec-group-other", title: "Other settings", icon: "settings" }
+            { id: "ec-group-other", title: "Others", icon: "settings" }
         ];
 
         // Create a wrapper container for both selector and content

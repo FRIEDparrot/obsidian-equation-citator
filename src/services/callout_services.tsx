@@ -125,6 +125,55 @@ export class CalloutServices {
     }
 
     /**
+     * Get callouts for autocomplete suggestions
+     * Searches for callouts matching the given tag prefix and callout prefix
+     *
+     * @param tag - The partial tag to search for (e.g., "1.1")
+     * @param prefix - The callout prefix (e.g., "table:", "thm:")
+     * @param sourcePath - The source file path
+     * @returns Array of matching callouts
+     */
+    public async getCalloutsForAutocomplete(
+        tag: string,
+        prefix: string,
+        sourcePath: string
+    ): Promise<RenderedCallout[]> {
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath) || [];
+        const { local, crossFile } = this.plugin.settings.enableCrossFileCitation ?
+            splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
+            { local: tag, crossFile: null };
+
+        const { path, filename } = crossFile === null ?
+            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
+            this.resolveCrossFileRef(sourcePath, crossFile, footnotes);
+
+        if (!path) return [];
+
+        const calloutsAll = await this.plugin.calloutCache.getCalloutsForFile(path);
+        // Filter by prefix and tag match
+        const callouts = calloutsAll?.filter(callout =>
+            callout.prefix === prefix && callout.tag?.startsWith(local)
+        ) || [];
+
+        if (callouts.length === 0) return [];
+
+        // Extract type from prefix (remove trailing colon)
+        const type = prefix.endsWith(':') ? prefix.slice(0, -1) : prefix;
+
+        return callouts.map(callout => ({
+            type,
+            tag: callout.tag || '',
+            prefix,
+            content: callout.raw,
+            sourcePath: path,
+            filename,
+            footnoteIndex: crossFile,
+            lineStart: callout.lineStart,
+            lineEnd: callout.lineEnd
+        }) as RenderedCallout);
+    }
+
+    /**
      * Resolve cross-file reference using footnote cache
      * Returns the file path and filename for the reference
      */

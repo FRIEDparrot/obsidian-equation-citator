@@ -38,7 +38,8 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "fileCiteDelimiter",
                 "figCitationPrefix",
                 "figCitationFormat",
-                "quoteCitationPrefixes",
+                "enableRichAutoComplete",
+                "calloutCitationPrefixes",
             ]
         },
         {

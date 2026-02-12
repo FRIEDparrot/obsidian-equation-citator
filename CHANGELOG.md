@@ -312,6 +312,7 @@ Settings Update :
 - [ ] Autonumber and rename tags for figures. 
   - [ ] Following figure citations should be updated after auto-numbering or renaming tags. 
 - [ ] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 
+- [ ] Support Excalidraw in figure citation. 
 
 🐛 Bug Fixes :
 - [ ] fix bug [#136](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/136), add tag for multi-line equation in callout now work correctly. 

@@ -20,7 +20,7 @@
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
-> This plugin supports [typst-style autonumber](https://github.com/azyarashi/obsidian-typst-mate). You can use `Settings > Categorical > Other settings > enable typst mode` to enable it.
+> This plugin supports [typst-style autonumber](https://github.com/azyarashi/obsidian-typst-mate). You can use `Settings > Categorical > Others > enable typst mode` to enable it.
 
 ## 🛠️ Installation 
 1.  You can download it from community plugins After this plugin is published in obsidian vault (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`). 

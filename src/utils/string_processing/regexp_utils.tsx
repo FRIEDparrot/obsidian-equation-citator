@@ -45,8 +45,9 @@ export const equationBlockBracePattern = /(?<!\\)\$\$/g;
  * usage :  matches = processedLine.matchAll(inlineRefRegex); (remove inline code blocks first) 
  * const [fullMatch, content, label] = match; 
  */
+export const citationRegex = /\\ref\{([^}]*)\}/g;
 // export const inlineRefRegex = /(?<!\$)\$(?!\$)(?! )([^$]*?\\ref\{([^}]*)\}[^$]*?)(?<! )\$(?!\$)/g; 
-export const inlineMathPattern = /(?<!\\)(?<!\$)\$(?!\$)(?! )((?:\\\$|[^$])*?)(?<! )\$(?!\$)/g;
+export const inlineMathPattern = /(?<!\\)(?<!\$)\$(?!\$)(?! )((?:\\\$|[^$])*?)(?<!\\)(?<! )\$(?!\$)/g;
 
 export interface RefMatch {
     fullMatch: string; // full match of the regex 
@@ -60,7 +61,8 @@ export interface RefMatch {
 
 /** 
  * @param citation without bracket, e.g. "\ref{eq:1.3.4}", not with $$ 
- * @param prefix 
+ * @param prefix if use, only match the citation with the label start with the prefix, e.g. "eq:"
+ * @note Citation format : only 1 \ref{} in  equation, and is a inline math format
  * @returns 
  */
 export function isValidCitationForm(
@@ -68,19 +70,24 @@ export function isValidCitationForm(
     prefix: string | null = null,
 ): {
     valid: boolean;
+    label: string | null;  // label inside the \ref{} if valid, otherwise null
     index: number;
 } {
     // Skip if multiple \ref{} in same formula
-    const match = citation.match(/\\ref\{[^}]*\}/g);
-    if (match?.length !== 1) return { valid: false, index: -1 };
+    const match = [...citation.matchAll(citationRegex)];
+    if (match.length !== 1) return { valid: false, label: null, index: -1 };
 
     // Skip if citation does not start with prefix
-    if (prefix) {
-        // test if there is a \ref{ prefix...} format 
-        const referenceStrartRegex = new RegExp(String.raw`\\ref\{\s*${escapeRegExp(prefix)}[^}]*\}`);
-        if (!referenceStrartRegex.test(citation)) return { valid: false, index: -1 }; // not start with prefix
+    const label = match[0][1];
+    const index = match[0].index ?? -1;  // not use || here (since it overrides 0)
+    if (prefix && !label.trim().startsWith(prefix)) {
+        return { valid: false, label: null, index: -1 };
     }
-    return { valid: true, index: citation.indexOf(match[0]) };
+    return {
+        valid: true,
+        label: label.trim(),
+        index: index
+    };
 }
 
 /** Match the label of nested citation in the math block 

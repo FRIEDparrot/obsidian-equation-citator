@@ -22,6 +22,8 @@ Explicit instructions that permit using `master` include phrases such as:
 
 Anything else defaults to `dev-latest`.
 
+## Target Grammar 
+Basic grammar of this plugin is `$\ref{eq:1.1}$`, We support the case that only 1 type of citation (either `eq:`, `fig:`, `callout:`) in the citation form. Available prefixes should be read from settings. We not support mixed citation. You can check `tutorials/Quick Start.md` for details.
 
 ## Style File for this Project
 - The style file for this project can be found at: `src/styles` foder, only modify the `.scss` files under that folder, not the compiled `.css` files.

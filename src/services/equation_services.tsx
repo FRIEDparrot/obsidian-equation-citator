@@ -22,7 +22,7 @@ export interface RenderedEquation {
  */
 export class EquationServices {
     constructor(
-        private plugin: EquationCitator
+        private readonly plugin: EquationCitator
     ) { }
 
     /**
@@ -103,14 +103,14 @@ export class EquationServices {
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
 
-        const { path, filename } = crossFile !== null ?
-            this.resolveCrossFileRef(sourcePath, crossFile, footnotes) :
-            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null };
+        const { path, filename } = crossFile === null ?
+            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
+            this.resolveCrossFileRef(sourcePath, crossFile, footnotes);
 
         if (!path) return [];
 
         const equationsAll = await this.plugin.equationCache.getEquationsForFile(path);
-        const equations = equationsAll?.filter(eq => eq.tag && eq.tag.startsWith(local)) || [];
+        const equations = equationsAll?.filter(eq => eq.tag?.startsWith(local)) || [];
         if (equations.length === 0) return [];
 
         return equations.map(eq => ({

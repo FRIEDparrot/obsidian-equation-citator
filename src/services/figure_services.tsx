@@ -21,7 +21,7 @@ export interface RenderedFigure {
  */
 export class FigureServices {
     constructor(
-        private plugin: EquationCitator
+        private readonly plugin: EquationCitator
     ) { }
 
     /**
@@ -106,14 +106,14 @@ export class FigureServices {
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
 
-        const { path, filename } = crossFile !== null ?
-            this.resolveCrossFileRef(sourcePath, crossFile, footnotes) :
-            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null };
+        const { path, filename } = crossFile === null ?
+            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
+            this.resolveCrossFileRef(sourcePath, crossFile, footnotes);
 
         if (!path) return [];
 
         const imagesAll = await this.plugin.imageCache.getImagesForFile(path);
-        const images = imagesAll?.filter(img => img.tag && img.tag.startsWith(local)) || [];
+        const images = imagesAll?.filter(img => img.tag?.startsWith(local)) || [];
         if (images.length === 0) return [];
 
         return images.map(img => ({

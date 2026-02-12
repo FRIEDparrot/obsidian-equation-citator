@@ -32,6 +32,7 @@ export interface EquationCitatorSettings {
 
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures
+    enableRichAutoComplete: boolean; // Enable rich auto-complete suggestion for figures and callouts
 
     calloutCitationPrefixes: CalloutCitationPrefix[];  // Citation prefixes and formats for callouts  
     
@@ -102,6 +103,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationFormat: "(#)", // Default display format for citations
     figCitationPrefix: "fig:", // prefix for cite figures
     figCitationFormat: "Fig. #", // citation format for figures
+    enableRichAutoComplete: true, // enable rich auto-complete suggestion by default
     calloutCitationPrefixes: [
         { prefix: "table:", format: "Table. #" },
     ],
@@ -153,6 +155,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     ],
     advancedSettingsKeys: [
         "enableCitationInSourceMode",
+        "enableRichAutoComplete",
         "citationPrefix",
         "citationFormat",
         "figCitationPrefix",
@@ -162,7 +165,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "multiCitationDelimiter",
         "multiCitationDelimiterRender",
         "enableContinuousCitation",
-        "quoteCitationPrefixes",
+        "calloutCitationPrefixes",
         "autoNumberDelimiter",
         "enableAutoNumberEquationsInQuotes",
         "enableUpdateTagsInAutoNumber",
@@ -240,12 +243,20 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             CitationSettingsTab.figCitationFormat(el, plugin);
         }
     },
-    quoteCitationPrefixes: {
+    enableRichAutoComplete: {
+        name: "Enable image and callout preview in suggestions",
+        desc: "When enabled, citation suggestions display full image and callout content instead of only titles.",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.enableRichAutoComplete(el, plugin);
+        }
+    },
+    calloutCitationPrefixes: {
         name: "Callout citation prefixes",
         desc: "Prefixes for citing callouts/quotes. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions.",
         type: "array",
-        renderCallback: (el, plugin) => {
-            CitationSettingsTab.quoteCitationPrefixes(el, plugin);
+        renderCallback: (el: HTMLElement, plugin: EquationCitator) => {
+            CitationSettingsTab.calloutCitationPrefixes(el, plugin);
         }
     },
     multiCitationDelimiter: {

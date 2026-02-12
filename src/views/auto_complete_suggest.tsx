@@ -1,7 +1,10 @@
-import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView } from "obsidian";
+import { EditorSuggest, Editor, EditorPosition, EditorSuggestTriggerInfo, TFile, EditorSuggestContext, MarkdownView, Component } from "obsidian";
 import { RenderedEquation } from "@/services/equation_services";
+import { RenderedFigure } from "@/services/figure_services";
+import { RenderedCallout } from "@/services/callout_services";
 import { findLastUnescapedDollar, isInInlineMathEnvironment, isInInlineCodeEnvironment, removePairedBraces } from "@/utils/string_processing/string_utils";
 import { renderEquationWrapper, TargetElComponent } from "@/views/popovers/citation_popover";
+import { renderFigureWrapper } from "./popovers/figure_citation_popover";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
 import { createCitationString, inlineMathPattern, isCodeBlockToggle, isValidCitationForm } from "@/utils/string_processing/regexp_utils";
 import EquationCitator from "@/main";
@@ -10,7 +13,10 @@ import { splitFileCitation } from "@/utils/core/citation_utils";
 import Debugger from "@/debug/debugger";
 
 
-const CITATION_PADDING = 5; // \\ref{ is 5 characters  
+const CITATION_PADDING = 5; // \\ref{ is 5 characters
+
+type CitationType = 'equation' | 'figure' | 'callout';
+type CitationItem = RenderedEquation | RenderedFigure | RenderedCallout;
 
 interface MathEnvironmentInfo {
     line: string;        // line content
@@ -24,16 +30,21 @@ interface CitationParseResult {
     valid: boolean;
     citationIndex: number;
     fullLabel: string;
-    currentLabel: string;
-    fullTags: string[];
+    currentLabel: string;   // label before cursor without prefix, used for suggestion filtering
+    fullTags: string[];     // all tags in the citation, split by multiCitationDelimiter
     currentTags: string[];
+    citationType: CitationType | null;  // detected citation type 
+    citationPrefix: string | null;  // The actual prefix found (e.g., "eq:", "fig:", "table:")
 }
 
-export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
-    inCodeBlockState = false; // whether the cursor is inside a code block or not 
-    currentCursorLine: number; // only update codeblock state when cursor line change 
+export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
+    inCodeBlockState = false; // whether the cursor is inside a code block or not
+    currentCursorLine: number; // only update codeblock state when cursor line change
     lastCodeBlockStateUpdateTime = 0; // update codeblock state when last update time is more than 300ms
     private suggestionComponents: TargetElComponent[] = [];
+    private currentCitationType: CitationType | null = null; // Track current citation type
+    private currentCitationPrefix: string = ''; // Track current citation prefix
+    private currentCitationLabel: string = ''; // Track current citation label
 
     constructor(
         private readonly plugin: EquationCitator
@@ -48,7 +59,7 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
     }
 
     /**
-     * refresh in code block state when cursor line change  
+     * refresh in code block state when cursor line change
      */
     private refreshInCodeBlockState(editor: Editor, cursor: EditorPosition): void {
         const lines = editor.getValue().split("\n");
@@ -93,51 +104,93 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         };
     }
 
-
     /**
      * Parses citation information from the provided equation content string, extracting details
      * about the citation label and tags at the current cursor position.
+     * 
+     * Here we use cursorCh and eqStart parameter is just for the convenience of calling, it 
+     *    can also be reduced to 1 parameter. 
      *
      * @param eqContent - The equation content string to parse for citation information.
-     * @param cursorCh - The character index of the cursor within the equation content.
-     * @param eqStart - The starting character index of the equation within the document.
+     * @param cursorCh - The character index of the cursor of the current line.
+     * @param eqStart - The starting character index of the equation of the current line.
      * @returns An object containing the validity of the citation, citation index, full and current labels,
-     *          and arrays of full and current tags.
+     *          arrays of full and current tags, citation type, and citation prefix.
      */
     private parseCitationInfo(
         eqContent: string,
         cursorCh: number,
         eqStart: number,
     ): CitationParseResult {
-        const { citationPrefix, multiCitationDelimiter } = this.plugin.settings;
-        const check = isValidCitationForm(eqContent + "}", citationPrefix);  // add a } to handle no-close citation case
-        if (!check.valid) {
-            return { valid: false, citationIndex: -1, fullLabel: "", currentLabel: "", fullTags: [], currentTags: [] };
-        }
+        const invalidResult: CitationParseResult = {
+            valid: false,
+            citationIndex: -1,
+            fullLabel: "",
+            currentLabel: "",
+            fullTags: [],
+            currentTags: [],
+            citationType: null,
+            citationPrefix: null,
+        };
+        const { citationPrefix, multiCitationDelimiter, figCitationPrefix, calloutCitationPrefixes } = this.plugin.settings;
+        const { valid, label, index } = isValidCitationForm(eqContent, null);
+
         // skip the "\\ref{" prefix length using CITATION_PADDING constant
-        let fullLabel = eqContent.substring(check.index + CITATION_PADDING, eqContent.length).trim().substring(citationPrefix.length);
-        if (fullLabel.endsWith("}")) {
-            fullLabel = fullLabel.slice(0, -1).trim(); // remove trailing } if exists
+        const cursorPadding = cursorCh - eqStart;
+        const refLengthBeforeCursor = cursorPadding - (index + CITATION_PADDING);
+        if (!valid || label === null || index === -1 || refLengthBeforeCursor < 0) {
+            return invalidResult;
         }
-        const currentLabel = eqContent.substring(check.index + CITATION_PADDING, cursorCh - eqStart).trim().substring(citationPrefix.length);
+        // Detect citation type from the prefix inline
+        let detectedType: CitationType | null = null;
+        let detectedPrefix: string = citationPrefix;
+
+        if (label.startsWith(citationPrefix)) {
+            detectedType = 'equation';
+            detectedPrefix = citationPrefix;
+        } else if (label.startsWith(figCitationPrefix)) {
+            detectedType = 'figure';
+            detectedPrefix = figCitationPrefix;
+        } else {
+            // Check for callout citation
+            for (const calloutPrefix of calloutCitationPrefixes) {
+                if (label.startsWith(calloutPrefix.prefix)) {
+                    detectedType = 'callout';
+                    detectedPrefix = calloutPrefix.prefix;
+                    break;
+                }
+            }
+        }
+        if (!detectedType) return invalidResult; // No valid prefix found, return invalid result
+
+        // Remove the detected prefix from the label
+        let fullLabel = label.substring(detectedPrefix.length);
+        const spacesBeforeLabel = eqContent.substring(index + CITATION_PADDING, cursorPadding).indexOf(detectedPrefix)
+        const currentLabelLengthWithPrefix = refLengthBeforeCursor - spacesBeforeLabel;
+        if (currentLabelLengthWithPrefix < detectedPrefix.length) {
+            return invalidResult;
+        }
+        const currentLabel = label.substring(detectedPrefix.length, currentLabelLengthWithPrefix)
 
         const delimiter = multiCitationDelimiter || ",";
         const fullTags = fullLabel.split(delimiter).map(tag => tag.trim()).filter(Boolean);
         const currentTags = currentLabel.split(delimiter).map(tag => tag.trim()).filter(Boolean);
 
-        if(fullTags.length >= currentTags.length){
-            // current label should be a subset of full label 
+        // current label should be a subset of full label
+        if (fullTags.length < currentTags.length) {
             Debugger.log(`Invalid current label length ${currentTags.length} is bigger than full tags length ${fullTags.length};` +
-            `Current label: ${currentLabel}, Full label: ${fullLabel}`)
+                `Current label: ${currentLabel}, Full label: ${fullLabel}`)
         }
 
         return {
             valid: true,
-            citationIndex: check.index,
+            citationIndex: index,
             fullLabel,
             currentLabel,
             fullTags,
-            currentTags
+            currentTags,
+            citationType: detectedType,
+            citationPrefix: detectedPrefix
         };
     }
 
@@ -159,92 +212,126 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
 
     onTrigger(cursor: EditorPosition, editor: Editor, file: TFile | null): EditorSuggestTriggerInfo | null {
         const {
-            citationPrefix,
             multiCitationDelimiter,
             enableCitationInSourceMode
         } = this.plugin.settings;
-        // judge if it's source mode or not 
+        // judge if it's source mode or not
         const mdView = this.plugin.app.workspace.activeEditor?.editor;
         if (!mdView) return null;
 
         const cm = editor.cm;
-        if (isSourceMode(cm) && !enableCitationInSourceMode) {
-            return null; // do not suggest in source mode if not enabled in settings
-        }
+        if (isSourceMode(cm) && !enableCitationInSourceMode) return null;
 
-        // refresh the code block state (while prevent refresh too frequently) 
+        // refresh the code block state (while prevent refresh too frequently)
         if (Date.now() - this.lastCodeBlockStateUpdateTime > 300) {
-            this.refreshInCodeBlockState(editor, cursor); // update codeblock state  
+            this.refreshInCodeBlockState(editor, cursor); // update codeblock state
             this.lastCodeBlockStateUpdateTime = Date.now();
         }
 
-        const line = editor.getLine(cursor.line);  // get the line before the cursor  
+        const line = editor.getLine(cursor.line);  // get the line before the cursor
         if (!this.shouldTriggerInEnvironment(line, cursor)) return null;
 
         const mathInfo = this.getMathEnvironmentInfo(editor, cursor);
         if (!mathInfo) return null;
 
-        // get the equation content before cursor  and check validity by add end } to citation
-        const eqContent = line.substring(mathInfo.lastDollarIndex + 1, cursor.ch);
-        const check = isValidCitationForm(eqContent + "}", citationPrefix);
+        // Use parseCitationInfo to get all information about the citation.
+        const citationInfo = this.parseCitationInfo(mathInfo.eqContent, cursor.ch, mathInfo.lastDollarIndex + 1);
 
-        if (!check.valid) return null;  // invalid citation form  
+        if (!citationInfo.valid || !citationInfo.citationType || !citationInfo.citationPrefix) return null;
 
-        // get the last tag for suggestion 
-        const eqLabel = eqContent.substring(check.index + CITATION_PADDING, eqContent.length).substring(citationPrefix.length);
-        const isNewTag = eqLabel.trim().endsWith(multiCitationDelimiter);
-        const lastTag = isNewTag ? "" : (eqLabel.split(multiCitationDelimiter || ",").pop() ?? "");
+        // Store the detected citation type and prefix for use in getSuggestions
+        this.currentCitationType = citationInfo.citationType;
+        this.currentCitationPrefix = citationInfo.citationPrefix;
+        this.currentCitationLabel = citationInfo.currentLabel;
+
+        // Use the current label from citationInfo
+        const isNewTag = citationInfo.currentLabel.trim().endsWith(multiCitationDelimiter);
+        const lastTag = isNewTag ? "" : (citationInfo.currentTags.at(-1) ?? "");
 
         // if there is tag, and also the lastTag ends with space, stop suggesting
-        if (eqLabel !== "" && lastTag.endsWith(" ")) return null;
+        if (citationInfo.currentLabel !== "" && lastTag.endsWith(" ")) return null;
 
-        const eqPos = check.index + mathInfo.lastDollarIndex + 1;
+        const eqPos = citationInfo.citationIndex + mathInfo.lastDollarIndex + 1;
         return {
             start: {
                 line: cursor.line,
                 ch: eqPos,
             },
             end: cursor,
-            query: lastTag.trim(), // use last tag of citation for suggestion  
+            query: lastTag.trim(), // use last tag of citation for suggestion
         }
     }
 
-    async getSuggestions(context: EditorSuggestContext): Promise<RenderedEquation[]> {
-        const lastTag = context.query;  // last tag for suggestion 
-        const cleanedTag = removePairedBraces(lastTag); // remove paired braces and trim space  
+    async getSuggestions(context: EditorSuggestContext): Promise<CitationItem[]> {
+        const lastTag = context.query;  // last tag for suggestion
+        const cleanedTag = removePairedBraces(lastTag); // remove paired braces and trim space
 
-        if (cleanedTag.contains("}")) return [];  // closed citation, do not suggest 
+        if (cleanedTag.contains("}")) return [];  // closed citation, do not suggest
         const sourcePath = context.file?.path || null;
         if (!sourcePath) return [];
 
         const { enableContinuousCitation, continuousRangeSymbol, continuousDelimiters } = this.plugin.settings;
 
+        // Handle continuous citation for all types
         if (enableContinuousCitation && cleanedTag.endsWith(continuousRangeSymbol) && cleanedTag.length > 1) {
             const validDelimiters = continuousDelimiters.split(" ").filter(Boolean); // split by space and remove empty string
             const tagPrev = cleanedTag.slice(0, -continuousRangeSymbol.length).trim();
-            // then get the prefix before last number 
+            // then get the prefix before last number
             const prefix = extractPrefixBeforeLastNumber(tagPrev, validDelimiters);
             const lastNumber = extractLastNumberFromTag(tagPrev, validDelimiters);
-            if (prefix === "" || lastNumber === null) return []; // no valid prefix, do not suggest anything 
-            const equations = await this.plugin.equationServices.getEquationsForAutocomplete(
-                prefix,   // last tag may contain space, remove it 
-                sourcePath
-            );
-            return equations.filter(eq => {
-                const eqLastNumber = extractLastNumberFromTag(eq.tag, validDelimiters);
-                return eqLastNumber !== null && eqLastNumber > lastNumber;
+            if (prefix === "" || lastNumber === null) return []; // no valid prefix, do not suggest anything
+
+            // Fetch all items of the current type
+            let items: CitationItem[];
+            switch (this.currentCitationType) {
+                case 'equation':
+                    items = await this.plugin.equationServices.getEquationsForAutocomplete(prefix, sourcePath);
+                    break;
+                case 'figure':
+                    items = await this.plugin.figureServices.getFiguresForAutocomplete(prefix, sourcePath);
+                    break;
+                case 'callout':
+                    items = await this.plugin.calloutServices.getCalloutsForAutocomplete(prefix, this.currentCitationPrefix, sourcePath);
+                    break;
+                default:
+                    return [];
+            }
+
+            // Filter to show only items with numbers greater than the last one
+            return items.filter(item => {
+                const itemTag = 'tag' in item ? item.tag : '';
+                const itemLastNumber = extractLastNumberFromTag(itemTag, validDelimiters);
+                return itemLastNumber !== null && itemLastNumber > lastNumber;
             });
         }
-        else {
-            const equations = await this.plugin.equationServices.getEquationsForAutocomplete(
-                cleanedTag.trim(),   // last tag may contain space, remove it 
-                sourcePath
-            );
-            return equations;
+
+        // Fetch suggestions based on citation type
+        switch (this.currentCitationType) {
+            case 'equation':
+                return await this.plugin.equationServices.getEquationsForAutocomplete(
+                    cleanedTag.trim(),
+                    sourcePath
+                );
+
+            case 'figure':
+                return await this.plugin.figureServices.getFiguresForAutocomplete(
+                    cleanedTag.trim(),
+                    sourcePath
+                );
+
+            case 'callout':
+                return await this.plugin.calloutServices.getCalloutsForAutocomplete(
+                    cleanedTag.trim(),
+                    this.currentCitationPrefix, // Pass the specific callout prefix
+                    sourcePath
+                );
+
+            default:
+                return [];
         }
     }
 
-    renderSuggestion(value: RenderedEquation, el: HTMLElement): void {
+    renderSuggestion(value: CitationItem, el: HTMLElement): void {
         const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || null;
         if (!sourcePath) return;
         el.addClass("em-equation-option-container");
@@ -255,22 +342,65 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
 
-        void renderEquationWrapper(this.plugin, view.leaf, sourcePath, value, el, targetComponent);
+        // Render based on citation type
+        switch (this.currentCitationType) {
+            case 'equation':
+                void renderEquationWrapper(this.plugin, view.leaf, sourcePath, value as RenderedEquation, el, targetComponent);
+                break;
+            case 'figure':
+                void this.renderFigureSuggestion(value as RenderedFigure, el);
+                break;
+            case 'callout':
+                // For callouts, display tag and type
+                void this.renderCalloutSuggestions(value as RenderedCallout, el);
+                break;
+        }
     }
 
-    selectSuggestion(value: RenderedEquation, evt: MouseEvent | KeyboardEvent): void {
+    async renderFigureSuggestion(figure: RenderedFigure, container: HTMLElement, targetComponent: Component): Promise<void> {
+        // For figures, display tag and title
+        const { enableRichAutoComplete } = this.plugin.settings;
+
+        if (enableRichAutoComplete) {
+        }
+        else {
+            const figure: RenderedFigure = value;
+            const figContainer = targetEl.createDiv();
+            figContainer.addClass("em-figure-autocomplete-item");
+            const figLabel = figContainer.createSpan();
+            figLabel.addClass("em-autocomplete-label");
+            figLabel.textContent = `${this.plugin.settings.figCitationFormat.replace('#', figure.tag)}`;
+            if (figure.title) {
+                const figTitle = figContainer.createSpan();
+                figTitle.addClass("em-autocomplete-title");
+                figTitle.textContent = ` - ${figure.title}`;
+            }
+        }
+
+    }
+
+    async renderCalloutSuggestions(value: RenderedCallout, el: HTMLElement): Promise<void> {
+        const callout = value as RenderedCallout;
+        const calloutContainer = targetEl.createDiv();
+        calloutContainer.addClass("em-callout-autocomplete-item");
+        const calloutLabel = calloutContainer.createSpan();
+        calloutLabel.addClass("em-autocomplete-label");
+        const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === callout.prefix);
+        const format = prefixConfig?.format || `${callout.type}. #`;
+        calloutLabel.textContent = format.replace('#', callout.tag);
+        break;
+    }
+
+    selectSuggestion(value: CitationItem, evt: MouseEvent | KeyboardEvent): void {
         const {
             multiCitationDelimiter,
             enableCrossFileCitation,
             fileCiteDelimiter,
-            citationPrefix,
-            figCitationPrefix,
-            calloutCitationPrefixes,
             enableContinuousCitation,
             continuousRangeSymbol,
             continuousDelimiters,
         } = this.plugin.settings;
-        const validDelimiters = continuousDelimiters.split(" ").filter(Boolean); // split by space and remove empty string 
+        const validDelimiters = continuousDelimiters.split(" ").filter(Boolean); // split by space and remove empty string
 
         const editor = this.context?.editor;
         if (!this.context || !editor) return;
@@ -282,24 +412,30 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         const citationInfo = this.parseCitationInfo(mathInfo.eqContent, cursor.ch, mathInfo.eqStart);
         if (!citationInfo.valid) return;
 
-        // ======== begin creating new tags for citation complete ====================== 
-        const lastTag = this.context.query;  // last tag for suggestion 
+        // Get the tag from the value based on type
+        const itemTag = 'tag' in value ? value.tag : '';
+        const footnoteIndex = 'footnoteIndex' in value ? value.footnoteIndex : null;
+
+        // ======== begin creating new tags for citation complete ======================
+        const lastTag = this.context.query;  // last tag for suggestion
         const isRangeContinuation = lastTag.endsWith(continuousRangeSymbol) && lastTag.length > 1;
         let newTag: string;
+
+        // Handle continuous citation for all types
         if (isRangeContinuation && enableContinuousCitation) {
-            // infer next number from chosen equation
+            // infer next number from chosen item
             const basePart = lastTag.slice(0, -continuousRangeSymbol.length);
-            const nextNum = extractLastNumberFromTag(value.tag, validDelimiters);
-            if (nextNum === null) return; // should not happen 
-            // parse local part 
-            const local = enableCrossFileCitation ? splitFileCitation(basePart, fileCiteDelimiter).local : value.tag;
-            newTag = value.footnoteIndex
-                ? `${value.footnoteIndex}${fileCiteDelimiter}{${local}${continuousRangeSymbol}${nextNum}}`
+            const nextNum = extractLastNumberFromTag(itemTag, validDelimiters);
+            if (nextNum === null) return; // should not happen
+            // parse local part
+            const local = enableCrossFileCitation ? splitFileCitation(basePart, fileCiteDelimiter).local : itemTag;
+            newTag = footnoteIndex
+                ? `${footnoteIndex}${fileCiteDelimiter}{${local}${continuousRangeSymbol}${nextNum}}`
                 : `${local}${continuousRangeSymbol}${nextNum}`;
         } else {
-            newTag = value.footnoteIndex
-                ? `${value.footnoteIndex}${fileCiteDelimiter}{${value.tag}}`
-                : value.tag;
+            newTag = footnoteIndex
+                ? `${footnoteIndex}${fileCiteDelimiter}{${itemTag}}`
+                : itemTag;
         }
         const newTagIdx = lastTag ? citationInfo.currentTags.length - 1 : citationInfo.currentTags.length;
 
@@ -313,8 +449,9 @@ export class AutoCompleteSuggest extends EditorSuggest<RenderedEquation> {
         }
         const eqDelimiter = multiCitationDelimiter + " " || ", ";
 
-        const newContent = createCitationString(citationPrefix, `${citationInfo.fullTags.join(eqDelimiter)}, `, false);
-        const cursorContent = String.raw`\ref{${citationPrefix}${citationInfo.currentTags.join(eqDelimiter)}, `;
+        // Use the detected citation prefix instead of hardcoded citationPrefix
+        const newContent = createCitationString(this.currentCitationPrefix, `${citationInfo.fullTags.join(eqDelimiter)}, `, false);
+        const cursorContent = String.raw`\ref{${this.currentCitationPrefix}${citationInfo.currentTags.join(eqDelimiter)}, `;
         const replaceStart = {
             line: this.context.start.line,
             ch: mathInfo.eqStart

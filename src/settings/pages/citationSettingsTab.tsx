@@ -22,6 +22,19 @@ export const CitationSettingsTab = {
             });
     },
 
+    enableRichAutoComplete(containerEl: HTMLElement, plugin: EquationCitator) {
+        const enableRichAutoCompleteSetting = new Setting(containerEl);
+        const { name, desc } = SETTINGS_METADATA.enableRichAutoComplete;
+        enableRichAutoCompleteSetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableRichAutoComplete);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableRichAutoComplete = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
     citationPrefix(containerEl: HTMLElement, plugin: EquationCitator) {
         const citePrefixSetting = new Setting(containerEl);
         citePrefixSetting.setName(SETTINGS_METADATA.citationPrefix.name)
@@ -276,10 +289,10 @@ export const CitationSettingsTab = {
             })
     },
 
-    quoteCitationPrefixes(containerEl: HTMLElement, plugin: EquationCitator) {
+    calloutCitationPrefixes(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
-            .setName(SETTINGS_METADATA.quoteCitationPrefixes.name)
-            .setDesc(SETTINGS_METADATA.quoteCitationPrefixes.desc);
+            .setName(SETTINGS_METADATA.calloutCitationPrefixes.name)
+            .setDesc(SETTINGS_METADATA.calloutCitationPrefixes.desc);
 
         // Container for the list of prefixes
         const prefixListContainer = containerEl.createDiv("ec-prefix-list-container");
@@ -352,7 +365,7 @@ export const CitationSettingsTab = {
                         }
                     };
                 });
-                
+
                 // Add remove button after text inputs
                 setting.addButton((button) => {
                     button.setButtonText("Remove")
@@ -371,7 +384,7 @@ export const CitationSettingsTab = {
                 .addButton((button) => {
                     button.setButtonText("Add new prefix")
                         .setClass("mod-cta")
-                        .onClick(async() => {
+                        .onClick(async () => {
                             // Find a unique default prefix
                             let newPrefix = "custom:";
                             let counter = 1;
@@ -410,5 +423,5 @@ export function addCitationSettingsTab(containerEl: HTMLElement, plugin: Equatio
     CitationSettingsTab.multiCitationDelimiterRender(containerEl, plugin);
     CitationSettingsTab.enableContinuousCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
     CitationSettingsTab.enableCrossFileCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
-    CitationSettingsTab.quoteCitationPrefixes(containerEl, plugin);
+    CitationSettingsTab.calloutCitationPrefixes(containerEl, plugin);
 }

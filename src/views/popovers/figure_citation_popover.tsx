@@ -1,6 +1,10 @@
-import { WorkspaceLeaf, TFile, Notice, MarkdownView, EditorRange } from "obsidian";
 import EquationCitator from "@/main";
 import {
+    WorkspaceLeaf, 
+    TFile, 
+    Notice, 
+    MarkdownView, 
+    EditorRange,
     Component,
     HoverPopover,
     HoverParent,
@@ -16,16 +20,16 @@ import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
  * Displays image previews in a popover when hovering over figure citations
  */
 export class FigureCitationPopover extends HoverPopover {
-    private figuresToRender: RenderedFigure[] = [];
-    private targetEl: HTMLElement;
-    private targetComponent: TargetElComponent;
+    private readonly figuresToRender: RenderedFigure[] = [];
+    private readonly targetEl: HTMLElement;
+    private readonly targetComponent: TargetElComponent;
 
     constructor(
-        private plugin: EquationCitator,
+        private readonly plugin: EquationCitator,
         parent: HoverParent,
         targetEl: HTMLElement,
         figuresToRender: RenderedFigure[],
-        private sourcePath: string,
+        private readonly sourcePath: string,
         waitTime?: number
     ) {
         super(parent, targetEl, waitTime);
@@ -109,7 +113,7 @@ export class FigureCitationPopover extends HoverPopover {
         const footer = container.createDiv();
         const totalFigures = this.figuresToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${totalFigures} figure${totalFigures !== 1 ? 's' : ''}`;
+        footer.textContent = `${totalFigures} figure${totalFigures === 1 ? '' : 's'}`;
     }
 }
 

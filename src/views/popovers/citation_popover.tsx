@@ -1,6 +1,8 @@
-import { loadMathJax, Notice, WorkspaceLeaf } from "obsidian";
 import EquationCitator from "@/main";
 import {
+    loadMathJax, 
+    Notice, 
+    WorkspaceLeaf,
     Component,
     HoverPopover,
     HoverParent,
@@ -26,16 +28,16 @@ import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
  */
 export class CitationPopover extends HoverPopover {
     tags: string[] = []; // list of tags to be cited
-    private equationsToRender: RenderedEquation[] = [];
-    private targetEl: HTMLElement;
-    private targetComponent: TargetElComponent;
+    private readonly equationsToRender: RenderedEquation[] = [];
+    private readonly targetEl: HTMLElement;
+    private readonly targetComponent: TargetElComponent;
     
     constructor(
-        private plugin: EquationCitator,
+        private readonly plugin: EquationCitator,
         parent: HoverParent,
         targetEl: HTMLElement,
         equationsToRender: RenderedEquation[],
-        private sourcePath: string,
+        private readonly sourcePath: string,
         waitTime?: number
     ) {
         super(parent, targetEl, waitTime);
@@ -104,7 +106,7 @@ export class CitationPopover extends HoverPopover {
         const footer = container.createDiv();
         const totalEquations = this.equationsToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${totalEquations} equation${totalEquations !== 1 ? 's' : ''}`;
+        footer.textContent = `${totalEquations} equation${totalEquations === 1 ? '' : 's'}`;
     }
 }
 
@@ -131,8 +133,6 @@ export async function renderEquationWrapper(
     }
     const equationWrapper = container.createDiv();
     equationWrapper.addClass("em-equation-wrapper");
-    // equationWrapper.setAttribute("data-equation-index", index.toString()); 
-
     const equationLabelContainer = equationWrapper.createDiv();
     equationLabelContainer.addClass("em-equation-label-container");
 
