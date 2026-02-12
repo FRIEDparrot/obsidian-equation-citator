@@ -308,7 +308,9 @@ Settings Update :
 --- 
 
 ⭐ New Features :
-- [ ] Autocomplete for figure citation and callout citations.
+- [x] Autocomplete for figure citation and callout citations.
+  - [x] Auto complete supports 2 modes : including rich mode and compact mode (Check `Settings > Advanced > Show full preview in autocomplete`). 
+  - [x] For compact mode, hover on the autocomplete item will show the preview of the figure or callout. (Check `Settings > Advanced > Show preview on hover on autocomplete item`)
 - [ ] Autonumber and rename tags for figures. 
   - [ ] Following figure citations should be updated after auto-numbering or renaming tags. 
 - [ ] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 

@@ -43,7 +43,6 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
     private suggestionComponents: TargetElComponent[] = [];
     private currentCitationType: CitationType | null = null; // Track current citation type
     private currentCitationPrefix: string = ''; // Track current citation prefix
-    private currentCitationLabel: string = ''; // Track current citation label
 
     constructor(
         private readonly plugin: EquationCitator
@@ -214,6 +213,9 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         return inMathEnv || (acceptInlineCode && inCodeEnv);
     }
 
+    onSelectSuggestion(value: CitationItem, evt: MouseEvent | KeyboardEvent): void {
+    }
+
     onTrigger(cursor: EditorPosition, editor: Editor, file: TFile | null): EditorSuggestTriggerInfo | null {
         const {
             multiCitationDelimiter,
@@ -246,7 +248,6 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         // Store the detected citation type and prefix for use in getSuggestions
         this.currentCitationType = citationInfo.citationType;
         this.currentCitationPrefix = citationInfo.citationPrefix;
-        this.currentCitationLabel = citationInfo.currentLabel;
 
         // Use the current label from citationInfo
         const isNewTag = citationInfo.currentLabel.trim().endsWith(multiCitationDelimiter);
@@ -342,55 +343,138 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
 
-        const { enableRichAutoComplete } = this.plugin.settings;
-
         // Render based on citation type
         switch (this.currentCitationType) {
             case 'equation':
-                // show equation rendering
-                void renderEquationWrapper(this.plugin, view.leaf, value as RenderedEquation, el, targetComponent);
+                this.renderEquationSuggestion(value as RenderedEquation, el, targetComponent, view);
                 break;
             case 'figure':
-                if (enableRichAutoComplete) {
-                    renderFigureWrapper(this.plugin, view.leaf, value as RenderedFigure, el, targetComponent);
-                } else {
-                    // Simple rendering: show figure number and title
-                    const fig = value as RenderedFigure;
-                    const figContainer = el.createDiv();
-                    figContainer.addClass("em-figure-autocomplete-item");
-                    const figLabel = figContainer.createSpan();
-                    figLabel.addClass("em-autocomplete-label");
-                    figLabel.textContent = `${this.plugin.settings.figCitationFormat.replace('#', fig.tag)}`;
-                    if (fig.title) {
-                        const figTitle = figContainer.createSpan();
-                        figTitle.addClass("em-autocomplete-title");
-                        figTitle.textContent = ` - ${fig.title}`;
-                    }
-                }
+                this.renderFigureSuggestion(value as RenderedFigure, el, targetComponent, view);
                 break;
             case 'callout':
-                if (enableRichAutoComplete) {
-                    void renderCalloutWrapper(this.plugin, view.leaf, value as RenderedCallout, el, targetComponent);
-                } else {
-                    // Simple rendering: show callout number and title
-                    const callout = value as RenderedCallout;
-                    const calloutContainer = el.createDiv();
-                    calloutContainer.addClass("em-callout-autocomplete-item");
-                    const calloutLabel = calloutContainer.createSpan();
-                    calloutLabel.addClass("em-autocomplete-label");
-                    const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === callout.prefix);
-                    const format = prefixConfig?.format || `${callout.type}. #`;
-                    calloutLabel.textContent = format.replace('#', callout.tag);
-                    // Add title if available
-                    if (callout.title) {
-                        const calloutTitle = calloutContainer.createSpan();
-                        calloutTitle.addClass("em-autocomplete-title");
-                        calloutTitle.textContent = ` - ${callout.title}`;
-                    }
-                }
+                this.renderCalloutSuggestion(value as RenderedCallout, el, targetComponent, view);
                 break;
         }
     }
+
+    private renderEquationSuggestion(
+        equation: RenderedEquation,
+        el: HTMLElement,
+        targetComponent: TargetElComponent,
+        view: MarkdownView
+    ): void {
+        void renderEquationWrapper(this.plugin, view.leaf, equation, el, targetComponent);
+    }
+
+    private renderFigureSuggestion(
+        fig: RenderedFigure,
+        el: HTMLElement,
+        targetComponent: TargetElComponent,
+        view: MarkdownView
+    ): void {
+        const { enableRichAutoComplete, enableRichAutoCompleteHoverPreview, richAutoCompletePreviewDelayTime } =
+            this.plugin.settings;
+
+        if (enableRichAutoComplete) {
+            renderFigureWrapper(this.plugin, view.leaf, fig, el, targetComponent);
+        } else {
+            // Simple rendering: show figure number and title
+            const figContainer = el.createDiv();
+            figContainer.addClass("em-figure-autocomplete-item");
+            const figLabel = figContainer.createSpan();
+            figLabel.addClass("em-autocomplete-label");
+            figLabel.textContent = `${this.plugin.settings.figCitationFormat.replace('#', fig.tag)}`;
+            if (fig.title) {
+                const figTitle = figContainer.createSpan();
+                figTitle.addClass("em-autocomplete-title");
+                figTitle.textContent = ` - ${fig.title}`;
+            }
+            if (enableRichAutoCompleteHoverPreview) {
+                this.addHoverPreview(
+                    el,
+                    figContainer,
+                    richAutoCompletePreviewDelayTime,
+                    (previewEl) => {
+                        previewEl.addClass("em-figure-autocomplete-preview");
+                        renderFigureWrapper(this.plugin, view.leaf, fig, previewEl, targetComponent);
+                    }
+                );
+            }
+        }
+    }
+
+    private renderCalloutSuggestion(
+        callout: RenderedCallout,
+        el: HTMLElement,
+        targetComponent: TargetElComponent,
+        view: MarkdownView
+    ): void {
+        const { enableRichAutoComplete, enableRichAutoCompleteHoverPreview, richAutoCompletePreviewDelayTime } =
+            this.plugin.settings;
+
+        if (enableRichAutoComplete) {
+            void renderCalloutWrapper(this.plugin, view.leaf, callout, el, targetComponent);
+        } else {
+            // Simple rendering: show callout number and title
+            const calloutContainer = el.createDiv();
+            calloutContainer.addClass("em-callout-autocomplete-item");
+            const calloutLabel = calloutContainer.createSpan();
+            calloutLabel.addClass("em-autocomplete-label");
+            const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === callout.prefix);
+            const format = prefixConfig?.format || `${callout.type}. #`;
+            calloutLabel.textContent = format.replace('#', callout.tag);
+            if (callout.title) {
+                const calloutTitle = calloutContainer.createSpan();
+                calloutTitle.addClass("em-autocomplete-title");
+                calloutTitle.textContent = ` - ${callout.title}`;
+            }
+            
+            if (enableRichAutoCompleteHoverPreview) {
+                this.addHoverPreview(
+                    el,
+                    calloutContainer,
+                    richAutoCompletePreviewDelayTime,
+                    (previewEl) => {
+                        previewEl.addClass("em-callout-autocomplete-preview");
+                        void renderCalloutWrapper(this.plugin, view.leaf, callout, previewEl, targetComponent);
+                    }
+                );
+            }
+        }
+    }
+
+    private addHoverPreview(
+        el: HTMLElement,
+        container: HTMLElement,
+        delayTime: number,
+        renderCallback: (previewEl: HTMLElement) => void
+    ): void {
+        let preview: HTMLElement | null = null;
+        let previewTimeout: number | null = null;
+
+        el.addEventListener("mouseenter", () => {
+            previewTimeout = window.setTimeout(() => {
+                if (preview) return; // already showing preview
+                preview = container.createDiv();
+                renderCallback(preview);
+            }, delayTime);
+        });
+
+        el.addEventListener("mouseleave", () => {
+            if (previewTimeout) {
+                window.clearTimeout(previewTimeout);
+                previewTimeout = null;
+            }
+            if (preview) {
+                preview.remove();
+                preview = null;
+            }
+        });
+    }
+
+    clearPreview(figPreview: HTMLElement) {
+        figPreview.empty(); // remove rendered preview
+    };
 
     selectSuggestion(value: CitationItem, evt: MouseEvent | KeyboardEvent): void {
         const {

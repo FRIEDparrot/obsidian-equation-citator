@@ -4,8 +4,7 @@ import {
 	Editor,
 } from 'obsidian';
 import { cleanUpStyles, loadStyles, SettingsTabView } from "@/settings/SettingsTab";
-import { DEFAULT_SETTINGS } from "@/settings/defaultSettings";
-import { EquationCitatorSettings } from "@/settings/defaultSettings";
+import { DEFAULT_SETTINGS, EquationCitatorSettings } from "@/settings/defaultSettings";
 import { Extension, Compartment, StateField } from '@codemirror/state';
 import registerCommands from '@/commands/command_list';
 import registerRibbonButton from '@/ui/ribbon';
@@ -52,11 +51,11 @@ export default class EquationCitator extends Plugin {
     public lineHashCache: LineHashCache;     // line hash cache instance 
 
     private autoCompleteSuggest: AutoCompleteSuggest;
-    private mathCitationCompartment = new Compartment();
-    private imageCaptionCompartment = new Compartment();
+    private readonly mathCitationCompartment = new Compartment();
+    private readonly imageCaptionCompartment = new Compartment();
     
     async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        this.settings = { ...DEFAULT_SETTINGS, ...await this.loadData()};
         Debugger.debugMode = this.settings.debugMode;  // set debug mode from settings 
         loadStyles();
         this.upDateEditorExtensions();
@@ -154,7 +153,6 @@ export default class EquationCitator extends Plugin {
     loadReadingModeExtensions() {
         this.registerMarkdownPostProcessor(
             async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
-                // const isReadingMode = activeView.getMode() === "preview";
                 const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
                 if (!activeView) return;
                 // also register in live preview mode to render citations in link preview

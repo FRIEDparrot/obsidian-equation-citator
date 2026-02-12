@@ -21,7 +21,40 @@ export const CitationSettingsTab = {
                 });
             });
     },
-
+    enableRichAutoCompleteHoverPreview(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = false) {
+        const { name, desc } = SETTINGS_METADATA.enableRichAutoCompleteHoverPreview;
+        const setting = new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc);
+        
+        addSubPanelToggle(
+            setting,
+            plugin.settings.enableRichAutoCompleteHoverPreview,
+            async (value) => {
+                plugin.settings.enableRichAutoCompleteHoverPreview = value;
+                await plugin.saveSettings();
+            },
+            (panel) => {
+                CitationSettingsTab.richAutoCompletePreviewDelayTime(panel, plugin);
+            },
+            renderSubpanel
+        );
+    },
+    richAutoCompletePreviewDelayTime(containerEl: HTMLElement, plugin: EquationCitator) {
+        const delayTimeSetting = new Setting(containerEl);
+        const { name, desc } = SETTINGS_METADATA.richAutoCompletePreviewDelayTime;
+        delayTimeSetting.setName(name)
+            .setDesc(desc)
+            .addSlider((slider) => {
+                slider.setLimits(500, 3000, 100);
+                slider.setValue(plugin.settings.richAutoCompletePreviewDelayTime);
+                slider.setDynamicTooltip();
+                slider.onChange(async (value) => {
+                    plugin.settings.richAutoCompletePreviewDelayTime = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
     enableRichAutoComplete(containerEl: HTMLElement, plugin: EquationCitator) {
         const enableRichAutoCompleteSetting = new Setting(containerEl);
         const { name, desc } = SETTINGS_METADATA.enableRichAutoComplete;
@@ -238,7 +271,9 @@ export const CitationSettingsTab = {
                 };
             });
     },
+    // #endregion
 
+    //#region Figure/Callout citation prefixes and formats
     figCitationPrefix(panel: HTMLElement, plugin: EquationCitator) {
         new Setting(panel)
             .setName(SETTINGS_METADATA.figCitationPrefix.name)
@@ -415,6 +450,8 @@ export const CitationSettingsTab = {
  */
 export function addCitationSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     CitationSettingsTab.enableCitationInSourceMode(containerEl, plugin);
+    CitationSettingsTab.enableRichAutoComplete(containerEl, plugin);
+    CitationSettingsTab.enableRichAutoCompleteHoverPreview(containerEl, plugin, true);
     CitationSettingsTab.citationPrefix(containerEl, plugin);
     CitationSettingsTab.citationFormat(containerEl, plugin);
     CitationSettingsTab.figCitationPrefix(containerEl, plugin);

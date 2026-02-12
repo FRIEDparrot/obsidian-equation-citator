@@ -33,6 +33,8 @@ export interface EquationCitatorSettings {
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures
     enableRichAutoComplete: boolean; // Enable rich auto-complete suggestion for figures and callouts
+    enableRichAutoCompleteHoverPreview: boolean; // Enable concise auto-complete preview for figures and callouts
+    richAutoCompletePreviewDelayTime: number; // Delay time for concise auto-complete rendering (ms)
 
     calloutCitationPrefixes: CalloutCitationPrefix[];  // Citation prefixes and formats for callouts  
     
@@ -107,6 +109,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     calloutCitationPrefixes: [
         { prefix: "table:", format: "Table. #" },
     ],
+    enableRichAutoCompleteHoverPreview: true, // enable concise auto-complete preview by default
+    richAutoCompletePreviewDelayTime: 1500, // 1500ms delay for concise auto-complete rendering
 
     enableRenderFigureInfoInPreview: true, // enable rendering figure title and description in figure preview widget
     enableCenterTableInCallout: true,  // enable centering tables in callout for butiful rendering 
@@ -244,11 +248,27 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableRichAutoComplete: {
-        name: "Enable image and callout preview in auto complete suggestions",
-        desc: "When enabled, citation suggestions display full image and callout content instead of only titles.",
+        name: "Show full preview in autocomplete",
+        desc: "Displays the full figure or callout content directly inside each autocomplete suggestion. Disable to use compact mode with hover preview instead.",
         type: "boolean",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.enableRichAutoComplete(el, plugin);
+        }
+    },
+    enableRichAutoCompleteHoverPreview : {
+        name: "Show preview on hover on autocomplete item",
+        desc: "In compact mode, displays a preview of the figure or callout when hovering over a suggestion item.",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.enableRichAutoCompleteHoverPreview(el, plugin);
+        }
+    },
+    richAutoCompletePreviewDelayTime: {
+        name: "Autocomplete hover preview delay time",
+        desc: "Delay ms before the preview appears when hovering over a suggestion (compact mode only).",
+        type: "number",
+        renderCallback: (el, plugin) => { 
+            CitationSettingsTab.richAutoCompletePreviewDelayTime(el, plugin);
         }
     },
     calloutCitationPrefixes: {

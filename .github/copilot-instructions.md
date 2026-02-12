@@ -22,6 +22,11 @@ Explicit instructions that permit using `master` include phrases such as:
 
 Anything else defaults to `dev-latest`.
 
+For the develop of this plugin, we shouldn't use dynamic js style code, since its forbidden in the obsidian plugin environment, we should write style code in the scss file instead. Not use `.style.` or `setAttribute('style', ...)` in js code, instead, we can add/remove class to the element and write the style in scss file.
+
+
+Also, always pay attention to case. [Use sentence case in UI](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#Use+sentence+case+in+UI)
+
 ## Target Grammar 
 Basic grammar of this plugin is `$\ref{eq:1.1}$`, We support the case that only 1 type of citation (either `eq:`, `fig:`, `callout:`) in the citation form. Available prefixes should be read from settings. We not support mixed citation. You can check `tutorials/Quick Start.md` for details.
 
