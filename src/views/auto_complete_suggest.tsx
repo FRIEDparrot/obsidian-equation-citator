@@ -172,6 +172,7 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         }
         const currentLabel = label.substring(detectedPrefix.length, currentLabelLengthWithPrefix)
 
+        console.log("Full label:", fullLabel, "Current label:", currentLabel);
         const delimiter = multiCitationDelimiter || ",";
         const fullTags = fullLabel.split(delimiter).map(tag => tag.trim()).filter(Boolean);
         const currentTags = currentLabel.split(delimiter).map(tag => tag.trim()).filter(Boolean);
@@ -348,11 +349,11 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
                 void renderEquationWrapper(this.plugin, view.leaf, sourcePath, value as RenderedEquation, el, targetComponent);
                 break;
             case 'figure':
-                void this.renderFigureSuggestion(value as RenderedFigure, el);
+                void this.renderFigureSuggestion(value as RenderedFigure, el, targetComponent);
                 break;
             case 'callout':
                 // For callouts, display tag and type
-                void this.renderCalloutSuggestions(value as RenderedCallout, el);
+                void this.renderCalloutSuggestions(value as RenderedCallout, el, targetComponent);
                 break;
         }
     }
@@ -364,8 +365,7 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         if (enableRichAutoComplete) {
         }
         else {
-            const figure: RenderedFigure = value;
-            const figContainer = targetEl.createDiv();
+            const figContainer = container.createDiv();
             figContainer.addClass("em-figure-autocomplete-item");
             const figLabel = figContainer.createSpan();
             figLabel.addClass("em-autocomplete-label");
@@ -379,16 +379,15 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
 
     }
 
-    async renderCalloutSuggestions(value: RenderedCallout, el: HTMLElement): Promise<void> {
-        const callout = value as RenderedCallout;
-        const calloutContainer = targetEl.createDiv();
+    async renderCalloutSuggestions(value: RenderedCallout, container: HTMLElement, targetComponent: Component): Promise<void> {
+        const callout = value;
+        const calloutContainer = container.createDiv();
         calloutContainer.addClass("em-callout-autocomplete-item");
         const calloutLabel = calloutContainer.createSpan();
         calloutLabel.addClass("em-autocomplete-label");
         const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === callout.prefix);
         const format = prefixConfig?.format || `${callout.type}. #`;
         calloutLabel.textContent = format.replace('#', callout.tag);
-        break;
     }
 
     selectSuggestion(value: CitationItem, evt: MouseEvent | KeyboardEvent): void {
