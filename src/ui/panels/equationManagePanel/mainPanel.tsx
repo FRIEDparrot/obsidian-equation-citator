@@ -19,6 +19,17 @@ import { EquationPanelDragDropHandler } from "./drag_drop_handler";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
+interface HeadingMetadata {
+    heading: Heading | null;     // store the current heading informatin
+    hasDirectEquations: boolean;
+    hasSubheadings: boolean;
+    hasContent: boolean;         // either has direct equations or subheadings
+    totalEquationCount: number;  // equation count under this heading including subheadings 
+    lineNumber: number;          // line number of the heading (or -1 for no heading group)
+    isNoHeadingGroup: boolean;   // true if this group is for equations without headings
+    isCollapsed: boolean;        // true if this heading is currently collapsed
+}
+
 export class EquationArrangePanel extends ItemView {
     // UI Element objects  
     public viewModeButton!: HTMLElement;
@@ -593,7 +604,7 @@ export class EquationArrangePanel extends ItemView {
         currentIndex: number,
         allEquations: EquationMatch[],
         allHeadings: Heading[]
-    ) {
+    ) : HeadingMetadata {
         const hasDirectEquations = group.equations.length > 0;
         const hasSubheadings = this.hasSubheadings(allGroups, currentIndex);
         const hasContent = hasDirectEquations || hasSubheadings;
@@ -603,19 +614,20 @@ export class EquationArrangePanel extends ItemView {
             ? this.getTotalEquationsForHeading(allEquations, allHeadings, headingIndexInAll)
             : group.equations.length;
 
-        const headingKey = group.heading ? group.heading.line : -1;
+        const lineNumber = group.heading ? group.heading.line : -1;
         const isNoHeadingGroup = group.heading === null;
-        const isCollapsed = this.collapsedHeadings.has(headingKey);
+        const isCollapsed = this.collapsedHeadings.has(lineNumber);
 
         return {
+            heading: group.heading,
             hasDirectEquations,
             hasSubheadings,
             hasContent,
             totalEquationCount,
-            headingKey,
+            lineNumber,
             isNoHeadingGroup,
             isCollapsed
-        };
+        }
     }
 
     private async renderHeadingGroup(
@@ -627,7 +639,7 @@ export class EquationArrangePanel extends ItemView {
     ): Promise<void> {
         const group = allGroups[currentIndex];
         const metadata = this.getHeadingMetadata(group, allGroups, currentIndex, allEquations, allHeadings);
-        const { hasDirectEquations, hasContent, headingKey, isCollapsed } = metadata;
+        const { hasDirectEquations, hasContent, lineNumber:headingKey, isCollapsed } = metadata;
 
         const headingDiv = this.createHeadingDiv(container, group, metadata);
         const { collapseIcon } = this.createHeadingHeader(headingDiv, group, metadata);
@@ -665,18 +677,21 @@ export class EquationArrangePanel extends ItemView {
         this.attachCollapseHandler(hasContent, collapseIcon, headingKey, contentContainer);
     }
 
-    private createHeadingDiv(container: HTMLElement, group: EquationGroup, metadata: ReturnType<typeof this.getHeadingMetadata>): HTMLElement {
+    private createHeadingDiv(container: HTMLElement, group: EquationGroup, metadata: HeadingMetadata): HTMLElement {
         const headingClasses = metadata.isNoHeadingGroup
             ? "ec-heading-item ec-no-heading-group"
             : `ec-heading-item ec-heading-level-${group.relativeLevel}`;
 
         return container.createDiv({
             cls: headingClasses,
-            attr: { 'data-line': metadata.headingKey.toString() }
+            attr: { 'data-line': metadata.lineNumber.toString() }
         });
     }
 
-    private createHeadingHeader(headingDiv: HTMLElement, group: EquationGroup, metadata: ReturnType<typeof this.getHeadingMetadata>) {
+    private createHeadingHeader(headingDiv: HTMLElement, group: EquationGroup, metadata:  HeadingMetadata): {
+        headingHeader: HTMLElement;
+        collapseIcon: HTMLElement | null;
+    } {
         const headingHeader = headingDiv.createDiv("ec-heading-header ec-clickable");
         const collapseIcon = this.createCollapseIcon(headingHeader, group, metadata);
         this.createHeadingText(headingHeader, group);
@@ -685,7 +700,7 @@ export class EquationArrangePanel extends ItemView {
         return { headingHeader, collapseIcon };
     }
 
-    private createCollapseIcon(headingHeader: HTMLElement, group: EquationGroup, metadata: ReturnType<typeof this.getHeadingMetadata>): HTMLElement | null {
+    private createCollapseIcon(headingHeader: HTMLElement, group: EquationGroup, metadata: HeadingMetadata): HTMLElement | null {
         if (metadata.hasContent) {
             const collapseIcon = headingHeader.createSpan(`ec-collapse-icon ec-heading-collapse-icon-${group.absoluteLevel}`);
             setIcon(collapseIcon, metadata.isCollapsed ? "chevron-right" : "chevron-down");

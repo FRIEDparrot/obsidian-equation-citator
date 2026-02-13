@@ -24,7 +24,7 @@ export function relativeHeadingLevel(headings: Heading[], currentHeadingIndex: n
     const heading_arrays : number[] = [];
     for (let i = 0; i <= currentHeadingIndex; i++) {
         const heading = headings[i];
-        while (heading_arrays.length > 0 && heading_arrays[heading_arrays.length - 1] >= heading.level) {
+        while (heading_arrays.length > 0 && heading_arrays.at(-1)! >= heading.level) {
             heading_arrays.pop();
         }
         heading_arrays.push(heading.level);
@@ -49,7 +49,7 @@ export function parseHeadingsInMarkdown(content: string): Heading[] {
         if (inCodeBlock) {
             continue;
         }
-        const headingMatch = line.match(headingRegex);
+        const headingMatch = new RegExp(headingRegex).exec(line);
         if (headingMatch) {
             headings.push({
                 level: headingMatch[1].length,

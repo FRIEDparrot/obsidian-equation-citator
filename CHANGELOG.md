@@ -326,6 +326,12 @@ Settings Update :
 - [x] fix the reorder button location style in settings tab.
 - [ ] now hovering on Citation superscrip for callouts and figures will show the file links.
 
+🏗️ refactors : 
+- [x] refactored autocomplete suggest to add support for figure and callout citations.
+- [x] refactored drag and drop handler in equation panel for better code structure and readability.
+
+
+
 ### 🚢 Coming Soon : 
 1. Auto-number and citation complete add for  figures 
 2. Check citations of figures and tables, all in one 😄 
