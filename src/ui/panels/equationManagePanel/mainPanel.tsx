@@ -122,7 +122,7 @@ export class EquationArrangePanel extends ItemView {
         const panelWrapper = containerEl.createDiv("ec-manage-panel-wrapper");
 
         // Render toolbar and sub-panel
-        renderToolbar(this, panelWrapper);
+        renderToolbar(this, panelWrapper, this.outlineViewRenderer);
 
         // Create view panel for equations
         this.viewPanel = panelWrapper.createDiv("ec-equation-list-panel");

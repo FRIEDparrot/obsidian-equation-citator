@@ -1,6 +1,7 @@
 import EquationCitator from "@/main";
 import { EquationArrangePanel } from "./mainPanel";
 import { setIcon, setTooltip } from "obsidian";
+import { EquationPanelOutlineViewRenderer } from "./outline_view_renderer";
 
 // ============================================================================
 // Private Toolbar Update Functions
@@ -106,17 +107,25 @@ async function toggleSearchMode(panel: EquationArrangePanel, enable: boolean): P
     }
 }
 
-async function handleCollapseAll(panel: EquationArrangePanel): Promise<void> {
+async function handleCollapseAll(
+    panel: EquationArrangePanel,
+    renderer: EquationPanelOutlineViewRenderer,
+): Promise<void> {
     const allHeadings = panel.viewPanel.querySelectorAll('.ec-heading-item');
     allHeadings.forEach((heading) => {
-        const lineNum = Number.parseInt((heading as HTMLElement).dataset.line || '0');
-        panel.collapsedHeadings.add(lineNum);
+        const id = (heading as HTMLElement).dataset.id;
+        if (id) {
+            renderer.collapsedHeadings.add(id);
+        }
     });
     await panel.refreshView();
 }
 
-async function handleExpandAll(panel: EquationArrangePanel): Promise<void> {
-    panel.collapsedHeadings.clear();
+async function handleExpandAll(
+    panel: EquationArrangePanel,
+    renderer: EquationPanelOutlineViewRenderer,
+): Promise<void> {
+    renderer.collapsedHeadings.clear();
     await panel.refreshView();
 }
 
@@ -124,7 +133,11 @@ async function handleExpandAll(panel: EquationArrangePanel): Promise<void> {
 // Private Toolbar Rendering Functions
 // ============================================================================
 
-function renderToolBarSubPanel(panel: EquationArrangePanel, subPanel: HTMLElement): void {
+function renderToolBarSubPanel(
+    panel: EquationArrangePanel, 
+    subPanel: HTMLElement, renderer: 
+    EquationPanelOutlineViewRenderer
+): void {
     // Show headings only button (only visible in outline mode)
     panel.enableRenderHeadingOnlyButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
@@ -157,7 +170,7 @@ function renderToolBarSubPanel(panel: EquationArrangePanel, subPanel: HTMLElemen
     setIcon(panel.expandButton, "chevrons-up-down");
     setTooltip(panel.expandButton, "Expand all");
     panel.expandButton.addEventListener("click", () => {
-        void handleExpandAll(panel);
+        void handleExpandAll(panel, renderer);
     });
 
     panel.collapseButton = subPanel.createEl("button", {
@@ -167,7 +180,7 @@ function renderToolBarSubPanel(panel: EquationArrangePanel, subPanel: HTMLElemen
     setIcon(panel.collapseButton, "chevrons-down-up");
     setTooltip(panel.collapseButton, "Collapse all");
     panel.collapseButton.addEventListener("click", () => {
-        void handleCollapseAll(panel);
+        void handleCollapseAll(panel, renderer);
     });
 
     // hide tag button
@@ -215,8 +228,13 @@ function renderToolBarSubPanel(panel: EquationArrangePanel, subPanel: HTMLElemen
  * Render the toolbar and sub-panel
  * @param panel - The equation arrange panel instance
  * @param panelWrapper - The wrapper element to attach the toolbar to
+ * @param renderer - The outline view renderer instance
  */
-export function renderToolbar(panel: EquationArrangePanel, panelWrapper: HTMLElement): void {
+export function renderToolbar(
+    panel: EquationArrangePanel, 
+    panelWrapper: HTMLElement, 
+    renderer: EquationPanelOutlineViewRenderer
+): void {
     const toolbar = panelWrapper.createDiv("ec-manage-panel-toolbar");
 
     // View mode button
@@ -292,7 +310,7 @@ export function renderToolbar(panel: EquationArrangePanel, panelWrapper: HTMLEle
     // Create sub-panel for additional options
     panel.subToolbarPanel = panelWrapper.createDiv("ec-toolbar-sub-panel");
     const subPanelContent = panel.subToolbarPanel.createDiv();
-    renderToolBarSubPanel(panel, subPanelContent);
+    renderToolBarSubPanel(panel, subPanelContent, renderer);
 }
 
 /**

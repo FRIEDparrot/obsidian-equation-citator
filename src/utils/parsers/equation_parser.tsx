@@ -1,5 +1,5 @@
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
-import { escapeRegExp, createEquationTagRegex, isCodeBlockToggle, equationBlockStartPatternWithWhiteSpace, equationBlockEndPatternWithWhiteSpace } from "@/utils/string_processing/regexp_utils";
+import { createEquationTagRegex, isCodeBlockToggle, equationBlockStartPatternWithWhiteSpace, equationBlockEndPatternWithWhiteSpace } from "@/utils/string_processing/regexp_utils";
 
 /// This file contains utility functions for working with equations tag 
 /// and also process equation blocks 
@@ -19,23 +19,6 @@ export interface EquationMatch extends EquationParseResult {
 }
 
 /**
- * Checks if an equation part uses only valid delimiters.
- * Note : this function is never used
- */
-export function isValidEquationPart(part: string, validDelimiters: string[]): boolean {
-    if (!part) return false;
-
-    // Escape delimiters for regex and join with | (for OR matching)
-    const escapedDelimiters = validDelimiters.map(d =>
-        d === '.' ? '\\.' : (d === '-' ? '\\-' : escapeRegExp(d))
-    ).join('|');
-
-    // Pattern: numbers separated by valid delimiters
-    const validPattern = new RegExp(`^\\d+(?:[${escapedDelimiters}]\\d+)*$`);
-    return validPattern.test(part);
-}
-
-/**
  * Parses the tag label and content from the equation content 
  * @param eqn : Raw equation block with $$ $$ bracket, also can have no $$ bracket 
  * @returns 
@@ -48,7 +31,7 @@ export function parseEquationTag(
     // Remove $$ if present 
     const contentWithTag = eqn.replace(equationBlockStartPatternWithWhiteSpace, "").replace(equationBlockEndPatternWithWhiteSpace, "");
     const pattern = createEquationTagRegex(false, null, enableTypstMode); 
-    const match = contentWithTag.match(pattern);   // only match first tag 
+    const match = new RegExp(pattern).exec(contentWithTag);   // only match first tag 
     // trim equations 
     const content = trimContent ? contentWithTag.replace(pattern, '').trim() : contentWithTag.replace(pattern, '');
     return {
@@ -77,7 +60,7 @@ export function extractLastNumberFromTag(tag: string, validDelimiters: string[])
         numStr = tag.substring(lastDelimiterIndex + 1);
     } else {
         // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = tag.match(/^(.+?)(\d+)$/);
+        const match = new RegExp(/^(.+?)(\d+)$/).exec(tag);
         if (match) {
             numStr = match[2];
         } else {
@@ -85,8 +68,8 @@ export function extractLastNumberFromTag(tag: string, validDelimiters: string[])
         }
     }
 
-    const num = parseInt(numStr, 10);
-    return isNaN(num) ? null : num;
+    const num = Number.parseInt(numStr, 10);
+    return Number.isNaN(num) ? null : num;
 }
 
 /**
@@ -107,7 +90,7 @@ export function extractPrefixBeforeLastNumber(tag: string, validDelimiters: stri
         return tag.substring(0, lastDelimiterIndex + 1);
     } else {
         // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = tag.match(/^(.+?)(\d+)$/);
+        const match = new RegExp(/^(.+?)(\d+)$/).exec(tag);
         if (match) {
             return match[1]; // Return the letter part (e.g., "EQ")
         } else {
@@ -192,7 +175,6 @@ export function parseEquationsInMarkdown(markdown: string, parseQuotes = true, e
             equationStartLine = lineNum;
             equationBuffer.push(parseResult.cleanedLine.trim());
             startLineInQuote = parseResult.inQuote;
-            continue;
         }
     }
 
@@ -295,7 +277,6 @@ export function parseFirstEquationInMarkdown(markdown: string, tag: string, enab
             equationStartLine = lineNum;
             equationBuffer.push(parseResult.cleanedLine.trim());
             startLineInQuote = parseResult.inQuote;
-            continue;
         }
     }
 
