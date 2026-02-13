@@ -27,12 +27,15 @@ For the develop of this plugin, we shouldn't use dynamic js style code, since it
 
 Also, always pay attention to case. [Use sentence case in UI](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines#Use+sentence+case+in+UI)
 
+If you want to check the current develop process and todo for the plugin, also what have finished and what not, you can check `CHANGELOG.md` file.
+
 ## Target Grammar 
 Basic grammar of this plugin is `$\ref{eq:1.1}$`, We support the case that only 1 type of citation (either `eq:`, `fig:`, `callout:`) in the citation form. Available prefixes should be read from settings. We not support mixed citation. You can check `tutorials/Quick Start.md` for details.
 
-## Style File for this Project
+## Some File rules for this Project
 - The style file for this project can be found at: `src/styles` foder, only modify the `.scss` files under that folder, not the compiled `.css` files.
 - Never modify `main.js` or `main.css` directly, they are generated files. 
+- Always use `.tsx` to create new typescript file, not `.ts` or `.jsx` or `.js`.
 
 ## Build, Test, and Lint
 

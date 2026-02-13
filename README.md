@@ -23,9 +23,14 @@
 > This plugin supports [typst-style autonumber](https://github.com/azyarashi/obsidian-typst-mate). You can use `Settings > Categorical > Others > enable typst mode` to enable it.
 
 ## 🛠️ Installation 
-1.  You can download it from community plugins After this plugin is published in obsidian vault (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`). 
 
-2.  OR you can just download `main.js`,`manifest.json` and `style.css` in the latest release page and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault. 
+> Now this plugin is waiting for review in Obsidian community plugins at [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298), so you may not find it available in the community plugins list now, but please be patient for it.
+
+1.  You can download it from community plugins After this plugin is published in obsidian community plugins (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`). 
+
+2.  Or you can just download `main.js`,`manifest.json` and `style.css` in the latest release page and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault.
+
+3. This plugin can also be installed by plugin [BRAT](https://obsidian.md/plugins?id=obsidian42-brat), just copy paste the link of this repo in the options tab of BRAT to add it.
 
 ## ✨ What this plugin do 
 
@@ -82,13 +87,14 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 
 - 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
 
-**Contributors and maintainers are always welcome** :
-- You can contribute to this plugin by simply forking this repo and submitting a PR:
-  - 1. **Please test your code carefully before submitting a PR!**. 
-  - 2. add what you have done into `CHANGELOG.md`. (Use the next patch version number if a neww minor version is not planned in `CHANGELOG.md`)
-  - 3. We have some CI check before merging PR, please make sure your code passes all the checks.
 
-> [!WARNING] 
+> [!NOTE] Collaboration Note
+>  
+> **Contributors and maintainers are always welcome** :
+> You can contribute to this plugin by simply forking this repo and submitting a PR:
+>   1. **Please test your code carefully before submitting a PR!**. 
+>   2. add what you have done into `CHANGELOG.md`. (Use the next patch version number if a neww minor version is not planned in `CHANGELOG.md`)
+>   3. We have some CI check before merging PR, please make sure your code passes all the checks.
 > 
 > For submitting a PR, please commit it to `dev-latest` branch, this is the latest development branch, this is for the convenience of us to test and debug, and I will always sync my dev branch to this branch to prevent potential merge conflicts.
 
