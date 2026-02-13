@@ -5,6 +5,7 @@ import { splitFileCitation } from "@/utils/core/citation_utils";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { MarkdownView } from "obsidian";
 import { createEquationTagString } from "@/utils/string_processing/regexp_utils";
+import { processQuoteLine } from "@/utils/string_processing/string_utils";
 
 export interface RenderedEquation {
     tag: string;  // tag of the equation 
@@ -135,7 +136,8 @@ export class EquationServices {
     }
 
     /**
-     * Adds a tag to an equation at a specific line range in a file
+     * Adds a tag to an equation at a specific line range to the active file. 
+     *     This function use replaceRange to modify the editor content directly, so its less costy.
      * @param filePath - The path of the file containing the equation
      * @param lineStart - The starting line number of the equation
      * @param lineEnd - The ending line number of the equation
@@ -177,15 +179,14 @@ export class EquationServices {
                 { line: lineStart, ch: line.length }
             );
         } else {
-            // Multi-line equation: find the line before $$
-            const lastLineIndex = equationLines.length - 1;
-            const lastLine = equationLines[lastLineIndex];
-
+            // Multi-line equation: find the line of $$
+            const lastLine = equationLines.at(-1) || '';
+            const { content } = processQuoteLine(lastLine);
             // Insert tag on the line before the closing $$
-            if (lastLine.trim() === '$$') {
+            if (content.trim() === '$$') {
                 // Tag goes on the previous line
-                const tagLineIndex = lineStart + lastLineIndex - 1;
-                const tagLine = editor.getLine(tagLineIndex);
+                const tagLineIndex = lineStart + equationLines.length - 2;
+                const tagLine = equationLines.at(-2) || '';
                 const newTagLine = tagLine.trimEnd() + ' ' + tagString;
                 editor.replaceRange(
                     newTagLine,
@@ -193,8 +194,20 @@ export class EquationServices {
                     { line: tagLineIndex, ch: tagLine.length }
                 );
             } else {
-                Debugger.log("Multi-line equation does not have proper closing $$");
-                return false;
+                // there is content before $$ in the last line
+                const tagLine = equationLines.at(-1) || '';
+                const insertPosition = tagLine.lastIndexOf('$$');
+                if (insertPosition === -1) {
+                    Debugger.log("Multi-line equation does not have proper closing $$");
+                    return false;
+                }
+                const newTagLine = tagLine.slice(0, insertPosition).trimEnd() + ' ' + tagString + ' ' + tagLine.slice(insertPosition);
+
+                editor.replaceRange(
+                    newTagLine,
+                    { line: lineEnd, ch: 0 },
+                    { line: lineEnd, ch: tagLine.length }
+                );
             }
         }
 

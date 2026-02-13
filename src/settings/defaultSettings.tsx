@@ -256,7 +256,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableRichAutoCompleteHoverPreview : {
-        name: "Show preview on hover on autocomplete item",
+        name: "Show preview when hover on autocomplete item",
         desc: "In compact mode, displays a preview of the figure or callout when hovering over a suggestion item.",
         type: "boolean",
         renderCallback: (el, plugin) => {

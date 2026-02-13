@@ -2,7 +2,7 @@ import { Modal, App } from "obsidian";
 
 // Modal for tag input
 export default class TagInputModal extends Modal {
-    private onSubmit: (tag: string | null) => void;
+    private readonly onSubmit: (tag: string | null) => void;
     private inputEl: HTMLInputElement; 
     
     constructor(app: App, onSubmit: (tag: string | null) => void) {
