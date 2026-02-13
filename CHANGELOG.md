@@ -329,7 +329,7 @@ Settings Update :
 🏗️ refactors : 
 - [x] refactored autocomplete suggest to add support for figure and callout citations.
 - [x] refactored drag and drop handler in equation panel for better code structure and readability.
-
+- [x] refactored the equation panel file, extract the outline view renderer to a separate file.
 
 
 ### 🚢 Coming Soon : 
