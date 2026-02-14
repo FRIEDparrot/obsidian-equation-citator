@@ -5,12 +5,12 @@ import { FootNote } from "@/utils/parsers/footnote_parser";
 
 export class FileSuperScriptPopover extends HoverPopover {
     constructor(
-        private plugin: EquationCitator,
+        private readonly plugin: EquationCitator,
         parent: HoverParent,
-        private targetEl: HTMLElement | null,
-        private sourcePath: string,
-        private footnoteIndex: string,
-        private waitTime?: number
+        private readonly targetEl: HTMLElement | null,
+        private readonly sourcePath: string,
+        private readonly footnoteIndex: string,
+        private readonly waitTime?: number
     ) {
         super(parent, targetEl, waitTime, null);
     }
@@ -21,7 +21,7 @@ export class FileSuperScriptPopover extends HoverPopover {
                 Debugger.log("can't find footnotes for file: ", this.sourcePath);
                 return;
             }
-            const footnote = footnotes.filter(f => f.num === this.footnoteIndex)[0];
+            const footnote = footnotes.find(f => f.num === this.footnoteIndex);
             if (!footnote) {
                 Debugger.log("can't find footnote with index: ", this.footnoteIndex, " in file: ", this.sourcePath);
                 return;
@@ -32,7 +32,9 @@ export class FileSuperScriptPopover extends HoverPopover {
         })
     }
     
-    onunload() { }
+    onunload() {
+        // nothing to clean up
+    }
 
     showFootnote(footnote: FootNote) {
         const container: HTMLElement = this.hoverEl.createDiv();
@@ -71,20 +73,20 @@ export class FileSuperScriptPopover extends HoverPopover {
                 });
             });
         }
-        else if (footnote.url !== null) {
+        else if (footnote.url === null) {
+            // text-only format footnote  
+            const textEl = footnoteContent.createEl("span", {
+                text: footnote.text,
+            });
+            textEl.addClass("em-file-superscript-popover-text");
+        }
+        else {
             // weblink format footnote 
             const linkEl = footnoteContent.createEl("a", {
                 text: footnote.label ?? footnote.url,
             });
             linkEl.addClass("em-file-superscript-popover-link");
             linkEl.setAttr("href", footnote.url);
-        }
-        else {
-            // text-only format footnote  
-            const textEl = footnoteContent.createEl("span", {
-                text: footnote.text,
-            });
-            textEl.addClass("em-file-superscript-popover-text");
         }
     }
 }

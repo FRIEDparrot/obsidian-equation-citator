@@ -169,7 +169,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                         }
                         if (t.includes("math-begin") && !t.includes("math-block")) {
                             currentEqRange = { from: node.from, to: -1 };
-                        } else if (currentEqRange && currentEqRange.to === -1 && t.includes("math-end") && !t.includes("math-block")) {
+                        } else if (currentEqRange?.to === -1 && t.includes("math-end") && !t.includes("math-block")) {
                             currentEqRange.to = node.to;
 
                             const modeRender = !sourceMode || (sourceMode && settings.enableCitationInSourceMode);

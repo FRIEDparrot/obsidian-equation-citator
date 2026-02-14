@@ -7,6 +7,7 @@ import {
 } from "@/utils/core/citation_utils";
 import { FigureCitationPopover } from "@/views/popovers/figure_citation_popover";
 import Debugger from "@/debug/debugger";
+import { FileSuperScriptPopover } from "../popovers/file_superscript_popover";
 
 /**
  * PROTOTYPE: Render function for figure citations
@@ -101,17 +102,22 @@ export function renderFigureCitation(
             const fileSuperEl = document.createElement('sup');
             fileSuperEl.textContent = `[${crossFile}]`;
             fileSuperEl.className = "em-math-citation-file-superscript em-figure-citation-file-superscript";
-            
-            // TODO: Add figure-specific file superscript popover
-            // This should show information about the source file
             if (parent) {
                 fileSuperEl.addEventListener('mouseenter', (e: MouseEvent) => {
                     const ctrlKey = e.ctrlKey || e.metaKey;
                     if (isInteractive || ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();
-                        // TODO: Show file info popover
-                        // const popover = new FileSuperScriptPopover(...);  
+                        e.stopImmediatePropagation();
+
+                        new FileSuperScriptPopover(
+                            plugin, 
+                            parent,
+                            fileSuperEl,
+                            sourcePath,
+                            crossFile,
+                            300
+                        );  
                     }
                 });
             }
@@ -126,7 +132,7 @@ export function renderFigureCitation(
 
         // Add multi-citation delimiter if needed
         if (multiCitationDelimiterRender && formattedCiteFigureTags.length > 1 &&
-            tag !== formattedCiteFigureTags[formattedCiteFigureTags.length - 1] // not last one
+            tag !== formattedCiteFigureTags.at(-1) // not last one
         ) {
             const multiDelimEl = document.createElement('span');
             multiDelimEl.className = 'em-math-citation-multi-delimiter em-figure-citation-multi-delimiter';

@@ -303,7 +303,7 @@ Version 1.3.3 - bug fixes, new features and enhancements.
 
 --- 
 Settings Update : 
-- We refactor the variable name `quoteCitationPrefixes` to `calloutCitationPrefixes` for clarity. So your current settings for callout citation prefix will be restored. Be sure to re-set the settings for `callout citation prefix` in settings tab to make the callout citation work.
+- We refactored the variable name `quoteCitationPrefixes` to `calloutCitationPrefixes` for clarity. So your current settings for callout citation prefix will be restored. Be sure to re-set the settings for `callout citation prefix` in settings tab to make the callout citation work.
 
 --- 
 
@@ -320,11 +320,12 @@ Settings Update :
 - [x] fix bug [#136](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/136), add tag for multi-line equation in callout now work correctly. 
 - [x] fix glitch [#137](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/137), when the equation panel file and current active file is different, It will create a new window and jump to correct position.
 - [x] fix bug [#135](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/135), when edit the file at location before some folded titles, it will not unfold now.
-
+- [ ] fig bug [#141](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/141), nested callouts now can be displayed correctly in callout citation preview.
 
 🚀 enhancements :
 - [x] fix the reorder button location style in settings tab.
-- [ ] now hovering on Citation superscrip for callouts and figures will show the file links.
+- [x] add command `insert figure citation` for inserting figure citation quickly.
+- [x] now hovering on Citation superscrip for callouts and figures will show the file links.
 
 🏗️ refactors : 
 - [x] refactored autocomplete suggest to add support for figure and callout citations.

@@ -7,6 +7,7 @@ import {
 } from "@/utils/core/citation_utils";
 import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popover";
 import Debugger from "@/debug/debugger";
+import { FileSuperScriptPopover } from "../popovers/file_superscript_popover";
 
 /**
  * Render function for callout citations
@@ -104,15 +105,21 @@ export function renderCalloutCitation(
             const fileSuperEl = document.createElement('sup');
             fileSuperEl.textContent = `[${crossFile}]`;
             fileSuperEl.className = "em-math-citation-file-superscript em-callout-citation-file-superscript";
-
-            // Add file superscript popover
             if (parent) {
                 fileSuperEl.addEventListener('mouseenter', (e: MouseEvent) => {
                     const ctrlKey = e.ctrlKey || e.metaKey;
                     if (isInteractive || ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();
-                        // TODO: Show file info popover (can reuse FileSuperScriptPopover)
+                        e.stopImmediatePropagation();
+                        new FileSuperScriptPopover(
+                            plugin,
+                            parent,
+                            fileSuperEl,
+                            sourcePath,
+                            crossFile,
+                            300
+                        );  
                     }
                 });
             }

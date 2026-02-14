@@ -50,6 +50,19 @@ export default function registerCommands(plugin: EquationCitator) {
     })
 
     plugin.addCommand({
+        id: 'insert-figure-citation-on-cursor-position',
+        name: 'Insert figure citation on cursor position',
+        callback: () => {
+            const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+            if (!editor) return;
+            const citePrefix = plugin.settings.figCitationPrefix;
+            const citationString = createCitationString(citePrefix);
+            // Move cursor to the correct position
+            insertTextWithCursorOffset(editor, citationString, 6 + citePrefix.length);
+        },
+    })
+
+    plugin.addCommand({
         id: 'make-markdown-copy-to-export-PDF',
         name: 'Make a Markdown copy to export PDF',
         callback: async () => {
