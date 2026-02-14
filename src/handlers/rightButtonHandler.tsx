@@ -37,7 +37,7 @@ export function registerRightClickHandler(plugin: EquationCitator) {
                         const modal = new TagRenameModal(plugin, tagInfo.tagContent, filePath);
                         modal.setEditor(editor);  // set the editor for the modal 
                         modal.onSubmit = (newName: string) => {
-                            const newTag = plugin.settings.enableTypstMode ? `#label("${newName}")` : `\\tag{${newName}}`; 
+                            const newTag = plugin.settings.enableTypstMode ? `#label("${newName}")` : String.raw`\tag{${newName}}`; 
                             const fromPos = editor.getCursor("from"); 
                             const toPos = editor.getCursor("to");
                             editor.replaceRange( 

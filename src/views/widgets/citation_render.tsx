@@ -726,14 +726,12 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
 
             // Track which elements should have captions
             const elementsWithCaptions = new Set<Element>();
-            const processedLines = new Set<number>();
 
             // Apply captions
             matchedPairs.forEach(({ element, imageData }) => {
                 if (imageData) {
                     this.ensureCaption(element, imageData, settings);
                     elementsWithCaptions.add(element);
-                    processedLines.add(imageData.line);
                 }
             });
 

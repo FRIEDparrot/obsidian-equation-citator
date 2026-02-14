@@ -21,7 +21,7 @@ export interface TagRenameResult {
 
 export class TagService {
     constructor(
-        private plugin: EquationCitator
+        private readonly plugin: EquationCitator
     ) { }
 
     public async checkRepeatedTags(
@@ -103,7 +103,7 @@ export class TagService {
         const { citationPrefix: prefix = "eq:",
             multiCitationDelimiter: multiEqDelimiter = ",",
             continuousRangeSymbol: rangeSymbol = "~",
-            continuousDelimiters: citeDelimiters = "- . : \\_",
+            continuousDelimiters: citeDelimiters = String.raw`- . : \_`,
             fileCiteDelimiter: fileDelimiter = "^" } = this.plugin.settings;
 
         const fileContent = await this.plugin.app.vault.cachedRead(file);
@@ -280,7 +280,7 @@ export class TagService {
         const prefix = this.plugin.settings.citationPrefix || "eq:";  // delimiter configuration
         const multiEqDelimiter = this.plugin.settings.multiCitationDelimiter || ",";
         const rangeSymbol = this.plugin.settings.continuousRangeSymbol || "~";
-        const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", "\\_"];
+        const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", String.raw`\_`];
         const fileDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
 
         const nameMapping = new Map(
@@ -396,7 +396,7 @@ export class TagService {
 
         if (deleteUnusedCitations) {
             const oldLocalSet = oldTagsByCrossFile.get(originalKey);
-            if (!oldLocalSet || !oldLocalSet.has(originalLocal)) {
+            if (!oldLocalSet?.has(originalLocal)) {
                 Debugger.log(`Delete unused tag (group=${originalKey}): ${original}`);
                 return "";
             }
@@ -404,7 +404,7 @@ export class TagService {
         if (deleteRepeatCitations) {
             const newLocalSet = newTagsByCrossFile.get(newKey);
             const wasRenamed = nameMapping.has(ct);
-            if (!wasRenamed && newLocalSet && newLocalSet.has(newLocal)) {
+            if (!wasRenamed && newLocalSet?.has(newLocal)) {
                 return ""; // duplicate in same cross-file group
             }
         }
