@@ -310,7 +310,7 @@ export async function mathCitationPostProcessor(
     ctx: MarkdownPostProcessorContext,
     citationCache: CitationCache,
 ): Promise<void> {
-    const { citationPrefix } = plugin.settings;
+    const { calloutCitationPrefixes, figCitationPrefix, citationPrefix } = plugin.settings;
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) return;
     // find citation spans in the section 
@@ -340,7 +340,7 @@ export async function mathCitationPostProcessor(
             // Check for callout citations
             let isCalloutCitation = false;
             let calloutPrefix: string | null = null;
-            for (const prefixConfig of plugin.settings.calloutCitationPrefixes) {
+            for (const prefixConfig of calloutCitationPrefixes) {
                 if (citation.label.startsWith(prefixConfig.prefix)) {
                     isCalloutCitation = true;
                     calloutPrefix = prefixConfig.prefix;
@@ -352,8 +352,14 @@ export async function mathCitationPostProcessor(
 
             // Note: CitationRef.label includes the prefix (e.g., "fig:7", "eq:1.1", or "table:1.1")
             // We need to remove it before processing
-            const prefix = isCalloutCitation ? calloutPrefix :
-                          (isFigureCitation ? plugin.settings.figCitationPrefix : citationPrefix);
+            let prefix: string | null = null;
+            if (isCalloutCitation) {
+                prefix = calloutPrefix;
+            } else if (isFigureCitation) {
+                prefix = figCitationPrefix;
+            } else if (isEquationCitation) {
+                prefix = citationPrefix;
+            }
             if (prefix === null) return;
             const label = citation.label.substring(prefix.length);  // get the actual label without prefix
             const numbers: string[] = label.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
@@ -371,30 +377,33 @@ export async function mathCitationPostProcessor(
                 return;
             }
 
-            const citationWidget = isCalloutCitation && calloutPrefix
-                ? renderCalloutCitation(
+            let citationWidget: HTMLElement| null = null;
+            if (isCalloutCitation && calloutPrefix) {
+                citationWidget = renderCalloutCitation(
                     plugin,
                     ctx.sourcePath,
                     activeLeaf,
                     calloutPrefix,
                     numbersAll,
                     true,
-                )
-                : (isFigureCitation
-                    ? renderFigureCitation(
-                        plugin,
-                        ctx.sourcePath,
-                        activeLeaf,
-                        numbersAll,
-                        true,
-                    )
-                    : renderEquationCitation(
-                        plugin,
-                        ctx.sourcePath,
-                        activeLeaf,
-                        numbersAll,
-                        true,
-                    ));
+                );
+            } else if (isFigureCitation) {
+                citationWidget = renderFigureCitation(
+                    plugin,
+                    ctx.sourcePath,
+                    activeLeaf,
+                    numbersAll,
+                    true,
+                );
+            } else {
+                citationWidget = renderEquationCitation(
+                    plugin,
+                    ctx.sourcePath,
+                    activeLeaf,
+                    numbersAll,
+                    true,
+                );
+            }
 
             if (isCalloutCitation && calloutPrefix) {
                 addReadingModeCalloutPreviewListener(plugin, citationWidget, calloutPrefix, numbersAll, ctx.sourcePath);
