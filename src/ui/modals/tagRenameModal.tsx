@@ -8,16 +8,22 @@ import { assemblyCitationUpdateMessage } from "@/func/autoNumber";
 export class TagRenameModal extends Modal {
     private newTag: string;
     private editor?: Editor;
+    private isFigureTag = false;
+    
     constructor(
-        private plugin: EquationCitator,
-        private oldTag: string, sourceFile: string,
-        private heading = "Rename this tag to:"
+        private readonly plugin: EquationCitator,
+        private readonly oldTag: string, sourceFile: string,
+        private readonly heading = "Rename this tag to:"
     ) {
         super(plugin.app);
     }
 
     public setEditor(editor: Editor): void {
         this.editor = editor;
+    }
+
+    public setIsFigureTag(isFigure: boolean): void {
+        this.isFigureTag = isFigure;
     }
 
     onOpen(): void {
@@ -79,11 +85,23 @@ export class TagRenameModal extends Modal {
 
     // rename tag by modal 
     async renameTag(filePath: string, pair: TagRenamePair) {
+        // Use different service based on tag type
+        if (this.isFigureTag) {
+            await this.renameFigureTag(filePath, pair);
+        } else {
+            await this.renameEquationTag(filePath, pair);
+        }
+    }
+
+    // Rename equation tag
+    async renameEquationTag(filePath: string, pair: TagRenamePair) {
         // firstly, search all links to find if there's 
         const haveRepetedTags = await this.plugin.tagService.checkRepeatedTags(filePath, [pair]);
 
         const callRenameTagService = async (deleteRepeat: boolean, deleteUnused: boolean) => {
-            const result = await this.plugin.tagService.renameTags(filePath, [pair], deleteRepeat, deleteUnused, this.editor);
+            const result = await this.plugin.tagService.renameTags(
+                filePath, [pair], deleteRepeat, deleteUnused, this.editor, this.plugin.settings.citationPrefix
+            );
             if (result) {
                 const msg = assemblyCitationUpdateMessage(result);
                 new Notice(msg);
@@ -118,5 +136,21 @@ export class TagRenameModal extends Modal {
         else {
             await callRenameTagService(false, false);
         } 
+    }
+
+    // Rename figure tag
+    async renameFigureTag(filePath: string, pair: TagRenamePair) {
+        const callRenameFigureService = async (deleteRepeat: boolean, deleteUnused: boolean) => {
+            const result = await this.plugin.figureTagService.renameFigureTags(filePath, [pair], deleteRepeat, deleteUnused);
+            if (result) {
+                const msg = assemblyCitationUpdateMessage(result);
+                new Notice(msg);
+            }
+            this.onSubmit(this.newTag); // call onSubmit method to rename selected tag
+        }
+
+        // For now, just call the service directly without duplicate checking
+        // TODO: Add duplicate checking for figure tags
+        await callRenameFigureService(false, false);
     }
 }

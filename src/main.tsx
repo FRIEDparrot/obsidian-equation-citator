@@ -25,6 +25,7 @@ import { EquationServices } from '@/services/equation_services';
 import { FigureServices } from '@/services/figure_services';
 import { CalloutServices } from '@/services/callout_services';
 import { TagService } from '@/services/tag_service';
+import { FigureTagService } from '@/services/fig_tag_service';
 import { AutoCompleteSuggest } from '@/views/auto_complete_suggest';
 import { registerRightClickHandler } from '@/handlers/rightButtonHandler';
 import { LineHashCache } from '@/cache/lineHashCache';
@@ -40,6 +41,7 @@ export default class EquationCitator extends Plugin {
     figureServices: FigureServices;
     calloutServices: CalloutServices;
     tagService: TagService;
+    figureTagService: FigureTagService;
     tagSelectedField: StateField<EditorSelectionInfo>;
 
     // initialize caches
@@ -133,6 +135,7 @@ export default class EquationCitator extends Plugin {
         this.figureServices = new FigureServices(this);
         this.calloutServices = new CalloutServices(this);
         this.tagService = new TagService(this);
+        this.figureTagService = new FigureTagService(this);
     }
 
     loadEditorExtensions() {

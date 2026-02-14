@@ -156,7 +156,8 @@ export class TagService {
         tagPairs: TagRenamePair[],
         deleteRepeatCitations = false,
         deleteUnusedCitations = false,
-        editor?: Editor
+        editor?: Editor,
+        prefix?: string
     ): Promise<TagRenameResult | undefined> {
         const file = this.plugin.app.vault.getAbstractFileByPath(sourceFile);
         if (!(file instanceof TFile)) {
@@ -185,7 +186,7 @@ export class TagService {
         if (editor) {
             const currentFileLines = currentFileContent.split('\n');
             const { updatedLineMap, updatedNum } = this.updateCitationLines(
-                currentFileLines, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
+                currentFileLines, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations, prefix
             );
             const sortedUpdatedLineMap = new Map(Array.from(updatedLineMap.entries()).sort((a, b) => b[0] - a[0]));
             sortedUpdatedLineMap
@@ -199,7 +200,7 @@ export class TagService {
         } else {
             // no editor instance, update the citation in current file without editor instance 
             const { updatedContent, updatedNum } = this.updateCitations(
-                currentFileContent, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
+                currentFileContent, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations, prefix
             );
             await this.plugin.app.vault.modify(file, updatedContent);
             currentFileUpdatedNum = updatedNum;
@@ -247,7 +248,7 @@ export class TagService {
             });
             const md = await this.plugin.app.vault.read(file);
             const { updatedContent, updatedNum } = this.updateCitations(
-                md, crossFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
+                md, crossFileTagMapping, deleteRepeatCitations, deleteUnusedCitations, prefix
             );
             await this.plugin.app.vault.modify(file, updatedContent);
             addToChangeMap(link, updatedNum);  // add the backlink file to the change map 
@@ -272,12 +273,13 @@ export class TagService {
         // mapping from old tag to new tag (full -> we remove repeat internally and remove unused)
         nameMappingFull: Map<string, string>,
         deleteRepeatCitations = false,
-        deleteUnusedCitations = false
+        deleteUnusedCitations = false,
+        prefixOverride?: string
     ): {
         updatedLineMap: Map<number, string>,
         updatedNum: number
     } {
-        const prefix = this.plugin.settings.citationPrefix || "eq:";  // delimiter configuration
+        const prefix = prefixOverride ?? this.plugin.settings.citationPrefix ?? "eq:";  // delimiter configuration
         const multiEqDelimiter = this.plugin.settings.multiCitationDelimiter || ",";
         const rangeSymbol = this.plugin.settings.continuousRangeSymbol || "~";
         const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", String.raw`\_`];
@@ -348,7 +350,8 @@ export class TagService {
     updateCitations(md: string,
         nameMapping: Map<string, string>,   // mapping from old tag to new tag
         deleteRepeatCitations = false,
-        deleteUnusedCitations = false
+        deleteUnusedCitations = false,
+        prefixOverride?: string
     ):  {
             updatedContent: string,
             updatedNum: number
@@ -356,7 +359,7 @@ export class TagService {
         if (!md.trim()) return { updatedContent: md, updatedNum: 0 };  // not do anyhing if md is empty 
         const lines = md.split('\n');  // split the markdown into lines 
         const { updatedLineMap, updatedNum } = this.updateCitationLines(
-            lines, nameMapping, deleteRepeatCitations, deleteUnusedCitations
+            lines, nameMapping, deleteRepeatCitations, deleteUnusedCitations, prefixOverride
         );
         // for Map.forEach, it use map.forEach(value, key)
         updatedLineMap.forEach((newLine: string, lineNum: number) => {

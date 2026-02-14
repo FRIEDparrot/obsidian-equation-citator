@@ -20,8 +20,6 @@
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
-> This plugin supports [typst-style autonumber](https://github.com/azyarashi/obsidian-typst-mate). You can use `Settings > Categorical > Others > enable typst mode` to enable it.
-
 ## 🛠️ Installation 
 
 > Now this plugin is waiting for review in Obsidian community plugins at [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298), so you may not find it available in the community plugins list now, but please be patient for it.
@@ -57,6 +55,16 @@ Cite images by adding field to it. Cite tables and theorems by quote citation fe
 Not export PDF directly, Run command `Make markdown copy to export PDF` to make a full PDF ready for you to export. 
 
 <center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:100%; max-height: 350px; " /></center>
+
+## 🛒 Compatibility with other plugins
+
+The following plugins are tested to be compatible with these plugins for math to improve experience, you can use them together without any problem.
+
+<!-- 1. [Excalidraw](https://github.com/zsviczian/obsidian-excalidraw-plugin), fig citation should be supported for it -->
+2. [Obsidian Typst Mate](https://github.com/azyarashi/obsidian-typst-mate). This plugin supports typst-style autonumber, and you can use `Settings > Categorical > Others > enable typst mode` to enable it.
+3. [Better math in callouts & blockquotes](https://github.com/RyotaUshio/obsidian-math-in-callout). use it directly for better math rendering in callouts. 
+4. [No More Flickering Inline Math](https://github.com/RyotaUshio/obsidian-inline-math)
+
 
 ## 🚨 Disclaimer
 

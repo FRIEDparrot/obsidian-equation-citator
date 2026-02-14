@@ -310,8 +310,9 @@ Settings Update :
 ⭐ New Features :
 - [x] Autocomplete for figure citation and callout citations.
   - [x] Auto complete supports 2 modes : including rich mode and compact mode (Check `Settings > Advanced > Show full preview in autocomplete`). 
-  - [x] For compact mode, hover on the autocomplete item will show the preview of the figure or callout. (Check `Settings > Advanced > Show preview on hover on autocomplete item`)
-- [ ] Autonumber and rename tags for figures. 
+  - [x] For compact mode, hover on the autocomplete item will show the preview of the figure or callout. (Check `Settings > Advanced > Show preview on hover on autocomplete item`) 
+- [x] Rename tags for figures.
+- [ ] Autonumber tags for figures. 
   - [ ] Following figure citations should be updated after auto-numbering or renaming tags. 
 - [ ] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 
 - [ ] Support Excalidraw in figure citation. 
@@ -321,6 +322,7 @@ Settings Update :
 - [x] fix glitch [#137](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/137), when the equation panel file and current active file is different, It will create a new window and jump to correct position.
 - [x] fix bug [#135](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/135), when edit the file at location before some folded titles, it will not unfold now.
 - [ ] fig bug [#141](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/141), nested callouts now can be displayed correctly in callout citation preview.
+- [x] fix bug [#142](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/142), now the figures in callout will be correctly recognized and rendered in preview.
 
 🚀 enhancements :
 - [x] fix the reorder button location style in settings tab.
