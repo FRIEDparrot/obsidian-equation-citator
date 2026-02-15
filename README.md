@@ -52,7 +52,9 @@ Cite images by adding field to it. Cite tables and theorems by quote citation fe
 <center><img src="img\image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px; " /></center>
 
 ### 4.  📜**PDF export support**  
-Not export PDF directly, Run command `Make markdown copy to export PDF` to make a full PDF ready for you to export. 
+Not export PDF directly, Run command `Make markdown copy to export PDF` to make correct markdown ready for you to export  PDF. 
+
+The pdf will be like following picture after exporting, with correct citation and reference numbers :
 
 <center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:100%; max-height: 350px; " /></center>
 

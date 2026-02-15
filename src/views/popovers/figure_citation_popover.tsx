@@ -228,8 +228,6 @@ export function renderFigureWrapper(
                 imageContainer.addClass("em-figure-markdown-rendered");
             }
             else {
-                // only ![[#section]]
-
                 imageContainer.createDiv({
                     text: `Image not found: ${fig.imagePath}`,
                     cls: "em-figure-error"
