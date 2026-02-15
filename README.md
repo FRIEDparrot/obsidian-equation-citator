@@ -58,9 +58,9 @@ Not export PDF directly, Run command `Make markdown copy to export PDF` to make 
 
 ## 🛒 Compatibility with other plugins
 
-The following plugins are tested to be compatible with these plugins for math to improve experience, you can use them together without any problem.
+The following plugins are tested to be compatible with these main stream plugins for math to improve experience, you can use them together without any problem. 
 
-<!-- 1. [Excalidraw](https://github.com/zsviczian/obsidian-excalidraw-plugin), fig citation should be supported for it -->
+1. [Excalidraw](https://github.com/zsviczian/obsidian-excalidraw-plugin), after version 1.3.3, Excalidraw is supported in figure citation preview. You can cite an excalidraw picture by adding `fig` field to it just like normal images.
 2. [Obsidian Typst Mate](https://github.com/azyarashi/obsidian-typst-mate). This plugin supports typst-style autonumber, and you can use `Settings > Categorical > Others > enable typst mode` to enable it.
 3. [Better math in callouts & blockquotes](https://github.com/RyotaUshio/obsidian-math-in-callout). use it directly for better math rendering in callouts. 
 4. [No More Flickering Inline Math](https://github.com/RyotaUshio/obsidian-inline-math)

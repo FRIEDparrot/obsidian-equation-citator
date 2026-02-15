@@ -4,6 +4,7 @@ import {
     TFile, 
     Notice, 
     MarkdownView, 
+    MarkdownRenderer,
     EditorRange,
     Component,
     HoverPopover,
@@ -118,6 +119,11 @@ export class FigureCitationPopover extends HoverPopover {
 
 /**
  * Render a single figure wrapper with image and metadata
+ * @note since there are 2 types of image formats (wiki link vs markdown link), 
+ *      the rendering logic is different for each type
+ * @summary for `markdown link` (web image link), we always use image link to render the image;
+ *      i.e., <img src="imageLink" alt="title or tag">
+ * @summary for `wiki link` (internal image in obsidian vault), we need to resolve the vault path first, then render the image;   
  */
 export function renderFigureWrapper(
     plugin: EquationCitator,
@@ -131,6 +137,9 @@ export function renderFigureWrapper(
         Debugger.log("can't find container for figure");
         return;
     }
+
+    // Create a set of extensions that should use Markdown renderer
+    const markdownRendererExtensions = new Set(plugin.settings.extensionsUseMarkdownRenderer);
 
     const figureWrapper = container.createDiv();
     figureWrapper.addClass("em-figure-wrapper");
@@ -161,7 +170,7 @@ export function renderFigureWrapper(
     imageContainer.addClass("em-figure-image-container");
 
     if (fig.imageLink) {
-        // External image link
+        // wikiLink format image rendering - can directly use the link 
         const img = imageContainer.createEl("img", {
             attr: {
                 src: fig.imageLink,
@@ -175,14 +184,34 @@ export function renderFigureWrapper(
         if (sourceFile instanceof TFile) {
             const imageFile = plugin.app.metadataCache.getFirstLinkpathDest(fig.imagePath, fig.sourcePath);
             if (imageFile instanceof TFile) {
-                const resourcePath = plugin.app.vault.getResourcePath(imageFile);
-                const img = imageContainer.createEl("img", {
-                    attr: {
-                        src: resourcePath,
-                        alt: fig.title || fig.tag || 'Figure'
-                    }
-                });
-                img.addClass("em-figure-image");
+                // Check if the image extension requires Markdown renderer
+                const imagePath = fig.imagePath; // Store for type safety
+                const shouldUseMarkdownRenderer = Array.from(markdownRendererExtensions).some(ext => 
+                    imagePath.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
+                );
+
+                if (shouldUseMarkdownRenderer) {
+                    // Use Markdown renderer for special file types (e.g., excalidraw)
+                    const markdownText = `![[${imagePath}]]`;
+                    void MarkdownRenderer.render(
+                        plugin.app,
+                        markdownText,
+                        imageContainer,
+                        fig.sourcePath,
+                        targetComponent
+                    );
+                    imageContainer.addClass("em-figure-markdown-rendered");
+                } else {
+                    // Use standard image element for regular images (default renderer)
+                    const resourcePath = plugin.app.vault.getResourcePath(imageFile);
+                    const img = imageContainer.createEl("img", {
+                        attr: {
+                            src: resourcePath,
+                            alt: fig.title || fig.tag || 'Figure'
+                        }
+                    });
+                    img.addClass("em-figure-image");
+                }
             } else {
                 imageContainer.createDiv({
                     text: `Image not found: ${fig.imagePath}`,

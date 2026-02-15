@@ -83,7 +83,7 @@ export interface EquationCitatorSettings {
     enableTypstMode: boolean; // Enable compatibility with Typst syntax
     debugMode: boolean; // Optional setting for debug mode
     enableCiteWithCodeBlockInCallout: boolean; // Enable citation by inline code block in callout 
-
+    extensionsUseMarkdownRenderer: string[];  // image extensions that force using Markdown renderer 
 
     // equation management panel Settings 
     equationManagePanelLazyUpdateTime: number,
@@ -145,6 +145,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     
     enableTypstMode: false,
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
+    extensionsUseMarkdownRenderer: ["excalidraw", "excalidraw.md"], // default to use markdown renderer for svg and excalidraw files
     // settings UI defaults
     settingsDisplayMode: "concise",
     basicSettingsKeys: [
@@ -503,9 +504,17 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             OtherSettingsTab.debugMode(el, plugin);
         }
     },
+    extensionsUseMarkdownRenderer: {
+        name: "Extensions that use markdown renderer",
+        desc: "List of file extensions that should use markdown renderer instead of default image renderer",
+        type: "array",
+        renderCallback: (el, plugin) => {
+            OtherSettingsTab.extensionsUseMarkdownRenderer(el, plugin);
+        }
+    },
     enableCiteWithCodeBlockInCallout: {
         name: "Cite with inline code block in callout",
-        desc: "Enable citation by inline code block in callout",
+        desc: "Enable citation by inline code block in callout (This feature will never be fully supported, and citations here will not be updated, you may not turn this on unless you have specific needs)",
         type: "boolean",
         renderCallback: (el, plugin) => {
             OtherSettingsTab.enableCiteWithCodeBlockInCallout(el, plugin);

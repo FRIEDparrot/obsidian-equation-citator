@@ -68,6 +68,111 @@ export const OtherSettingsTab = {
             });
     },
 
+    extensionsUseMarkdownRenderer(containerEl: HTMLElement, plugin: EquationCitator) {
+        new Setting(containerEl)
+            .setName("Extensions names using Markdown renderer")
+            .setDesc("Some types of images (e.g., excalidraw) may not render correctly in preview with the default image renderer. You can specify file extensions here to use the Markdown renderer for better render support.");
+
+        // Container for the list of extensions
+        const extensionListContainer = containerEl.createDiv("ec-extension-list-container");
+
+        // Handler for extension input blur
+        const handleExtensionBlur = async (
+            extension: string, 
+            index: number, 
+            textInput: HTMLInputElement
+        ) => {
+            const newValue = textInput.value.trim();
+            if (newValue === "") {
+                new Notice("Extension name cannot be empty");
+                textInput.value = extension;
+                return;
+            }
+            if (newValue !== extension) {
+                // Check for duplicates
+                const exists = plugin.settings.extensionsUseMarkdownRenderer.some(
+                    (ext, i) => i !== index && ext === newValue
+                );
+                if (exists) {
+                    new Notice("This extension name already exists");
+                    textInput.value = extension;
+                    return;
+                }
+                plugin.settings.extensionsUseMarkdownRenderer[index] = newValue;
+                await plugin.saveSettings();
+            }
+        };
+
+        // Handler for removing an extension
+        const handleRemoveExtension = async (index: number, renderCallback: () => void) => {
+            plugin.settings.extensionsUseMarkdownRenderer.splice(index, 1);
+            await plugin.saveSettings();
+            renderCallback();
+        };
+
+        // Handler for adding a new extension
+        const handleAddExtension = async (renderCallback: () => void) => {
+            // Find a unique default extension
+            let newExtension = "custom";
+            let counter = 1;
+            const existingExtensions = new Set(plugin.settings.extensionsUseMarkdownRenderer);
+            while (existingExtensions.has(newExtension)) {
+                newExtension = `custom${counter}`;
+                counter++;
+            }
+            plugin.settings.extensionsUseMarkdownRenderer.push(newExtension);
+            await plugin.saveSettings();
+            renderCallback();
+        };
+
+        // Create a single extension item
+        const createExtensionItem = (
+            extension: string, 
+            index: number, 
+            container: HTMLElement,
+            renderCallback: () => void
+        ) => {
+            const setting = new Setting(container).setClass("ec-extension-item");
+            setting.setName("");
+            setting.setDesc("");
+
+            // Add extension input (left side, longer)
+            setting.addText((text) => {
+                text.inputEl.classList.add("ec-extension-input");
+                text.setValue(extension);
+                text.setPlaceholder("E.g., excalidraw");
+                text.inputEl.onblur = () => handleExtensionBlur(extension, index, text.inputEl);
+            });
+
+            // Add remove button (right side)
+            setting.addButton((button) => {
+                button.setButtonText("Remove")
+                    .setClass("mod-warning")
+                    .onClick(() => handleRemoveExtension(index, renderCallback));
+            });
+        };
+
+        const renderExtensionList = () => {
+            extensionListContainer.empty();
+
+            // Render each existing extension
+            plugin.settings.extensionsUseMarkdownRenderer.forEach((extension, index) => {
+                createExtensionItem(extension, index, extensionListContainer, renderExtensionList);
+            });
+
+            // Add "Add new extension" button
+            new Setting(extensionListContainer)
+                .setClass("ec-add-extension-setting")
+                .addButton((button) => {
+                    button.setButtonText("Add new extension")
+                        .setClass("mod-cta")
+                        .onClick(() => handleAddExtension(renderExtensionList));
+                });
+        };
+
+        renderExtensionList();
+    },
+
     enableCiteWithCodeBlockInCallout(containerEl: HTMLElement, plugin: EquationCitator) {
         const enableCiteWithCodeBlockInCalloutSetting = new Setting(containerEl);
         const { name, desc } = SETTINGS_METADATA.enableCiteWithCodeBlockInCallout; 
@@ -88,6 +193,7 @@ export function addOtherSettingsTab(containerEl: HTMLElement, plugin: EquationCi
     OtherSettingsTab.enableTypstMode(containerEl, plugin);
     OtherSettingsTab.debugMode(containerEl, plugin);
     OtherSettingsTab.resetSettings(containerEl, plugin, settingsTab);
+    OtherSettingsTab.extensionsUseMarkdownRenderer(containerEl, plugin);
     // ==================  Beta features settings ==========   
     new Setting(containerEl).setName("Beta features").setHeading();
     OtherSettingsTab.enableCiteWithCodeBlockInCallout(containerEl, plugin);

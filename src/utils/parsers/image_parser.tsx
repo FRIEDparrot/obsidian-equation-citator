@@ -8,7 +8,7 @@ export type ImageType = "wikilink" | "markdown" | "excalidraw";
 export interface ImageMatch {
     raw: string;              // Full image markdown
     type: ImageType;          // Type of image format
-    imagePath?: string;       // Path for weblink format (![[path]])
+    imagePath?: string;       // Path for weblink format (![[path]]) or excalidraw
     imageLink?: string;       // URL for markdown format (![](url))
     tag?: string;             // e.g., "3.1", "4-1" (without prefix like "fig:")
     label?: string;           // Full label with prefix, e.g., "fig:3.1"
@@ -16,6 +16,10 @@ export interface ImageMatch {
     desc?: string;            // Optional description
     line: number;             // Line number where image is found
     inQuote: boolean;         // Whether in quote block (should be false as we skip quotes)
+}
+
+export function IsExcalidrawFile(path: string): boolean {
+    return path.endsWith('.excalidraw.md') || path.endsWith('.excalidraw');
 }
 
 /**
@@ -35,7 +39,7 @@ function parseWikiLinkImage(line: string, imagePrefix: string): Omit<ImageMatch,
     const metadata = match[2] || '';
 
     // Check if it's excalidraw
-    const isExcalidraw = imagePath.endsWith('.excalidraw.svg') || imagePath.endsWith('.excalidraw');
+    const isExcalidraw = IsExcalidrawFile(imagePath);
 
     // Parse metadata parts: fig:3.1|title:test|desc:description
     const metaParts = metadata.split('|').map(p => p.trim()).filter(p => p.length > 0);

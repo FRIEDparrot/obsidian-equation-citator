@@ -6,13 +6,13 @@ import { ImageMatch } from "@/utils/parsers/image_parser";
 
 export interface RenderedFigure {
     tag: string;  // tag of the figure (without prefix)
-    imagePath?: string;   // path for weblink format
+    imagePath?: string;   // path for wikilink format
     imageLink?: string;   // URL for markdown format
     title?: string;  // figure title
     desc?: string;   // figure description
-    sourcePath: string | null; // source path of the figure file
-    filename: string | null;  // filename label (alias) of the figure
-    footnoteIndex: string | null; // index of the footnote (if any)
+    sourcePath: string | null; // the file path where the figure is referenced
+    filename: string | null;   // filename to be rendered in preview 
+    footnoteIndex: string | null; // index of the footnote (used for render citation)
 }
 
 /**
@@ -26,26 +26,28 @@ export class FigureServices {
 
     /**
      * Retrieves figures by their tags from a specified source file
-     * Handles both local and cross-file figure references
-     *
+     * Handles both local and cross-file figure references. 
+     * @note The input is the figureTagsAll (which is 1^1.1, 1^3.2, 1^4.1) 
+     *    this function retrieve the corresponding figure information for each tag
+     * @note This operation query both footnoteCache and imageCache, so it should be optimized and only called when necessary
      * @param figureTagsAll - An array of figure tags to retrieve
      * @param sourcePath - The path of the source file where the figures are referenced
      * @returns A promise that resolves to an array of RenderedFigure objects
      */
     public async getFiguresByTags(figureTagsAll: string[], sourcePath: string): Promise<RenderedFigure[]> {
-        const settings = this.plugin.settings;
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);
+        const { enableCrossFileCitation, fileCiteDelimiter,  enableRenderLocalFileName } = this.plugin.settings;
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);  // get footnotes from cache 
 
         const figures: RenderedFigure[] = figureTagsAll.map(tag => {
-            const { local, crossFile } = settings.enableCrossFileCitation
-                ? splitFileCitation(tag, settings.fileCiteDelimiter)
+            const { local, crossFile } = enableCrossFileCitation
+                ? splitFileCitation(tag, fileCiteDelimiter)
                 : { local: tag, crossFile: null };
 
             const { path, filename } = crossFile
                 ? this.resolveCrossFileRef(sourcePath, crossFile, footnotes)
                 : {
                     path: sourcePath,
-                    filename: this.plugin.settings.enableRenderLocalFileName ?
+                    filename: enableRenderLocalFileName ?
                         this.plugin.app.workspace.getActiveFile()?.name || null : null
                 };
 
@@ -68,6 +70,7 @@ export class FigureServices {
 
     /**
      * Fill figure content by querying the imageCache
+     * This function map the ImageMatch object to RenderedFigure.
      */
     private async fillFiguresContent(figures: RenderedFigure[]): Promise<RenderedFigure[]> {
         // Get unique file paths
@@ -85,7 +88,7 @@ export class FigureServices {
         // Fill content for each figure
         return figures.map(fig => {
             const fileImages = fig.sourcePath ? fileImagesMap.get(fig.sourcePath) : undefined;
-            const matchedImage = fileImages?.find(cached => cached.tag === fig.tag);
+            const matchedImage: ImageMatch | undefined = fileImages?.find(cached => cached.tag === fig.tag);
 
             return {
                 ...fig,

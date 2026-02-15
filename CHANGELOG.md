@@ -301,8 +301,14 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
 ### Version 1.3.3
 Version 1.3.3 - bug fixes, new features and enhancements.
 
---- 
-Settings Update : 
+---
+
+TL; DR : 
+- Excalidraw support is now available in figure citation preview!
+- Auto complete for figure and callout citations is now available!
+- Auto-number and rename tags for figures are now available! 
+
+Settings Updates : 
 - We refactored the variable name `quoteCitationPrefixes` to `calloutCitationPrefixes` for clarity. So your current settings for callout citation prefix will be restored. Be sure to re-set the settings for `callout citation prefix` in settings tab to make the callout citation work.
 
 --- 
@@ -315,7 +321,7 @@ Settings Update :
 - [ ] Autonumber tags for figures. 
   - [ ] Following figure citations should be updated after auto-numbering or renaming tags. 
 - [ ] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 
-- [ ] Support Excalidraw in figure citation. 
+- [x] Add Feature [#143](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/143), now we support Excalidraw in figure citation. 
 
 🐛 Bug Fixes :
 - [x] fix bug [#136](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/136), add tag for multi-line equation in callout now work correctly. 

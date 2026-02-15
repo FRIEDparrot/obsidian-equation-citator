@@ -129,6 +129,65 @@
     width: 120px;
 }
 
+.ec-extension-input {
+    height: 20px;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    width: 200px;
+    margin: 0; // Remove margin for better alignment
+}
+
+.ec-extension-item {
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    padding: 8px 0;
+    margin-bottom: 0 !important;
+    border-top: none !important;
+
+    &:last-of-type {
+        border-bottom: none;
+    }
+
+    // Remove name and description padding
+    .setting-item-info {
+        display: none;
+    }
+
+    // Align controls - input left, button right
+    .setting-item-control {
+        display: flex;
+        align-items: center; // Center vertical alignment
+        justify-content: flex-start; // Start from left
+        gap: 10px;
+        margin: 5px 10px;
+        padding-left: 0;
+
+        // Input on left side
+        input {
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
+        // Button on right
+        button {
+            margin: 0;
+        }
+    }
+}
+
+.ec-extension-list-container {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.ec-add-extension-setting {
+    border-top: none;
+    padding-top: 5px;
+}
+
 .ec-settings-tip {
     font-size: 14px;
     color: var(--interactive-accent); // Use a blue-ish accent variable
