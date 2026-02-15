@@ -177,8 +177,8 @@ function parseImageLine(
  * - Are NOT inside quote blocks
  *
  * Supports following types (local file only):
- * 1. WikiLink: ![[image.png|fig:3.1|title:test|desc:description]]
- * 2. Markdown: ![fig:4-1|desc:wikipedia](link)
+ * 1. WikiLink: `![[image.png|fig:3.1|title:test|desc:description]]`
+ * 2. Markdown: `![fig:4-1|desc:wikipedia](link)`
  *
  * @param markdown - The markdown content to parse
  * @param imagePrefix - The prefix to match (e.g., "fig:"), default is "fig:"

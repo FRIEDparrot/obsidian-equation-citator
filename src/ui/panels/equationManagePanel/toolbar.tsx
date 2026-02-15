@@ -316,7 +316,7 @@ export function renderToolbar(
 /**
  * Set the default state for the toolbar (view mode, sort mode, tag visibility, etc.)
  * @param panel - The equation arrange panel instance
- * @param defaultViewMode - The default view mode to set
+ * @param plugin - The plugin instance to get settings from
  */
 export function setToolbarDefaultState(
     panel: EquationArrangePanel,

@@ -19,6 +19,25 @@ export interface TagRenameResult {
     details: FileCitationChangeMap;
 }
 
+/**
+ * Service for managing tag operations in the EquationCitator plugin
+ * 
+ * Handles tag renaming across files and their backlinks, with support for:
+ * - Validating tag renames to prevent duplicates
+ * - Single and cross-file citation updates
+ * - Deletion of repeated and unused citations
+ * - Cursor position preservation when editing with an active editor
+ * 
+ * @class TagService
+ * @example
+ * ```
+ * const tagService = new TagService(plugin);
+ * const canRename = await tagService.checkRepeatedTags(filePath, renamePairs);
+ * if (canRename) {
+ *   const result = await tagService.renameTags(filePath, renamePairs);
+ * }
+ * ```
+ */
 export class TagService {
     constructor(
         private readonly plugin: EquationCitator
@@ -381,14 +400,33 @@ export class TagService {
     }
 
     /**
-     * Process a single tag and update it if necessary 
-     * @param ct 
-     * @param nameMapping 
-     * @param oldTagsAll // all old tags in the file 
-     * @param newTags  // new tags (can both all or unique, used to check conflict) 
-     * @param deleteUnusedCitations 
-     * @param deleteRepeatCitations 
-     * @returns 
+     * Process a single citation tag and apply renaming, deletion, and deduplication rules.
+     * 
+     * This method handles individual citation tags within a citation string, applying transformations
+     * based on the provided mapping and deletion rules. It maintains cross-file citation integrity
+     * by grouping tags by their cross-file prefix and checking for duplicates within those groups.
+     * 
+     * @param ct - The citation tag to process (e.g., "1.2.3" or "12^1.2.3")
+     * @param nameMapping - Map from old tag names to new tag names for renaming operations
+     * @param oldTagsByCrossFile - Map grouping original tags by their cross-file prefix (e.g., "12^" -> Set{"1.2.3", "4.5.6"})
+     * @param newTagsByCrossFile - Map grouping new/renamed tags by their cross-file prefix for duplicate detection
+     * @param deleteUnusedCitations - If true, remove citations that don't exist in oldTagsByCrossFile
+     * @param deleteRepeatCitations - If true, remove duplicate citations within the same cross-file group
+     * @param fileDelimiter - Delimiter separating cross-file prefix from local tag (typically "^")
+     * 
+     * @returns The processed citation tag (renamed if mapped, or original), or empty string if deleted
+     * 
+     * @example
+     * ```ts
+     * // Rename citation from "1.2" to "1.3"
+     * processCitation("1.2", new Map([["1.2", "1.3"]]), ...) // returns "1.3"
+     * 
+     * // Delete unused citation
+     * processCitation("1.2", new Map(), new Map(), ..., true, false, "^") // returns "" if "1.2" not in oldTags
+     * 
+     * // Delete duplicate citation
+     * processCitation("1.2", new Map(), ..., new Map([["", new Set(["1.2"])]]), false, true, "^") // returns "" if duplicate
+     * ```
      */
     private processCitation(
         ct: string,

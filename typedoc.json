@@ -6,5 +6,4 @@
   "excludePrivate": false,
   "excludeProtected": false,
   "excludeExternals": true,
-  "customCss": "typedoc_styles.css",
 }

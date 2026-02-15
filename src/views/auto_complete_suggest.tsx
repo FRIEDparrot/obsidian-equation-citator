@@ -14,8 +14,8 @@ import { splitFileCitation } from "@/utils/core/citation_utils";
 import Debugger from "@/debug/debugger";
 
 
-type CitationType = 'equation' | 'figure' | 'callout';
-type CitationItem = RenderedEquation | RenderedFigure | RenderedCallout;
+export type CitationType = 'equation' | 'figure' | 'callout';
+export type CitationItem = RenderedEquation | RenderedFigure | RenderedCallout;
 
 interface MathEnvironmentInfo {
     line: string;        // line content
@@ -25,7 +25,7 @@ interface MathEnvironmentInfo {
     eqEnd: number;       // 
 }
 
-interface CitationParseResult {
+export interface CitationParseResult {
     valid: boolean;
     citationIndex: number;
     fullLabel: string;

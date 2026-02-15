@@ -1,9 +1,0 @@
-.tsd-page-toolbar .tsd-toolbar-contents::before {
-  content: "";
-  display: inline-block;
-  background: url("./img/Equation\ Citator\ Logo-light.png") no-repeat center;
-  background-size: contain;
-  width: 120px;
-  height: 40px;
-  margin-right: 1rem;
-}

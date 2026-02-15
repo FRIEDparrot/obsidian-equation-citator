@@ -24,6 +24,7 @@ import { fastHash } from "@/utils/misc/hash_utils";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
 import { parseAllImagesFromMarkdown, parseImageLine, ImageMatch } from "@/utils/parsers/image_parser";
 import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
+import { CitationType } from "../auto_complete_suggest";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -107,7 +108,7 @@ function createTagSelectedField(settings: EquationCitatorSettings) {
 
 /**
  * Live Preview Extension (CodeMirror ViewPlugin) for render equation in editor   
- * @param settings 
+ * @param plugin - The plugin instance
  * @returns 
  */
 export function createMathCitationExtension(plugin: EquationCitator) {
@@ -218,7 +219,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
 
                                 // Determine widget type and citation type
                                 let widget: CitationWidget | FigureCitationWidget | CalloutCitationWidget;
-                                let citationType: string;
+                                let citationType: CitationType;
 
                                 if (isCalloutCitation && matchedCalloutPrefix) {
                                     widget = new CalloutCitationWidget(
@@ -301,7 +302,6 @@ function getCitationSpan(el: Element): Element[] | null {
  * @param el 
  * @param ctx 
  * @param citationCache citation cache instance of the plugin, to get citation data from cache
- * @param settings 
  * @returns 
  */
 export async function mathCitationPostProcessor(

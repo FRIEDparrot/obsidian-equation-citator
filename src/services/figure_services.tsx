@@ -28,9 +28,10 @@ export class FigureServices {
     /**
      * Retrieves figures by their tags from a specified source file
      * Handles both local and cross-file figure references. 
-     * @remarks The input is the figureTagsAll (which is 1^1.1, 1^3.2, 1^4.1) 
+     * @remarks 
+     * 1. The input is the figureTagsAll (which is 1^1.1, 1^3.2, 1^4.1) 
      *    this function retrieve the corresponding figure information for each tag
-     * @remarks This operation query both footnoteCache and imageCache, so it should be optimized and only called when necessary
+     * 2. This operation query both footnoteCache and imageCache, so it should be optimized and only called when necessary
      * @param figureTagsAll - An array of figure tags to retrieve
      * @param sourcePath - The path of the source file where the figures are referenced
      * @returns A promise that resolves to an array of RenderedFigure objects

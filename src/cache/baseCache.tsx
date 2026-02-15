@@ -3,7 +3,11 @@ import EquationCitator from '@/main';
 import { isMarkdownFilePath } from '@/utils/misc/fileProcessor';
 import Debugger from '@/debug/debugger';
 
-interface CachedData<T> {
+/**
+ * @internal
+ * Internal cache structure for storing data with metadata
+ */
+export interface CachedData<T> {
     hash: string;
     lastUpdated: number;
     data: T[];

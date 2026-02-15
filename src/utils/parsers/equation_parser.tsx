@@ -4,13 +4,19 @@ import { createEquationTagRegex, isCodeBlockToggle, equationBlockStartPatternWit
 /// This file contains utility functions for working with equations tag 
 /// and also process equation blocks 
 
-interface EquationParseResult {
+/**
+ * The result of parsing an equation block, including the content, tag, and metadata about its location in the markdown.
+ *  used internally for processing equations, not exposed to other modules.
+ */
+export interface EquationParseResult {
     content: string;   // content without tag and $$ 
     contentWithTag: string;
     tag?: string;
 }
 
-/// the matched equation information 
+/**
+ * the matched equation information
+ */ 
 export interface EquationMatch extends EquationParseResult {
     raw: string;
     lineStart: number;
