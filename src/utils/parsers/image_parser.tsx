@@ -1,5 +1,5 @@
 import { parseMarkdownLine, processQuoteLine } from "@/utils/string_processing/string_utils";
-
+import { isCodeBlockToggle, markdownImagePattern, weblinkImagePattern } from "../string_processing/regexp_utils";
 export type ImageType = "wikilink" | "markdown" | "excalidraw";
 
 /**
@@ -30,8 +30,8 @@ export function IsExcalidrawFile(path: string): boolean {
  */
 function parseWikiLinkImage(line: string, imagePrefix: string): Omit<ImageMatch, 'line' | 'inQuote' | 'raw'> | null {
     // Pattern: ![[path|metadata...]]
-    const weblinkPattern = /^!\[\[([^\]|]+)(?:\|([^\]]*))?\]\]$/;
-    const match = new RegExp(weblinkPattern).exec(line);
+    
+    const match = new RegExp(weblinkImagePattern).exec(line);
 
     if (!match) return null;
 
@@ -82,8 +82,8 @@ function parseWikiLinkImage(line: string, imagePrefix: string): Omit<ImageMatch,
  */
 function parseMarkdownImage(line: string, imagePrefix: string): Omit<ImageMatch, 'line' | 'inQuote' | 'raw'> | null {
     // Pattern: ![alt text](url)
-    const markdownPattern = /^!\[([^\]]*)\]\(([^)]+)\)$/;
-    const match = new RegExp(markdownPattern).exec(line);
+    
+    const match = new RegExp(markdownImagePattern).exec(line);
 
     if (!match) return null;
 
@@ -129,7 +129,7 @@ function parseMarkdownImage(line: string, imagePrefix: string): Omit<ImageMatch,
 /**
  * Parse a single image line and return ImageMatch if valid
  * @param line - The line to parse
- * @param lineNumber - Line number in the document
+ * @param lineNumber - Line number in the document (just for record)
  * @param imagePrefix - The prefix to match (e.g., "fig:")
  * @returns ImageMatch or null if not a valid image
  */
@@ -223,17 +223,32 @@ export function parseAllImagesFromMarkdown(
 
 /**
  * Parse the first image with the given tag in the markdown content
- * TODO : improve performance
+ * 
+ * @note we don't process quote here since its handled by parseImageLine, 
+ *     also quote block recognition will handle quote automatically, so there's no need.
  * @param markdown - The markdown content to parse
  * @param tag - The tag to search for (without prefix, e.g., "3.1" not "fig:3.1")
  * @param imagePrefix - The prefix to match (e.g., "fig:"), default is "fig:"
  * @returns The first ImageMatch with the matching tag, or undefined if not found
  */
 export function parseFirstImageInMarkdown(
-    markdown: string, tag: string,
+    markdown: string, 
+    tag: string,
     imagePrefix = "fig:"
 ): ImageMatch | undefined {
+    const lines = markdown.split('\n');
+    let inCodeBlock = false;
     if (!markdown.trim() || !tag.trim()) return undefined;
-    const allImages = parseAllImagesFromMarkdown(markdown, imagePrefix);
-    return allImages.find(img => img.tag === tag);
+    for (let lineNum = 0; lineNum < lines.length; lineNum++) {
+        const line = lines[lineNum];
+        if (isCodeBlockToggle(line)) { 
+            inCodeBlock = !inCodeBlock;
+        }
+        if (inCodeBlock) continue;
+        const imageMatch = parseImageLine(line, lineNum, imagePrefix);
+        if (imageMatch?.tag === tag) {
+            return imageMatch;
+        }
+    }
+    return undefined;
 }

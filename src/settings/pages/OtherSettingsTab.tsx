@@ -70,7 +70,7 @@ export const OtherSettingsTab = {
 
     extensionsUseMarkdownRenderer(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
-            .setName("Extensions names using Markdown renderer")
+            .setName("Extension names using Markdown renderer")
             .setDesc("Some types of images (e.g., excalidraw) may not render correctly in preview with the default image renderer. You can specify file extensions here to use the Markdown renderer for better render support.");
 
         // Container for the list of extensions

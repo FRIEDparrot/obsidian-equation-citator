@@ -1,8 +1,7 @@
-import { MarkdownView, Editor, EditorPosition } from "obsidian";
+import { MarkdownView, Editor, EditorPosition,  Notice } from "obsidian";
 import { MarkdownFileProcessor } from '@/utils/misc/fileProcessor';
 import { autoNumberEquations, getAutoNumberInCursor } from "@/utils/core/auto_number_utils";
 import { TagRenamePair, TagRenameResult } from "@/services/tag_service";
-import { Notice } from "obsidian";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
@@ -79,7 +78,7 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
             );
             tagMapping = tm;
             // rename tags by tagmapping
-            return Promise.resolve(md);
+            return md;
         }
     );
     const succeed = await processor.execute();  // process current file content
@@ -144,7 +143,7 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
         new Notice("Cursor is not in a valid equation block");
         return;
     }
-    const insertText = enableTypstMode ? `#label("${autoNumberTag}")` : `\\tag{${autoNumberTag}}`;
+    const insertText = enableTypstMode ? `#label("${autoNumberTag}")` : String.raw`\tag{${autoNumberTag}}`;
     insertTextWithCursorOffset(editor, insertText, insertText.length);
 }
 

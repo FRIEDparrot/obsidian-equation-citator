@@ -26,7 +26,8 @@ export class TagService {
 
     public async checkRepeatedTags(
         sourceFile: string,
-        pairs: TagRenamePair[]
+        pairs: TagRenamePair[],
+        prefix?: string
     ): Promise<boolean> {
         const file = this.plugin.app.vault.getAbstractFileByPath(sourceFile);
         if (!(file instanceof TFile)) {
@@ -40,7 +41,7 @@ export class TagService {
 
         // check all new tag Names 
         const newTagNames = new Set(effectivePairs.filter((p) => p.oldTag !== p.newTag).map(p => p.newTag));
-        const hasRepeatedInCurrentFile = await this.checkRepeatedTagsInFile(sourceFile, newTagNames);
+        const hasRepeatedInCurrentFile = await this.checkRepeatedTagsInFile(sourceFile, newTagNames, prefix);
         if (hasRepeatedInCurrentFile) {
             return true;
         }
@@ -78,7 +79,7 @@ export class TagService {
                 }
             });
             // check for repeated cross file citations in backlink file
-            const hasRepeatedInBackLink = await this.checkRepeatedTagsInFile(backLinkPath, crossFileNewTags);
+            const hasRepeatedInBackLink = await this.checkRepeatedTagsInFile(backLinkPath, crossFileNewTags, prefix);
             if (hasRepeatedInBackLink) {
                 return true;
             }
@@ -88,25 +89,29 @@ export class TagService {
 
     /**
      * Checks if there are any tags in the specified file that duplicate the given set of target tags
+     * 
+     * This is used in check repeated if the new tag name already exists in the current file or backlink files, 
+     *       to avoid creating duplicate citations after renaming (leading to wrong citation number after renaming)
      * @param filePath Path to the file
      * @param targetTags Set of target tags to check against
+     * @param citationPrefix Optional citation prefix (defaults to equation prefix from settings)
      * @returns Promise<boolean> - returns true if a duplicate exists
      */
     private async checkRepeatedTagsInFile(
         filePath: string,
-        targetTags: Set<string>
+        targetTags: Set<string>,
+        citationPrefix?: string
     ): Promise<boolean> {
         const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
         if (!(file instanceof TFile)) {
             return false;
         }
-        const { citationPrefix: prefix = "eq:",
+        const { citationPrefix: defaultPrefix = "eq:",
             multiCitationDelimiter: multiEqDelimiter = ",",
             continuousRangeSymbol: rangeSymbol = "~",
             continuousDelimiters: citeDelimiters = String.raw`- . : \_`,
             fileCiteDelimiter: fileDelimiter = "^" } = this.plugin.settings;
-
-        const fileContent = await this.plugin.app.vault.cachedRead(file);
+        const prefix = citationPrefix || defaultPrefix;        const fileContent = await this.plugin.app.vault.cachedRead(file);
         if (targetTags.size === 0 || !fileContent.trim() || !prefix.trim()) {
             return false;
         }

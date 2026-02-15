@@ -2,7 +2,7 @@
 
 The Equation Citator plugin transforms Obsidian into a powerful academic writing environment with LaTeX-style citations. Version 1.3.0 introduces the **Equations Management Panel** with drag-and-drop citation support, And also add features of  citation for figures, tables and more. Making academic referencing easier than ever. 
 
-### ✨ Core Features (For v1.3.0 and Later)  
+### ✨ Core Features
 - **Equation Citations**: Tag and reference equations with `\tag{}` and `\ref{}` 
 - **Auto-numbering**: Automatically number equations for easy-management 
 - **Cross-file Citations**: Reference content across multiple documents
@@ -46,11 +46,9 @@ $$ block  # not write content before or after equation block in one line!
 
 **Q : Why we don't support this**? 
 
-A : Deliberately writing text after equation block can cause equation render problem in reading mode (also cause issue in our auto-number). In that case, we will stop auto-number and give you a warning. You can open reading mode to check where this problem is.
+A : Deliberately writing text after equation block can cause equation render problem in reading mode (also cause issue in our auto-number). In that case, we will stop auto-number and give you a warning. You can open reading mode to check where this problem is. (You can go to [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74) for clarification) 
 
-![pitfall](tutorial_pitfall.png)
-
-If you still don't understand, goto [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74) for clarification.
+When this case happens, auto number will automatically fail and you'll get a notice `Detected illegal nested $$ in equation block at line xxx`.  You can enable `settings > Editor > Line Numbers` to fix it. So just not do that in your notes. 
 
 ### (3) Citing Clarity  
 1. Avoid using `\}` in your tag or citation (this will cause the tag recognized incorrectly) 
@@ -139,20 +137,30 @@ We use the enhanced image syntax to make figures citable :
 %%wiki link format%%
 ![[James_Lovell.jpg|fig:3.1|desc:description]]
 
-%%web link format%%
+%%markdown link format%%
 ![fig:1.3|title:test|desc:Optional description](images.png) 
 ```
 
-This plugin only support cite locale image files, not support citing web link images and excalidraw.  
+We support both wiki link and markdown link format.
 
-![[test_image.png|fig:1.3|title:minecraft|desc:a test minecraft picture|200]]
+![[test_image.png|fig:1.3|title:minecraft|desc:a test minecraft picture example|200]]
+We can use $\ref{fig:1.3}$ to cite the above **figure**. 
 
 This will create :
 - A figure with label `fig:1.3`
 - A caption displayed below the image
 - A description for extended context 
 
-We can use $\ref{fig:1.3}$ to cite this **figure** 
+
+
+![[Excalidraw Support|fig:1.5]]
+Also, after `v1.3.3`, we can also cite the `excalidraw` image with same syntax  $\ref{fig:1.5, }$. 
+
+Note the `excalidraw` and `excalidraw.md` should be included in the `settings > Display (Categorical) > Others > Extension names using Markdown renderer`, the extension `excalidraw.md` must be added. 
+
+But **since the grammar of external file link view `![[#(3) Citing Clarity|fig:1.6]]` is same as image**, we still reckon it a valid image. So when `md` is in the `Extension names using Markdown renderer` setting, we can even cite the section preview as $\ref{fig:1.6, }$ (but there would be no caption) :
+
+![[#(3) Citing Clarity|fig:1.6]]
 
 > [!HINT] 
 > Some additional features like auto-number and auto-complete are not currently supported for figure and callout reference. 

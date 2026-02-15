@@ -47,7 +47,7 @@ Cite equations by drag and drop from equation manage panel. multiple equation ci
 
 ### 3. 🖼️ Cite Images, Tables and Even Theorems 
 
-Cite images by adding field to it. Cite tables and theorems by quote citation feature. 
+Cite images by adding field to it. Cite tables and theorems by quote citation feature. **Excalidraw images** and markdown sections are also supported. 
 
 <center><img src="img\image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px; " /></center>
 

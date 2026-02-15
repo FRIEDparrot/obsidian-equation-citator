@@ -145,7 +145,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     
     enableTypstMode: false,
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
-    extensionsUseMarkdownRenderer: ["excalidraw", "excalidraw.md"], // default to use markdown renderer for svg and excalidraw files
+    extensionsUseMarkdownRenderer: ["excalidraw", "excalidraw.md", "md"], // default to use markdown renderer for svg and excalidraw files
     // settings UI defaults
     settingsDisplayMode: "concise",
     basicSettingsKeys: [

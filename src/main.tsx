@@ -1,7 +1,7 @@
 import {
     Plugin, MarkdownView, WorkspaceLeaf,
     MarkdownPostProcessorContext,
-	Editor,
+    Editor,
 } from 'obsidian';
 import { cleanUpStyles, loadStyles, SettingsTabView } from "@/settings/SettingsTab";
 import { DEFAULT_SETTINGS, EquationCitatorSettings } from "@/settings/defaultSettings";
@@ -55,25 +55,25 @@ export default class EquationCitator extends Plugin {
     private autoCompleteSuggest: AutoCompleteSuggest;
     private readonly mathCitationCompartment = new Compartment();
     private readonly imageCaptionCompartment = new Compartment();
-    
+
     async loadSettings() {
-        this.settings = { ...DEFAULT_SETTINGS, ...await this.loadData()};
+        this.settings = { ...DEFAULT_SETTINGS, ...await this.loadData() };
         Debugger.debugMode = this.settings.debugMode;  // set debug mode from settings 
         loadStyles();
         this.upDateEditorExtensions();
     }
-    
+
     async onload() {
         await this.loadSettings();
         this.addSettingTab(new SettingsTabView(this.app, this));
-        
+
         // initialize caches
         this.loadCaches();
-        
-        this.registerViews();  
+
+        this.registerViews();
         // load caches and register services class
         this.registerServices();
-        
+
         // Register Live Preview extension and Reading Mode extension 
         // Register auto-complete suggestion widget
         this.autoCompleteSuggest = new AutoCompleteSuggest(this);
@@ -81,7 +81,7 @@ export default class EquationCitator extends Plugin {
         this.loadEditorExtensions();
         this.loadReadingModeExtensions();
         this.registerEditorSuggest(this.autoCompleteSuggest);
-        
+
         // register ribbon button and commands 
         registerRibbonButton(this);
         registerRightClickHandler(this);
@@ -92,7 +92,7 @@ export default class EquationCitator extends Plugin {
         cleanUpStyles();
         this.destroyCaches();
     }
-    
+
     loadCaches() {
         this.citationCache = new CitationCache(this);
         this.equationCache = new EquationCache(this);
@@ -120,7 +120,7 @@ export default class EquationCitator extends Plugin {
         this.lineHashCache?.destroy();
     }
 
-    registerViews(){
+    registerViews() {
         this.registerView(
             EQUATION_MANAGE_PANEL_TYPE,
             (leaf: WorkspaceLeaf) => {
@@ -195,24 +195,38 @@ export default class EquationCitator extends Plugin {
         const newImageExt = createImageCaptionExtension(this);
         // iterate over all the views and update the extensions
         this.app.workspace.iterateAllLeaves((leaf) => {
-			const view = leaf.view;
-			if (!("editor" in view)) return;
+            const view = leaf.view;
+			if (!("editor" in view)) {
+                return;
+            }
+            
+            try {
+                const editor = view?.editor as Editor | undefined;
+                if (!editor?.cm) {
+                    return;
+                }
+                const cm = editor.cm;
+                // @ts-expect-error destroyed property is private
+                if (cm.state.destroyed) {
+                    return;
+                }
 
-			const cm = (view?.editor as Editor).cm; // get the CodeMirror instance
-			// @ts-expect-error destroyed property is private
-			if (cm.state.destroyed) return;
-
-			// reload the extension for each view
-			cm.dispatch({
-				effects: [
-					this.mathCitationCompartment.reconfigure(newMathExt),
-					this.imageCaptionCompartment.reconfigure(newImageExt),
-				],
-			});
-			cm.dispatch({
-				// empty operation to trigger a refresh of the editor
-				changes: { from: 0, to: 0, insert: "" },
-			});
-		});
+                // reload the extension for each view
+                cm.dispatch({
+                    effects: [
+                        this.mathCitationCompartment.reconfigure(newMathExt),
+                        this.imageCaptionCompartment.reconfigure(newImageExt),
+                    ],
+                });
+                cm.dispatch({
+                    // empty operation to trigger a refresh of the editor
+                    changes: { from: 0, to: 0, insert: "" },
+                });
+            }
+            catch (e) {
+                Debugger.log("Failed to get editor from view during extension update:", e);
+                return;
+            }
+        });
     }
 }

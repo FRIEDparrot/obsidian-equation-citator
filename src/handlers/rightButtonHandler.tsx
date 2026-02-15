@@ -4,6 +4,7 @@ import { EditorSelectionInfo } from "@/views/widgets/citation_render";
 import { EditorState } from "@codemirror/state";
 import Debugger from "@/debug/debugger";
 import { TagRenameModal } from "@/ui/modals/tagRenameModal";
+import { parseImageLine } from "@/utils/parsers/image_parser";
 
 export function registerRightClickHandler(plugin: EquationCitator) {
     const app: App = plugin.app;
@@ -86,7 +87,7 @@ function handleFigureTagRename(plugin: EquationCitator, menu: Menu, editor: Edit
         item.setTitle("Rename tag for this picture")
         item.setIcon("image")
         item.onClick(() => {
-            const imageMatch = plugin.figureTagService.parseSelectedImage(selectedText, imagePrefix);
+            const imageMatch = parseImageLine(selectedText, 0, imagePrefix);
             if (!imageMatch?.tag) {
                 Debugger.log("No figure tag found in selection");
                 return;

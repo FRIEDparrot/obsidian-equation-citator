@@ -182,17 +182,18 @@ export function renderFigureWrapper(
         // Internal image path - need to resolve the vault path
         const sourceFile = plugin.app.vault.getAbstractFileByPath(fig.sourcePath);
         if (sourceFile instanceof TFile) {
+            // the imagePath may be file#section, so split by # to get the actual file path
             const imageFile = plugin.app.metadataCache.getFirstLinkpathDest(fig.imagePath, fig.sourcePath);
             if (imageFile instanceof TFile) {
                 // Check if the image extension requires Markdown renderer
-                const imagePath = fig.imagePath; // Store for type safety
+                const fullPath = imageFile.path;
                 const shouldUseMarkdownRenderer = Array.from(markdownRendererExtensions).some(ext => 
-                    imagePath.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
+                    fullPath.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
                 );
 
                 if (shouldUseMarkdownRenderer) {
                     // Use Markdown renderer for special file types (e.g., excalidraw)
-                    const markdownText = `![[${imagePath}]]`;
+                    const markdownText = `![[${fullPath}]]`;
                     void MarkdownRenderer.render(
                         plugin.app,
                         markdownText,
@@ -212,7 +213,23 @@ export function renderFigureWrapper(
                     });
                     img.addClass("em-figure-image");
                 }
-            } else {
+            } 
+            else if (fig.imagePath.contains("#") && markdownRendererExtensions.has("md")) {
+                // special support for markdown section preview ![[file.md#section]]
+                // just directly render the markdown link without resolving, since Obsidian can handle it in this format
+                const markdownText = `![[${fig.imagePath}]]`;
+                void MarkdownRenderer.render(
+                    plugin.app,
+                    markdownText,
+                    imageContainer,
+                    fig.sourcePath,
+                    targetComponent
+                );
+                imageContainer.addClass("em-figure-markdown-rendered");
+            }
+            else {
+                // only ![[#section]]
+
                 imageContainer.createDiv({
                     text: `Image not found: ${fig.imagePath}`,
                     cls: "em-figure-error"

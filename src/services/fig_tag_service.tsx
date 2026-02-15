@@ -1,6 +1,6 @@
 import EquationCitator from "@/main";
-import { TFile } from "obsidian";
-import { parseImageLine, ImageMatch } from "@/utils/parsers/image_parser";
+import { Editor, TFile } from "obsidian";
+import { parseImageLine } from "@/utils/parsers/image_parser";
 import { TagRenamePair, TagRenameResult, FileCitationChangeMap } from "@/services/tag_service";
 import Debugger from "@/debug/debugger";
 
@@ -12,7 +12,7 @@ export class FigureTagService {
     constructor(
         private readonly plugin: EquationCitator
     ) { }
-
+    
     /**
      * Update figure tag definitions in image metadata
      * @param fileContent - File content to update
@@ -61,24 +61,13 @@ export class FigureTagService {
     }
 
     /**
-     * Parse an image line from selected text to extract tag information
-     * @param selectedText - The selected text (should be an image line)
-     * @param imagePrefix - Image prefix (e.g., "fig:")
-     * @returns ImageMatch or null if not a valid image
-     */
-    public parseSelectedImage(selectedText: string, imagePrefix: string): ImageMatch | null {
-        const trimmed = selectedText.trim();
-        return parseImageLine(trimmed, 0, imagePrefix);
-    }
-
-    /**
      * Check if the selected text is a valid figure with a tag
      * @param selectedText - The selected text
      * @param imagePrefix - Image prefix (e.g., "fig:")
      * @returns true if it's a valid figure with a tag
      */
     public isValidFigureWithTag(selectedText: string, imagePrefix: string): boolean {
-        const imageMatch = this.parseSelectedImage(selectedText, imagePrefix);
+        const imageMatch = parseImageLine(selectedText, 0, imagePrefix);
         return Boolean(imageMatch?.tag !== undefined);
     }
 
@@ -89,12 +78,16 @@ export class FigureTagService {
      * @param deleteRepeatCitations - Whether to delete repeated citations
      * @param deleteUnusedCitations - Whether to delete unused citations
      * @returns Rename result statistics
+     * @note Figure tag definition (the image line itself) is updated directly
+     *       by the onSubmit callback in rightButtonHandler.tsx, similar to how 
+     *       equation tags are updated. We only handle citation updates here.
      */
     public async renameFigureTags(
         sourceFile: string,
         tagPairs: TagRenamePair[],
         deleteRepeatCitations = false,
-        deleteUnusedCitations = false
+        deleteUnusedCitations = false,
+        editor?: Editor
     ): Promise<TagRenameResult | undefined> {
         const file = this.plugin.app.vault.getAbstractFileByPath(sourceFile);
         if (!(file instanceof TFile)) {
@@ -104,10 +97,6 @@ export class FigureTagService {
         const imagePrefix = this.plugin.settings.figCitationPrefix || "fig:";
         const fileChangeMap: FileCitationChangeMap = new Map<string, number>();
 
-        // Note: Figure tag definition (the image line itself) is updated directly
-        // by the onSubmit callback in rightButtonHandler.tsx, similar to how
-        // equation tags are updated. We only handle citation updates here.
-
         // Update all citations using the existing TagService
         // The TagService already handles citation updates for any prefix
         const citationUpdateResult = await this.plugin.tagService.renameTags(
@@ -115,7 +104,7 @@ export class FigureTagService {
             tagPairs,
             deleteRepeatCitations,
             deleteUnusedCitations,
-            undefined, // editor parameter
+            editor, // current editor to apply changes
             imagePrefix // use figure prefix instead of equation prefix
         );
 

@@ -7,20 +7,11 @@ export function escapeRegExp(string: string): string {
     return string.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
+// #region Standard Patterns and Regexes for parsing equations and citations
 /**
  * This file Manages the regular expressions used in the plugin. 
  */
 export const codeBlockStartRegex = /^\s*(?:>+\s*)*```/
-
-/**
- * Test if a line is a code block toggle  
- * @param line 
- * @returns 
- */
-export function isCodeBlockToggle(line: string): boolean {
-    const codeBlockMatches = codeBlockStartRegex.test(line) ? line.match(/```/g) : null;
-    return Boolean(codeBlockMatches && codeBlockMatches.length % 2 === 1);
-}
 
 // 1 : num , 2: text  
 export const footnoteRegex = /^\[(\^[^\]]+)\]: (.*)/;
@@ -42,6 +33,10 @@ export const equationBlockStartPatternWithWhiteSpace = /^\s*(?<!\\)\$\$(?!\$)/;
 export const equationBlockEndPatternWithWhiteSpace = /(?<!\\)\$\$(?!\$)\s*$/;
 export const equationBlockBracePattern = /(?<!\\)\$\$/g;
 
+export const markdownImagePattern = /^!\[([^\]]*)\]\(([^)]+)\)$/;
+export const weblinkImagePattern = /^!\[\[([^\]|]+)(?:\|([^\]]*))?\]\]$/;
+// #endregion
+
 /**
  * parse the inline math blocks, used for parsing citations.
  * 
@@ -49,6 +44,17 @@ export const equationBlockBracePattern = /(?<!\\)\$\$/g;
  *    there is no fixed citationRegex (it will always parse wrongly)
  */
 export const inlineMathPattern = /(?<!\\)(?<!\$)\$(?!\$)(?! )((?:\\\$|[^$])*?)(?<!\\)(?<! )\$(?!\$)/g;
+
+
+/**
+ * Test if a line is a code block toggle  
+ * @param line 
+ * @returns 
+ */
+export function isCodeBlockToggle(line: string): boolean {
+    const codeBlockMatches = codeBlockStartRegex.test(line) ? line.match(/```/g) : null;
+    return Boolean(codeBlockMatches && codeBlockMatches.length % 2 === 1);
+}
 
 export interface RefMatch {
     fullMatch: string; // full match of the regex 

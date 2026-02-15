@@ -140,8 +140,11 @@ export class TagRenameModal extends Modal {
 
     // Rename figure tag
     async renameFigureTag(filePath: string, pair: TagRenamePair) {
+        const imagePrefix = this.plugin.settings.figCitationPrefix || "fig:";
+        const haveRepetedTags = await this.plugin.tagService.checkRepeatedTags(filePath, [pair], imagePrefix);
+
         const callRenameFigureService = async (deleteRepeat: boolean, deleteUnused: boolean) => {
-            const result = await this.plugin.figureTagService.renameFigureTags(filePath, [pair], deleteRepeat, deleteUnused);
+            const result = await this.plugin.figureTagService.renameFigureTags(filePath, [pair], deleteRepeat, deleteUnused, this.editor);
             if (result) {
                 const msg = assemblyCitationUpdateMessage(result);
                 new Notice(msg);
@@ -149,8 +152,32 @@ export class TagRenameModal extends Modal {
             this.onSubmit(this.newTag); // call onSubmit method to rename selected tag
         }
 
-        // For now, just call the service directly without duplicate checking
-        // TODO: Add duplicate checking for figure tags
-        await callRenameFigureService(false, false);
+        if (haveRepetedTags) {
+            const deleteOption: ModalOption = {
+                label: "Delete",
+                cta: true,
+                action: ()=> callRenameFigureService(true, false)
+            }
+            const keepOption: ModalOption = {
+                label: "Keep",
+                cta: false,
+                action: ()=> callRenameFigureService(false, false)
+            }
+            const cancelOption: ModalOption = {
+                label: "Cancel",
+                cta: false,
+                action: async() => {
+                    return new Promise(resolve => resolve());
+                } // do nothing when cancel button is clicked
+            }
+            const modal = new PromiseOptionsModal(this.app,
+                "Citation conflict",
+                "There are citations with this name already, delete them or keep them?",
+                [deleteOption, keepOption, cancelOption])
+            await modal.openWithPromise();
+        }
+        else {
+            await callRenameFigureService(false, false);
+        }
     }
 }
