@@ -2,8 +2,8 @@ import { parseHeadingsInMarkdown, relativeHeadingLevel } from "@/utils/parsers/h
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
 import { createEquationTagString, equationBlockBracePattern, singleLineEqBlockPattern } from "@/utils/string_processing/regexp_utils";
-import assert from "assert";
 import { EditorPosition, Notice } from "obsidian";
+import Debugger from "@/debug/debugger";
 
 export enum AutoNumberingType {
     Relative = "Relative",
@@ -28,8 +28,8 @@ interface EquationNumberingState {
 
 // check if the cursor is in a single line equation block   
 function isPositionInSingleLineEquation(line: string, ch: number): boolean {
-    const match = line.match(singleLineEqBlockPattern);
-    if (!match || !match.index) return false;
+    const match = new RegExp(singleLineEqBlockPattern).exec(line);
+    if (!match?.index) return false;
 
     const startPos = match.index;
     const endPos = startPos + match[0].length;
@@ -97,8 +97,10 @@ export function getAutoNumberInCursor(
 ): string | null {
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
-    assert(cursorPos.line >= 0 && cursorPos.line < lines.length, "Invalid cursor position");
-
+    if (cursorPos.line < 0 || cursorPos.line >= lines.length) {
+        Debugger.error("Invalid cursor position", cursorPos, "for content with", lines.length, "lines.");
+        return null;
+    }
     let inCodeBlock = false;
     let inEquationBlock = false;
     let newTag: string | null = null;
@@ -145,7 +147,10 @@ export function getAutoNumberInCursor(
                 relativeHeadingLevel(headings, currentHeadingIndex) :
                 parseResult.headingMatch[1].length;
 
-            assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array`);
+            if (headingLevel < 0) {
+                Debugger.error(`Current heading ${parseResult.headingMatch[2]} is not in headings array, this should not happen since we get heading info from the same content.`, "Headings found:", headings);
+                return null;
+            }
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) {
                 numberingState.equationNumber = 0;
@@ -211,7 +216,7 @@ export function getAutoNumberInCursor(
 export function detectIllegalEquation(eqStr: string): number {
     const indexes = [...eqStr.matchAll(equationBlockBracePattern)].map(m => m.index);
     if (indexes.length < 2) return -1;  // no illegal
-    const first = indexes[0], last = indexes[indexes.length - 1];
+    const first = indexes[0], last = indexes.at(-1)!;
     // 1. if there is any $$ in between first and last, then illegal
     // 2. if the last index is not the end of string-2, then illegal 
     // 3. since we only parse line startwith $$, no need to detect prefix 
@@ -352,7 +357,9 @@ export function autoNumberEquations(
                 relativeHeadingLevel(headings, currentHeadingIndex) :
                 parseResult.headingMatch[1].length;
 
-            assert(headingLevel >= 0, `Current heading ${parseResult.headingMatch[2]} is not in headings array`);
+            if (headingLevel < 0) {
+                throw new Error(`Current heading ${parseResult.headingMatch[2]} is not in headings array, this should not happen since we get heading info from the same content.`);
+            }
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) numberingState.equationNumber = 0;
             numberingState.currentDepth = Math.min(headingLevel, maxDepth);

@@ -37,7 +37,7 @@ export async function scrollToEquationByTag(
     const lineStart = match.lineStart;
     // Scroll to the first equation with tag
     const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || !view.editor) {
+    if (!view?.editor) {
         Debugger.log("Can't find active view or editor");
         return;
     }

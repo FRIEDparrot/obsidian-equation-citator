@@ -342,6 +342,6 @@ Settings Updates :
 - [x] refactored the equation panel file, extract the outline view renderer to a separate file.
 
 
-### 🚢 Coming Soon : 
-1. Auto-number and citation complete add for  figures 
+### 🚢 Future Plan : 
+1. Auto-number for  figures 
 2. Check citations of figures and tables, all in one 😄 
