@@ -1,8 +1,12 @@
-> 🚀 **Enable the plugin and copy this tutorial (along with the test files) to your vault to follow along interactively.**
-
-The Equation Citator plugin transforms Obsidian into a powerful academic writing environment with LaTeX-style citations. Version 1.3.0 introduces the **Equations Management Panel** with drag-and-drop citation support, And also add features of  citation for figures, tables and more. Making academic referencing easier than ever. 
+> [!summary] 
+> 🚀 **Enable the plugin and copy all files in the tutorial folder to your vault to follow along interactively.**
+> 
+> This tutorial covers all the essential features, basic grammars to get you started with this plugin. 
+> 
+> But for more special needs like essay drafting, you may check [[Useful Tricks & techniques]] for more practical tricks that can be commonly used in this plugin. 
 
 ### ✨ Core Features
+The Equation Citator plugin transforms Obsidian into a powerful academic writing environment with LaTeX-style citations. Making referencing in the vault easier than ever. The core features includes : 
 - **Equation Citations**: Tag and reference equations with `\tag{}` and `\ref{}` 
 - **Auto-numbering**: Automatically number equations for easy-management 
 - **Cross-file Citations**: Reference content across multiple documents
@@ -180,6 +184,12 @@ So here we give an example  for how to cite a table :
 > | Widget B | $150K | +22% |
 
 Cite the table using: `$\ref{table:2.1}$`, rendered as $\ref{table:2.1}$  
+
+> [!hint] Edit table in callouts 
+> Put table in callout makes it hard to edit. But we have a trick to edit it quicker. 
+> 
+> See [[Useful Tricks & techniques#(1) Editing a Table Inside a Callout More Easily]] for details 
+
 
 Citation inside callouts must match case exactly. Example:
 

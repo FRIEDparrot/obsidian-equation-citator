@@ -37,7 +37,7 @@ export interface EquationCitatorSettings {
     richAutoCompletePreviewDelayTime: number; // Delay time for concise auto-complete rendering (ms)
 
     calloutCitationPrefixes: CalloutCitationPrefix[];  // Citation prefixes and formats for callouts  
-    
+
     multiCitationDelimiter: string; // Delimiter for multiple citations in a single cite 
     multiCitationDelimiterRender: string; // Rendered delimiter for multiple citations in a single cite
 
@@ -66,6 +66,12 @@ export interface EquationCitatorSettings {
     autoNumberGlobalPrefix: string; // Global Auto numbering prefix for equations without any heading level  
     enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
     enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
+    
+    figAutoNumberingDepth: number; // Maximum depth for auto numbering figures (sepreate from the equations)
+    figAutoNumberNoHeadingPrefix: string; // figure numbering prefix for no heading level figures
+    figAutoNumberGlobalPrefix: string; // Global Auto numbering prefix for figures without any heading level
+    enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in quotes,
+    enableAutoNumberTaggedFigsOnly: boolean; // Enable auto numbering only for tagged figures
 
     // by default, auto-number rename the citation, I don't provide this as option 
     enableUpdateTagsInAutoNumber: boolean; // Update citation in auto numbering 
@@ -91,7 +97,7 @@ export interface EquationCitatorSettings {
     equationManagePanelDefaultViewType: "outline" | "list",
     equationManagePanelFilterTagOnlyEquation: boolean;
     equationManagePanelEnableRenderHeadingsOnly: boolean;
-    
+
     // settings UI
     settingsDisplayMode: "categorical" | "concise" | "list"; // settings tab display mode
     basicSettingsKeys: string[]; // keys shown in Basic section for concise mode
@@ -142,7 +148,12 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableUpdateTagsInAutoNumber: true, // Default to true, update citation in auto numbering  
     deleteRepeatTagsInAutoNumber: true, // Default to true, delete repeat tags in auto numbering 
     deleteUnusedTagsInAutoNumber: false, // Default to true, delete unused tags in auto numbering 
-    
+    figAutoNumberingDepth: 2, // Default to 2 for figure auto numbering (i.e., fig:1.1)
+    figAutoNumberNoHeadingPrefix: "F", // Default figure numbering prefix for no heading level figures
+    figAutoNumberGlobalPrefix: "", // Default to empty string for no prefix for figure auto numbering
+    enableAutoNumberFigsInQuotes: false, // Default to false, not to number figures in quotes
+    enableAutoNumberTaggedFigsOnly: false, // Default to false, number all figures
+
     enableTypstMode: false,
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
     extensionsUseMarkdownRenderer: ["excalidraw", "excalidraw.md", "md"], // default to use markdown renderer for svg and excalidraw files
@@ -152,6 +163,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberType",
         "autoNumberDepth",
         "autoNumberNoHeadingPrefix",
+        "figAutoNumberingDepth",
         "enableAutoNumberGlobalPrefix",
         "enableAutoNumberTaggedEquationsOnly",
         "equationManagePanelFilterTagOnlyEquation",
@@ -256,7 +268,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             CitationSettingsTab.enableRichAutoComplete(el, plugin);
         }
     },
-    enableRichAutoCompleteHoverPreview : {
+    enableRichAutoCompleteHoverPreview: {
         name: "Show preview when hover on autocomplete item",
         desc: "In compact mode, displays a preview of the figure or callout when hovering over a suggestion item.",
         type: "boolean",
@@ -268,7 +280,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         name: "Autocomplete hover preview delay time",
         desc: "Delay ms before the preview appears when hovering over a suggestion (compact mode only).",
         type: "number",
-        renderCallback: (el, plugin) => { 
+        renderCallback: (el, plugin) => {
             CitationSettingsTab.richAutoCompletePreviewDelayTime(el, plugin);
         }
     },
@@ -346,20 +358,20 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             AutoNumberSettingsTab.autoNumberDelimiter(el, plugin);
         }
     },
+    autoNumberType: {
+        name: "Auto numbering method",
+        desc: "Use absolute or relative heading level for auto numbering (shared by equations and figures)",
+        type: "select",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.autoNumberType(el, plugin);
+        }
+    },
     autoNumberDepth: {
         name: "Auto numbering depth",
         desc: "Maximum depth for equation numbers (e.g., depth of 2 gives '1.1', depth of 3 gives '1.1.1')",
         type: "number",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.autoNumberDepth(el, plugin);
-        }
-    },
-    autoNumberType: {
-        name: "Auto numbering method",
-        desc: "Use absolute or relative heading level for auto numbering",
-        type: "select",
-        renderCallback: (el, plugin) => {
-            AutoNumberSettingsTab.autoNumberType(el, plugin);
         }
     },
     autoNumberNoHeadingPrefix: {
@@ -403,9 +415,34 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             AutoNumberSettingsTab.enableAutoNumberTaggedEquationsOnly(el, plugin);
         }
     },
+    figAutoNumberingDepth: {
+        name: "Auto numbering depth for figures",
+        desc: "Maximum depth for figure numbers (e.g., depth of 2 gives 'fig:1.1')",
+        type: "number",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.figAutoNumberingDepth(el, plugin);
+        }
+    },
+    figAutoNumberNoHeadingPrefix: {
+        name: "Figure auto numbering no heading prefix",
+        desc: "Prefix for figures without any heading level (e.g., 'F1', 'F2', etc.)",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.figAutoNumberNoHeadingPrefix(el, plugin);
+        }
+    },
+    figAutoNumberGlobalPrefix: {
+        name: "Figure auto numbering global prefix",
+        desc: "Global prefix for figure auto numbering for figures without any heading level",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.figAutoNumberGlobalPrefix(el, plugin);
+        }
+    },
+    // These 3 options are shared by figures and equations
     enableUpdateTagsInAutoNumber: {
         name: "Auto update citations in auto numbering",
-        desc: "Enable auto update citations during auto numbering",
+        desc: "Enable auto update citations during auto numbering. Always keep it selected to ensure citations are correctly updated",
         type: "boolean",
         hasSubPanel: true,
         renderCallback: (el, plugin, renderSubpanel) => {
@@ -544,7 +581,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             EquationPanelSettingsTab.equationManagePanelDefaultViewType(el, plugin);
         }
     },
-    equationManagePanelFilterTagOnlyEquation : {
+    equationManagePanelFilterTagOnlyEquation: {
         name: "Filter tag only equation",
         desc: "Default value for filter tag only equations",
         type: "boolean",
@@ -552,7 +589,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             EquationPanelSettingsTab.equationManagePanelFilterTagOnlyEquation(el, plugin);
         }
     },
-    equationManagePanelEnableRenderHeadingsOnly : {
+    equationManagePanelEnableRenderHeadingsOnly: {
         name: "Render headings only",
         desc: "Default value for render headings only in outline view",
         type: "boolean",

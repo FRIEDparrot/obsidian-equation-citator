@@ -211,7 +211,7 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
 function removeImageMetadata(line: string, figPrefix: string): string {
     // Handle weblink format: ![[path|metadata]]
     const weblinkPattern = /^!\[\[([^\]|]+)(?:\|([^\]]*))?\]\]$/;
-    const weblinkMatch = line.match(weblinkPattern);
+    const weblinkMatch = new RegExp(weblinkPattern).exec(line);
 
     if (weblinkMatch) {
         const imagePath = weblinkMatch[1].trim();
@@ -221,7 +221,7 @@ function removeImageMetadata(line: string, figPrefix: string): string {
 
     // Handle markdown format: ![alt|metadata](url)
     const markdownPattern = /^!\[([^\]]*)\]\(([^)]+)\)$/;
-    const markdownMatch = line.match(markdownPattern);
+    const markdownMatch = new RegExp(markdownPattern).exec(line);
 
     if (markdownMatch) {
         const altText = markdownMatch[1];
@@ -259,5 +259,5 @@ function escapeHtml(text: string): string {
         '"': '&quot;',
         "'": '&#39;'
     };
-    return text.replace(/[&<>"']/g, char => htmlEscapeMap[char]);
+    return text.replaceAll(/[&<>"']/g, char => htmlEscapeMap[char]);
 }

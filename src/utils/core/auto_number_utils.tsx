@@ -26,6 +26,16 @@ interface EquationNumberingState {
     noHeadingEquationPrefix: string;  // Prefix used for equations that are outside any heading
 }
 
+export interface AutoNumberConfigs {
+    autoNumberingType: AutoNumberingType;
+    maxDepth: number;
+    delimiter: string;
+    noHeadingPrefix: string;
+    globalPrefix: string;
+    parseQuotes: boolean;
+}
+
+
 // check if the cursor is in a single line equation block   
 function isPositionInSingleLineEquation(line: string, ch: number): boolean {
     const match = new RegExp(singleLineEqBlockPattern).exec(line);
