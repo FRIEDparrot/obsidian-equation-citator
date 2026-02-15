@@ -1,4 +1,4 @@
-import { HoverParent, HoverPopover, TFile } from "obsidian";
+import { HoverParent, HoverPopover, TFile, normalizePath } from "obsidian";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
 import { FootNote } from "@/utils/parsers/footnote_parser";
@@ -46,6 +46,7 @@ export class FileSuperScriptPopover extends HoverPopover {
         if (footnote.path !== null) {
             // pure-file-link format footnote  
             const filePath: string = footnote.path;
+            const normalizedSourcePath = normalizePath(this.sourcePath);
             const linkEl = footnoteContent.createEl("a", {
                 text: footnote.label ?? footnote.path,
             });
@@ -53,7 +54,7 @@ export class FileSuperScriptPopover extends HoverPopover {
             linkEl.setAttr("href", footnote.path);
             linkEl.addEventListener("click", (evt) => {
                 evt.preventDefault();
-                const sourceFile = this.plugin.app.metadataCache.getFirstLinkpathDest(filePath, this.sourcePath);
+                const sourceFile = this.plugin.app.metadataCache.getFirstLinkpathDest(filePath, normalizedSourcePath);
                 if (!(sourceFile instanceof TFile)) {
                     Debugger.log("Invalid footnote file path: ", footnote.path);
                     return;

@@ -9,6 +9,7 @@ import {
     Component,
     HoverPopover,
     HoverParent,
+    normalizePath,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
@@ -180,10 +181,11 @@ export function renderFigureWrapper(
         img.addClass("em-figure-image");
     } else if (fig.imagePath && fig.sourcePath) {
         // Internal image path - need to resolve the vault path
-        const sourceFile = plugin.app.vault.getAbstractFileByPath(fig.sourcePath);
+        const normalizedSourcePath = normalizePath(fig.sourcePath);
+        const sourceFile = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
         if (sourceFile instanceof TFile) {
             // the imagePath may be file#section, so split by # to get the actual file path
-            const imageFile = plugin.app.metadataCache.getFirstLinkpathDest(fig.imagePath, fig.sourcePath);
+            const imageFile = plugin.app.metadataCache.getFirstLinkpathDest(fig.imagePath, normalizedSourcePath);
             if (imageFile instanceof TFile) {
                 // Check if the image extension requires Markdown renderer
                 const fullPath = imageFile.path;
@@ -332,14 +334,15 @@ async function openFileAndScrollToFigure(
     openInSplit: boolean,
     currentLeaf: WorkspaceLeaf
 ): Promise<void> {
-    const file = plugin.app.vault.getAbstractFileByPath(sourcePath);
+    const normalizedSourcePath = normalizePath(sourcePath);
+    const file = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
     if (!(file instanceof TFile)) {
-        Debugger.log("Cannot find file:", sourcePath);
+        Debugger.log("Cannot find file:", normalizedSourcePath);
         return;
     }
 
     // Get all images in the file to find the line number
-    const images = await plugin.imageCache.getImagesForFile(sourcePath);
+    const images = await plugin.imageCache.getImagesForFile(normalizedSourcePath);
     const targetImage = images?.find(img => img.tag === tag);
 
     if (!targetImage) {
@@ -352,7 +355,7 @@ async function openFileAndScrollToFigure(
 
     if (openInSplit) {
         // Find existing leaf with the same file (excluding current)
-        const existingLeaf = findLeafWithFile(plugin, sourcePath, currentLeaf);
+        const existingLeaf = findLeafWithFile(plugin, normalizedSourcePath, currentLeaf);
 
         if (existingLeaf) {
             // Reuse existing leaf

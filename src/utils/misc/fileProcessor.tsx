@@ -1,4 +1,4 @@
-import { Notice, TFile } from "obsidian";
+import { Notice, TFile, normalizePath } from "obsidian";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 
@@ -24,14 +24,15 @@ export function isMarkdownFilePath(filePath: string) : boolean {
  * (since it have bad real-time update and may confilct with some other file operation)
  */
 export class MarkdownFileProcessor {
-    constructor(private plugin: EquationCitator,
-        private sourcePath: string,
-        private callback: (content: string) => Promise<string>) { }
+    constructor(private readonly plugin: EquationCitator,
+        private readonly sourcePath: string,
+        private readonly callback: (content: string) => Promise<string>) { }
     
     public async execute() : Promise<boolean> {
-        const file = this.plugin.app.vault.getAbstractFileByPath(this.sourcePath);
+        const normalizedPath = normalizePath(this.sourcePath);
+        const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
-            new Notice(`File ${this.sourcePath} not found.`);
+            new Notice(`File ${normalizedPath} not found.`);
             return true;
         }
         

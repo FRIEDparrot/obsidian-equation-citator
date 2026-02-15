@@ -3,10 +3,11 @@ import Debugger from "@/debug/debugger";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
 import { ImageMatch } from "@/utils/parsers/image_parser";
+import { normalizePath } from "obsidian";
 
 export interface RenderedFigure {
     tag: string;  // tag of the figure (without prefix)
-    imagePath?: string;   // path for wikilink format
+    imagePath?: string;   // path for wikilink format (no need to be a correct file path)
     imageLink?: string;   // URL for markdown format
     title?: string;  // figure title
     desc?: string;   // figure description
@@ -35,8 +36,9 @@ export class FigureServices {
      * @returns A promise that resolves to an array of RenderedFigure objects
      */
     public async getFiguresByTags(figureTagsAll: string[], sourcePath: string): Promise<RenderedFigure[]> {
+        const normalizedSourcePath = normalizePath(sourcePath);
         const { enableCrossFileCitation, fileCiteDelimiter,  enableRenderLocalFileName } = this.plugin.settings;
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);  // get footnotes from cache 
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath);  // get footnotes from cache 
 
         const figures: RenderedFigure[] = figureTagsAll.map(tag => {
             const { local, crossFile } = enableCrossFileCitation
@@ -44,9 +46,9 @@ export class FigureServices {
                 : { local: tag, crossFile: null };
 
             const { path, filename } = crossFile
-                ? this.resolveCrossFileRef(sourcePath, crossFile, footnotes)
+                ? this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes)
                 : {
-                    path: sourcePath,
+                    path: normalizedSourcePath,
                     filename: enableRenderLocalFileName ?
                         this.plugin.app.workspace.getActiveFile()?.name || null : null
                 };
@@ -104,14 +106,15 @@ export class FigureServices {
      * Get figures for autocomplete suggestions
      */
     public async getFiguresForAutocomplete(tag: string, sourcePath: string): Promise<RenderedFigure[]> {
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);
+        const normalizedSourcePath = normalizePath(sourcePath);
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath);
         const { local, crossFile } = this.plugin.settings.enableCrossFileCitation ?
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
 
         const { path, filename } = crossFile === null ?
-            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
-            this.resolveCrossFileRef(sourcePath, crossFile, footnotes);
+            { path: normalizedSourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
+            this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes);
 
         if (!path) return [];
 

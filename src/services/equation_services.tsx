@@ -3,7 +3,7 @@ import Debugger from "@/debug/debugger";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
-import { MarkdownView } from "obsidian";
+import { MarkdownView, normalizePath } from "obsidian";
 import { createEquationTagString } from "@/utils/string_processing/regexp_utils";
 import { processQuoteLine } from "@/utils/string_processing/string_utils";
 
@@ -45,8 +45,9 @@ export class EquationServices {
      * - Returns an empty array if no valid equations are found
      */
     public async getEquationsByTags(eqNumbersAll: string[], sourcePath: string): Promise<RenderedEquation[]> {
+        const normalizedSourcePath = normalizePath(sourcePath);
         const settings = this.plugin.settings;
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath);
 
         const equations: RenderedEquation[] = eqNumbersAll.map(tag => {
             const { local, crossFile } = settings.enableCrossFileCitation
@@ -54,9 +55,9 @@ export class EquationServices {
                 : { local: tag, crossFile: null };
 
             const { path, filename } = crossFile
-                ? this.resolveCrossFileRef(sourcePath, crossFile, footnotes)
+                ? this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes)
                 : {
-                    path: sourcePath,
+                    path: normalizedSourcePath,
                     filename: this.plugin.settings.enableRenderLocalFileName ?
                         this.plugin.app.workspace.getActiveFile()?.name || null : null
                 };
@@ -99,14 +100,15 @@ export class EquationServices {
     }
 
     public async getEquationsForAutocomplete(tag: string, sourcePath: string): Promise<RenderedEquation[]> {
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);
+        const normalizedSourcePath = normalizePath(sourcePath);
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath);
         const { local, crossFile } = this.plugin.settings.enableCrossFileCitation ?
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
 
         const { path, filename } = crossFile === null ?
-            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
-            this.resolveCrossFileRef(sourcePath, crossFile, footnotes);
+            { path: normalizedSourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
+            this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes);
 
         if (!path) return [];
 
@@ -145,10 +147,11 @@ export class EquationServices {
      * @returns true if successful, false otherwise
      */
     public addTagToEquation(filePath: string, lineStart: number, lineEnd: number, tag: string): boolean {
+        const normalizedPath = normalizePath(filePath);
         // Find the MarkdownView for this file
-        const view = this.getMarkdownViewByPath(filePath);
+        const view = this.getMarkdownViewByPath(normalizedPath);
         if (!view?.editor) {
-            Debugger.log("Cannot find editor for file: ", filePath);
+            Debugger.log("Cannot find editor for file: ", normalizedPath);
             return false;
         }
 

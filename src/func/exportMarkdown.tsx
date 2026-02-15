@@ -1,4 +1,4 @@
-import { MarkdownView, Notice, TFile } from "obsidian";
+import { MarkdownView, Notice, TFile, normalizePath } from "obsidian";
 import { makePrintMarkdown } from "@/export/pdf_export";
 import EquationCitator from "@/main";
 import { ModalOption, OptionsModal } from "@/ui/modals/optionsModal";
@@ -27,7 +27,8 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
     const newName = originalName + '-exported.md';
     const folderPath = file.path.substring(0, file.path.lastIndexOf('/'));
     const newFilePath = folderPath + '/' + newName;
-    const existingFile = plugin.app.vault.getAbstractFileByPath(newFilePath);
+    const normalizedNewFilePath = normalizePath(newFilePath);
+    const existingFile = plugin.app.vault.getAbstractFileByPath(normalizedNewFilePath);
 
     // finish the export process of pdf
     const finishExport = async (newFilePath: string) => {

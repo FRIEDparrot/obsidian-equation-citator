@@ -1,5 +1,5 @@
 import EquationCitator from "@/main";
-import { TFile, MarkdownView, EditorRange, WorkspaceLeaf } from "obsidian";
+import { TFile, MarkdownView, EditorRange, WorkspaceLeaf, normalizePath } from "obsidian";
 import { EquationMatch, parseFirstEquationInMarkdown } from "@/utils/parsers/equation_parser";
 import Debugger from "@/debug/debugger";
 
@@ -21,16 +21,17 @@ export async function scrollToEquationByTag(
         return;
     }
 
-    const file = plugin.app.vault.getAbstractFileByPath(targetFilePath);
+    const normalizedPath = normalizePath(targetFilePath);
+    const file = plugin.app.vault.getAbstractFileByPath(normalizedPath);
     if (!(file instanceof TFile)) {
-        Debugger.log("File not found: " + targetFilePath);
+        Debugger.log("File not found: " + normalizedPath);
         return;
     }
 
     const md = await plugin.app.vault.cachedRead(file);
     const match: EquationMatch | undefined = parseFirstEquationInMarkdown(md, tag, plugin.settings.enableTypstMode);
     if (!match) {
-        Debugger.log("Can't find equation with tag: " + tag + " in file: " + targetFilePath);
+        Debugger.log("Can't find equation with tag: " + tag + " in file: " + normalizedPath);
         return;
     }
 
@@ -59,7 +60,7 @@ export async function scrollToEquationByTag(
                 tryScroll(retries - 1);
             }, 350);
         } else if (retries === 0) {
-            Debugger.log(`Failed to scroll to line ${lineStart} in file ${targetFilePath}`);
+            Debugger.log(`Failed to scroll to line ${lineStart} in file ${normalizedPath}`);
         }
     };
     tryScroll();
@@ -106,19 +107,20 @@ export async function openFileAndScrollToEquation(
     openInSplit: boolean,
     currentLeaf?: WorkspaceLeaf
 ): Promise<void> {
+    const normalizedSourcePath = normalizePath(sourcePath);
     let targetLeaf: WorkspaceLeaf | null = null;
 
     if (openInSplit) {
         // Check if there's already a different leaf (not current) with this file open
-        const existingLeaf = findLeafWithFile(plugin, sourcePath, currentLeaf);
+        const existingLeaf = findLeafWithFile(plugin, normalizedSourcePath, currentLeaf);
         if (existingLeaf) {
             // Reuse the existing leaf in a different panel
             targetLeaf = existingLeaf;
-            Debugger.log("Reusing existing panel (not current) for file: " + sourcePath);
+            Debugger.log("Reusing existing panel (not current) for file: " + normalizedSourcePath);
         } else {
             // Create a new split pane on the right
             targetLeaf = plugin.app.workspace.getLeaf("split");
-            Debugger.log("Creating new split pane on right for file: " + sourcePath);
+            Debugger.log("Creating new split pane on right for file: " + normalizedSourcePath);
         }
     } else {
         // Use current leaf
@@ -132,13 +134,13 @@ export async function openFileAndScrollToEquation(
 
     // Set the leaf as active and open the file
     plugin.app.workspace.setActiveLeaf(targetLeaf, { focus: true });
-    await plugin.app.workspace.openLinkText("", sourcePath, false);
+    await plugin.app.workspace.openLinkText("", normalizedSourcePath, false);
 
     // Scroll to the equation after layout is ready
     plugin.app.workspace.onLayoutReady(() => {
         // Ensure the layout is ready before scrolling to the tag
         setTimeout(() => {
-            scrollToEquationByTag(plugin, tag, sourcePath).then().catch(console.error);
+            scrollToEquationByTag(plugin, tag, normalizedSourcePath).then().catch(console.error);
         }, 50);
     });
 }

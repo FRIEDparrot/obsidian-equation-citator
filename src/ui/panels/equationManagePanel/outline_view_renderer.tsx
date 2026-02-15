@@ -3,7 +3,7 @@ import { EquationMatch } from "@/utils/parsers/equation_parser";
 import EquationCitator from "@/main";
 import { hashEquations } from "@/utils/misc/hash_utils";
 import { EquationArrangePanel } from "./mainPanel";
-import { App, setIcon, TFile } from "obsidian";
+import { App, setIcon, TFile, normalizePath } from "obsidian";
 import Debugger from "@/debug/debugger";
 
 import { EquationGroup } from "./types";
@@ -207,7 +207,8 @@ export class EquationPanelOutlineViewRenderer {
 
     private async jumpToHeading(heading: Heading): Promise<void> {
         const filePath = this.panel.getCurrentActiveFile();   // get current active file of panel
-        const currentFile = filePath ? this.app.vault.getAbstractFileByPath(filePath) : null;
+        const normalizedPath = filePath ? normalizePath(filePath) : null;
+        const currentFile = normalizedPath ? this.app.vault.getAbstractFileByPath(normalizedPath) : null;
         if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
 
         // Open the file and jump to the heading line

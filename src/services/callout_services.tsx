@@ -3,6 +3,7 @@ import Debugger from "@/debug/debugger";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
 import { CalloutMatch } from "@/utils/parsers/callout_parser";
+import { normalizePath } from "obsidian";
 
 export interface RenderedCallout {
     type: string;  // type of callout (e.g., "table", "thm", "def")
@@ -41,9 +42,10 @@ export class CalloutServices {
         prefix: string,
         sourcePath: string
     ): Promise<RenderedCallout[]> {
-        Debugger.log(`getCalloutsByTags called with tags: ${JSON.stringify(calloutTagsAll)}, prefix: ${prefix}, sourcePath: ${sourcePath}`);
+        const normalizedSourcePath = normalizePath(sourcePath);
+        Debugger.log(`getCalloutsByTags called with tags: ${JSON.stringify(calloutTagsAll)}, prefix: ${prefix}, sourcePath: ${normalizedSourcePath}`);
         const settings = this.plugin.settings;
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath) || [];
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath) || [];
 
         // Resolve each callout tag (handle cross-file references)
         const callouts: RenderedCallout[] = calloutTagsAll.map(tag => {
@@ -52,9 +54,9 @@ export class CalloutServices {
                 : { local: tag, crossFile: null };
 
             const { path, filename } = crossFile
-                ? this.resolveCrossFileRef(sourcePath, crossFile, footnotes)
+                ? this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes)
                 : {
-                    path: sourcePath,
+                    path: normalizedSourcePath,
                     filename: this.plugin.settings.enableRenderLocalFileName ?
                         this.plugin.app.workspace.getActiveFile()?.name || null : null
                 };
@@ -141,14 +143,15 @@ export class CalloutServices {
         prefix: string,
         sourcePath: string
     ): Promise<RenderedCallout[]> {
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath) || [];
+        const normalizedSourcePath = normalizePath(sourcePath);
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath) || [];
         const { local, crossFile } = this.plugin.settings.enableCrossFileCitation ?
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
 
         const { path, filename } = crossFile === null ?
-            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
-            this.resolveCrossFileRef(sourcePath, crossFile, footnotes);
+            { path: normalizedSourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
+            this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes);
 
         if (!path) return [];
 

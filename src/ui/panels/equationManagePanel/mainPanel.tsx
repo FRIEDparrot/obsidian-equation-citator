@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax } from "obsidian";
+import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
@@ -305,7 +305,8 @@ export class EquationArrangePanel extends ItemView {
         }
 
         // Check if file exists in vault
-        const currentFile = this.app.vault.getAbstractFileByPath(activeFilePath);
+        const normalizedPath = normalizePath(activeFilePath);
+        const currentFile = this.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(currentFile instanceof TFile)) {
             if (this.viewPanel) {
                 this.viewPanel.empty();
@@ -316,7 +317,7 @@ export class EquationArrangePanel extends ItemView {
         }
 
         // Fetch and filter equations for the current file
-        const equations = await this.getEquationsToRender(activeFilePath);
+        const equations = await this.getEquationsToRender(normalizedPath);
 
         // viewState => tool bar state
         const viewStateEqual = (
@@ -469,7 +470,8 @@ export class EquationArrangePanel extends ItemView {
 
     private async jumpToEquation(equation: EquationMatch): Promise<void> {
         const filePath = this.getCurrentActiveFile();
-        const currentFile = filePath ? this.app.vault.getAbstractFileByPath(filePath) : null;
+        const normalizedPath = filePath ? normalizePath(filePath) : null;
+        const currentFile = normalizedPath ? this.app.vault.getAbstractFileByPath(normalizedPath) : null;
         if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
 
         // Open the file and jump to the line

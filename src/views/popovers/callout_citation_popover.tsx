@@ -8,6 +8,7 @@ import {
     Component,
     HoverPopover,
     HoverParent,
+    normalizePath,
 } from "obsidian";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
@@ -282,14 +283,15 @@ async function openFileAndScrollToCallout(
     openInSplit: boolean,
     currentLeaf: WorkspaceLeaf
 ): Promise<void> {
-    const file = plugin.app.vault.getAbstractFileByPath(sourcePath);
+    const normalizedSourcePath = normalizePath(sourcePath);
+    const file = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
     if (!(file instanceof TFile)) {
-        Debugger.log("Cannot find file:", sourcePath);
+        Debugger.log("Cannot find file:", normalizedSourcePath);
         return;
     }
 
     // Get callout from cache to find the line number
-    const targetCallout = await plugin.calloutCache.getCalloutByTag(sourcePath, tag);
+    const targetCallout = await plugin.calloutCache.getCalloutByTag(normalizedSourcePath, tag);
 
     if (targetCallout?.prefix !== prefix) {
         Debugger.log("Cannot find callout with tag:", tag);

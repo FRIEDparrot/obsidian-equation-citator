@@ -1,5 +1,5 @@
 import EquationCitator from "@/main";
-import { Editor, TFile } from "obsidian";
+import { Editor, TFile, normalizePath } from "obsidian";
 import { parseImageLine } from "@/utils/parsers/image_parser";
 import { TagRenamePair, TagRenameResult, FileCitationChangeMap } from "@/services/tag_service";
 import Debugger from "@/debug/debugger";
@@ -89,7 +89,8 @@ export class FigureTagService {
         deleteUnusedCitations = false,
         editor?: Editor
     ): Promise<TagRenameResult | undefined> {
-        const file = this.plugin.app.vault.getAbstractFileByPath(sourceFile);
+        const normalizedPath = normalizePath(sourceFile);
+        const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
             return;
         }

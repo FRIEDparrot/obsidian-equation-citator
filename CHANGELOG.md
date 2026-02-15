@@ -303,7 +303,7 @@ Version 1.3.3 - bug fixes, new features and enhancements.
 
 ---
 
-TL; DR : 
+Important Update summaries : 
 - Excalidraw support is now available in figure citation preview!
 - Auto complete for figure and callout citations is now available!
 - Auto-number and rename tags for figures are now available! 
@@ -335,14 +335,16 @@ Settings Updates :
 🚀 enhancements :
 - [x] fix the reorder button location style in settings tab.
 - [x] add command `insert figure citation` for inserting figure citation quickly.
-- [x] now hovering on Citation superscrip for callouts and figures will show the file links.
+- [x] now hovering on Citation superscript for callouts and figures will show the file links.
 
 🏗️ refactors : 
 - [x] refactored autocomplete suggest to add support for figure and callout citations.
 - [x] refactored drag and drop handler in equation panel for better code structure and readability.
 - [x] refactored the equation panel file, extract the outline view renderer to a separate file.
 - [x] rename `other settings` in categorical settings tab to `others` (Obsidian plugin rule)
+- [x] added `normalizePath()` to clean up the path throughout the plugin (Obsidian plugin rule)
 - [x] remove node assert calls for mobile support  
+- [x] fixed lots of sonar issues for better code quality.
 - [ ] test for mobile support and fix bugs for mobile.
 
 ### 🚢 Future Plan : 

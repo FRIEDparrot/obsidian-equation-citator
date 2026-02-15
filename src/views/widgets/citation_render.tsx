@@ -1,7 +1,7 @@
 import { Prec, RangeSetBuilder, StateField } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, editorInfoField, MarkdownView } from "obsidian";
+import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, editorInfoField, MarkdownView, normalizePath } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
 import {
@@ -988,7 +988,8 @@ export async function imageCaptionPostProcessor(
     const { figCitationFormat, figCitationPrefix } = plugin.settings;
 
     // Get the source file content
-    const file = plugin.app.vault.getAbstractFileByPath(ctx.sourcePath);
+    const normalizedSourcePath = normalizePath(ctx.sourcePath);
+    const file = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
     if (!file || !(file instanceof TFile)) return;
 
     const content = await plugin.app.vault.read(file);

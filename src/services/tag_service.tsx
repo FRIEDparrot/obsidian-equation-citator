@@ -1,7 +1,7 @@
 import EquationCitator from "@/main";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 import { resolveBackLinks } from "@/utils/misc/fileLink_utils";
-import { TFile, Editor } from "obsidian";
+import { TFile, Editor, normalizePath } from "obsidian";
 import { buildCrossFileCitation, CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags, splitFileCitation } from "@/utils/core/citation_utils";
 import { createCitationString } from "@/utils/string_processing/regexp_utils";
 import Debugger from "@/debug/debugger";
@@ -29,7 +29,8 @@ export class TagService {
         pairs: TagRenamePair[],
         prefix?: string
     ): Promise<boolean> {
-        const file = this.plugin.app.vault.getAbstractFileByPath(sourceFile);
+        const normalizedPath = normalizePath(sourceFile);
+        const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
             return false;
         }
@@ -41,13 +42,13 @@ export class TagService {
 
         // check all new tag Names 
         const newTagNames = new Set(effectivePairs.filter((p) => p.oldTag !== p.newTag).map(p => p.newTag));
-        const hasRepeatedInCurrentFile = await this.checkRepeatedTagsInFile(sourceFile, newTagNames, prefix);
+        const hasRepeatedInCurrentFile = await this.checkRepeatedTagsInFile(normalizedPath, newTagNames, prefix);
         if (hasRepeatedInCurrentFile) {
             return true;
         }
 
         const linksAll = this.plugin.app.metadataCache.resolvedLinks;
-        const backLinks = resolveBackLinks(linksAll, sourceFile);
+        const backLinks = resolveBackLinks(linksAll, normalizedPath);
         const fileCiteDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
         for (const backLinkPath of backLinks) {
             const footNotes: FootNote[] | undefined = await this.plugin.footnoteCache.getFootNotesFromFile(backLinkPath);
@@ -57,11 +58,11 @@ export class TagService {
             const currentFootNoteNums = footNotes
                 .filter((ft) => {
                     if (!ft.path) return false;
-                    const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, sourceFile);
+                    const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, normalizedPath);
                     if (!(dstFile instanceof TFile)) {
                         return false;
                     }
-                    return dstFile.path === sourceFile
+                    return dstFile.path === normalizedPath
                 })
                 .map((ft) => ft.num);
             if (currentFootNoteNums.length === 0) {
@@ -102,7 +103,8 @@ export class TagService {
         targetTags: Set<string>,
         citationPrefix?: string
     ): Promise<boolean> {
-        const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
+        const normalizedPath = normalizePath(filePath);
+        const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
             return false;
         }
@@ -164,7 +166,8 @@ export class TagService {
         editor?: Editor,
         prefix?: string
     ): Promise<TagRenameResult | undefined> {
-        const file = this.plugin.app.vault.getAbstractFileByPath(sourceFile);
+        const normalizedPath = normalizePath(sourceFile);
+        const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
             return;
         }
@@ -214,10 +217,11 @@ export class TagService {
 
         /****  update the citation in backlink files ******/
         const linksAll = this.plugin.app.metadataCache.resolvedLinks;
-        const backLinks = resolveBackLinks(linksAll, sourceFile);
+        const backLinks = resolveBackLinks(linksAll, normalizedPath);
         const fileCiteDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
         for (const link of backLinks) {
-            const file = this.plugin.app.vault.getAbstractFileByPath(link);
+            const normalizedLink = normalizePath(link);
+            const file = this.plugin.app.vault.getAbstractFileByPath(normalizedLink);
             if (!(file instanceof TFile)) continue;  // file not found, skip it (not add to change map) 
             const footNotes: FootNote[] | undefined = await this.plugin.footnoteCache.getFootNotesFromFile(link);
             if (!footNotes) {
@@ -228,11 +232,11 @@ export class TagService {
             const currentFootNoteNums = footNotes
                 .filter((ft) => {
                     if (!ft.path) return false;
-                    const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, sourceFile);
+                    const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, normalizedPath);
                     if (!(dstFile instanceof TFile)) {
                         return false;
                     }
-                    return dstFile.path === sourceFile
+                    return dstFile.path === normalizedPath
                 })
                 .map((ft) => ft.num);
             if (currentFootNoteNums.length === 0) {

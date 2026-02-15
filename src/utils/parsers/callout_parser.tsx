@@ -124,8 +124,8 @@ export function parseAllCalloutsFromMarkdown(
 
         // Check if we're currently in a callout block
         if (inCallout) {
-            // Check if this line continues the callout (is still a quote line with same depth)
-            if (parseResult.inQuote && parseResult.quoteDepth === calloutQuoteDepth) {
+            // Check if this line continues the callout (is still a quote line with same or higher depth)
+            if (parseResult.inQuote && parseResult.quoteDepth >= calloutQuoteDepth) {
                 // Add the original line to preserve the > quote marks
                 calloutBuffer.push(line);
             } else {
