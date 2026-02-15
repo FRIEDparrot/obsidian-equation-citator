@@ -307,6 +307,7 @@ TL; DR :
 - Excalidraw support is now available in figure citation preview!
 - Auto complete for figure and callout citations is now available!
 - Auto-number and rename tags for figures are now available! 
+- Add mobile support for this plugin!
 
 Settings Updates : 
 - We refactored the variable name `quoteCitationPrefixes` to `calloutCitationPrefixes` for clarity. So your current settings for callout citation prefix will be restored. Be sure to re-set the settings for `callout citation prefix` in settings tab to make the callout citation work.
@@ -340,7 +341,9 @@ Settings Updates :
 - [x] refactored autocomplete suggest to add support for figure and callout citations.
 - [x] refactored drag and drop handler in equation panel for better code structure and readability.
 - [x] refactored the equation panel file, extract the outline view renderer to a separate file.
-
+- [x] rename `other settings` in categorical settings tab to `others` (Obsidian plugin rule)
+- [x] remove node assert calls for mobile support  
+- [ ] test for mobile support and fix bugs for mobile.
 
 ### 🚢 Future Plan : 
 1. Auto-number for  figures 
