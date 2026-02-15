@@ -14,7 +14,7 @@ import { isCodeBlockToggle } from "@/utils/string_processing/regexp_utils";
  * This is used for PDF export
  * 
  * Replace all citations in markdown with HTML inline format for PDF rendering  
- * @note
+ * @remarks
  * Since the original PDF rendering function is not accessible,
  * and patching it is potentially unstable, we make a  markdown copy by replacing the 
  * markdown with HTML format with inline styles for PDF export to render correctly. 

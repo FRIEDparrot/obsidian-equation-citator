@@ -224,7 +224,7 @@ export function parseAllImagesFromMarkdown(
 /**
  * Parse the first image with the given tag in the markdown content
  * 
- * @note we don't process quote here since its handled by parseImageLine, 
+ * @remarks we don't process quote here since its handled by parseImageLine, 
  *     also quote block recognition will handle quote automatically, so there's no need.
  * @param markdown - The markdown content to parse
  * @param tag - The tag to search for (without prefix, e.g., "3.1" not "fig:3.1")

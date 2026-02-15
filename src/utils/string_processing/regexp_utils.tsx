@@ -69,7 +69,7 @@ export interface RefMatch {
 /** 
  * @param citation without bracket, e.g. "\ref{eq:1.3.4}", not with $$ 
  * @param prefix if use, only match the citation with the label start with the prefix, e.g. "eq:"
- * @note Citation format : only 1 \ref{} in  equation, and is a inline math format
+ * @remarks Citation format : only 1 \ref{} in  equation, and is a inline math format
  * @returns 
  */
 export function isValidCitationForm(

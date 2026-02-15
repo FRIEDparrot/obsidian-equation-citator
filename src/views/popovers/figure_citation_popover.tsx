@@ -120,10 +120,10 @@ export class FigureCitationPopover extends HoverPopover {
 
 /**
  * Render a single figure wrapper with image and metadata
- * @note since there are 2 types of image formats (wiki link vs markdown link), 
+ * @remarks since there are 2 types of image formats (wiki link vs markdown link), 
  *      the rendering logic is different for each type
  * @summary for `markdown link` (web image link), we always use image link to render the image;
- *      i.e., <img src="imageLink" alt="title or tag">
+ *      i.e., `<img src="imageLink" alt="title or tag">`
  * @summary for `wiki link` (internal image in obsidian vault), we need to resolve the vault path first, then render the image;   
  */
 export function renderFigureWrapper(

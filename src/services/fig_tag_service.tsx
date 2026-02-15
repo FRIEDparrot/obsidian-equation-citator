@@ -6,7 +6,7 @@ import Debugger from "@/debug/debugger";
 
 /**
  * Service for handling figure tag renaming operations
- * Handles updating inline figure tags in image metadata (![[...]] and ![...](...))
+ * Handles updating inline figure tags in image metadata `(![[...]] and ![...](...))`
  */
 export class FigureTagService {
     constructor(
@@ -78,7 +78,7 @@ export class FigureTagService {
      * @param deleteRepeatCitations - Whether to delete repeated citations
      * @param deleteUnusedCitations - Whether to delete unused citations
      * @returns Rename result statistics
-     * @note Figure tag definition (the image line itself) is updated directly
+     * @remarks Figure tag definition (the image line itself) is updated directly
      *       by the onSubmit callback in rightButtonHandler.tsx, similar to how 
      *       equation tags are updated. We only handle citation updates here.
      */

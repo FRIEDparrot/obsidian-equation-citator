@@ -40,8 +40,7 @@ export const OtherSettingsTab = {
     },
 
     /**
-     * 
-     * @warning : this function should be called individually 
+     * @remarks : **IMPORTANT - this function should be called individually** 
      * @param containerEl 
      * @param plugin 
      * @param settingsTab 

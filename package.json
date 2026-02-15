@@ -14,7 +14,8 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"check": "eslint .",
 		"type-check": "tsc --noEmit --skipLibCheck",
-		"check:case": "case-police"
+		"check:case": "case-police",
+		"docs": "typedoc"
 	},
 	"keywords": [],
 	"author": "FRIEDparrot",
@@ -46,6 +47,7 @@
 		"ts-jest": "^29.4.0",
 		"ts-node": "^10.9.2",
 		"tslib": "2.4.0",
+		"typedoc": "^0.28.17",
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
