@@ -439,6 +439,22 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             AutoNumberSettingsTab.figAutoNumberGlobalPrefix(el, plugin);
         }
     },
+    enableAutoNumberFigsInQuotes: {
+        name: "Auto numbering figures in quotes",
+        desc: "Enable auto numbering for figures in quotes",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.enableAutoNumberFigsInQuotes(el, plugin);
+        }
+    },
+    enableAutoNumberTaggedFigsOnly: {
+        name: "Auto numbering tagged figures only",
+        desc: "When auto-numbering, only update the figures that are already tagged",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.enableAutoNumberTaggedFigsOnly(el, plugin);
+        }
+    },
     // These 3 options are shared by figures and equations
     enableUpdateTagsInAutoNumber: {
         name: "Auto update citations in auto numbering",

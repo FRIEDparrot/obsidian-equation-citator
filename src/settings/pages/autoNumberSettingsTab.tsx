@@ -214,6 +214,34 @@ export const AutoNumberSettingsTab = {
             });
     },
 
+    enableAutoNumberFigsInQuotes(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.enableAutoNumberFigsInQuotes;
+        const autoNumberingFigsInQuotesSetting = new Setting(containerEl);
+        autoNumberingFigsInQuotesSetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableAutoNumberFigsInQuotes);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableAutoNumberFigsInQuotes = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
+    enableAutoNumberTaggedFigsOnly(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.enableAutoNumberTaggedFigsOnly;
+        const autoNumberingTaggedFigsOnlySetting = new Setting(containerEl);
+        autoNumberingTaggedFigsOnlySetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableAutoNumberTaggedFigsOnly);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableAutoNumberTaggedFigsOnly = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
     enableUpdateTagsInAutoNumber(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = true) {
         const { name, desc } = SETTINGS_METADATA.enableUpdateTagsInAutoNumber;
         const enableUpdateTagsInAutoNumberSetting = new Setting(containerEl);
@@ -280,5 +308,7 @@ export function addAutoNumberSettingsTab(containerEl: HTMLElement, plugin: Equat
     AutoNumberSettingsTab.figAutoNumberingDepth(containerEl, plugin);
     AutoNumberSettingsTab.figAutoNumberNoHeadingPrefix(containerEl, plugin);
     AutoNumberSettingsTab.figAutoNumberGlobalPrefix(containerEl, plugin);
+    AutoNumberSettingsTab.enableAutoNumberFigsInQuotes(containerEl, plugin);
+    AutoNumberSettingsTab.enableAutoNumberTaggedFigsOnly(containerEl, plugin);
     AutoNumberSettingsTab.enableUpdateTagsInAutoNumber(containerEl, plugin, true);
 }
