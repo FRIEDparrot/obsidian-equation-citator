@@ -1,72 +1,15 @@
-import { AutoNumberConfigs, AutoNumberProceedResult, AutoNumberingType } from "./auto_number_utils";
+import { 
+    AutoNumberConfigs, 
+    AutoNumberProceedResult, 
+    AutoNumberingType,
+    AutoNumberingState,
+    generateNextTagForAutoNumber,
+    updateLevelCounters
+} from "./auto_number_core";
 import { parseHeadingsInMarkdown, Heading, relativeHeadingLevel } from "../parsers/heading_parser";
 import { ImageMatch, parseImageLine } from "../parsers/image_parser";
 import { weblinkImagePattern, markdownImagePattern } from "../string_processing/regexp_utils";
 import { parseMarkdownLine } from "../string_processing/string_utils";
-
-interface FigureNumberingState {
-    levelCounters: number[];          // Heading level counters (length = maxDepth)
-    preHeadingFigNumber: number;      // Counter for figures that appear before any heading (depth = 0)
-    figureNumber: number;             // Counter for figures under the current heading depth
-    currentDepth: number;             // Current heading depth (0 means no active heading section)
-    maxDepth: number;                 // Max heading depth allowed by user settings
-    delimiter: string;                // Delimiter between hierarchical numbering segments
-    globalPrefix: string;             // Global prefix applied to every generated tag
-    noHeadingFigurePrefix: string;    // Prefix used for figures that are outside any heading
-}
-
-/**
- * Generates the next figure tag based on the current figure numbering state.
- *
- * @param state - The current figure numbering state, containing counters and configuration
- * @returns The generated figure tag as a string
- */
-function generateNextFigureTag(state: FigureNumberingState): string {
-    if (state.currentDepth === 0) {
-        state.preHeadingFigNumber++;
-        return `${state.globalPrefix}${state.noHeadingFigurePrefix}${state.preHeadingFigNumber}`;
-    } else {
-        const figIdx = Math.min(state.currentDepth, state.maxDepth - 1);
-        state.figureNumber++;
-        if (figIdx === 0) {
-            return `${state.globalPrefix}${state.figureNumber}`;
-        } else {
-            const prefixLevels = state.levelCounters
-                .slice(0, figIdx)
-                .filter(n => n > 0)
-                .join(state.delimiter);
-            return `${state.globalPrefix}${prefixLevels}${state.delimiter}${state.figureNumber}`;
-        }
-    }
-}
-
-/**
- * Update level counters based on heading level changes
- */
-function updateLevelCounters(
-    levelCounters: number[],
-    headingLevel: number,
-    maxDepth: number,
-    type: AutoNumberingType
-): void {
-    const maxAllowedLevel = maxDepth;
-
-    // Early return for headings deeper than maxDepth
-    if (headingLevel > maxAllowedLevel) return;
-
-    // Handle absolute numbering case (title level jumps)
-    if (type === AutoNumberingType.Absolute) {
-        // Find the parent level (not include current level)
-        for (let i = 0; i < headingLevel - 1; i++) {
-            if (levelCounters[i] === 0) {
-                levelCounters[i] = 1;
-            }
-        }
-    }
-    // Increment current level and reset deeper levels
-    levelCounters[headingLevel - 1]++;
-    levelCounters.fill(0, headingLevel);
-}
 
 /**
  * Auto number all the figures in the given markdown content based on the specified configurations.
@@ -95,15 +38,15 @@ export function autoNumberFigures(
     // Set Counters for figure numbering
     const levelCounters: number[] = new Array(maxDepth).fill(0);
     
-    const numberingState: FigureNumberingState = {
+    const numberingState: AutoNumberingState = {
         levelCounters,
-        preHeadingFigNumber: 0,
-        figureNumber: 0,
+        objNumberBeforeHeading: 0,
+        objNumber: 0,
         currentDepth: 0,
         maxDepth,
         delimiter,
         globalPrefix,
-        noHeadingFigurePrefix: noHeadingPrefix
+        noHeadingObjPrefix: noHeadingPrefix
     };
     
     let currentHeadingIndex = 0;
@@ -134,7 +77,7 @@ export function autoNumberFigures(
             }
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) {
-                numberingState.figureNumber = 0;
+                numberingState.objNumber = 0;
             }
             numberingState.currentDepth = Math.min(headingLevel, maxDepth);
             result.push(line);
@@ -144,7 +87,7 @@ export function autoNumberFigures(
         
         // Check if line contains an image
         if (parseResult.isImage) {
-            const newTag = generateNextFigureTag(numberingState);
+            const newTag = generateNextTagForAutoNumber(numberingState);
             const addResult = addTagToImage(line, newTag, figCitationPrefix, parseQuotes);
             
             if (addResult.valid) {

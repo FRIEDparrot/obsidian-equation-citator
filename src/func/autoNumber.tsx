@@ -1,6 +1,6 @@
 import { MarkdownView, Editor, EditorPosition,  Notice } from "obsidian";
 import { MarkdownFileProcessor } from '@/utils/misc/fileProcessor';
-import { autoNumberEquations, getAutoNumberInCursor } from "@/utils/core/auto_number_utils";
+import { autoNumberEquations, getEqAutoNumberInCursor } from "@/utils/core/auto_number_equations";
 import { TagRenamePair, TagRenameResult } from "@/services/tag_service";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
@@ -67,14 +67,16 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
         async (content) => {
             const { md, tagMapping: tm } = autoNumberEquations(
                 content,
-                autoNumberType,
-                autoNumberDepth,
-                autoNumberDelimiter,
-                autoNumberNoHeadingPrefix,
-                autoNumberPrefix,
-                autoNumberEquationsInQuotes,
-                enableTypstMode,
-                enableTaggedOnly
+                {
+                    autoNumberingType: autoNumberType,
+                    maxDepth: autoNumberDepth,
+                    delimiter: autoNumberDelimiter,
+                    noHeadingPrefix: autoNumberNoHeadingPrefix,
+                    globalPrefix: autoNumberPrefix,
+                    parseQuotes: autoNumberEquationsInQuotes,
+                    enableTypstMode,
+                    enableTaggedOnly
+                }
             );
             tagMapping = tm;
             // rename tags by tagmapping
@@ -125,19 +127,22 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
         autoNumberGlobalPrefix: autoNumberPrefix, 
         enableAutoNumberEquationsInQuotes: autoNumberEquationsInQuotes, 
         enableTypstMode,
-        enableAutoNumberTaggedEquationsOnly: enableTaggedOnly
+        enableAutoNumberTaggedEquationsOnly
     } = plugin.settings;
     
-    const autoNumberTag = getAutoNumberInCursor(
+    const autoNumberTag = getEqAutoNumberInCursor(
         content,
         cursorPos,
-        autoNumberType,
-        autoNumberDepth,
-        autoNumberDelimiter,
-        autoNumberNoHeadingPrefix,
-        autoNumberPrefix,
-        autoNumberEquationsInQuotes,
-        enableTaggedOnly
+        {
+            autoNumberingType: autoNumberType,
+            maxDepth: autoNumberDepth,
+            delimiter: autoNumberDelimiter,
+            noHeadingPrefix: autoNumberNoHeadingPrefix,
+            globalPrefix: autoNumberPrefix,
+            parseQuotes: autoNumberEquationsInQuotes,
+            enableTaggedOnly: enableAutoNumberTaggedEquationsOnly,
+            enableTypstMode
+        }
     );
     if (!autoNumberTag) {
         new Notice("Cursor is not in a valid equation block");

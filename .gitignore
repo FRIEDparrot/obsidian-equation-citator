@@ -10,6 +10,8 @@ backup/*
 *.iml
 .idea
 
+*/**.html
+
 # npm
 node_modules
 

@@ -1,81 +1,38 @@
-import { parseHeadingsInMarkdown, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
-import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
-import { parseEquationTag } from "@/utils/parsers/equation_parser";
-import { createEquationTagString, equationBlockBracePattern, singleLineEqBlockPattern } from "@/utils/string_processing/regexp_utils";
 import { EditorPosition, Notice } from "obsidian";
 import Debugger from "@/debug/debugger";
 
-export enum AutoNumberingType {
-    Relative = "Relative",
-    Absolute = "Absolute"
-}
+import { 
+    generateNextTagForAutoNumber,
+    generateNewTagForAutoNumber,
+    AutoNumberConfigs,
+    AutoNumberingType,
+    AutoNumberingState,
+    AutoNumberProceedResult, 
+    updateLevelCounters,
+} from "./auto_number_core";
+import { singleLineEqBlockPattern } from "../string_processing/regexp_utils";
 
-export interface AutoNumberProceedResult {
-    md: string;
-    tagMapping: Map<string, string>;  // mapping to rename citations 
-}
+import { parseHeadingsInMarkdown, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
+import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
+import { parseEquationTag } from "@/utils/parsers/equation_parser";
+import { createEquationTagString, equationBlockBracePattern,  } from "@/utils/string_processing/regexp_utils";
 
-interface AutoNumberingState {
-    levelCounters: number[];          // Heading level counters (length = maxDepth)
-    objNumberBeforeHeading: number;   // Counter for objects (equation, figures, etc.) that appear before any heading (depth = 0)
-    objNumber: number;                // Counter for objects under the current heading depth
-    currentDepth: number;             // Current heading depth (0 means no active heading section)
-    maxDepth: number;                 // Max heading depth allowed by user settings
-    delimiter: string;                // Delimiter between hierarchical numbering segments
-    globalPrefix: string;             // Global prefix applied to every generated tag
-    noHeadingObjPrefix: string;       // Prefix used for objects(equations) that are outside any heading
-}
 
-export interface AutoNumberConfigs {
-    autoNumberingType: AutoNumberingType;
-    maxDepth: number;
-    delimiter: string;
-    noHeadingPrefix: string;
-    globalPrefix: string;
-    parseQuotes: boolean;
+/**
+ * EquationAutoNumberConfigs extends AutoNumberConfigs with equation-specific options.
+ */
+export interface EquationAutoNumberConfigs extends AutoNumberConfigs {
+    enableTypstMode: boolean;        // Whether to use Typst mode for equation tags
 }
-
 
 // check if the cursor is in a single line equation block   
 function isPositionInSingleLineEquation(line: string, ch: number): boolean {
     const match = new RegExp(singleLineEqBlockPattern).exec(line);
     if (!match?.index) return false;
-
     const startPos = match.index;
     const endPos = startPos + match[0].length;
-
     return ch >= startPos && ch <= endPos;
 }
-
-/**
- * Generates the next equation tag based on the current equation numbering state.
- *
- * The function increments the appropriate object number depending on the current depth.
- * - If `currentDepth` is 0, it increments `objNumberBeforeHeading` and returns a tag for objects before any heading.
- * - Otherwise, it increments `objNumber` and constructs a tag using the global prefix, level counters, and delimiter.
- *
- * @param state - The current equation numbering state, containing counters and configuration for equation numbering.
- * @returns The generated object tag as a string.
- */
-function generateNextTag(state: AutoNumberingState): string {
-    if (state.currentDepth === 0) {
-        state.objNumberBeforeHeading++;
-        return `${state.globalPrefix}${state.noHeadingObjPrefix}${state.objNumberBeforeHeading}`;
-    } else {
-        const eqIdx = Math.min(state.currentDepth, state.maxDepth - 1);
-        state.objNumber++;
-        if (eqIdx === 0) {
-            return `${state.globalPrefix}${state.objNumber}`;
-        } else {
-            const prefixLevels = state.levelCounters
-                .slice(0, eqIdx)
-                .filter(n => n > 0)
-                .join(state.delimiter);
-            return `${state.globalPrefix}${prefixLevels}${state.delimiter}${state.objNumber}`;
-        }
-    }
-}
-
 
 /**
  * Determines the auto-generated equation number tag at the current cursor position within a Markdown document.
@@ -85,26 +42,23 @@ function generateNextTag(state: AutoNumberingState): string {
  *
  * @param content - The full Markdown content to analyze.
  * @param cursorPos - The current cursor position, specified as an object with `line` and `ch` (character) properties.
- * @param autoNumberingType - The type of auto-numbering to use (e.g., relative or absolute).
- * @param maxDepth - The maximum heading depth to consider for equation numbering.
- * @param delimiter - The delimiter string used to separate numbering levels.
- * @param noHeadingEquationPrefix - The prefix to use for equations not under any heading.
- * @param globalPrefix - The global prefix to prepend to all equation tags.
- * @param parseQuotes - Optional. Whether to parse quoted lines as equations. Defaults to `false`.
- * @param enableTaggedOnly - Optional. Use tagged only sequence (only count the equation with tag to increase counter).
+ * @param configs - The auto-numbering configuration object containing all settings.
  * @returns The equation tag string if the cursor is inside an equation, or `null` otherwise.
  */
-export function getAutoNumberInCursor(
+export function getEqAutoNumberInCursor(
     content: string,
     cursorPos: EditorPosition,
-    autoNumberingType: AutoNumberingType,
-    maxDepth: number,
-    delimiter: string,
-    noHeadingEquationPrefix: string,
-    globalPrefix: string,
-    parseQuotes = false,
-    enableTaggedOnly = false,
+    configs: EquationAutoNumberConfigs,
 ): string | null {
+    const {
+        autoNumberingType,
+        maxDepth,
+        delimiter,
+        noHeadingPrefix: noHeadingEquationPrefix,
+        globalPrefix,
+        parseQuotes,
+        enableTaggedOnly
+    } = configs;
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
     if (cursorPos.line < 0 || cursorPos.line >= lines.length) {
@@ -131,18 +85,6 @@ export function getAutoNumberInCursor(
 
     // maintain two unique counters for non-heading and heading equations 
     let currentHeadingIndex = 0;
-
-    function generateNewTag(eqText: string): string | null {
-        let shouldNumber = true;
-        if (enableTaggedOnly) {
-            const { tag: oldTag } = parseEquationTag(eqText, false);
-            shouldNumber = !!oldTag;
-        }
-        if (shouldNumber) {
-            return generateNextTag(numberingState);
-        }
-        return null;
-    }
 
     for (let i = 0; i <= cursorPos.line; i++) {
         const line = lines[i];
@@ -174,18 +116,20 @@ export function getAutoNumberInCursor(
             equationBuffer.push(parseResult.cleanedLine.trim());
             // Check if cursor is on this line
             if (i === cursorPos.line) {
-                return generateNextTag(numberingState);
+                return generateNextTagForAutoNumber(numberingState);
             }
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
                 // Check if this equation should be numbered
-                newTag = generateNewTag(equationBuffer.join('\n'));
+                const { tag: oldTag } = parseEquationTag(equationBuffer.join('\n'), false);
+                newTag = generateNewTagForAutoNumber(numberingState, oldTag, enableTaggedOnly);
                 equationBuffer = [];
             }
         }
         else if (parseResult.isSingleLineEquation) {
             // Check if this equation should be numbered
-            newTag = generateNewTag(line);
+            const { tag: oldTag } = parseEquationTag(parseResult.singleLineEquationMatch![0], false);
+            newTag = generateNewTagForAutoNumber(numberingState, oldTag, enableTaggedOnly);
         }
         else if (parseResult.isEquationBlockStart) {
             if (!inEquationBlock) {
@@ -217,6 +161,9 @@ export function getAutoNumberInCursor(
     }
     return null;
 }
+
+
+
 
 /**
  * Detect illegal nested $$ in equation string 
@@ -255,27 +202,23 @@ export function detectIllegalEquation(eqStr: string): number {
  * unclosed equation blocks gracefully.
  *
  * @param content - The Markdown content to process.
- * @param autoNumberingType - The numbering style to use (relative to headings or absolute).
- * @param maxDepth - The maximum heading depth to consider for equation numbering.
- * @param delimiter - The delimiter to use between numbering levels.
- * @param noHeadingEquationPrefix - Prefix for equations not under any heading.
- * @param globalPrefix - A global prefix to prepend to all equation tags.
- * @param parseQuotes - Whether to parse and handle quoted lines (default: false).
- * @param enableTypstMode - Whether to use Typst mode for auto numbering (default: false).
- * @param enableTaggedOnly - Whether to only auto number equations that are already tagged (default: false).
+ * @param configs - The auto-numbering configuration object containing all settings.
  * @returns An object containing the processed Markdown (`md`) and a mapping of old to new equation tags (`tagMapping`).
  */
 export function autoNumberEquations(
     content: string,
-    autoNumberingType: AutoNumberingType,
-    maxDepth: number,
-    delimiter: string,
-    noHeadingEquationPrefix: string,
-    globalPrefix: string,
-    parseQuotes = false,
-    enableTypstMode = false,
-    enableTaggedOnly = false,
+    configs: EquationAutoNumberConfigs,
 ): AutoNumberProceedResult {
+    const {
+        autoNumberingType,
+        maxDepth,
+        delimiter,
+        noHeadingPrefix: noHeadingEquationPrefix,
+        globalPrefix,
+        parseQuotes,
+        enableTypstMode,
+        enableTaggedOnly
+    } = configs;
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
 
@@ -329,7 +272,7 @@ export function autoNumberEquations(
 
         if (getNewTag) {
             // generate new tag
-            const newTagLabel = generateNextTag(numberingState);
+            const newTagLabel = generateNextTagForAutoNumber(numberingState);
             const newTag = createEquationTagString(newTagLabel, enableTypstMode);
             addTagMapping(oldTag, newTagLabel);
             return getFormattedEquation(content, newTag);
@@ -428,38 +371,4 @@ export function autoNumberEquations(
         md: result.join('\n'),
         tagMapping: newTagMapping
     }
-}
-
-/**
- * @param levelCounters the array of counters for each heading level, length should be equal to maxDepth
- * @param headingLevel 
- *            input absolute level if autoNumberingType is Absolute, 
- *            input relative level if autoNumberingType is Relative 
- * @param maxDepth maximum heading level we want to handle in numbering. For example, maxDepth=3 means we handle heading levels 1, 2, and 3.
- * @param type 
- * @returns 
- */
-function updateLevelCounters(
-    levelCounters: number[],
-    headingLevel: number,
-    maxDepth: number,
-    type: AutoNumberingType
-): void {
-    const maxAllowedLevel = maxDepth;
-
-    // Early return for headings deeper than maxDepth - they should not update counters
-    if (headingLevel > maxAllowedLevel) return;
-
-    // Handle absolute numbering case (title level jumps)
-    if (type === AutoNumberingType.Absolute) {
-        // Find the parent level (not include current level)
-        for (let i = 0; i < headingLevel - 1; i++) {
-            if (levelCounters[i] === 0) {
-                levelCounters[i] = 1;
-            }
-        }
-    }
-    // Increment current level and reset deeper levels
-    levelCounters[headingLevel - 1]++;
-    levelCounters.fill(0, headingLevel);
 }

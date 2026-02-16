@@ -1,4 +1,4 @@
-import { AutoNumberingType } from "@/utils/core/auto_number_utils";
+import { AutoNumberingType } from "@/utils/core/auto_number_core";
 import { CitationSettingsTab } from "./pages/citationSettingsTab";
 import EquationCitator from "@/main";
 import { AutoNumberSettingsTab } from "./pages/autoNumberSettingsTab";

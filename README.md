@@ -30,8 +30,24 @@
 
 3. This plugin can also be installed by plugin [BRAT](https://obsidian.md/plugins?id=obsidian42-brat), just copy paste the link of this repo in the options tab of BRAT to add it.
 
-## ✨ What this plugin do 
+## 👋🏻 Applications & Usages 
 
+> [!note] Application Scenarios 
+> **This plugin would be very useful if**: 
+> - You're writing academic notes in Obsidian and need to manage numerous equations efficiently with automatic numbering and cross-references
+> - You're drafting research papers or technical documents in Markdown and want LaTeX-style equation citation with accurate numbering
+> - You derive equations in your notes and need to reference them throughout your derivation process or across multiple files
+> - You use Obsidian for school or university notes and want quick navigation to cited equations without endless scrolling
+> - You have figures, tables, or theorem-like content in your notes that requires systematic referencing and organization
+
+> [!warning] Non-Application Scenarios
+> **This plugin is NOT designed for**:
+> - Citing equations or content within PDF files (PDFs are not recognized or processed by the plugin)
+> - Managing bibliographic references or literature citations (use a dedicated citation management plugin instead)
+> - Real-time collaborative editing with automatic sync of equation numbers across users
+> - Processing equations in image files or scanned documents (only markdown-based LaTeX equations are supported)
+
+## ✨ What this plugin do 
 ### 1. ⚡ **Auto-number equations by heading level** 
 
 **Auto number all the equations in by simply 1 click on the sidebar icon**  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-function-icon lucide-square-function"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 17c2 0 2.8-1 2.8-2.8V10c0-2 1-3.3 3.2-3"/><path d="M9 11.2h5.7"/></svg> 

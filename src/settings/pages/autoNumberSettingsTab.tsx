@@ -1,6 +1,6 @@
 import { SETTINGS_METADATA } from "../defaultSettings";
 import { Notice, Setting } from "obsidian";
-import { AutoNumberingType } from "@/utils/core/auto_number_utils";
+import { AutoNumberingType } from "@/utils/core/auto_number_core";
 import EquationCitator from "@/main";
 import { addSubPanelToggle } from "../extensions/subPanelToggle";
 import { validateDelimiter, validateLetterPrefix } from "@/utils/string_processing/string_utils";

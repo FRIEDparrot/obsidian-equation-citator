@@ -12,7 +12,7 @@ export default defineConfig([
     ...obsidianmd.configs.recommended,
     // Ignore build outputs and other files
     {
-        ignores: ["node_modules/**", "dist/**", "build/**", "main.js", "tests/**", "*.mjs"],
+        ignores: ["node_modules/**", "docs/**/*", "dist/**", "build/**", "main.js", "tests/**", "*.mjs"],
     },
     {
         files: ["**/*.ts", "**/*.tsx"],
