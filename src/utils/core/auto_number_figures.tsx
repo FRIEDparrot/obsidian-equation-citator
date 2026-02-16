@@ -37,6 +37,7 @@ export function autoNumberFigures(
         noHeadingPrefix,
         globalPrefix,
         parseQuotes,
+        enableTaggedOnly,
         figCitationPrefix,
     } = configs;
     const lines = content.split('\n');
@@ -81,7 +82,8 @@ export function autoNumberFigures(
         }
         // the isImage only parse the first ! in the line, so we still need to parse the line strictly
         const image: ImageMatch | null = parseImageLine(line, 0, figCitationPrefix);
-        if (!image || (image.inQuote && !parseQuotes)) {
+        const shouldNumber = (!enableTaggedOnly || image?.tag)
+        if (!image || (image.inQuote && !parseQuotes) || !shouldNumber) {
             result.push(line);
             continue;
         }
@@ -141,7 +143,7 @@ function reconstructWikiLinkImage(
     if (metaParts.length === 0) {
         return quotePrefix + `![[${imagePath}|${newLabel}]]`;
     }
-    
+
     // Check if the last part is a pure number (width/size parameter)
     const lastPart = metaParts.at(-1)!;
     const isLastPartNumber = /^\d+$/.test(lastPart);
@@ -169,7 +171,7 @@ function reconstructWikiLinkImage(
     if (isLastPartNumber) {
         newMetaParts.push(lastPart);
     }
-    
+
     // Reconstruct the image
     const result = `![[${imagePath}|${newMetaParts.join('|')}]]`;
     return quotePrefix + result;
@@ -191,7 +193,7 @@ function reconstructMarkdownImage(
 ): string {
     const originalLine = image.raw;
     // Extract quote prefix if present
-    const quotePrefixMatch = image.inQuote ? /^((?:>\s*)+)/.exec(originalLine): null;
+    const quotePrefixMatch = image.inQuote ? /^((?:>\s*)+)/.exec(originalLine) : null;
     const quotePrefix = quotePrefixMatch ? quotePrefixMatch[1] : '';
 
     // Get the actual image content without quote prefix
@@ -241,7 +243,7 @@ function reconstructMarkdownImage(
 
     // Reconstruct the image
     const result = `![${newMetaParts.join('|')}](${imageLink})`;
-    
+
     return quotePrefix + result;
 }
 
