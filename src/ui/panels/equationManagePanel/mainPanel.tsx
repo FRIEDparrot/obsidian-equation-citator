@@ -16,6 +16,7 @@ import {
 } from "./toolbar";
 import { EquationPanelDragDropHandler } from "./drag_drop_handler";
 import { EquationPanelOutlineViewRenderer } from "./outline_view_renderer";
+import { boxedEquationFilter } from "./box_filters";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -36,7 +37,7 @@ export class EquationArrangePanel extends ItemView {
     public expandButton!: HTMLElement;
     public toggleTagShowButton: HTMLElement;
     public filterEmptyHeadingsButton: HTMLElement;
-    public filterTagOnlyEquationButton: HTMLElement;
+    public filtersForEquationsButton: HTMLElement;
 
     // State variables  
     public viewMode: ViewMode = "list";
@@ -46,7 +47,7 @@ export class EquationArrangePanel extends ItemView {
     public searchQuery = "";
     public filterEmptyHeadings = false; // Default to outline view (show all headings)
     public filterTagOnlyEquation = false;
-    
+    public filterBoxedEquation = false;
     public lockRefreshEnabled = false;
     public enableRenderHeadingOnly = false; // in outline mode, only render headings without equations 
     // #endregion
@@ -348,12 +349,16 @@ export class EquationArrangePanel extends ItemView {
     }
 
     private filterEquations(equations: EquationMatch[]): EquationMatch[] {
+        const {
+            enableTypstMode,
+            skipFirstlineInBoxedFilter,
+        } = this.plugin.settings;
         const tagFilter = (eq: EquationMatch) => !this.filterTagOnlyEquation || (eq.tag && eq.tag.trim().length > 0);
+        const boxedFilter = (eq: EquationMatch) => !this.filterBoxedEquation || boxedEquationFilter(eq, enableTypstMode, skipFirstlineInBoxedFilter);
 
         if (!this.searchQuery || this.searchQuery.trim().length === 0) {
-            return equations.filter(tagFilter);
+            return equations.filter(tagFilter).filter(boxedFilter);
         }
-
         const query = this.searchQuery.toLowerCase();
         return equations.filter(eq => {
             // Search in content (without $$ delimiters)
@@ -362,7 +367,7 @@ export class EquationArrangePanel extends ItemView {
             // Search in tag if exists
             if (eq.tag?.toLowerCase().includes(query)) return true;
             return false;
-        }).filter(tagFilter);
+        }).filter(tagFilter).filter(boxedFilter);
     }
 
     private sortEquations(equations: EquationMatch[]): EquationMatch[] {

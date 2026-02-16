@@ -161,7 +161,6 @@ This will create :
 - A description for extended context 
 
 
-
 ![[Excalidraw Support|fig:1.5]]
 Also, after `v1.3.3`, we can also cite the `excalidraw` image with same syntax  $\ref{fig:1.5, }$. 
 
@@ -170,6 +169,8 @@ Note the `excalidraw` and `excalidraw.md` should be included in the `settings > 
 But **since the grammar of external file link view `![[#(3) Citing Clarity|fig:1.6]]` is same as image**, we still reckon it a valid image. So when `md` is in the `Extension names using Markdown renderer` setting, we can even cite the section preview as $\ref{fig:1.6, }$ (but there would be no caption) :
 
 ![[#(3) Citing Clarity|fig:1.6]]
+
+We also support **autonumber for figures** after v1.3.3, so you can use the ribbon button or command `auto-number current file figures` to auto-number all figures in current file.
 
 > [!HINT] 
 > Currently the plugin don't support autonumber and rename for callouts. Since there might not be a lot of them. You can manage them manually now. Or you can request this feature in the [issue page](https://github.com/FRIEDparrot/obsidian-equation-citator/issues) if you really need it.
@@ -228,12 +229,34 @@ You can open the equation mange panel by :
 - Command palette: `Open Equations Manage Panel`
 - Toolbar icon (if enabled) 
 
-### 2) How to use  
+### 2) How to use 
 Equation Manage panel is one of the most powerful feature of v1.3.0 :
 1. **Drag** the item from the panel, **Drop** it into your text where you want the citation (Cross file drag will automatically create footnote for citation)  
 2. The properly formatted `\ref{}` citation is automatically inserted!
 
 This panel allows you to check and search equation very fast, **No need to scroll or remember syntax or equation numbers!** 
+
+
+### 3) Special Filters
+
+You can use filters to filter important equations. Currently we provide 2 filters :
+
+1. **Tag-only filter**: Show only equations with tags. 
+
+You may use this with `Auto-number tagged equations only`. see [[Useful Tricks & techniques#(3) Only Number Important Equations]] for details.
+
+2. **boxed filters**: Show only equations wrapped with `\boxed{}`. Note for simplicity in this filter it only check if the first non-blank line of equations is start with `\boxed`. 
+
+You can use Latex Suite `box current equation` command to box equations, we also provide a command `box current equation` in our plugin, so you can just select a equation and run this command to box it.
+
+For some users, they use the first line of multi-line equation as class, we also provide an option to this. Check `Settings > Display (Categorical) > Equation Panel > Skip first line when filter boxed equation` to enable this feature.
+```latex
+$$phy
+\boxed{
+E = mc^2
+}
+$$
+```
 
 ## 4. Auto-numbering System  
 Use the command `Auto-number current file equations` or the toolbar button can automatically number all equations in current file based on heading level. 

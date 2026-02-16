@@ -66,6 +66,32 @@ export const EquationPanelSettingsTab = {
                 });
             })
     },
+    equationManagePanelFilterBoxedEquation(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.equationManagePanelFilterBoxedEquation;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.equationManagePanelFilterBoxedEquation);
+                toggle.onChange(async (value) => {
+                    plugin.settings.equationManagePanelFilterBoxedEquation = value;
+                    await plugin.saveSettings();
+                });
+            })
+    },
+    skipFirstlineInBoxedFilter(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.skipFirstlineInBoxedFilter;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.skipFirstlineInBoxedFilter);
+                toggle.onChange(async (value) => {
+                    plugin.settings.skipFirstlineInBoxedFilter = value;
+                    await plugin.saveSettings();
+                });
+            })
+    },
     equationManagePanelEnableRenderHeadingsOnly(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.equationManagePanelEnableRenderHeadingsOnly;
         new Setting(containerEl)
@@ -89,6 +115,8 @@ export const EquationPanelSettingsTab = {
 export function addEquationPanelSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     EquationPanelSettingsTab.equationManagePanelDefaultViewType(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelFilterTagOnlyEquation(containerEl, plugin);
+    EquationPanelSettingsTab.equationManagePanelFilterBoxedEquation(containerEl, plugin);
+    EquationPanelSettingsTab.skipFirstlineInBoxedFilter(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelEnableRenderHeadingsOnly(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelLazyUpdateTime(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelFileCheckInterval(containerEl, plugin);

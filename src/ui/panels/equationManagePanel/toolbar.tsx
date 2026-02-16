@@ -1,6 +1,6 @@
 import EquationCitator from "@/main";
 import { EquationArrangePanel } from "./mainPanel";
-import { setIcon, setTooltip } from "obsidian";
+import { setIcon, setTooltip, Menu } from "obsidian";
 import { EquationPanelOutlineViewRenderer } from "./outline_view_renderer";
 
 // ============================================================================
@@ -33,12 +33,42 @@ function updateSortMode(panel: EquationArrangePanel, mode: "tag" | "seq"): void 
     setTooltip(panel.sortButton, `Sort mode: ${mode == "tag" ? "tag" : "line number"}`);
 }
 
-function updateTagOnlyButton(panel: EquationArrangePanel): void {
-    const iconName = panel.filterTagOnlyEquation ? "filter" : "filter-x";
-    panel.filterTagOnlyEquationButton.toggleClass("is-active", panel.filterTagOnlyEquation);
-    const tooltipText = panel.filterTagOnlyEquation ? "Only show equations with tag" : "Show all equations";
-    setIcon(panel.filterTagOnlyEquationButton, iconName);
-    setTooltip(panel.filterTagOnlyEquationButton, tooltipText);
+function updateFiltersButton(panel: EquationArrangePanel): void {
+    const anyFilterActive = panel.filterTagOnlyEquation || panel.filterBoxedEquation;
+    panel.filtersForEquationsButton.toggleClass("is-active", anyFilterActive);
+    const tooltipText = "Show filters";
+    setIcon(panel.filtersForEquationsButton, "filter");
+    setTooltip(panel.filtersForEquationsButton, tooltipText);
+}
+
+function showFiltersMenu(panel: EquationArrangePanel, event: MouseEvent): void {
+    const menu = new Menu();
+
+    // Tag-only filter menu item
+    menu.addItem((item) => {
+        item.setTitle("Filter tagged equations")
+            .setIcon("tag")
+            .setChecked(panel.filterTagOnlyEquation)
+            .onClick(() => {
+                panel.filterTagOnlyEquation = !panel.filterTagOnlyEquation;
+                updateFiltersButton(panel);
+                void panel.refreshView();
+            });
+    });
+
+    // Boxed equation filter menu item
+    menu.addItem((item) => {
+        item.setTitle("Filter boxed equations")
+            .setIcon("box")
+            .setChecked(panel.filterBoxedEquation)
+            .onClick(() => {
+                panel.filterBoxedEquation = !panel.filterBoxedEquation;
+                updateFiltersButton(panel);
+                void panel.refreshView();
+            });
+    });
+
+    menu.showAtMouseEvent(event);
 }
 
 function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): void { 
@@ -205,19 +235,18 @@ function renderToolBarSubPanel(
     });
     updateHeadingsFilterButton(panel); // Set initial state
     
-    // Filter tag only equations button
-    panel.filterTagOnlyEquationButton = subPanel.createEl("button", {
+    // Filter equations button (opens dropdown menu)
+    panel.filtersForEquationsButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Show equations with tag only" },
+        attr: { "aria-label": "Show filters" },
     });
-    setIcon(panel.filterTagOnlyEquationButton, "tag");
-    setTooltip(panel.filterTagOnlyEquationButton, "Only show equations with tag");
-    panel.filterTagOnlyEquationButton.addEventListener("click", () => {
-        panel.filterTagOnlyEquation = !panel.filterTagOnlyEquation;
-        updateTagOnlyButton(panel); 
-        void panel.refreshView();
+    setIcon(panel.filtersForEquationsButton, "filter");
+    setTooltip(panel.filtersForEquationsButton, "Show filters");
+    panel.filtersForEquationsButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        showFiltersMenu(panel, event as MouseEvent);
     });
-    updateTagOnlyButton(panel); // Set initial state
+    updateFiltersButton(panel); // Set initial state
 }
 
 // ============================================================================
@@ -326,6 +355,7 @@ export function setToolbarDefaultState(
         equationManagePanelDefaultViewType: defaultViewMode,
         equationManagePanelEnableRenderHeadingsOnly: enableRenderHeadingsOnly,
         equationManagePanelFilterTagOnlyEquation: filterTagOnlyEquation,
+        equationManagePanelFilterBoxedEquation: filterBoxedEquation,
     } = plugin.settings;
     // Set default view mode
     updatePanelViewMode(panel, defaultViewMode);
@@ -337,7 +367,8 @@ export function setToolbarDefaultState(
     updateModeButtons(panel);
 
     panel.filterTagOnlyEquation = filterTagOnlyEquation;
-    updateTagOnlyButton(panel);
+    panel.filterBoxedEquation = filterBoxedEquation;
+    updateFiltersButton(panel);
     
     panel.enableRenderHeadingOnly = enableRenderHeadingsOnly;
     updateHeadingOnlyButton(panel);

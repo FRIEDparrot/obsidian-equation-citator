@@ -45,7 +45,7 @@
 > - Citing equations or content within PDF files (PDFs are not recognized or processed by the plugin)
 > - Managing bibliographic references or literature citations (use a dedicated citation management plugin instead)
 > - Real-time collaborative editing with automatic sync of equation numbers across users
-> - Processing equations in image files or scanned documents (only markdown-based LaTeX equations are supported)
+> - Processing equations in image files or scanned documents 
 
 ## ✨ What this plugin do 
 ### 1. ⚡ **Auto-number equations by heading level** 
@@ -76,12 +76,15 @@ The pdf will be like following picture after exporting, with correct citation an
 
 ## 🛒 Compatibility with other plugins
 
-These main stream plugins for math to improve experience following plugins are tested to be compatible with `Equation Citator`, you can use them together without any problem. 
+Following plugins often used for math are tested to be compatible with `Equation Citator`, you can use them together without any problem. 
 
 1. [Excalidraw](https://github.com/zsviczian/obsidian-excalidraw-plugin),  Excalidraw is supported in figure citation preview after version 1.3.3, you can cite an excalidraw picture by adding `fig` field to it just like normal images.
 2. [Obsidian Typst Mate](https://github.com/azyarashi/obsidian-typst-mate). This plugin supports typst-style autonumber, and you can use `Settings > Categorical > Others > enable typst mode` to enable it.
-3. [Better math in callouts & blockquotes](https://github.com/RyotaUshio/obsidian-math-in-callout). use it directly for better math rendering in callouts. 
-4. [No More Flickering Inline Math](https://github.com/RyotaUshio/obsidian-inline-math)
+3. [Latex Suite](https://github.com/artisticat1/obsidian-latex-suite), it can work seamlessly with this plugin, I really suggest using this for quickly writing long and complex equations.
+4. [Completr](https://github.com/tth05/obsidian-completr), This provide better auto-complete for latex syntax.
+5. [Quick Latex](https://github.com/joeyuping/quick_latex_obsidian). This provide features like auto-enlarge brackets.
+6. [Better math in callouts & blockquotes](https://github.com/RyotaUshio/obsidian-math-in-callout). use it directly for better math rendering in callouts. 
+7. [No More Flickering Inline Math](https://github.com/RyotaUshio/obsidian-inline-math)
 
 
 ## 🚨 Disclaimer

@@ -75,6 +75,8 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "equationManagePanelEnableRenderHeadingsOnly",
                 "equationManagePanelLazyUpdateTime",
                 "equationManagePanelFileCheckInterval",
+                "equationManagePanelFilterBoxedEquation",
+                "skipFirstlineInBoxedFilter",
             ]
         },
         {

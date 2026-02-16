@@ -96,6 +96,8 @@ export interface EquationCitatorSettings {
     equationManagePanelFileCheckInterval: number,
     equationManagePanelDefaultViewType: "outline" | "list",
     equationManagePanelFilterTagOnlyEquation: boolean;
+    equationManagePanelFilterBoxedEquation: boolean;
+    skipFirstlineInBoxedFilter: boolean; 
     equationManagePanelEnableRenderHeadingsOnly: boolean;
 
     // settings UI
@@ -197,6 +199,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     equationManagePanelDefaultViewType: "list",
     equationManagePanelFilterTagOnlyEquation: false,
     equationManagePanelEnableRenderHeadingsOnly: false,
+    equationManagePanelFilterBoxedEquation: false,
+    skipFirstlineInBoxedFilter: false,
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
@@ -474,7 +478,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     deleteUnusedTagsInAutoNumber: {
-        name: "Auto delete unused tags citations",
+        name: "Auto delete unused tag citations",
         desc: "Automatically delete unused tag citations during auto numbering.",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -611,6 +615,22 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelEnableRenderHeadingsOnly(el, plugin);
+        }
+    },
+    equationManagePanelFilterBoxedEquation: {
+        name: "Filter boxed equation",
+        desc: "Default value for filter boxed equations",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationManagePanelFilterBoxedEquation(el, plugin);
+        }
+    },
+    skipFirstlineInBoxedFilter: {
+        name: "Skip first line when filter boxed equation",
+        desc: "When enabled, the filter for boxed equations will skip the first line for multi-line equations. Used for compatibility with some specific plugins",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.skipFirstlineInBoxedFilter(el, plugin);
         }
     },
 }

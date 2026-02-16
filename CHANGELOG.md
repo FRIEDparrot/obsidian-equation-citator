@@ -322,7 +322,8 @@ Settings Updates :
 - [x] Rename tags for figures.
 - [x] Autonumber tags for figures. 
   - [x] Following figure citations should be updated after auto-numbering or renaming tags. 
-- [ ] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 
+- [x] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 
+ - [ ] Command for box current equation. 
 - [x] Add Feature [#143](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/143), now we support Excalidraw in figure citation. 
 - [x] Figure citaion format can now cite section preview.
 - [ ] Support the caption for markdown link format figure.
@@ -351,5 +352,5 @@ Settings Updates :
 - [ ] test for mobile support and fix bugs for mobile.
 
 ### 🚢 Future Plan : 
-1. Auto-number for  figures 
-2. Check citations of figures and tables, all in one 😄 
+1. Auto number for callouts if some1 request it.
+2. Check citations of figures and tables in equation panel, all in one 😄 
