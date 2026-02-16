@@ -39,6 +39,8 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "figCitationPrefix",
                 "figCitationFormat",
                 "enableRichAutoComplete",
+                "enableRichAutoCompleteHoverPreview",
+                "richAutoCompletePreviewDelayTime",
                 "calloutCitationPrefixes",
             ]
         },
@@ -50,10 +52,15 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "autoNumberDepth",
                 "autoNumberType",
                 "autoNumberNoHeadingPrefix",
-                "enableAutoNumberGlobalPrefix",
                 "autoNumberGlobalPrefix",
                 "enableAutoNumberEquationsInQuotes",
                 "enableAutoNumberTaggedEquationsOnly",
+                "figAutoNumberDelimiter",
+                "figAutoNumberingDepth",
+                "figAutoNumberNoHeadingPrefix",
+                "figAutoNumberGlobalPrefix",
+                "enableAutoNumberFigsInQuotes",
+                "enableAutoNumberTaggedFigsOnly",
                 "enableUpdateTagsInAutoNumber",
                 "deleteRepeatTagsInAutoNumber",
                 "deleteUnusedTagsInAutoNumber",
@@ -102,6 +109,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "enableTypstMode",
                 "debugMode",
                 "enableCiteWithCodeBlockInCallout",
+                "extensionsUseMarkdownRenderer",
             ]
         },
     ];

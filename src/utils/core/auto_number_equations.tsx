@@ -162,9 +162,6 @@ export function getEqAutoNumberInCursor(
     return null;
 }
 
-
-
-
 /**
  * Detect illegal nested $$ in equation string 
  * @param eqStr 

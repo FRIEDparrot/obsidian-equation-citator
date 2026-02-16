@@ -5,7 +5,10 @@
 > 
 > But for more special needs like essay drafting, you may check [[Useful Tricks & techniques]] for more practical tricks that can be commonly used in this plugin. 
 
+![[Equation Citator Logo.excalidraw|fig:1|title:Equation Citaor|250]]
+
 ### ✨ Core Features
+
 The Equation Citator plugin transforms Obsidian into a powerful academic writing environment with LaTeX-style citations. Making referencing in the vault easier than ever. The core features includes : 
 - **Equation Citations**: Tag and reference equations with `\tag{}` and `\ref{}` 
 - **Auto-numbering**: Automatically number equations for easy-management 
@@ -167,7 +170,7 @@ But **since the grammar of external file link view `![[#(3) Citing Clarity|fig:1
 ![[#(3) Citing Clarity|fig:1.6]]
 
 > [!HINT] 
-> Some additional features like auto-number and auto-complete are not currently supported for figure and callout reference. 
+> Currently the plugin don't support autonumber and rename for callouts. Since there might not be a lot of them. You can manage them manually now. Or you can request this feature in the [issue page](https://github.com/FRIEDparrot/obsidian-equation-citator/issues) if you really need it.
 
 ### 2) Callout Citations 
 #### 1. grammar
@@ -202,7 +205,7 @@ All figure and callout citations support syntax and interactive features in [[#1
 
 #### 2. Custom Callout Colors
 
-We also support customize callout colors by adding [callout.css](https://gist.github.com/LucasOe/0bed268951b90e897002ee1e31479c9c) to `Settings > Apperance > CSS Snippets`, so you a beautiful callout like this (this take effect after adding this snippet):
+We also support customize callout colors by adding [callout.css](https://gist.github.com/LucasOe/0bed268951b90e897002ee1e31479c9c) to `Settings > Apperance > CSS Snippets`, so you can write a beautiful callout like this (this take effect after adding this snippet):
 
 > [!table:1.1|red] Sales Data Q4 2024
 > 

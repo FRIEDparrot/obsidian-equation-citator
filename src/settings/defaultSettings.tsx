@@ -62,11 +62,11 @@ export interface EquationCitatorSettings {
     autoNumberType: AutoNumberingType; // Use relative heading level for auto numbering 
     autoNumberDepth: number; // Maximum depth for auto numbering level 
     autoNumberNoHeadingPrefix: string; //  equation numbering prefix for no heading level equations 
-    enableAutoNumberGlobalPrefix: boolean; // Setting for auto numbering prefix 
     autoNumberGlobalPrefix: string; // Global Auto numbering prefix for equations without any heading level  
     enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
     enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
     
+    figAutoNumberDelimiter: string; // Auto numbering delimiter for figures
     figAutoNumberingDepth: number; // Maximum depth for auto numbering figures (sepreate from the equations)
     figAutoNumberNoHeadingPrefix: string; // figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: string; // Global Auto numbering prefix for figures without any heading level
@@ -141,13 +141,14 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     autoNumberDepth: 3, // Default to 3 (i.e., 1.1.1 for 3 levels)  
     autoNumberType: AutoNumberingType.Relative, // Default is using relative heading level 
     autoNumberNoHeadingPrefix: "P",
-    enableAutoNumberGlobalPrefix: false,
     autoNumberGlobalPrefix: "", // Default to empty string for no prefix 
     enableAutoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes 
     enableAutoNumberTaggedEquationsOnly: false, // Default to false, number all equations
     enableUpdateTagsInAutoNumber: true, // Default to true, update citation in auto numbering  
     deleteRepeatTagsInAutoNumber: true, // Default to true, delete repeat tags in auto numbering 
     deleteUnusedTagsInAutoNumber: false, // Default to true, delete unused tags in auto numbering 
+    
+    figAutoNumberDelimiter: ".", // Default delimiter for figure auto numbering  
     figAutoNumberingDepth: 2, // Default to 2 for figure auto numbering (i.e., fig:1.1)
     figAutoNumberNoHeadingPrefix: "F", // Default figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: "", // Default to empty string for no prefix for figure auto numbering
@@ -162,9 +163,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     basicSettingsKeys: [
         "autoNumberType",
         "autoNumberDepth",
+        "autoNumberGlobalPrefix",
         "autoNumberNoHeadingPrefix",
         "figAutoNumberingDepth",
-        "enableAutoNumberGlobalPrefix",
         "enableAutoNumberTaggedEquationsOnly",
         "equationManagePanelFilterTagOnlyEquation",
         "citationPopoverSize",
@@ -382,15 +383,6 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             AutoNumberSettingsTab.autoNumberNoHeadingPrefix(el, plugin);
         }
     },
-    enableAutoNumberGlobalPrefix: {
-        name: "Enable auto-number prefix",
-        desc: "Auto equation numbering prefix for purpose like chapter",
-        type: "boolean",
-        hasSubPanel: true,
-        renderCallback: (el, plugin, renderSubpanel) => {
-            AutoNumberSettingsTab.enableAutoNumberGlobalPrefix(el, plugin, renderSubpanel);
-        }
-    },
     autoNumberGlobalPrefix: {
         name: "Auto numbering global prefix",
         desc: "Global auto equation numbering prefix for purpose like chapter",
@@ -413,6 +405,14 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberTaggedEquationsOnly(el, plugin);
+        }
+    },
+    figAutoNumberDelimiter: {
+        name: "Figure auto numbering delimiter",
+        desc: "Delimiter used for numbering figures, e.g. '.' for '1.1', '-' for '1-1', etc.",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            AutoNumberSettingsTab.figAutoNumberDelimiter(el, plugin);
         }
     },
     figAutoNumberingDepth: {

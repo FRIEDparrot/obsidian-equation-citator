@@ -83,6 +83,7 @@ Version 1.2.2 - many critical bug fixes and significant improvements for user ex
  - [x] Fix multiple same equations render processing, now it will auto matically be combined, `$\ref{eq:1.1.1, 1.1.1, 1.1.2, 1.1.2, 1.1.3, 1.1.4, 1.1.6,  }$`  now should be rendered as  `(1.1.1~4), (1.1.6)`, which is rendered as `(1.1.1~2), (1.1.2~4), (1.1.6)` in previous versions. 
  - [x] Fix the citation not rendered correctly when there are spaces between ref brace and citation prefix (e.g. `ref{ eq:1.1}` will not be rendered correctly) 
  - [x] Fix PDF export issue : The markdown prepend the path name instead of creating it under the same folder. 
+ - [x] `enableAutoNumberGlobalPrefix` settings is not used, and toggle it has no effect. Now this setting is removed.
 
 ✨ New Features : 
 - [x] **(Significant Improvement)** Cross-File Citation now support use inner braces in citation (A large refactor has been made for this, PDF support and autocomplete are also updated to support this feature). 
@@ -330,7 +331,7 @@ Settings Updates :
 - [x] fix bug [#136](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/136), add tag for multi-line equation in callout now work correctly. 
 - [x] fix glitch [#137](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/137), when the equation panel file and current active file is different, It will create a new window and jump to correct position.
 - [x] fix bug [#135](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/135), when edit the file at location before some folded titles, it will not unfold now.
-- [ ] fig bug [#141](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/141), nested callouts now can be displayed correctly in callout citation preview.
+- [x] fig bug [#141](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/141), nested callouts now can be displayed correctly in callout citation preview.
 - [x] fix bug [#142](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/142), now the figures in callout will be correctly recognized and rendered in preview.
 
 🚀 enhancements :
@@ -344,7 +345,7 @@ Settings Updates :
 - [x] refactored the equation panel file, extract the outline view renderer to a separate file.
 - [x] rename `other settings` in categorical settings tab to `others` (Obsidian plugin rule)
 - [x] added `normalizePath()` to clean up the path throughout the plugin (Obsidian plugin rule)
-- [ ] refactor the auto-number function part for better code structure, reuse in figure auto-numbering and scalability. 
+- [x] refactor the auto-number function part for better code structure, reuse in figure auto-numbering and scalability. 
 - [x] remove node assert calls for mobile support  
 - [x] fixed lots of sonar issues for better code quality.
 - [ ] test for mobile support and fix bugs for mobile.

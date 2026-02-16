@@ -1,6 +1,7 @@
 import { MarkdownView, Editor, EditorPosition,  Notice } from "obsidian";
 import { MarkdownFileProcessor } from '@/utils/misc/fileProcessor';
 import { autoNumberEquations, getEqAutoNumberInCursor } from "@/utils/core/auto_number_equations";
+import { autoNumberFigures } from "@/utils/core/auto_number_figures";
 import { TagRenamePair, TagRenameResult } from "@/services/tag_service";
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
@@ -115,6 +116,22 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
         msg += '\n' + citeUpdateMsg;
     }
     new Notice(msg);
+}
+
+export async function autoNumberCurrentFileFigures(plugin: EquationCitator) {
+    const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
+    if (!sourceFile) {
+        new Notice("Auto number is not supported in reading mode");
+        return;
+    }
+    // const processor = new MarkdownFileProcessor(
+    //     plugin,
+    //     sourceFile,
+    //     async (content) => {
+    //         const md = autoNumberFigures(content);
+    //         return md;
+    //     }
+    // );
 }
 
 export function insertAutoNumberTag(plugin: EquationCitator): void {
