@@ -32,7 +32,7 @@
 
 ## 👋🏻 Applications & Usages 
 
-> [!note] Application Scenarios 
+> [!note]  
 > **This plugin would be pretty useful if**: 
 > - You're writing academic notes in Obsidian and need to manage numerous equations efficiently with automatic numbering and cross-references
 > - You're drafting research papers or technical documents in Markdown and want LaTeX-style equation citation with accurate numbering
@@ -40,7 +40,7 @@
 > - You use Obsidian for school or university notes and want quick navigation to cited equations without endless scrolling
 > - You have figures, tables, or theorem-like content in your notes that requires systematic referencing and organization
 
-> [!warning] Non-Application Scenarios
+> [!warning] 
 > **This plugin is NOT designed for**:
 > - Citing equations or content within PDF files (PDFs are not recognized or processed by the plugin)
 > - Managing bibliographic references or literature citations (use a dedicated citation management plugin instead)
@@ -114,7 +114,7 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 - 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
 
 
-> [!NOTE] Collaboration Note
+> [!NOTE] 
 >  
 > **Contributors and maintainers are always welcome** :
 > You can contribute to this plugin by simply forking this repo and submitting a PR:
