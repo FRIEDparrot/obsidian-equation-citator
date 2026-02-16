@@ -1,6 +1,6 @@
-import { 
-    AutoNumberConfigs, 
-    AutoNumberProceedResult, 
+import {
+    AutoNumberConfigs,
+    AutoNumberProceedResult,
     AutoNumberingState,
     generateNextTagForAutoNumber,
     processCodeBlockAndHeading,
@@ -19,6 +19,8 @@ export interface FigAutoNumberConfigs extends AutoNumberConfigs {
  * Auto number all the figures in the given markdown content based on the specified configurations.
  * 
  * This function not update citation, use `autoNumberCurrentFileFigures` in real function call.
+ * 
+ * @remarks process for quotes is handled inside parseMarkdownLine function
  * 
  * @param content - the markdown content to process 
  * @param figCitationPrefix - the prefix for figure citations (e.g., "fig:")
@@ -39,10 +41,10 @@ export function autoNumberFigures(
     } = configs;
     const lines = content.split('\n');
     const headings: Heading[] = parseHeadingsInMarkdown(content);
-    
+
     let inCodeBlock = false;
     const levelCounters: number[] = new Array(maxDepth).fill(0);
-    
+
     const numberingState: AutoNumberingState = {
         levelCounters,
         objNumberBeforeHeading: 0,
@@ -59,7 +61,7 @@ export function autoNumberFigures(
 
     for (const line of lines) {
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
-        
+
         // Process code blocks and headings
         const processResult = processCodeBlockAndHeading(
             parseResult,
@@ -69,18 +71,23 @@ export function autoNumberFigures(
             headings,
             autoNumberingType
         );
-        
+
         inCodeBlock = processResult.inCodeBlock;
         currentHeadingIndex = processResult.currentHeadingIndex;
-        
+
         if (processResult.shouldContinue || !parseResult.isImage) {
             result.push(line);
             continue;
         }
-        // this is wrong, 
+        // the isImage only parse the first ! in the line, so we still need to parse the line strictly
+        const image: ImageMatch | null = parseImageLine(line, 0, figCitationPrefix);
+        if (!image || (image.inQuote && !parseQuotes)) {
+            result.push(line);
+            continue;
+        }
         const newTag = generateNextTagForAutoNumber(numberingState);
-        const addResult = addTagToImage(line, newTag, figCitationPrefix, parseQuotes);
-        
+        const addResult = addTagToImage(image, newTag, figCitationPrefix);
+
         if (addResult.valid) {
             // Add tag mapping if there was an old tag
             if (addResult.oldTag && !tagMapping.has(addResult.oldTag)) {
@@ -91,7 +98,7 @@ export function autoNumberFigures(
             result.push(line);
         }
     }
-    
+
     return {
         md: result.join('\n'),
         tagMapping
@@ -108,59 +115,63 @@ export function autoNumberFigures(
  * @returns The reconstructed image markdown string
  */
 function reconstructWikiLinkImage(
-    image: ImageMatch, 
-    newLabel: string, 
-    originalLine: string, 
+    image: ImageMatch,
+    newLabel: string,
     figCitationPrefix: string
 ): string {
+    const originalLine = image.raw;
     // Extract quote prefix if present
-    const quotePrefixMatch = /^((?:>\s*)+)/.exec(originalLine);
+    const quotePrefixMatch = image.inQuote ? /^((?:>\s*)+)/.exec(originalLine) : null;
     const quotePrefix = quotePrefixMatch ? quotePrefixMatch[1] : '';
-    
+
     // Get the actual image content without quote prefix
     const contentWithoutQuote = originalLine.substring(quotePrefix.length);
-    
+
     // Parse the original metadata from the raw string
     const match = new RegExp(weblinkImagePattern).exec(contentWithoutQuote);
     if (!match) return originalLine;
-    
+
     const imagePath = match[1].trim();
     const metadata = match[2] || '';
-    
+
     // Parse metadata parts
     const metaParts = metadata.split('|').map(p => p.trim()).filter(p => p.length > 0);
+
+    // If no metadata, just add the new label
+    if (metaParts.length === 0) {
+        return quotePrefix + `![[${imagePath}|${newLabel}]]`;
+    }
     
-    // Categorize parts: separate tags, metadata, and size parameters
+    // Check if the last part is a pure number (width/size parameter)
+    const lastPart = metaParts.at(-1)!;
+    const isLastPartNumber = /^\d+$/.test(lastPart);
+
+    // determine the parts to process (all except the last one if it's a number)
+    const partsToProcess = isLastPartNumber ? metaParts.slice(0, -1) : metaParts;
+
+    // Process parts: keep title/desc, remove old tags
     const newMetaParts: string[] = [];
-    const sizeParts: string[] = [];
-    
-    for (const part of metaParts) {
-        // Check if it's a size parameter (numeric only)
-        if (/^\d+$/.test(part)) {
-            sizeParts.push(part);
-        } else if (part.startsWith('title:') || part.startsWith('desc:')) {
-            // Keep title and desc
+    for (const part of partsToProcess) {
+        if (part.startsWith('title:') || part.startsWith('desc:')) {
             newMetaParts.push(part);
         } else if (part.startsWith(figCitationPrefix)) {
-            // This is the old tag, skip it (we'll add the new tag later)
+            // Skip old tag (we'll add the new one)
             continue;
         } else {
-            // Other metadata
+            // Keep other metadata
             newMetaParts.push(part);
         }
     }
-    
-    // Add the new tag before size parts
-    const finalMetaParts = [...newMetaParts, newLabel, ...sizeParts];
-    
-    // Reconstruct the image
-    let result: string;
-    if (finalMetaParts.length > 0) {
-        result = `![[${imagePath}|${finalMetaParts.join('|')}]]`;
-    } else {
-        result = `![[${imagePath}|${newLabel}]]`;
+
+    // Add the new tag
+    newMetaParts.push(newLabel);
+    // Add the last part back if it was a number
+    if (isLastPartNumber) {
+        newMetaParts.push(lastPart);
     }
     
+    // Reconstruct the image
+    const result = `![[${imagePath}|${newMetaParts.join('|')}]]`;
     return quotePrefix + result;
 }
 
@@ -174,53 +185,62 @@ function reconstructWikiLinkImage(
  * @returns The reconstructed image markdown string
  */
 function reconstructMarkdownImage(
-    image: ImageMatch, 
-    newLabel: string, 
-    originalLine: string,
+    image: ImageMatch,
+    newLabel: string,
     figCitationPrefix: string
 ): string {
+    const originalLine = image.raw;
     // Extract quote prefix if present
-    const quotePrefixMatch = /^((?:>\s*)+)/.exec(originalLine);
+    const quotePrefixMatch = image.inQuote ? /^((?:>\s*)+)/.exec(originalLine): null;
     const quotePrefix = quotePrefixMatch ? quotePrefixMatch[1] : '';
-    
+
     // Get the actual image content without quote prefix
     const contentWithoutQuote = originalLine.substring(quotePrefix.length);
-    
+
     // Parse the original alt text from the raw string
     const match = new RegExp(markdownImagePattern).exec(contentWithoutQuote);
     if (!match) return originalLine;
-    
+
     const altText = match[1].trim();
     const imageLink = match[2].trim();
-    
+
     // Parse alt text parts
     const metaParts = altText.split('|').map(p => p.trim()).filter(p => p.length > 0);
-    
-    // Categorize parts: separate tags, metadata, and size parameters
+
+    // If no metadata, just add the new label
+    if (metaParts.length === 0) {
+        return quotePrefix + `![${newLabel}](${imageLink})`;
+    }
+
+    // Check if the last part is a pure number (width/size parameter)
+    const lastPart = metaParts.at(-1)!;
+    const isLastPartNumber = /^\d+$/.test(lastPart);
+
+    // Determine which parts to process
+    const partsToProcess = isLastPartNumber ? metaParts.slice(0, -1) : metaParts;
     const newMetaParts: string[] = [];
-    const sizeParts: string[] = [];
-    
-    for (const part of metaParts) {
-        // Check if it's a size parameter (numeric only)
-        if (/^\d+$/.test(part)) {
-            sizeParts.push(part);
-        } else if (part.startsWith('title:') || part.startsWith('desc:')) {
-            // Keep title and desc
+    for (const part of partsToProcess) {
+        if (part.startsWith('title:') || part.startsWith('desc:')) {
             newMetaParts.push(part);
         } else if (part.startsWith(figCitationPrefix)) {
-            // This is the old tag, skip it (we'll add the new tag later)
+            // Skip old tag (we'll add the new one)
             continue;
         } else {
-            // Other metadata (title without prefix)
+            // Keep other metadata
             newMetaParts.push(part);
         }
     }
-    
-    // Add the new tag before size parts
-    const finalMetaParts = [...newMetaParts, newLabel, ...sizeParts];
-    
+
+    // Add the new tag
+    newMetaParts.push(newLabel);
+
+    // Add the last part back if it was a number
+    if (isLastPartNumber) {
+        newMetaParts.push(lastPart);
+    }
+
     // Reconstruct the image
-    const result = `![${finalMetaParts.join('|')}](${imageLink})`;
+    const result = `![${newMetaParts.join('|')}](${imageLink})`;
     
     return quotePrefix + result;
 }
@@ -258,40 +278,26 @@ function reconstructMarkdownImage(
  * // Returns: { valid: true, oldTag: "old", processedLine: "![fig:1.2|400](url)" }
  */
 function addTagToImage(
-    line: string,
+    image: ImageMatch,
     newTag: string,
     figCitationPrefix: string,
-    parseQuotes: boolean
 ): {
     valid: boolean;
     oldTag: string | null;
     processedLine: string;
 } {
-    // Try to parse the line as an image
-    const image = parseImageLine(line, 0, figCitationPrefix);
-    
-    // If not a valid image or if it's in a quote and we're not parsing quotes
-    if (!image || (image.inQuote && !parseQuotes)) {
-        return {
-            valid: false,
-            oldTag: null,
-            processedLine: line
-        };
-    }
-    
     const oldTag = image.tag || null;
     const newLabel = `${figCitationPrefix}${newTag}`;
-    
+
     // Reconstruct the image with the new tag
     let processedLine: string;
-    
     if (image.type === 'wikilink' || image.type === 'excalidraw') {
-        processedLine = reconstructWikiLinkImage(image, newLabel, line, figCitationPrefix);
+        processedLine = reconstructWikiLinkImage(image, newLabel, figCitationPrefix);
     } else {
         // markdown type
-        processedLine = reconstructMarkdownImage(image, newLabel, line, figCitationPrefix);
+        processedLine = reconstructMarkdownImage(image, newLabel, figCitationPrefix);
     }
-    
+
     return {
         valid: true,
         oldTag: oldTag,

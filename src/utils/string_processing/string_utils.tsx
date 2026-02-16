@@ -294,7 +294,7 @@ export function findLastUnescapedDollar(line: string, pos: number): number {
 export interface QuoteLineMatch {
     content: string;
     quoteDepth: number;
-    isQuote: boolean;
+    inQuote: boolean;
 }
 
 export function processQuoteLine(line: string): QuoteLineMatch {
@@ -312,14 +312,14 @@ export function processQuoteLine(line: string): QuoteLineMatch {
         return {
             content: callout ? `${callout} ${content}` : content,
             quoteDepth: quoteDepth,
-            isQuote: quoteDepth > 0
+            inQuote: quoteDepth > 0
         };
     }
 
     return {
         content: line.trim(),
         quoteDepth: 0,
-        isQuote: false
+        inQuote: false
     }
 }
 
@@ -334,7 +334,7 @@ export interface MarkdownLineEnvironment {
     singleLineEquationMatch?: RegExpMatchArray | null;
     isEquationBlockStart: boolean;
     isEquationBlockEnd: boolean;
-    isImage: boolean;    // Whether the line is an image (starts with !)
+    isImage: boolean;    // Whether the line starts with !, not strictly an image line
     cleanedLine: string;   // Cleaned line with inline code blocks also removed
 }
 
@@ -351,9 +351,9 @@ export function parseMarkdownLine(
     inCodeBlock = false
 ): MarkdownLineEnvironment {
     // Process quote line to extract content and quote depth
-    const { content: processedContent, quoteDepth, isQuote } = parseQuotes
+    const { content: processedContent, quoteDepth, inQuote } = parseQuotes
         ? processQuoteLine(line) 
-        : { content: line.trim(), quoteDepth: 0, isQuote: false };
+        : { content: line.trim(), quoteDepth: 0, inQuote: false };
 
     // Handle code blocks 
     const isCodeBlockToggle = isCbToggle(processedContent);
@@ -362,7 +362,7 @@ export function parseMarkdownLine(
     if (inCodeBlock && !isCodeBlockToggle) {
         return {
             processedContent,
-            inQuote: isQuote,
+            inQuote,
             quoteDepth,
             isHeading: false,
             isCodeBlockToggle: false,
@@ -396,7 +396,7 @@ export function parseMarkdownLine(
 
     return {
         processedContent,
-        inQuote: isQuote,
+        inQuote,
         quoteDepth,
         isHeading,
         headingMatch,

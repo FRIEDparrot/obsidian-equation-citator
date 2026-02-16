@@ -35,7 +35,7 @@ Basic grammar of this plugin is `$\ref{eq:1.1}$`, We support the case that only 
 ## Some File rules for this Project
 - The style file for this project can be found at: `src/styles` foder, only modify the `.scss` files under that folder, not the compiled `.css` files.
 - Never modify `main.js` or `main.css` directly, they are generated files. 
-- Always use `.tsx` to create new typescript file, not `.ts` or `.jsx` or `.js`.
+- Always use `.tsx` to create new typescript file, not `.ts` or `.jsx` or `.js` except the tests files which should have extension `.ts`. (they should be created in `tests` folder)
 
 ## Build, Test, and Lint
 

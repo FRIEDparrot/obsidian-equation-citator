@@ -6,7 +6,7 @@ export type ImageType = "wikilink" | "markdown" | "excalidraw";
  * The matched image information
  */
 export interface ImageMatch {
-    raw: string;              // Full image markdown
+    raw: string;              // Full trimmed image markdown line (include quote block if exist)
     type: ImageType;          // Type of image format
     imagePath?: string;       // Path for weblink format (![[path]]) or excalidraw
     imageLink?: string;       // URL for markdown format (![](url))
@@ -140,7 +140,7 @@ function parseImageLine(
 ): ImageMatch | null {
     const trimmedLine = line.trim();
     // remove the quote block at the front of trimmedLine.
-    const { content, isQuote } = processQuoteLine(trimmedLine);
+    const { content, inQuote } = processQuoteLine(trimmedLine);
     // Must start with ! to be an image
     if (!content.startsWith('!')) return null;
 
@@ -151,7 +151,7 @@ function parseImageLine(
             ...wikilinkResult,
             raw: trimmedLine,
             line: lineNumber,
-            inQuote: isQuote,
+            inQuote,
         };
     }
 
@@ -162,7 +162,7 @@ function parseImageLine(
             ...markdownResult,
             raw: trimmedLine,
             line: lineNumber,
-            inQuote: isQuote,
+            inQuote,
         };
     }
 
