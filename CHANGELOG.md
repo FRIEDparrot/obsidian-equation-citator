@@ -324,6 +324,7 @@ Settings Updates :
 - [ ] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 
 - [x] Add Feature [#143](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/143), now we support Excalidraw in figure citation. 
 - [x] Figure citaion format can now cite section preview.
+- [ ] Support the caption for markdown link format figure.
 
 🐛 Bug Fixes :
 - [x] fix bug [#136](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/136), add tag for multi-line equation in callout now work correctly. 
@@ -343,6 +344,7 @@ Settings Updates :
 - [x] refactored the equation panel file, extract the outline view renderer to a separate file.
 - [x] rename `other settings` in categorical settings tab to `others` (Obsidian plugin rule)
 - [x] added `normalizePath()` to clean up the path throughout the plugin (Obsidian plugin rule)
+- [ ] refactor the auto-number function part for better code structure, reuse in figure auto-numbering and scalability. 
 - [x] remove node assert calls for mobile support  
 - [x] fixed lots of sonar issues for better code quality.
 - [ ] test for mobile support and fix bugs for mobile.

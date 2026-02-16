@@ -15,15 +15,15 @@ export interface AutoNumberProceedResult {
     tagMapping: Map<string, string>;  // mapping to rename citations 
 }
 
-interface EquationNumberingState {
+interface AutoNumberingState {
     levelCounters: number[];          // Heading level counters (length = maxDepth)
-    preHeadingEqNumber: number;       // Counter for equations that appear before any heading (depth = 0)
-    equationNumber: number;           // Counter for equations under the current heading depth
+    objNumberBeforeHeading: number;   // Counter for objects (equation, figures, etc.) that appear before any heading (depth = 0)
+    objNumber: number;                // Counter for objects under the current heading depth
     currentDepth: number;             // Current heading depth (0 means no active heading section)
     maxDepth: number;                 // Max heading depth allowed by user settings
     delimiter: string;                // Delimiter between hierarchical numbering segments
     globalPrefix: string;             // Global prefix applied to every generated tag
-    noHeadingEquationPrefix: string;  // Prefix used for equations that are outside any heading
+    noHeadingObjPrefix: string;       // Prefix used for objects(equations) that are outside any heading
 }
 
 export interface AutoNumberConfigs {
@@ -50,28 +50,28 @@ function isPositionInSingleLineEquation(line: string, ch: number): boolean {
 /**
  * Generates the next equation tag based on the current equation numbering state.
  *
- * The function increments the appropriate equation number depending on the current depth.
- * - If `currentDepth` is 0, it increments `preHeadingEqNumber` and returns a tag for equations before any heading.
- * - Otherwise, it increments `equationNumber` and constructs a tag using the global prefix, level counters, and delimiter.
+ * The function increments the appropriate object number depending on the current depth.
+ * - If `currentDepth` is 0, it increments `objNumberBeforeHeading` and returns a tag for objects before any heading.
+ * - Otherwise, it increments `objNumber` and constructs a tag using the global prefix, level counters, and delimiter.
  *
  * @param state - The current equation numbering state, containing counters and configuration for equation numbering.
- * @returns The generated equation tag as a string.
+ * @returns The generated object tag as a string.
  */
-function generateNextEquationTag(state: EquationNumberingState): string {
+function generateNextTag(state: AutoNumberingState): string {
     if (state.currentDepth === 0) {
-        state.preHeadingEqNumber++;
-        return `${state.globalPrefix}${state.noHeadingEquationPrefix}${state.preHeadingEqNumber}`;
+        state.objNumberBeforeHeading++;
+        return `${state.globalPrefix}${state.noHeadingObjPrefix}${state.objNumberBeforeHeading}`;
     } else {
         const eqIdx = Math.min(state.currentDepth, state.maxDepth - 1);
-        state.equationNumber++;
+        state.objNumber++;
         if (eqIdx === 0) {
-            return `${state.globalPrefix}${state.equationNumber}`;
+            return `${state.globalPrefix}${state.objNumber}`;
         } else {
             const prefixLevels = state.levelCounters
                 .slice(0, eqIdx)
                 .filter(n => n > 0)
                 .join(state.delimiter);
-            return `${state.globalPrefix}${prefixLevels}${state.delimiter}${state.equationNumber}`;
+            return `${state.globalPrefix}${prefixLevels}${state.delimiter}${state.objNumber}`;
         }
     }
 }
@@ -118,15 +118,15 @@ export function getAutoNumberInCursor(
     // Set Counters for equation numbering
     const levelCounters: number[] = new Array(maxDepth).fill(0);
 
-    const numberingState: EquationNumberingState = {
+    const numberingState: AutoNumberingState = {
         levelCounters,
-        preHeadingEqNumber: 0,
-        equationNumber: 0,
+        objNumberBeforeHeading: 0,
+        objNumber: 0,
         currentDepth: 0,
         maxDepth,
         delimiter,
         globalPrefix,
-        noHeadingEquationPrefix
+        noHeadingObjPrefix: noHeadingEquationPrefix
     };
 
     // maintain two unique counters for non-heading and heading equations 
@@ -139,7 +139,7 @@ export function getAutoNumberInCursor(
             shouldNumber = !!oldTag;
         }
         if (shouldNumber) {
-            return generateNextEquationTag(numberingState);
+            return generateNextTag(numberingState);
         }
         return null;
     }
@@ -163,7 +163,7 @@ export function getAutoNumberInCursor(
             }
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
             if (headingLevel <= maxDepth - 1) {
-                numberingState.equationNumber = 0;
+                numberingState.objNumber = 0;
             }
             numberingState.currentDepth = Math.min(headingLevel, maxDepth);
             currentHeadingIndex++;
@@ -174,7 +174,7 @@ export function getAutoNumberInCursor(
             equationBuffer.push(parseResult.cleanedLine.trim());
             // Check if cursor is on this line
             if (i === cursorPos.line) {
-                return generateNextEquationTag(numberingState);
+                return generateNextTag(numberingState);
             }
             if (parseResult.isEquationBlockEnd) {
                 inEquationBlock = false;
@@ -287,15 +287,15 @@ export function autoNumberEquations(
     let equationBuffer: string[] = [];
 
     // maintain two unique counters for non-heading and heading equations  
-    const numberingState: EquationNumberingState = {
+    const numberingState: AutoNumberingState = {
         levelCounters,
-        preHeadingEqNumber: 0,
-        equationNumber: 0,
+        objNumberBeforeHeading: 0,
+        objNumber: 0,
         currentDepth: 0,
         maxDepth,
         delimiter,
         globalPrefix,
-        noHeadingEquationPrefix
+        noHeadingObjPrefix: noHeadingEquationPrefix
     };
     let currentHeadingIndex = 0;
 
@@ -329,7 +329,7 @@ export function autoNumberEquations(
 
         if (getNewTag) {
             // generate new tag
-            const newTagLabel = generateNextEquationTag(numberingState);
+            const newTagLabel = generateNextTag(numberingState);
             const newTag = createEquationTagString(newTagLabel, enableTypstMode);
             addTagMapping(oldTag, newTagLabel);
             return getFormattedEquation(content, newTag);
@@ -371,7 +371,7 @@ export function autoNumberEquations(
                 throw new Error(`Current heading ${parseResult.headingMatch[2]} is not in headings array, this should not happen since we get heading info from the same content.`);
             }
             updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
-            if (headingLevel <= maxDepth - 1) numberingState.equationNumber = 0;
+            if (headingLevel <= maxDepth - 1) numberingState.objNumber = 0;
             numberingState.currentDepth = Math.min(headingLevel, maxDepth);
             result.push(line);
             currentHeadingIndex++;
@@ -430,14 +430,21 @@ export function autoNumberEquations(
     }
 }
 
+/**
+ * @param levelCounters the array of counters for each heading level, length should be equal to maxDepth
+ * @param headingLevel 
+ *            input absolute level if autoNumberingType is Absolute, 
+ *            input relative level if autoNumberingType is Relative 
+ * @param maxDepth maximum heading level we want to handle in numbering. For example, maxDepth=3 means we handle heading levels 1, 2, and 3.
+ * @param type 
+ * @returns 
+ */
 function updateLevelCounters(
     levelCounters: number[],
     headingLevel: number,
     maxDepth: number,
     type: AutoNumberingType
 ): void {
-    // maxDepth is the maximum heading level we want to handle in numbering.
-    // For example, maxDepth=3 means we handle heading levels 1, 2, and 3.
     const maxAllowedLevel = maxDepth;
 
     // Early return for headings deeper than maxDepth - they should not update counters
