@@ -97,7 +97,8 @@ export interface EquationCitatorSettings {
     equationManagePanelDefaultViewType: "outline" | "list",
     equationManagePanelFilterTagOnlyEquation: boolean;
     equationManagePanelFilterBoxedEquation: boolean;
-    skipFirstlineInBoxedFilter: boolean; 
+    skipFirstlineInBoxedFilter: boolean;
+    typstBoxSymbol: string; // Override symbol for boxed equation in typst mode, default to box
     equationManagePanelEnableRenderHeadingsOnly: boolean;
 
     // settings UI
@@ -156,6 +157,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     figAutoNumberGlobalPrefix: "", // Default to empty string for no prefix for figure auto numbering
     enableAutoNumberFigsInQuotes: false, // Default to false, not to number figures in quotes
     enableAutoNumberTaggedFigsOnly: false, // Default to false, number all figures
+    typstBoxSymbol: "boxed", // Default symbol for boxed equation in typst mode
 
     enableTypstMode: false,
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
@@ -551,6 +553,14 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             OtherSettingsTab.enableTypstMode(el, plugin);
+        }
+    },
+    typstBoxSymbol: {
+        name: "Typst box symbol",
+        desc: "Symbol for box equations in Typst mode (typst is `#box`, `boxed` for typst mate)",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            OtherSettingsTab.typstBoxSymbol(el, plugin);
         }
     },
     debugMode: {

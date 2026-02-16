@@ -20,6 +20,21 @@ export const OtherSettingsTab = {
             });
     },
 
+    typstBoxSymbol(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.typstBoxSymbol;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addText((text) => {
+                text.setValue(plugin.settings.typstBoxSymbol);
+                text.setPlaceholder("#box");
+                text.onChange(async (value) => {
+                    plugin.settings.typstBoxSymbol = value || "#box";
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
     debugMode(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.debugMode;
         const debugModeSetting = new Setting(containerEl);
@@ -190,9 +205,10 @@ export const OtherSettingsTab = {
 
 export function addOtherSettingsTab(containerEl: HTMLElement, plugin: EquationCitator, settingsTab: SettingsTabView) {
     OtherSettingsTab.enableTypstMode(containerEl, plugin);
+    OtherSettingsTab.typstBoxSymbol(containerEl, plugin);
+    OtherSettingsTab.extensionsUseMarkdownRenderer(containerEl, plugin);
     OtherSettingsTab.debugMode(containerEl, plugin);
     OtherSettingsTab.resetSettings(containerEl, plugin, settingsTab);
-    OtherSettingsTab.extensionsUseMarkdownRenderer(containerEl, plugin);
     // ==================  Beta features settings ==========   
     new Setting(containerEl).setName("Beta features").setHeading();
     OtherSettingsTab.enableCiteWithCodeBlockInCallout(containerEl, plugin);

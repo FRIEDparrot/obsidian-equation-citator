@@ -109,6 +109,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "Others",
             settingKeys: [
                 "enableTypstMode",
+                "typstBoxSymbol",
                 "debugMode",
                 "enableCiteWithCodeBlockInCallout",
                 "extensionsUseMarkdownRenderer",

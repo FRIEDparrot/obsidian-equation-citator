@@ -352,9 +352,13 @@ export class EquationArrangePanel extends ItemView {
         const {
             enableTypstMode,
             skipFirstlineInBoxedFilter,
+            typstBoxSymbol,
         } = this.plugin.settings;
         const tagFilter = (eq: EquationMatch) => !this.filterTagOnlyEquation || (eq.tag && eq.tag.trim().length > 0);
-        const boxedFilter = (eq: EquationMatch) => !this.filterBoxedEquation || boxedEquationFilter(eq, enableTypstMode, skipFirstlineInBoxedFilter);
+        const boxedFilter = (
+            eq: EquationMatch) => !this.filterBoxedEquation || 
+            boxedEquationFilter(eq, enableTypstMode, skipFirstlineInBoxedFilter, typstBoxSymbol
+        );
 
         if (!this.searchQuery || this.searchQuery.trim().length === 0) {
             return equations.filter(tagFilter).filter(boxedFilter);

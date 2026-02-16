@@ -19,10 +19,7 @@ export const PdfExportSettingsTab = {
     },
     pdfExportTip(containerEl: HTMLElement, plugin: EquationCitator) {
         containerEl.createEl("p", {
-            text: "💡tip: original pdf export would failed to render citations, please \
-use plugin command `Make markdown copy to export PDF`, \
-this will make a correctly-rendered markdown from current note to export pdf.\
-(superscripts will also be converted to normal superscript grammar)",
+            text: "💡tip: original pdf export would failed to render citations, please use plugin command `Make markdown copy to export PDF`, this will make a correctly-rendered markdown from current note to export pdf.(superscripts will also be converted to normal superscript grammar)",
             cls: "ec-settings-tip"
         });
     }

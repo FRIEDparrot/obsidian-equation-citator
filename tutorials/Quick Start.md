@@ -247,7 +247,9 @@ You may use this with `Auto-number tagged equations only`. see [[Useful Tricks &
 
 2. **boxed filters**: Show only equations wrapped with `\boxed{}`. Note for simplicity in this filter it only check if the first non-blank line of equations is start with `\boxed`. 
 
-You can use Latex Suite `box current equation` command to box equations, we also provide a command `box current equation` in our plugin, so you can just select a equation and run this command to box it.
+You can use Latex Suite `box current equation` command to box equations, we also provide a command `box current equation` in our plugin, so you can just select a equation and run this command to box it 
+
+To support [typst mode](https://github.com/azyarashi/obsidian-typst-mate) box, and for better support to `typst mate` plugin, this plugin use `boxed` as default typst box symbol. This can be set at `settings > Display (Categorical) > Others > Typst box symbol`, see [feature #140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140) for details.
 
 For some users, they use the first line of multi-line equation as class, we also provide an option to this. Check `Settings > Display (Categorical) > Equation Panel > Skip first line when filter boxed equation` to enable this feature.
 ```latex

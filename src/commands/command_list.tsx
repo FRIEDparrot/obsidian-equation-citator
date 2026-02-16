@@ -6,6 +6,7 @@ import { insertTextWithCursorOffset } from '@/utils/workspace/insertTextOnCursor
 import { createCitationString, createEquationTagString } from '@/utils/string_processing/regexp_utils';
 import { invokeView } from '@/utils/workspace/invokePanelView';
 import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel/mainPanel';
+import { boxSelectedEquation } from '@/func/equations_helper';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
@@ -94,6 +95,13 @@ export default function registerCommands(plugin: EquationCitator) {
         }
     })
 
+    plugin.addCommand({
+        id: 'box-current-equation',
+        name: 'Box current equation',
+        callback: () => {
+            boxSelectedEquation(plugin);
+        }
+    })
     
     plugin.addCommand({
         id: 'clear-cache',

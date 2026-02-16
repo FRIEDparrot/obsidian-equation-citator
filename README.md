@@ -79,7 +79,7 @@ The pdf will be like following picture after exporting, with correct citation an
 Following plugins often used for math are tested to be compatible with `Equation Citator`, you can use them together without any problem. 
 
 1. [Excalidraw](https://github.com/zsviczian/obsidian-excalidraw-plugin),  Excalidraw is supported in figure citation preview after version 1.3.3, you can cite an excalidraw picture by adding `fig` field to it just like normal images.
-2. [Obsidian Typst Mate](https://github.com/azyarashi/obsidian-typst-mate). This plugin supports typst-style autonumber, and you can use `Settings > Categorical > Others > enable typst mode` to enable it.
+2. [Typst Mate](https://github.com/azyarashi/obsidian-typst-mate). This plugin supports typst-style autonumber, and you can use `Settings > Categorical > Others > enable typst mode` to enable it.
 3. [Latex Suite](https://github.com/artisticat1/obsidian-latex-suite), it can work seamlessly with this plugin, I really suggest using this for quickly writing long and complex equations.
 4. [Completr](https://github.com/tth05/obsidian-completr), This provide better auto-complete for latex syntax.
 5. [Quick Latex](https://github.com/joeyuping/quick_latex_obsidian). This provide features like auto-enlarge brackets.
