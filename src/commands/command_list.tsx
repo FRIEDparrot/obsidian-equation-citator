@@ -1,5 +1,5 @@
 import EquationCitator from '@/main';
-import { autoNumberCurrentFileEquations, insertAutoNumberTag } from '@/func/autoNumber';
+import { autoNumberCurrentFileEquations, autoNumberCurrentFileFigures, insertAutoNumberTag } from '@/func/autoNumber';
 import { MarkdownView, Notice } from 'obsidian';
 import { exportCurrentMarkdown } from '@/func/exportMarkdown';
 import { insertTextWithCursorOffset } from '@/utils/workspace/insertTextOnCursor';
@@ -14,13 +14,17 @@ export default function registerCommands(plugin: EquationCitator) {
         callback: async() => {
             const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
             if (!editor) return;
-            const scrollInfo = editor.getScrollInfo();
-            
             await autoNumberCurrentFileEquations(plugin);
-            // reset the scroll location  
-            setTimeout(() => {
-                editor.scrollTo(scrollInfo.left, scrollInfo.top);
-            }, 50); // delay to allow the editor to update the scroll position 
+        }
+    });
+
+    plugin.addCommand({
+        id: 'auto-number-current-file-figures',
+        name: 'Auto-number current file figures',
+        callback: async() => {
+            const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+            if (!editor) return;
+            await autoNumberCurrentFileFigures(plugin);
         }
     });
 

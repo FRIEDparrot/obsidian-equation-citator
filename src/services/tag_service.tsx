@@ -169,7 +169,8 @@ export class TagService {
     }
 
     /**
-     * rename tag in current file and its backlinks 
+     * The name `renameTags` is misleading (since this is for update citations, so it may be renamed in future)
+     * update citations in current file and its backlinks (reused for equations and figures)
      * @param sourceFile 
      * @param tagPairs 
      * @param deleteRepeatCitations 

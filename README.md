@@ -33,7 +33,7 @@
 ## 👋🏻 Applications & Usages 
 
 > [!note] Application Scenarios 
-> **This plugin would be very useful if**: 
+> **This plugin would be pretty useful if**: 
 > - You're writing academic notes in Obsidian and need to manage numerous equations efficiently with automatic numbering and cross-references
 > - You're drafting research papers or technical documents in Markdown and want LaTeX-style equation citation with accurate numbering
 > - You derive equations in your notes and need to reference them throughout your derivation process or across multiple files

@@ -179,9 +179,9 @@ async function executeAutoNumber(
         citationUpdateResult = await updateCitationsCallback(sourceFile, renamePairs);
         if (citationUpdateResult) Debugger.log("citation update details :", citationUpdateResult.details);
     }
-    // Restore cursor position after all processing
+    // Restore cursor position after all processing (and make it visible)
     if (editor && originalCursorPos) {
-        restoreCursorPosition(editor, originalCursorPos, true);
+        restoreCursorPosition(editor, originalCursorPos, false);
     }
     // show notice message
     let msg = "Auto numbering finished.";
