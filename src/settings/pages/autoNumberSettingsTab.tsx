@@ -159,17 +159,17 @@ export const AutoNumberSettingsTab = {
             });
     },
 
-    figAutoNumberingDepth(containerEl: HTMLElement, plugin: EquationCitator) {
-        const { name, desc } = SETTINGS_METADATA.figAutoNumberingDepth;
+    figAutoNumberDepth(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.figAutoNumberDepth;
         const figAutoNumberLevelSetting = new Setting(containerEl);
         figAutoNumberLevelSetting.setName(name)
             .setDesc(desc)
             .addSlider((slider) => {
                 slider.setLimits(1, 6, 1);
-                slider.setValue(plugin.settings.figAutoNumberingDepth || 1);
+                slider.setValue(plugin.settings.figAutoNumberDepth || 1);
                 slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
-                    plugin.settings.figAutoNumberingDepth = value;
+                    plugin.settings.figAutoNumberDepth = value;
                     await plugin.saveSettings();
                 });
             });
@@ -315,7 +315,7 @@ export function addAutoNumberSettingsTab(containerEl: HTMLElement, plugin: Equat
     
     new Setting(containerEl).setName("For figures").setHeading();
     AutoNumberSettingsTab.figAutoNumberDelimiter(containerEl, plugin);
-    AutoNumberSettingsTab.figAutoNumberingDepth(containerEl, plugin);
+    AutoNumberSettingsTab.figAutoNumberDepth(containerEl, plugin);
     AutoNumberSettingsTab.figAutoNumberNoHeadingPrefix(containerEl, plugin);
     AutoNumberSettingsTab.figAutoNumberGlobalPrefix(containerEl, plugin);
     AutoNumberSettingsTab.enableAutoNumberFigsInQuotes(containerEl, plugin);

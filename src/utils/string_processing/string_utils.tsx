@@ -341,7 +341,7 @@ export interface MarkdownLineEnvironment {
 /**
  * Parse the 
  * @param line 
- * @param parseQuotes 
+ * @param parseQuotes whether to remove quote in lines before processing.
  * @param inCodeBlock 
  * @returns 
  */
@@ -351,12 +351,9 @@ export function parseMarkdownLine(
     inCodeBlock = false
 ): MarkdownLineEnvironment {
     // Process quote line to extract content and quote depth
-    const { content: processedContent, quoteDepth, qt: inQuote } = parseQuotes
-        ? (() => {
-            const { content, quoteDepth, isQuote } = processQuoteLine(line);
-            return { content, quoteDepth: quoteDepth, qt: isQuote };
-        })()
-        : { content: line.trim(), quoteDepth: 0, qt: false };
+    const { content: processedContent, quoteDepth, isQuote } = parseQuotes
+        ? processQuoteLine(line) 
+        : { content: line.trim(), quoteDepth: 0, isQuote: false };
 
     // Handle code blocks 
     const isCodeBlockToggle = isCbToggle(processedContent);
@@ -365,7 +362,7 @@ export function parseMarkdownLine(
     if (inCodeBlock && !isCodeBlockToggle) {
         return {
             processedContent,
-            inQuote,
+            inQuote: isQuote,
             quoteDepth,
             isHeading: false,
             isCodeBlockToggle: false,
@@ -399,7 +396,7 @@ export function parseMarkdownLine(
 
     return {
         processedContent,
-        inQuote,
+        inQuote: isQuote,
         quoteDepth,
         isHeading,
         headingMatch,

@@ -67,7 +67,7 @@ export interface EquationCitatorSettings {
     enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
     
     figAutoNumberDelimiter: string; // Auto numbering delimiter for figures
-    figAutoNumberingDepth: number; // Maximum depth for auto numbering figures (sepreate from the equations)
+    figAutoNumberDepth: number; // Maximum depth for auto numbering figures (sepreate from the equations)
     figAutoNumberNoHeadingPrefix: string; // figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: string; // Global Auto numbering prefix for figures without any heading level
     enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in quotes,
@@ -149,7 +149,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     deleteUnusedTagsInAutoNumber: false, // Default to true, delete unused tags in auto numbering 
     
     figAutoNumberDelimiter: ".", // Default delimiter for figure auto numbering  
-    figAutoNumberingDepth: 2, // Default to 2 for figure auto numbering (i.e., fig:1.1)
+    figAutoNumberDepth: 2, // Default to 2 for figure auto numbering (i.e., fig:1.1)
     figAutoNumberNoHeadingPrefix: "F", // Default figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: "", // Default to empty string for no prefix for figure auto numbering
     enableAutoNumberFigsInQuotes: false, // Default to false, not to number figures in quotes
@@ -165,7 +165,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "autoNumberDepth",
         "autoNumberGlobalPrefix",
         "autoNumberNoHeadingPrefix",
-        "figAutoNumberingDepth",
+        "figAutoNumberDepth",
         "enableAutoNumberTaggedEquationsOnly",
         "equationManagePanelFilterTagOnlyEquation",
         "citationPopoverSize",
@@ -415,12 +415,12 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             AutoNumberSettingsTab.figAutoNumberDelimiter(el, plugin);
         }
     },
-    figAutoNumberingDepth: {
+    figAutoNumberDepth: {
         name: "Auto numbering depth for figures",
         desc: "Maximum depth for figure numbers (e.g., depth of 2 gives 'fig:1.1')",
         type: "number",
         renderCallback: (el, plugin) => {
-            AutoNumberSettingsTab.figAutoNumberingDepth(el, plugin);
+            AutoNumberSettingsTab.figAutoNumberDepth(el, plugin);
         }
     },
     figAutoNumberNoHeadingPrefix: {

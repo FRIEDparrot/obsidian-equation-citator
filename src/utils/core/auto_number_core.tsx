@@ -3,6 +3,9 @@
  * These can be reused for both equations and figures. 
  */
 
+import { Heading, relativeHeadingLevel } from "../parsers/heading_parser";
+import { MarkdownLineEnvironment } from "../string_processing/string_utils";
+
 export enum AutoNumberingType {
     Relative = "Relative",
     Absolute = "Absolute"
@@ -41,7 +44,7 @@ export interface AutoNumberingState {
     maxDepth: number;                 // Max heading depth allowed by user settings
     delimiter: string;                // Delimiter between hierarchical numbering segments
     globalPrefix: string;             // Global prefix applied to every generated tag
-    noHeadingObjPrefix: string;       // Prefix used for objects(equations) that are outside any heading
+    noHeadingPrefix: string;          // Prefix used for objects(equations) that are outside any heading
 }
 
 /**
@@ -60,6 +63,10 @@ export interface AutoNumberConfigs {
 
 /**
  * Generates the next equation tag based on the current equation numbering state.
+ * @remarks 
+ * 1. The auto-number logic is to maintain two separate counters for equations before any heading (objNumberBeforeHeading) 
+ *     and equations under headings (objNumber). The current depth is determined by the heading levels. 
+ * 2. For heading level is 0, it is no heading objects.
  *
  * The function increments the appropriate object number depending on the current depth.
  * - If `currentDepth` is 0, it increments `objNumberBeforeHeading` and returns a tag for objects before any heading.
@@ -71,7 +78,7 @@ export interface AutoNumberConfigs {
 export function generateNextTagForAutoNumber(state: AutoNumberingState): string {
     if (state.currentDepth === 0) {
         state.objNumberBeforeHeading++;
-        return `${state.globalPrefix}${state.noHeadingObjPrefix}${state.objNumberBeforeHeading}`;
+        return `${state.globalPrefix}${state.noHeadingPrefix}${state.objNumberBeforeHeading}`;
     } else {
         const eqIdx = Math.min(state.currentDepth, state.maxDepth - 1);
         state.objNumber++;
@@ -107,6 +114,9 @@ export function generateNewTagForAutoNumber(state: AutoNumberingState, oldTag: s
 }
 
 /**
+ * Updates level counters based on heading level.
+ * 
+ * @internal This function is not exported and is used internally by processCodeBlockAndHeading.
  * @param levelCounters the array of counters for each heading level, length should be equal to maxDepth
  * @param headingLevel 
  *            input absolute level if autoNumberingType is Absolute, 
@@ -115,7 +125,7 @@ export function generateNewTagForAutoNumber(state: AutoNumberingState, oldTag: s
  * @param type 
  * @returns 
  */
-export function updateLevelCounters(
+function updateLevelCounters(
     levelCounters: number[],
     headingLevel: number,
     maxDepth: number,
@@ -138,4 +148,89 @@ export function updateLevelCounters(
     // Increment current level and reset deeper levels
     levelCounters[headingLevel - 1]++;
     levelCounters.fill(0, headingLevel);
+}
+
+
+export interface CodeAndHeadingLineProcessResult {
+    shouldContinue: boolean;    // if true, skip to next line (was in code block or was heading)
+    inCodeBlock: boolean;       // updated code block state  
+    currentHeadingIndex: number; // updated heading index (only increments if was heading)
+}
+
+/**
+ * Process code blocks and headings, also update numberingstate during auto-numbering.
+ * 
+ * This function handles the common logic for both equation and figure auto-numbering:
+ * - Toggles code block state when code block markers (```) are encountered
+ * - Returns early if currently in a code block
+ * - Processes headings and **updates numbering state counters**
+ * 
+ * @access call it in every loop in auto-number functions after calling `parseMarkdownLine` function
+ * 
+ * @param parseResult - The parsed markdown line from `parseMarkdownLine` function
+ * @param inCodeBlock - Current code block state
+ * @param numberingState - Current auto-numbering state (will be mutated to update counters)
+ * @param currentHeadingIndex - Current heading index
+ * @param headings - Array of all headings in the document
+ * @param autoNumberingType - Type of auto-numbering (Absolute or Relative)
+ * @returns Object containing: shouldContinue (skip to next line), updated inCodeBlock state, and updated currentHeadingIndex
+ */
+export function processCodeBlockAndHeading(
+    parseResult: MarkdownLineEnvironment,
+    inCodeBlock: boolean,
+    numberingState: AutoNumberingState,
+    currentHeadingIndex: number,
+    headings: Heading[],
+    autoNumberingType: AutoNumberingType,
+): CodeAndHeadingLineProcessResult {
+    // Update code block state
+    if (parseResult.isCodeBlockToggle) {
+        inCodeBlock = !inCodeBlock;
+    }
+    
+    // Skip if in code block
+    if (inCodeBlock) {
+        return {
+            shouldContinue: true,
+            inCodeBlock,
+            currentHeadingIndex
+        };
+    }
+    
+    // Handle headings to update counters
+    if (parseResult.isHeading && parseResult.headingMatch) {
+        const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
+            relativeHeadingLevel(headings, currentHeadingIndex) :
+            parseResult.headingMatch[1].length;
+
+        if (headingLevel < 0) {
+            throw new Error(`Current heading ${parseResult.headingMatch[2]} is not in headings array`);
+        }
+        
+        updateLevelCounters(
+            numberingState.levelCounters,
+            headingLevel,
+            numberingState.maxDepth,
+            autoNumberingType
+        );
+        
+        if (headingLevel <= numberingState.maxDepth - 1) {
+            numberingState.objNumber = 0;
+        }
+        
+        numberingState.currentDepth = Math.min(headingLevel, numberingState.maxDepth);
+        
+        return {
+            shouldContinue: true,
+            inCodeBlock,
+            currentHeadingIndex: currentHeadingIndex + 1
+        };
+    }
+    
+    // Not a code block or heading, continue processing
+    return {
+        shouldContinue: false,
+        inCodeBlock,
+        currentHeadingIndex
+    };
 }

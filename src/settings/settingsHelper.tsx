@@ -56,7 +56,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "enableAutoNumberEquationsInQuotes",
                 "enableAutoNumberTaggedEquationsOnly",
                 "figAutoNumberDelimiter",
-                "figAutoNumberingDepth",
+                "figAutoNumberDepth",
                 "figAutoNumberNoHeadingPrefix",
                 "figAutoNumberGlobalPrefix",
                 "enableAutoNumberFigsInQuotes",

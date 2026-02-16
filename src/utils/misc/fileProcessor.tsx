@@ -19,9 +19,12 @@ export function isMarkdownFilePath(filePath: string) : boolean {
 }
 
 /**
- * Fix :
- * Not use current file processor 
- * (since it have bad real-time update and may confilct with some other file operation)
+ * A wrapper class to use a call back function for processing markdown file. 
+ * 
+ * @remarks If any problems in processing, we can throw error in callback function 
+ * @param plugin the plugin instance, used for accessing vault and other resources
+ * @param sourcePath the path of the markdown file to process, would normalize automatically.
+ * @param callback the async callback function to process the file content
  */
 export class MarkdownFileProcessor {
     constructor(private readonly plugin: EquationCitator,

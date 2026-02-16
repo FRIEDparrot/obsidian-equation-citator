@@ -1,26 +1,32 @@
 import { 
     AutoNumberConfigs, 
     AutoNumberProceedResult, 
-    AutoNumberingType,
     AutoNumberingState,
     generateNextTagForAutoNumber,
-    updateLevelCounters
+    processCodeBlockAndHeading,
 } from "./auto_number_core";
-import { parseHeadingsInMarkdown, Heading, relativeHeadingLevel } from "../parsers/heading_parser";
+import { parseHeadingsInMarkdown, Heading } from "../parsers/heading_parser";
 import { ImageMatch, parseImageLine } from "../parsers/image_parser";
 import { weblinkImagePattern, markdownImagePattern } from "../string_processing/regexp_utils";
 import { parseMarkdownLine } from "../string_processing/string_utils";
 
+
+export interface FigAutoNumberConfigs extends AutoNumberConfigs {
+    figCitationPrefix: string,
+}
+
 /**
  * Auto number all the figures in the given markdown content based on the specified configurations.
+ * 
+ * This function not update citation, use `autoNumberCurrentFileFigures` in real function call.
+ * 
  * @param content - the markdown content to process 
  * @param figCitationPrefix - the prefix for figure citations (e.g., "fig:")
  * @param configs - the auto-numbering related configurations, including type, depth, delimiter, etc.
  */
 export function autoNumberFigures(
     content: string,
-    figCitationPrefix: string,
-    configs: AutoNumberConfigs,
+    configs: FigAutoNumberConfigs,
 ): AutoNumberProceedResult {
     const {
         autoNumberingType,
@@ -28,14 +34,13 @@ export function autoNumberFigures(
         delimiter,
         noHeadingPrefix,
         globalPrefix,
-        parseQuotes
+        parseQuotes,
+        figCitationPrefix,
     } = configs;
     const lines = content.split('\n');
     const headings: Heading[] = parseHeadingsInMarkdown(content);
     
     let inCodeBlock = false;
-    
-    // Set Counters for figure numbering
     const levelCounters: number[] = new Array(maxDepth).fill(0);
     
     const numberingState: AutoNumberingState = {
@@ -46,9 +51,8 @@ export function autoNumberFigures(
         maxDepth,
         delimiter,
         globalPrefix,
-        noHeadingObjPrefix: noHeadingPrefix
+        noHeadingPrefix,
     };
-    
     let currentHeadingIndex = 0;
     const tagMapping = new Map<string, string>();
     const result: string[] = [];
@@ -56,49 +60,33 @@ export function autoNumberFigures(
     for (const line of lines) {
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
         
-        // Update code block state
-        if (parseResult.isCodeBlockToggle) {
-            inCodeBlock = !inCodeBlock;
-        }
+        // Process code blocks and headings
+        const processResult = processCodeBlockAndHeading(
+            parseResult,
+            inCodeBlock,
+            numberingState,
+            currentHeadingIndex,
+            headings,
+            autoNumberingType
+        );
         
-        if (inCodeBlock) {
+        inCodeBlock = processResult.inCodeBlock;
+        currentHeadingIndex = processResult.currentHeadingIndex;
+        
+        if (processResult.shouldContinue || !parseResult.isImage) {
             result.push(line);
             continue;
         }
+        // this is wrong, 
+        const newTag = generateNextTagForAutoNumber(numberingState);
+        const addResult = addTagToImage(line, newTag, figCitationPrefix, parseQuotes);
         
-        // Handle headings to update counters
-        if (parseResult.isHeading && parseResult.headingMatch) {
-            const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
-                relativeHeadingLevel(headings, currentHeadingIndex) :
-                parseResult.headingMatch[1].length;
-
-            if (headingLevel < 0) {
-                throw new Error(`Current heading ${parseResult.headingMatch[2]} is not in headings array`);
+        if (addResult.valid) {
+            // Add tag mapping if there was an old tag
+            if (addResult.oldTag && !tagMapping.has(addResult.oldTag)) {
+                tagMapping.set(addResult.oldTag, newTag);
             }
-            updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
-            if (headingLevel <= maxDepth - 1) {
-                numberingState.objNumber = 0;
-            }
-            numberingState.currentDepth = Math.min(headingLevel, maxDepth);
-            result.push(line);
-            currentHeadingIndex++;
-            continue;
-        }
-        
-        // Check if line contains an image
-        if (parseResult.isImage) {
-            const newTag = generateNextTagForAutoNumber(numberingState);
-            const addResult = addTagToImage(line, newTag, figCitationPrefix, parseQuotes);
-            
-            if (addResult.valid) {
-                // Add tag mapping if there was an old tag
-                if (addResult.oldTag && !tagMapping.has(addResult.oldTag)) {
-                    tagMapping.set(addResult.oldTag, newTag);
-                }
-                result.push(addResult.processedLine);
-            } else {
-                result.push(line);
-            }
+            result.push(addResult.processedLine);
         } else {
             result.push(line);
         }

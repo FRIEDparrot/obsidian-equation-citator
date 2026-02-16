@@ -77,6 +77,8 @@ $$
 
 This will cause heading dismatch in Auto-numbering, and `# title` grammar is prohibit in equations (in that case equation render incorrectly). So only auto-nuber when all your content are correctly rendered. 
 
+> **Also do not write any heading or code block-like content in equations** 
+
 > [!warning] 
 > You should follow above rules if you use this plugin. Issues caused by not following above rules may be closed without being fixed. 
 

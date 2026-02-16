@@ -5,14 +5,13 @@ import {
     generateNextTagForAutoNumber,
     generateNewTagForAutoNumber,
     AutoNumberConfigs,
-    AutoNumberingType,
     AutoNumberingState,
     AutoNumberProceedResult, 
-    updateLevelCounters,
+    processCodeBlockAndHeading,
 } from "./auto_number_core";
 import { singleLineEqBlockPattern } from "../string_processing/regexp_utils";
 
-import { parseHeadingsInMarkdown, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
+import { parseHeadingsInMarkdown } from "@/utils/parsers/heading_parser";
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
 import { createEquationTagString, equationBlockBracePattern,  } from "@/utils/string_processing/regexp_utils";
@@ -39,7 +38,9 @@ function isPositionInSingleLineEquation(line: string, ch: number): boolean {
  *
  * This function analyzes the content up to the cursor position, tracking heading levels, code blocks, and equation blocks,
  * and returns the appropriate equation tag if the cursor is inside an equation (single-line or block).
- *
+ * 
+ * @remarks process for quotes is handled inside parseMarkdownLine function
+ * 
  * @param content - The full Markdown content to analyze.
  * @param cursorPos - The current cursor position, specified as an object with `line` and `ch` (character) properties.
  * @param configs - The auto-numbering configuration object containing all settings.
@@ -80,7 +81,7 @@ export function getEqAutoNumberInCursor(
         maxDepth,
         delimiter,
         globalPrefix,
-        noHeadingObjPrefix: noHeadingEquationPrefix
+        noHeadingPrefix: noHeadingEquationPrefix
     };
 
     // maintain two unique counters for non-heading and heading equations 
@@ -89,26 +90,21 @@ export function getEqAutoNumberInCursor(
     for (let i = 0; i <= cursorPos.line; i++) {
         const line = lines[i];
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
-        // Update code block state
-        if (parseResult.isCodeBlockToggle) inCodeBlock = !inCodeBlock;
-        if (inCodeBlock) continue;
-
-        // Handle headings to update counters 
-        if (parseResult.isHeading && parseResult.headingMatch) {
-            const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
-                relativeHeadingLevel(headings, currentHeadingIndex) :
-                parseResult.headingMatch[1].length;
-
-            if (headingLevel < 0) {
-                Debugger.error(`Current heading ${parseResult.headingMatch[2]} is not in headings array, this should not happen since we get heading info from the same content.`, "Headings found:", headings);
-                return null;
-            }
-            updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
-            if (headingLevel <= maxDepth - 1) {
-                numberingState.objNumber = 0;
-            }
-            numberingState.currentDepth = Math.min(headingLevel, maxDepth);
-            currentHeadingIndex++;
+        
+        // Process code blocks and headings
+        const processResult = processCodeBlockAndHeading(
+            parseResult,
+            inCodeBlock,
+            numberingState,
+            currentHeadingIndex,
+            headings,
+            autoNumberingType
+        );
+        
+        inCodeBlock = processResult.inCodeBlock;
+        currentHeadingIndex = processResult.currentHeadingIndex;
+        
+        if (processResult.shouldContinue) {
             continue;
         }
 
@@ -189,10 +185,8 @@ export function detectIllegalEquation(eqStr: string): number {
 
 /**
  * Automatically numbers equations in a Markdown string according to specified heading levels and numbering styles.
- *
- * This function parses the input Markdown content, detects equations (both single-line and multi-line blocks),
- * and assigns equation tags based on heading hierarchy, global prefixes, and custom delimiters. It also maintains
- * a mapping from old equation tags to new ones for reference updates.
+ * 
+ * This function not update citation, use `autoNumberCurrentFileEquations` in real function call.
  *
  * Equations outside headings can be prefixed with a custom string, and the numbering can be relative to headings
  * or absolute, depending on the `autoNumberingType`. The function also handles code blocks, quoted lines, and
@@ -210,7 +204,7 @@ export function autoNumberEquations(
         autoNumberingType,
         maxDepth,
         delimiter,
-        noHeadingPrefix: noHeadingEquationPrefix,
+        noHeadingPrefix,
         globalPrefix,
         parseQuotes,
         enableTypstMode,
@@ -219,7 +213,6 @@ export function autoNumberEquations(
     const lines = content.split('\n');
     const headings = parseHeadingsInMarkdown(content);
 
-    let inCodeBlock = false;
     let inEquationBlock = false;
 
     // Set Counters for equation numbering
@@ -235,10 +228,9 @@ export function autoNumberEquations(
         maxDepth,
         delimiter,
         globalPrefix,
-        noHeadingObjPrefix: noHeadingEquationPrefix
+        noHeadingPrefix,
     };
     let currentHeadingIndex = 0;
-
     const newTagMapping = new Map<string, string>();  /** store new tag mapping */
     const result: string[] = [];
     let currentEqBlockStartLine = -1;
@@ -289,35 +281,28 @@ export function autoNumberEquations(
         }
     }
 
+    let inCodeBlock = false;
     let quotePrefix = "";
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
+        // Process code blocks and headings
         const parseResult = parseMarkdownLine(line, parseQuotes, inCodeBlock);
+        const processResult = processCodeBlockAndHeading(
+            parseResult,
+            inCodeBlock,
+            numberingState,
+            currentHeadingIndex,
+            headings,
+            autoNumberingType
+        );
+        inCodeBlock = processResult.inCodeBlock;
+        currentHeadingIndex = processResult.currentHeadingIndex;
+        
+        if (processResult.shouldContinue) {
+            result.push(line);
+            continue;
+        }
         quotePrefix = parseResult.quoteDepth > 0 ? "> ".repeat(parseResult.quoteDepth) : "";
-
-        // Update code block state
-        if (parseResult.isCodeBlockToggle) inCodeBlock = !inCodeBlock;
-        if (inCodeBlock) {
-            result.push(line);
-            continue;
-        }
-        // Handle headings
-        if (parseResult.isHeading && parseResult.headingMatch) {
-            const headingLevel = autoNumberingType === AutoNumberingType.Relative ?
-                relativeHeadingLevel(headings, currentHeadingIndex) :
-                parseResult.headingMatch[1].length;
-
-            if (headingLevel < 0) {
-                throw new Error(`Current heading ${parseResult.headingMatch[2]} is not in headings array, this should not happen since we get heading info from the same content.`);
-            }
-            updateLevelCounters(levelCounters, headingLevel, maxDepth, autoNumberingType);
-            if (headingLevel <= maxDepth - 1) numberingState.objNumber = 0;
-            numberingState.currentDepth = Math.min(headingLevel, maxDepth);
-            result.push(line);
-            currentHeadingIndex++;
-            continue;
-        }
-
         // Handle multi-line equation blocks
         if (inEquationBlock) {
             equationBuffer.push(parseResult.cleanedLine.trim());
