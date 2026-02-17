@@ -328,7 +328,7 @@ export async function mathCitationPostProcessor(
     const citations = allCitations.filter(
         eq => eq.line >= sectionInfo.lineStart && eq.line <= sectionInfo.lineEnd
     )
-    
+
     const renderCiteSpans = (citeSpans: Element[], citations: CitationRef[]) => {
         citeSpans.forEach((span, index) => {  // no need to match for 2rd time here
             const citation = citations[index];
@@ -377,7 +377,7 @@ export async function mathCitationPostProcessor(
                 return;
             }
 
-            let citationWidget: HTMLElement| null = null;
+            let citationWidget: HTMLElement | null = null;
             if (isCalloutCitation && calloutPrefix) {
                 citationWidget = renderCalloutCitation(
                     plugin,
@@ -640,7 +640,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         captionElements: Map<string, HTMLElement> = new Map();
         captionsByLine: Map<number, { element: Element; caption: HTMLElement }> = new Map();
         lastCursorLine = -1;
-        
+
         constructor(view: EditorView) {
             this.view = view;
             this.lastCursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
@@ -683,7 +683,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
             if (currentLineImage) {
                 const markdown = view.state.doc.toString();
                 images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
-                
+
                 // Force-refresh the cache with the parsed images
                 plugin.imageCache.set(currentFile.path, images);
             } else {
@@ -709,7 +709,6 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
             const imagesWithMetadata = images.filter(img =>
                 img.tag !== undefined && (img.tag || img.title || img.desc)
             );
-
             if (imagesWithMetadata.length === 0) {
                 // No images with metadata, remove all captions
                 const allCaptions = view.dom.querySelectorAll('.em-image-caption');
@@ -878,16 +877,11 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
 
         ensureCaption(element: Element, imageData: ImageMatch, settings: EquationCitatorSettings) {
             // Check if caption already exists
-            let existingCaption = element.querySelector('.em-image-caption');
+            const isInternalEmbed = element.classList.contains('internal-embed');
 
             // For IMG elements, check next sibling
-            if (!existingCaption && element.tagName === 'IMG') {
-                const nextSibling = element.nextElementSibling;
-                if (nextSibling?.classList.contains('em-image-caption')) {
-                    existingCaption = nextSibling;
-                }
-            }
-
+            if (!isInternalEmbed) return
+            let existingCaption = element.querySelector('.em-image-caption');
             if (existingCaption) {
                 // Update existing caption
                 this.updateCaption(existingCaption as HTMLElement, imageData, settings);

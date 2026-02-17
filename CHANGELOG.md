@@ -326,7 +326,7 @@ Settings Updates :
  - [x] Command for box current equation. 
 - [x] Add Feature [#143](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/143), now we support Excalidraw in figure citation. 
 - [x] Figure citaion format can now cite section preview.
-- [ ] Support the caption for markdown link format figure.
+
 
 🐛 Bug Fixes :
 - [x] fix bug [#136](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/136), add tag for multi-line equation in callout now work correctly. 
@@ -339,6 +339,7 @@ Settings Updates :
 - [x] fix the reorder button location style in settings tab.
 - [x] add command `insert figure citation` for inserting figure citation quickly.
 - [x] now hovering on Citation superscript for callouts and figures will show the file links.
+- ❌ Stop support the caption for web link figure, and add why we not support it to Quickstart tutorial.
 
 🏗️ refactors : 
 - [x] refactored autocomplete suggest to add support for figure and callout citations.

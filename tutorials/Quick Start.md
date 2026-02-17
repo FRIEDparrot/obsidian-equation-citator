@@ -170,7 +170,14 @@ But **since the grammar of external file link view `![[#(3) Citing Clarity|fig:1
 
 ![[#(3) Citing Clarity|fig:1.6]]
 
-We also support **autonumber for figures** after v1.3.3, so you can use the ribbon button or command `auto-number current file figures` to auto-number all figures in current file.
+This plugin also support **autonumber for figures** after v1.3.3, so you can use the ribbon button or command `auto-number current file figures` to auto-number all figures in current file.
+
+> Note this plugin doesn't support creating caption for markdownlink format images from web-link. But you can still cite it with $\ref{fig:1.7}$. 
+> 
+> **Why we not support** : We add caption inside class `.internal-embed image-embed`, and web-link image is rendered as `<img>` without this wrapper class. Creating element outside those images would cause some issue in editing. You can simply use `copy image` in your browser and paste it to make it a local image file.
+
+![fig:1.7|200](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJUGwUw60NYwnmZEKiGJtoRXpa56J1Ko0QjA&s)
+
 
 > [!HINT] 
 > Currently the plugin don't support autonumber and rename for callouts. Since there might not be a lot of them. You can manage them manually now. Or you can request this feature in the [issue page](https://github.com/FRIEDparrot/obsidian-equation-citator/issues) if you really need it.
