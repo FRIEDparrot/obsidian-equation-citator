@@ -20,7 +20,7 @@
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
-> This plugin now supports desktop, but we have future plan to support mobile (Android) as well. 
+> This plugin now supports desktop, but we have future plan to support mobile (Android) as well. This feature may be added in v1.3.4 or later.
 
 ## 🛠️ Installation 
 
