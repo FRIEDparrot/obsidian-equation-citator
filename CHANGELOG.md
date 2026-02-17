@@ -355,6 +355,7 @@ Settings Updates :
 ### 🕒 ToDo List in v1.3.4
 1. Add support for mobile (currently the plugin can work in mobile mode in emulator, but there are still some problems to be fixed in real mobile test).
 2. Test it for fully support for mobile.
+3. Make more tests to ensure the statbility of this plugin.
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.

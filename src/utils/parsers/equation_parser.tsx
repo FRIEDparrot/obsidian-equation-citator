@@ -66,7 +66,7 @@ export function extractLastNumberFromTag(tag: string, validDelimiters: string[])
         numStr = tag.substring(lastDelimiterIndex + 1);
     } else {
         // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = new RegExp(/^(.+?)(\d+)$/).exec(tag);
+        const match = /^([^\d]+)(\d+)$/.exec(tag);
         if (match) {
             numStr = match[2];
         } else {
@@ -96,7 +96,7 @@ export function extractPrefixBeforeLastNumber(tag: string, validDelimiters: stri
         return tag.substring(0, lastDelimiterIndex + 1);
     } else {
         // No delimiter found - check for letter-number pattern (e.g., "EQ1")
-        const match = new RegExp(/^(.+?)(\d+)$/).exec(tag);
+        const match = /^([^\d]+)(\d+)$/.exec(tag);
         if (match) {
             return match[1]; // Return the letter part (e.g., "EQ")
         } else {
