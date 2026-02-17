@@ -7,5 +7,5 @@
 	"description": "A powerful LaTeX-like Academic Citation Tool for equations, figures, and more.", 
 	"authorUrl": "https://github.com/friedparrot", 
 	"fundingUrl": "https://ko-fi.com/friedparrot",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }
