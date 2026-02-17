@@ -172,7 +172,7 @@ But **since the grammar of external file link view `![[#(3) Citing Clarity|fig:1
 
 This plugin also support **autonumber for figures** after v1.3.3, so you can use the ribbon button or command `auto-number current file figures` to auto-number all figures in current file.
 
-> Note this plugin doesn't support creating caption for markdownlink format images from web-link. But you can still cite it with $\ref{fig:1.7}$. 
+> Note this plugin doesn't support creating caption for markdown link format images from web-link. But you can still cite it with $\ref{fig:1.7}$. 
 > 
 > **Why we not support** : We add caption inside class `.internal-embed image-embed`, and web-link image is rendered as `<img>` without this wrapper class. Creating element outside those images would cause some issue in editing. You can simply use `copy image` in your browser and paste it to make it a local image file.
 
