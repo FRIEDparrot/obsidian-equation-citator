@@ -1,9 +1,15 @@
-import { WorkspaceLeaf, TFile, Notice, MarkdownView, EditorRange } from "obsidian";
 import EquationCitator from "@/main";
 import {
+    WorkspaceLeaf, 
+    TFile, 
+    Notice, 
+    MarkdownView, 
+    MarkdownRenderer,
+    EditorRange,
     Component,
     HoverPopover,
     HoverParent,
+    normalizePath,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
@@ -16,16 +22,16 @@ import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
  * Displays image previews in a popover when hovering over figure citations
  */
 export class FigureCitationPopover extends HoverPopover {
-    private figuresToRender: RenderedFigure[] = [];
-    private targetEl: HTMLElement;
-    private targetComponent: TargetElComponent;
+    private readonly figuresToRender: RenderedFigure[] = [];
+    private readonly targetEl: HTMLElement;
+    private readonly targetComponent: TargetElComponent;
 
     constructor(
-        private plugin: EquationCitator,
+        private readonly plugin: EquationCitator,
         parent: HoverParent,
         targetEl: HTMLElement,
         figuresToRender: RenderedFigure[],
-        private sourcePath: string,
+        private readonly sourcePath: string,
         waitTime?: number
     ) {
         super(parent, targetEl, waitTime);
@@ -97,7 +103,6 @@ export class FigureCitationPopover extends HoverPopover {
             renderFigureWrapper(
                 this.plugin,
                 leaf,
-                this.sourcePath,
                 fig,
                 figureOptionContainer,
                 this.targetComponent,
@@ -109,17 +114,21 @@ export class FigureCitationPopover extends HoverPopover {
         const footer = container.createDiv();
         const totalFigures = this.figuresToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${totalFigures} figure${totalFigures !== 1 ? 's' : ''}`;
+        footer.textContent = `${totalFigures} figure${totalFigures === 1 ? '' : 's'}`;
     }
 }
 
 /**
  * Render a single figure wrapper with image and metadata
+ * @remarks since there are 2 types of image formats (wiki link vs markdown link), 
+ *      the rendering logic is different for each type
+ * @summary for `markdown link` (web image link), we always use image link to render the image;
+ *      i.e., `<img src="imageLink" alt="title or tag">`
+ * @summary for `wiki link` (internal image in obsidian vault), we need to resolve the vault path first, then render the image;   
  */
 export function renderFigureWrapper(
     plugin: EquationCitator,
     leaf: WorkspaceLeaf,
-    sourcePath: string,
     fig: RenderedFigure,
     container: HTMLElement,
     targetComponent: Component,
@@ -129,6 +138,9 @@ export function renderFigureWrapper(
         Debugger.log("can't find container for figure");
         return;
     }
+
+    // Create a set of extensions that should use Markdown renderer
+    const markdownRendererExtensions = new Set(plugin.settings.extensionsUseMarkdownRenderer);
 
     const figureWrapper = container.createDiv();
     figureWrapper.addClass("em-figure-wrapper");
@@ -159,7 +171,7 @@ export function renderFigureWrapper(
     imageContainer.addClass("em-figure-image-container");
 
     if (fig.imageLink) {
-        // External image link
+        // wikiLink format image rendering - can directly use the link 
         const img = imageContainer.createEl("img", {
             attr: {
                 src: fig.imageLink,
@@ -169,19 +181,55 @@ export function renderFigureWrapper(
         img.addClass("em-figure-image");
     } else if (fig.imagePath && fig.sourcePath) {
         // Internal image path - need to resolve the vault path
-        const sourceFile = plugin.app.vault.getAbstractFileByPath(fig.sourcePath);
+        const normalizedSourcePath = normalizePath(fig.sourcePath);
+        const sourceFile = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
         if (sourceFile instanceof TFile) {
-            const imageFile = plugin.app.metadataCache.getFirstLinkpathDest(fig.imagePath, fig.sourcePath);
+            // the imagePath may be file#section, so split by # to get the actual file path
+            const imageFile = plugin.app.metadataCache.getFirstLinkpathDest(fig.imagePath, normalizedSourcePath);
             if (imageFile instanceof TFile) {
-                const resourcePath = plugin.app.vault.getResourcePath(imageFile);
-                const img = imageContainer.createEl("img", {
-                    attr: {
-                        src: resourcePath,
-                        alt: fig.title || fig.tag || 'Figure'
-                    }
-                });
-                img.addClass("em-figure-image");
-            } else {
+                // Check if the image extension requires Markdown renderer
+                const fullPath = imageFile.path;
+                const shouldUseMarkdownRenderer = Array.from(markdownRendererExtensions).some(ext => 
+                    fullPath.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
+                );
+
+                if (shouldUseMarkdownRenderer) {
+                    // Use Markdown renderer for special file types (e.g., excalidraw)
+                    const markdownText = `![[${fullPath}]]`;
+                    void MarkdownRenderer.render(
+                        plugin.app,
+                        markdownText,
+                        imageContainer,
+                        fig.sourcePath,
+                        targetComponent
+                    );
+                    imageContainer.addClass("em-figure-markdown-rendered");
+                } else {
+                    // Use standard image element for regular images (default renderer)
+                    const resourcePath = plugin.app.vault.getResourcePath(imageFile);
+                    const img = imageContainer.createEl("img", {
+                        attr: {
+                            src: resourcePath,
+                            alt: fig.title || fig.tag || 'Figure'
+                        }
+                    });
+                    img.addClass("em-figure-image");
+                }
+            } 
+            else if (fig.imagePath.contains("#") && markdownRendererExtensions.has("md")) {
+                // special support for markdown section preview ![[file.md#section]]
+                // just directly render the markdown link without resolving, since Obsidian can handle it in this format
+                const markdownText = `![[${fig.imagePath}]]`;
+                void MarkdownRenderer.render(
+                    plugin.app,
+                    markdownText,
+                    imageContainer,
+                    fig.sourcePath,
+                    targetComponent
+                );
+                imageContainer.addClass("em-figure-markdown-rendered");
+            }
+            else {
                 imageContainer.createDiv({
                     text: `Image not found: ${fig.imagePath}`,
                     cls: "em-figure-error"
@@ -286,14 +334,15 @@ async function openFileAndScrollToFigure(
     openInSplit: boolean,
     currentLeaf: WorkspaceLeaf
 ): Promise<void> {
-    const file = plugin.app.vault.getAbstractFileByPath(sourcePath);
+    const normalizedSourcePath = normalizePath(sourcePath);
+    const file = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
     if (!(file instanceof TFile)) {
-        Debugger.log("Cannot find file:", sourcePath);
+        Debugger.log("Cannot find file:", normalizedSourcePath);
         return;
     }
 
     // Get all images in the file to find the line number
-    const images = await plugin.imageCache.getImagesForFile(sourcePath);
+    const images = await plugin.imageCache.getImagesForFile(normalizedSourcePath);
     const targetImage = images?.find(img => img.tag === tag);
 
     if (!targetImage) {
@@ -306,7 +355,7 @@ async function openFileAndScrollToFigure(
 
     if (openInSplit) {
         // Find existing leaf with the same file (excluding current)
-        const existingLeaf = findLeafWithFile(plugin, sourcePath, currentLeaf);
+        const existingLeaf = findLeafWithFile(plugin, normalizedSourcePath, currentLeaf);
 
         if (existingLeaf) {
             // Reuse existing leaf

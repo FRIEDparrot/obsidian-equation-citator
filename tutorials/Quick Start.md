@@ -1,8 +1,15 @@
-> 🚀 **Enable the plugin and copy this tutorial (along with the test files) to your vault to follow along interactively.**
+> [!summary] 
+> 🚀 **Enable the plugin and copy all files in the tutorial folder to your vault to follow along interactively.**
+> 
+> This tutorial covers all the essential features, basic grammars to get you started with this plugin. 
+> 
+> But for more special needs like essay drafting, you may check [[Useful Tricks & techniques]] for more practical tricks that can be commonly used in this plugin. 
 
-The Equation Citator plugin transforms Obsidian into a powerful academic writing environment with LaTeX-style citations. Version 1.3.0 introduces the **Equations Management Panel** with drag-and-drop citation support, And also add features of  citation for figures, tables and more. Making academic referencing easier than ever. 
+![[Equation Citator Logo.excalidraw|fig:1|title:Equation Citaor|250]]
 
-### ✨ Core Features (For v1.3.0 and Later)  
+### ✨ Core Features
+
+The Equation Citator plugin transforms Obsidian into a powerful academic writing environment with LaTeX-style citations. Making referencing in the vault easier than ever. The core features includes : 
 - **Equation Citations**: Tag and reference equations with `\tag{}` and `\ref{}` 
 - **Auto-numbering**: Automatically number equations for easy-management 
 - **Cross-file Citations**: Reference content across multiple documents
@@ -46,11 +53,9 @@ $$ block  # not write content before or after equation block in one line!
 
 **Q : Why we don't support this**? 
 
-A : Deliberately writing text after equation block can cause equation render problem in reading mode (also cause issue in our auto-number). In that case, we will stop auto-number and give you a warning. You can open reading mode to check where this problem is.
+A : Deliberately writing text after equation block can cause equation render problem in reading mode (also cause issue in our auto-number). In that case, we will stop auto-number and give you a warning. You can open reading mode to check where this problem is. (You can go to [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74) for clarification) 
 
-![pitfall](tutorial_pitfall.png)
-
-If you still don't understand, goto [bug #74](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/74) for clarification.
+When this case happens, auto number will automatically fail and you'll get a notice `Detected illegal nested $$ in equation block at line xxx`.  You can enable `settings > Editor > Line Numbers` to fix it. So just not do that in your notes. 
 
 ### (3) Citing Clarity  
 1. Avoid using `\}` in your tag or citation (this will cause the tag recognized incorrectly) 
@@ -71,6 +76,8 @@ $$
 ```
 
 This will cause heading dismatch in Auto-numbering, and `# title` grammar is prohibit in equations (in that case equation render incorrectly). So only auto-nuber when all your content are correctly rendered. 
+
+> **Also do not write any heading or code block-like content in equations** 
 
 > [!warning] 
 > You should follow above rules if you use this plugin. Issues caused by not following above rules may be closed without being fixed. 
@@ -139,23 +146,41 @@ We use the enhanced image syntax to make figures citable :
 %%wiki link format%%
 ![[James_Lovell.jpg|fig:3.1|desc:description]]
 
-%%web link format%%
+%%markdown link format%%
 ![fig:1.3|title:test|desc:Optional description](images.png) 
 ```
 
-This plugin only support cite locale image files, not support citing web link images and excalidraw.  
+We support both wiki link and markdown link format.
 
-![[test_image.png|fig:1.3|title:minecraft|desc:a test minecraft picture|200]]
+![[test_image.png|fig:1.3|title:minecraft|desc:a test minecraft picture example|200]]
+We can use $\ref{fig:1.3}$ to cite the above **figure**. 
 
 This will create :
 - A figure with label `fig:1.3`
 - A caption displayed below the image
 - A description for extended context 
 
-We can use $\ref{fig:1.3}$ to cite this **figure** 
+
+![[Excalidraw Support|fig:1.5]]
+Also, after `v1.3.3`, we can also cite the `excalidraw` image with same syntax  $\ref{fig:1.5, }$. 
+
+Note the `excalidraw` and `excalidraw.md` should be included in the `settings > Display (Categorical) > Others > Extension names using Markdown renderer`, the extension `excalidraw.md` must be added. 
+
+But **since the grammar of external file link view `![[#(3) Citing Clarity|fig:1.6]]` is same as image**, we still reckon it a valid image. So when `md` is in the `Extension names using Markdown renderer` setting, we can even cite the section preview as $\ref{fig:1.6, }$ (but there would be no caption) :
+
+![[#(3) Citing Clarity|fig:1.6]]
+
+This plugin also support **autonumber for figures** after v1.3.3, so you can use the ribbon button or command `auto-number current file figures` to auto-number all figures in current file.
+
+> Note this plugin doesn't support creating caption for markdown link format images from web-link. But you can still cite it with $\ref{fig:1.7}$. 
+> 
+> **Why we not support** : We add caption inside class `.internal-embed image-embed`, and web-link image is rendered as `<img>` without this wrapper class. Creating element outside those images would cause some issue in editing. You can simply use `copy image` in your browser and paste it to make it a local image file.
+
+![fig:1.7|200](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJUGwUw60NYwnmZEKiGJtoRXpa56J1Ko0QjA&s)
+
 
 > [!HINT] 
-> Some additional features like auto-number and auto-complete are not currently supported for figure and callout reference. 
+> Currently the plugin don't support autonumber and rename for callouts. Since there might not be a lot of them. You can manage them manually now. Or you can request this feature in the [issue page](https://github.com/FRIEDparrot/obsidian-equation-citator/issues) if you really need it.
 
 ### 2) Callout Citations 
 #### 1. grammar
@@ -173,6 +198,12 @@ So here we give an example  for how to cite a table :
 
 Cite the table using: `$\ref{table:2.1}$`, rendered as $\ref{table:2.1}$  
 
+> [!hint] Edit table in callouts 
+> Put table in callout makes it hard to edit. But we have a trick to edit it quicker. 
+> 
+> See [[Useful Tricks & techniques#(1) Editing a Table Inside a Callout More Easily]] for details 
+
+
 Citation inside callouts must match case exactly. Example:
 
 - Callout tag: `> [!NOTE:1]`
@@ -184,7 +215,7 @@ All figure and callout citations support syntax and interactive features in [[#1
 
 #### 2. Custom Callout Colors
 
-We also support customize callout colors by adding [callout.css](https://gist.github.com/LucasOe/0bed268951b90e897002ee1e31479c9c) to `Settings > Apperance > CSS Snippets`, so you a beautiful callout like this (this take effect after adding this snippet):
+We also support customize callout colors by adding [callout.css](https://gist.github.com/LucasOe/0bed268951b90e897002ee1e31479c9c) to `Settings > Apperance > CSS Snippets`, so you can write a beautiful callout like this (this take effect after adding this snippet):
 
 > [!table:1.1|red] Sales Data Q4 2024
 > 
@@ -205,12 +236,36 @@ You can open the equation mange panel by :
 - Command palette: `Open Equations Manage Panel`
 - Toolbar icon (if enabled) 
 
-### 2) How to use  
+### 2) How to use 
 Equation Manage panel is one of the most powerful feature of v1.3.0 :
 1. **Drag** the item from the panel, **Drop** it into your text where you want the citation (Cross file drag will automatically create footnote for citation)  
 2. The properly formatted `\ref{}` citation is automatically inserted!
 
 This panel allows you to check and search equation very fast, **No need to scroll or remember syntax or equation numbers!** 
+
+
+### 3) Special Filters
+
+You can use filters to filter important equations. Currently we provide 2 filters :
+
+1. **Tag-only filter**: Show only equations with tags. 
+
+You may use this with `Auto-number tagged equations only`. see [[Useful Tricks & techniques#(3) Only Number Important Equations]] for details.
+
+2. **boxed filters**: Show only equations wrapped with `\boxed{}`. Note for simplicity in this filter it only check if the first non-blank line of equations is start with `\boxed`. 
+
+You can use Latex Suite `box current equation` command to box equations, we also provide a command `box current equation` in our plugin, so you can just select a equation and run this command to box it 
+
+To support [typst mode](https://github.com/azyarashi/obsidian-typst-mate) box, and for better support to `typst mate` plugin, this plugin use `boxed` as default typst box symbol. This can be set at `settings > Display (Categorical) > Others > Typst box symbol`, see [feature #140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140) for details.
+
+For some users, they use the first line of multi-line equation as class, we also provide an option to this. Check `Settings > Display (Categorical) > Equation Panel > Skip first line when filter boxed equation` to enable this feature.
+```latex
+$$phy
+\boxed{
+E = mc^2
+}
+$$
+```
 
 ## 4. Auto-numbering System  
 Use the command `Auto-number current file equations` or the toolbar button can automatically number all equations in current file based on heading level. 

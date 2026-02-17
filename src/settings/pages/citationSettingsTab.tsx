@@ -21,7 +21,53 @@ export const CitationSettingsTab = {
                 });
             });
     },
-
+    enableRichAutoCompleteHoverPreview(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = false) {
+        const { name, desc } = SETTINGS_METADATA.enableRichAutoCompleteHoverPreview;
+        const setting = new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc);
+        
+        addSubPanelToggle(
+            setting,
+            plugin.settings.enableRichAutoCompleteHoverPreview,
+            async (value) => {
+                plugin.settings.enableRichAutoCompleteHoverPreview = value;
+                await plugin.saveSettings();
+            },
+            (panel) => {
+                CitationSettingsTab.richAutoCompletePreviewDelayTime(panel, plugin);
+            },
+            renderSubpanel
+        );
+    },
+    richAutoCompletePreviewDelayTime(containerEl: HTMLElement, plugin: EquationCitator) {
+        const delayTimeSetting = new Setting(containerEl);
+        const { name, desc } = SETTINGS_METADATA.richAutoCompletePreviewDelayTime;
+        delayTimeSetting.setName(name)
+            .setDesc(desc)
+            .addSlider((slider) => {
+                slider.setLimits(500, 3000, 100);
+                slider.setValue(plugin.settings.richAutoCompletePreviewDelayTime);
+                slider.setDynamicTooltip();
+                slider.onChange(async (value) => {
+                    plugin.settings.richAutoCompletePreviewDelayTime = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+    enableRichAutoComplete(containerEl: HTMLElement, plugin: EquationCitator) {
+        const enableRichAutoCompleteSetting = new Setting(containerEl);
+        const { name, desc } = SETTINGS_METADATA.enableRichAutoComplete;
+        enableRichAutoCompleteSetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableRichAutoComplete);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableRichAutoComplete = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
     citationPrefix(containerEl: HTMLElement, plugin: EquationCitator) {
         const citePrefixSetting = new Setting(containerEl);
         citePrefixSetting.setName(SETTINGS_METADATA.citationPrefix.name)
@@ -164,7 +210,7 @@ export const CitationSettingsTab = {
             .setDesc(SETTINGS_METADATA.continuousDelimiters.desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-multi-delimiter-input");
-                text.setPlaceholder("e.g. '. - : \\_'");
+                text.setPlaceholder(String.raw`e.g. '. - : \_'`);
                 text.setValue(plugin.settings.continuousDelimiters);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
@@ -225,7 +271,9 @@ export const CitationSettingsTab = {
                 };
             });
     },
+    // #endregion
 
+    //#region Figure/Callout citation prefixes and formats
     figCitationPrefix(panel: HTMLElement, plugin: EquationCitator) {
         new Setting(panel)
             .setName(SETTINGS_METADATA.figCitationPrefix.name)
@@ -276,10 +324,10 @@ export const CitationSettingsTab = {
             })
     },
 
-    quoteCitationPrefixes(containerEl: HTMLElement, plugin: EquationCitator) {
+    calloutCitationPrefixes(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
-            .setName(SETTINGS_METADATA.quoteCitationPrefixes.name)
-            .setDesc(SETTINGS_METADATA.quoteCitationPrefixes.desc);
+            .setName(SETTINGS_METADATA.calloutCitationPrefixes.name)
+            .setDesc(SETTINGS_METADATA.calloutCitationPrefixes.desc);
 
         // Container for the list of prefixes
         const prefixListContainer = containerEl.createDiv("ec-prefix-list-container");
@@ -288,7 +336,7 @@ export const CitationSettingsTab = {
             prefixListContainer.empty();
 
             // Render each existing prefix with format
-            plugin.settings.quoteCitationPrefixes.forEach((item, index) => {
+            plugin.settings.calloutCitationPrefixes.forEach((item, index) => {
                 const setting = new Setting(prefixListContainer)
                     .setClass("ec-prefix-item");
 
@@ -320,7 +368,7 @@ export const CitationSettingsTab = {
                         }
                         if (newValue !== item.prefix) {
                             // Check for duplicates
-                            const exists = plugin.settings.quoteCitationPrefixes.some(
+                            const exists = plugin.settings.calloutCitationPrefixes.some(
                                 (p, i) => i !== index && p.prefix === newValue
                             );
                             if (exists) {
@@ -328,7 +376,7 @@ export const CitationSettingsTab = {
                                 text.setValue(item.prefix);
                                 return;
                             }
-                            plugin.settings.quoteCitationPrefixes[index].prefix = newValue;
+                            plugin.settings.calloutCitationPrefixes[index].prefix = newValue;
                             await plugin.saveSettings();
                         }
                     };
@@ -347,18 +395,18 @@ export const CitationSettingsTab = {
                             return;
                         }
                         if (newValue !== item.format) {
-                            plugin.settings.quoteCitationPrefixes[index].format = newValue;
+                            plugin.settings.calloutCitationPrefixes[index].format = newValue;
                             await plugin.saveSettings();
                         }
                     };
                 });
-                
+
                 // Add remove button after text inputs
                 setting.addButton((button) => {
                     button.setButtonText("Remove")
                         .setClass("mod-warning")
                         .onClick(async () => {
-                            plugin.settings.quoteCitationPrefixes.splice(index, 1);
+                            plugin.settings.calloutCitationPrefixes.splice(index, 1);
                             await plugin.saveSettings();
                             renderPrefixList();
                         });
@@ -371,16 +419,16 @@ export const CitationSettingsTab = {
                 .addButton((button) => {
                     button.setButtonText("Add new prefix")
                         .setClass("mod-cta")
-                        .onClick(async() => {
+                        .onClick(async () => {
                             // Find a unique default prefix
                             let newPrefix = "custom:";
                             let counter = 1;
-                            const existingPrefixes = plugin.settings.quoteCitationPrefixes.map(p => p.prefix);
-                            while (existingPrefixes.includes(newPrefix)) {
+                            const existingPrefixes = new Set(plugin.settings.calloutCitationPrefixes.map(p => p.prefix));
+                            while (existingPrefixes.has(newPrefix)) {
                                 newPrefix = `custom${counter}:`;
                                 counter++;
                             }
-                            plugin.settings.quoteCitationPrefixes.push({
+                            plugin.settings.calloutCitationPrefixes.push({
                                 prefix: newPrefix,
                                 format: "Custom. #"
                             });
@@ -402,6 +450,8 @@ export const CitationSettingsTab = {
  */
 export function addCitationSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     CitationSettingsTab.enableCitationInSourceMode(containerEl, plugin);
+    CitationSettingsTab.enableRichAutoComplete(containerEl, plugin);
+    CitationSettingsTab.enableRichAutoCompleteHoverPreview(containerEl, plugin, true);
     CitationSettingsTab.citationPrefix(containerEl, plugin);
     CitationSettingsTab.citationFormat(containerEl, plugin);
     CitationSettingsTab.figCitationPrefix(containerEl, plugin);
@@ -410,5 +460,5 @@ export function addCitationSettingsTab(containerEl: HTMLElement, plugin: Equatio
     CitationSettingsTab.multiCitationDelimiterRender(containerEl, plugin);
     CitationSettingsTab.enableContinuousCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
     CitationSettingsTab.enableCrossFileCitation(containerEl, plugin, true); // Render sub panel (not call child render functions)
-    CitationSettingsTab.quoteCitationPrefixes(containerEl, plugin);
+    CitationSettingsTab.calloutCitationPrefixes(containerEl, plugin);
 }

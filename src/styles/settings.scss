@@ -129,6 +129,65 @@
     width: 120px;
 }
 
+.ec-extension-input {
+    height: 20px;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    width: 200px;
+    margin: 0; // Remove margin for better alignment
+}
+
+.ec-extension-item {
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    padding: 8px 0;
+    margin-bottom: 0 !important;
+    border-top: none !important;
+
+    &:last-of-type {
+        border-bottom: none;
+    }
+
+    // Remove name and description padding
+    .setting-item-info {
+        display: none;
+    }
+
+    // Align controls - input left, button right
+    .setting-item-control {
+        display: flex;
+        align-items: center; // Center vertical alignment
+        justify-content: flex-start; // Start from left
+        gap: 10px;
+        margin: 5px 10px;
+        padding-left: 0;
+
+        // Input on left side
+        input {
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
+        // Button on right
+        button {
+            margin: 0;
+        }
+    }
+}
+
+.ec-extension-list-container {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.ec-add-extension-setting {
+    border-top: none;
+    padding-top: 5px;
+}
+
 .ec-settings-tip {
     font-size: 14px;
     color: var(--interactive-accent); // Use a blue-ish accent variable
@@ -142,6 +201,7 @@
     width: 100%;
     align-items: center;
     justify-content: center;
+    margin: 0;
 }
 
 /* Settings toolbar */
@@ -156,30 +216,57 @@
     margin-bottom: 0px;
 }
 
+.ec-settings-display-mode-setting {
+    margin: 0;
+}
+
 .ec-settings-search-textbox-wrapper {
     position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
+
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ec-settings-mode-toggle {
+    display: flex;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    .div-setting-item {
+        width: 100%;
+        margin: 0;
+    }
 }
 
 .ec-settings-search-setting {
+    width: 100%;
+    height: 60px;
     border-top: none !important;
-    padding-top: 0 !important;
-    margin-top: 0 !important;
+    border-bottom: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
 
     .setting-item-info {
         display: none;
     }
 
     .setting-item-control {
-        flex-grow: 1;
+        width: 100%;
+        height: 100%;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        padding: 0 !important;
+        margin: 0 10px;
+        padding-bottom: 4px;
     }
-}
-
-.ec-settings-search-textbox {
-    width: 200px !important;
-    height: 33px;
 }
 
 .ec-settings-icon {
@@ -244,6 +331,7 @@
 .ec-chip .ec-chip-text {
     display: none;
     white-space: nowrap;
+    font-size: 13px;
 }
 
 .ec-chip.is-active .ec-chip-text {
@@ -253,10 +341,6 @@
 .ec-chip .ec-chip-icon {
     width: 16px;
     height: 16px;
-}
-
-.ec-chip .ec-chip-text {
-    font-size: 13px;
 }
 
 /* Expandable categories */
@@ -459,20 +543,28 @@
 /* Settings with reorder buttons */
 .ec-setting-with-reorder {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+}
+
+.ec-setting-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .ec-setting-reorder-buttons {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 1px 6px;
+    justify-content: space-between;
+    padding: 4px 6px;
+    min-height: 100%;
+    max-height: 75px;
 }
 
 .ec-reorder-btn {
-    width: 20px;
-    height: 16px;
+    width: 35px;
+    flex: 0 0 45%;
     padding: 0;
     display: flex;
     align-items: center;
@@ -502,6 +594,9 @@
 .ec-prefix-list-container {
     margin-top: 10px;
     margin-left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* Individual prefix item */
@@ -523,10 +618,10 @@
     // Align controls - input left, button right
     .setting-item-control {
         display: flex;
-        align-items: center;  // Center vertical alignment
-        justify-content: space-between;  // Input left, button right
+        align-items: center; // Center vertical alignment
+        justify-content: space-between; // Input left, button right
         gap: 10px;
-        margin-left: 0;
+        margin: 5px 10px;
         padding-left: 0;
 
         // Make input take available space but not too long
@@ -540,7 +635,7 @@
         // Button aligned to right
         button {
             margin: 0;
-            margin-left: auto;  // Push to right
+            margin-left: auto; // Push to right
         }
     }
 }

@@ -1,7 +1,7 @@
 import EquationCitator from "@/main";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 import { resolveBackLinks } from "@/utils/misc/fileLink_utils";
-import { TFile, Editor } from "obsidian";
+import { TFile, Editor, normalizePath } from "obsidian";
 import { buildCrossFileCitation, CitationRef, combineContinuousCitationTags, parseCitationsInMarkdown, splitContinuousCitationTags, splitFileCitation } from "@/utils/core/citation_utils";
 import { createCitationString } from "@/utils/string_processing/regexp_utils";
 import Debugger from "@/debug/debugger";
@@ -19,16 +19,37 @@ export interface TagRenameResult {
     details: FileCitationChangeMap;
 }
 
+/**
+ * Service for managing tag operations in the EquationCitator plugin
+ * 
+ * Handles tag renaming across files and their backlinks, with support for:
+ * - Validating tag renames to prevent duplicates
+ * - Single and cross-file citation updates
+ * - Deletion of repeated and unused citations
+ * - Cursor position preservation when editing with an active editor
+ * 
+ * @class TagService
+ * @example
+ * ```
+ * const tagService = new TagService(plugin);
+ * const canRename = await tagService.checkRepeatedTags(filePath, renamePairs);
+ * if (canRename) {
+ *   const result = await tagService.renameTags(filePath, renamePairs);
+ * }
+ * ```
+ */
 export class TagService {
     constructor(
-        private plugin: EquationCitator
+        private readonly plugin: EquationCitator
     ) { }
 
     public async checkRepeatedTags(
         sourceFile: string,
-        pairs: TagRenamePair[]
+        pairs: TagRenamePair[],
+        prefix?: string
     ): Promise<boolean> {
-        const file = this.plugin.app.vault.getAbstractFileByPath(sourceFile);
+        const normalizedPath = normalizePath(sourceFile);
+        const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
             return false;
         }
@@ -40,13 +61,13 @@ export class TagService {
 
         // check all new tag Names 
         const newTagNames = new Set(effectivePairs.filter((p) => p.oldTag !== p.newTag).map(p => p.newTag));
-        const hasRepeatedInCurrentFile = await this.checkRepeatedTagsInFile(sourceFile, newTagNames);
+        const hasRepeatedInCurrentFile = await this.checkRepeatedTagsInFile(normalizedPath, newTagNames, prefix);
         if (hasRepeatedInCurrentFile) {
             return true;
         }
 
         const linksAll = this.plugin.app.metadataCache.resolvedLinks;
-        const backLinks = resolveBackLinks(linksAll, sourceFile);
+        const backLinks = resolveBackLinks(linksAll, normalizedPath);
         const fileCiteDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
         for (const backLinkPath of backLinks) {
             const footNotes: FootNote[] | undefined = await this.plugin.footnoteCache.getFootNotesFromFile(backLinkPath);
@@ -56,11 +77,11 @@ export class TagService {
             const currentFootNoteNums = footNotes
                 .filter((ft) => {
                     if (!ft.path) return false;
-                    const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, sourceFile);
+                    const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, normalizedPath);
                     if (!(dstFile instanceof TFile)) {
                         return false;
                     }
-                    return dstFile.path === sourceFile
+                    return dstFile.path === normalizedPath
                 })
                 .map((ft) => ft.num);
             if (currentFootNoteNums.length === 0) {
@@ -78,7 +99,7 @@ export class TagService {
                 }
             });
             // check for repeated cross file citations in backlink file
-            const hasRepeatedInBackLink = await this.checkRepeatedTagsInFile(backLinkPath, crossFileNewTags);
+            const hasRepeatedInBackLink = await this.checkRepeatedTagsInFile(backLinkPath, crossFileNewTags, prefix);
             if (hasRepeatedInBackLink) {
                 return true;
             }
@@ -88,25 +109,30 @@ export class TagService {
 
     /**
      * Checks if there are any tags in the specified file that duplicate the given set of target tags
+     * 
+     * This is used in check repeated if the new tag name already exists in the current file or backlink files, 
+     *       to avoid creating duplicate citations after renaming (leading to wrong citation number after renaming)
      * @param filePath Path to the file
      * @param targetTags Set of target tags to check against
+     * @param citationPrefix Optional citation prefix (defaults to equation prefix from settings)
      * @returns Promise<boolean> - returns true if a duplicate exists
      */
     private async checkRepeatedTagsInFile(
         filePath: string,
-        targetTags: Set<string>
+        targetTags: Set<string>,
+        citationPrefix?: string
     ): Promise<boolean> {
-        const file = this.plugin.app.vault.getAbstractFileByPath(filePath);
+        const normalizedPath = normalizePath(filePath);
+        const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
             return false;
         }
-        const { citationPrefix: prefix = "eq:",
+        const { citationPrefix: defaultPrefix = "eq:",
             multiCitationDelimiter: multiEqDelimiter = ",",
             continuousRangeSymbol: rangeSymbol = "~",
-            continuousDelimiters: citeDelimiters = "- . : \\_",
+            continuousDelimiters: citeDelimiters = String.raw`- . : \_`,
             fileCiteDelimiter: fileDelimiter = "^" } = this.plugin.settings;
-
-        const fileContent = await this.plugin.app.vault.cachedRead(file);
+        const prefix = citationPrefix || defaultPrefix;        const fileContent = await this.plugin.app.vault.cachedRead(file);
         if (targetTags.size === 0 || !fileContent.trim() || !prefix.trim()) {
             return false;
         }
@@ -143,7 +169,8 @@ export class TagService {
     }
 
     /**
-     * rename tag in current file and its backlinks 
+     * The name `renameTags` is misleading (since this is for update citations, so it may be renamed in future)
+     * update citations in current file and its backlinks (reused for equations and figures)
      * @param sourceFile 
      * @param tagPairs 
      * @param deleteRepeatCitations 
@@ -156,9 +183,11 @@ export class TagService {
         tagPairs: TagRenamePair[],
         deleteRepeatCitations = false,
         deleteUnusedCitations = false,
-        editor?: Editor
+        editor?: Editor,
+        prefix?: string
     ): Promise<TagRenameResult | undefined> {
-        const file = this.plugin.app.vault.getAbstractFileByPath(sourceFile);
+        const normalizedPath = normalizePath(sourceFile);
+        const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
             return;
         }
@@ -185,7 +214,7 @@ export class TagService {
         if (editor) {
             const currentFileLines = currentFileContent.split('\n');
             const { updatedLineMap, updatedNum } = this.updateCitationLines(
-                currentFileLines, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
+                currentFileLines, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations, prefix
             );
             const sortedUpdatedLineMap = new Map(Array.from(updatedLineMap.entries()).sort((a, b) => b[0] - a[0]));
             sortedUpdatedLineMap
@@ -199,7 +228,7 @@ export class TagService {
         } else {
             // no editor instance, update the citation in current file without editor instance 
             const { updatedContent, updatedNum } = this.updateCitations(
-                currentFileContent, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
+                currentFileContent, currentFileTagMapping, deleteRepeatCitations, deleteUnusedCitations, prefix
             );
             await this.plugin.app.vault.modify(file, updatedContent);
             currentFileUpdatedNum = updatedNum;
@@ -208,10 +237,11 @@ export class TagService {
 
         /****  update the citation in backlink files ******/
         const linksAll = this.plugin.app.metadataCache.resolvedLinks;
-        const backLinks = resolveBackLinks(linksAll, sourceFile);
+        const backLinks = resolveBackLinks(linksAll, normalizedPath);
         const fileCiteDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
         for (const link of backLinks) {
-            const file = this.plugin.app.vault.getAbstractFileByPath(link);
+            const normalizedLink = normalizePath(link);
+            const file = this.plugin.app.vault.getAbstractFileByPath(normalizedLink);
             if (!(file instanceof TFile)) continue;  // file not found, skip it (not add to change map) 
             const footNotes: FootNote[] | undefined = await this.plugin.footnoteCache.getFootNotesFromFile(link);
             if (!footNotes) {
@@ -222,11 +252,11 @@ export class TagService {
             const currentFootNoteNums = footNotes
                 .filter((ft) => {
                     if (!ft.path) return false;
-                    const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, sourceFile);
+                    const dstFile = this.plugin.app.metadataCache.getFirstLinkpathDest(ft.path, normalizedPath);
                     if (!(dstFile instanceof TFile)) {
                         return false;
                     }
-                    return dstFile.path === sourceFile
+                    return dstFile.path === normalizedPath
                 })
                 .map((ft) => ft.num);
             if (currentFootNoteNums.length === 0) {
@@ -247,7 +277,7 @@ export class TagService {
             });
             const md = await this.plugin.app.vault.read(file);
             const { updatedContent, updatedNum } = this.updateCitations(
-                md, crossFileTagMapping, deleteRepeatCitations, deleteUnusedCitations
+                md, crossFileTagMapping, deleteRepeatCitations, deleteUnusedCitations, prefix
             );
             await this.plugin.app.vault.modify(file, updatedContent);
             addToChangeMap(link, updatedNum);  // add the backlink file to the change map 
@@ -272,15 +302,16 @@ export class TagService {
         // mapping from old tag to new tag (full -> we remove repeat internally and remove unused)
         nameMappingFull: Map<string, string>,
         deleteRepeatCitations = false,
-        deleteUnusedCitations = false
+        deleteUnusedCitations = false,
+        prefixOverride?: string
     ): {
         updatedLineMap: Map<number, string>,
         updatedNum: number
     } {
-        const prefix = this.plugin.settings.citationPrefix || "eq:";  // delimiter configuration
+        const prefix = prefixOverride ?? this.plugin.settings.citationPrefix ?? "eq:";  // delimiter configuration
         const multiEqDelimiter = this.plugin.settings.multiCitationDelimiter || ",";
         const rangeSymbol = this.plugin.settings.continuousRangeSymbol || "~";
-        const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", "\\_"];
+        const citeDelimiters = this.plugin.settings.continuousDelimiters.split(" ") || ["-", ".", ":", String.raw`\_`];
         const fileDelimiter = this.plugin.settings.fileCiteDelimiter || "^";
 
         const nameMapping = new Map(
@@ -348,7 +379,8 @@ export class TagService {
     updateCitations(md: string,
         nameMapping: Map<string, string>,   // mapping from old tag to new tag
         deleteRepeatCitations = false,
-        deleteUnusedCitations = false
+        deleteUnusedCitations = false,
+        prefixOverride?: string
     ):  {
             updatedContent: string,
             updatedNum: number
@@ -356,7 +388,7 @@ export class TagService {
         if (!md.trim()) return { updatedContent: md, updatedNum: 0 };  // not do anyhing if md is empty 
         const lines = md.split('\n');  // split the markdown into lines 
         const { updatedLineMap, updatedNum } = this.updateCitationLines(
-            lines, nameMapping, deleteRepeatCitations, deleteUnusedCitations
+            lines, nameMapping, deleteRepeatCitations, deleteUnusedCitations, prefixOverride
         );
         // for Map.forEach, it use map.forEach(value, key)
         updatedLineMap.forEach((newLine: string, lineNum: number) => {
@@ -369,14 +401,33 @@ export class TagService {
     }
 
     /**
-     * Process a single tag and update it if necessary 
-     * @param ct 
-     * @param nameMapping 
-     * @param oldTagsAll // all old tags in the file 
-     * @param newTags  // new tags (can both all or unique, used to check conflict) 
-     * @param deleteUnusedCitations 
-     * @param deleteRepeatCitations 
-     * @returns 
+     * Process a single citation tag and apply renaming, deletion, and deduplication rules.
+     * 
+     * This method handles individual citation tags within a citation string, applying transformations
+     * based on the provided mapping and deletion rules. It maintains cross-file citation integrity
+     * by grouping tags by their cross-file prefix and checking for duplicates within those groups.
+     * 
+     * @param ct - The citation tag to process (e.g., "1.2.3" or "12^1.2.3")
+     * @param nameMapping - Map from old tag names to new tag names for renaming operations
+     * @param oldTagsByCrossFile - Map grouping original tags by their cross-file prefix (e.g., "12^" -> Set{"1.2.3", "4.5.6"})
+     * @param newTagsByCrossFile - Map grouping new/renamed tags by their cross-file prefix for duplicate detection
+     * @param deleteUnusedCitations - If true, remove citations that don't exist in oldTagsByCrossFile
+     * @param deleteRepeatCitations - If true, remove duplicate citations within the same cross-file group
+     * @param fileDelimiter - Delimiter separating cross-file prefix from local tag (typically "^")
+     * 
+     * @returns The processed citation tag (renamed if mapped, or original), or empty string if deleted
+     * 
+     * @example
+     * ```ts
+     * // Rename citation from "1.2" to "1.3"
+     * processCitation("1.2", new Map([["1.2", "1.3"]]), ...) // returns "1.3"
+     * 
+     * // Delete unused citation
+     * processCitation("1.2", new Map(), new Map(), ..., true, false, "^") // returns "" if "1.2" not in oldTags
+     * 
+     * // Delete duplicate citation
+     * processCitation("1.2", new Map(), ..., new Map([["", new Set(["1.2"])]]), false, true, "^") // returns "" if duplicate
+     * ```
      */
     private processCitation(
         ct: string,
@@ -396,7 +447,7 @@ export class TagService {
 
         if (deleteUnusedCitations) {
             const oldLocalSet = oldTagsByCrossFile.get(originalKey);
-            if (!oldLocalSet || !oldLocalSet.has(originalLocal)) {
+            if (!oldLocalSet?.has(originalLocal)) {
                 Debugger.log(`Delete unused tag (group=${originalKey}): ${original}`);
                 return "";
             }
@@ -404,7 +455,7 @@ export class TagService {
         if (deleteRepeatCitations) {
             const newLocalSet = newTagsByCrossFile.get(newKey);
             const wasRenamed = nameMapping.has(ct);
-            if (!wasRenamed && newLocalSet && newLocalSet.has(newLocal)) {
+            if (!wasRenamed && newLocalSet?.has(newLocal)) {
                 return ""; // duplicate in same cross-file group
             }
         }

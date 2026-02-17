@@ -7,6 +7,7 @@ import {
 } from "@/utils/core/citation_utils";
 import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popover";
 import Debugger from "@/debug/debugger";
+import { FileSuperScriptPopover } from "../popovers/file_superscript_popover";
 
 /**
  * Render function for callout citations
@@ -47,7 +48,7 @@ export function renderCalloutCitation(
         continuousRangeSymbol,
         continuousDelimiters,
         multiCitationDelimiterRender,
-        quoteCitationPrefixes,
+        calloutCitationPrefixes: quoteCitationPrefixes,
     } = plugin.settings;
 
     // Find the format for this prefix
@@ -104,15 +105,21 @@ export function renderCalloutCitation(
             const fileSuperEl = document.createElement('sup');
             fileSuperEl.textContent = `[${crossFile}]`;
             fileSuperEl.className = "em-math-citation-file-superscript em-callout-citation-file-superscript";
-
-            // Add file superscript popover
             if (parent) {
                 fileSuperEl.addEventListener('mouseenter', (e: MouseEvent) => {
                     const ctrlKey = e.ctrlKey || e.metaKey;
                     if (isInteractive || ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();
-                        // TODO: Show file info popover (can reuse FileSuperScriptPopover)
+                        e.stopImmediatePropagation();
+                        new FileSuperScriptPopover(
+                            plugin,
+                            parent,
+                            fileSuperEl,
+                            sourcePath,
+                            crossFile,
+                            300
+                        );  
                     }
                 });
             }
@@ -127,7 +134,7 @@ export function renderCalloutCitation(
 
         // Add multi-citation delimiter if needed
         if (multiCitationDelimiterRender && formattedCiteCalloutTags.length > 1 &&
-            tag !== formattedCiteCalloutTags[formattedCiteCalloutTags.length - 1] // not last one
+            tag !== formattedCiteCalloutTags.at(-1) // not last one
         ) {
             const multiDelimEl = document.createElement('span');
             multiDelimEl.className = 'em-math-citation-multi-delimiter em-callout-citation-multi-delimiter';

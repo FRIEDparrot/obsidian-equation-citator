@@ -3,11 +3,13 @@ import Debugger from "@/debug/debugger";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
 import { CalloutMatch } from "@/utils/parsers/callout_parser";
+import { normalizePath } from "obsidian";
 
 export interface RenderedCallout {
     type: string;  // type of callout (e.g., "table", "thm", "def")
     tag: string;  // tag of the callout (without prefix)
     prefix: string;  // the prefix used (e.g., "table:", "thm:")
+    title: string | null;  // optional title text (from callout header)
     content: string;  // callout content
     sourcePath: string | null; // source path of the callout file
     filename: string | null;  // filename label (alias) of the callout
@@ -22,7 +24,7 @@ export interface RenderedCallout {
  */
 export class CalloutServices {
     constructor(
-        private plugin: EquationCitator
+        private readonly plugin: EquationCitator
     ) { }
 
     /**
@@ -40,9 +42,10 @@ export class CalloutServices {
         prefix: string,
         sourcePath: string
     ): Promise<RenderedCallout[]> {
-        Debugger.log(`getCalloutsByTags called with tags: ${JSON.stringify(calloutTagsAll)}, prefix: ${prefix}, sourcePath: ${sourcePath}`);
+        const normalizedSourcePath = normalizePath(sourcePath);
+        Debugger.log(`getCalloutsByTags called with tags: ${JSON.stringify(calloutTagsAll)}, prefix: ${prefix}, sourcePath: ${normalizedSourcePath}`);
         const settings = this.plugin.settings;
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath) || [];
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath) || [];
 
         // Resolve each callout tag (handle cross-file references)
         const callouts: RenderedCallout[] = calloutTagsAll.map(tag => {
@@ -51,9 +54,9 @@ export class CalloutServices {
                 : { local: tag, crossFile: null };
 
             const { path, filename } = crossFile
-                ? this.resolveCrossFileRef(sourcePath, crossFile, footnotes)
+                ? this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes)
                 : {
-                    path: sourcePath,
+                    path: normalizedSourcePath,
                     filename: this.plugin.settings.enableRenderLocalFileName ?
                         this.plugin.app.workspace.getActiveFile()?.name || null : null
                 };
@@ -65,6 +68,7 @@ export class CalloutServices {
                 type,
                 tag: local,
                 prefix,
+                title: null,  // Will be filled by fillCalloutsContent
                 content: '',  // Will be filled by fillCalloutsContent
                 sourcePath: path,
                 filename: filename,
@@ -117,11 +121,63 @@ export class CalloutServices {
 
             return {
                 ...callout,
+                title: matchedCallout?.title || null, // Extract title from matched callout
                 content: matchedCallout?.raw || '', // Use raw content to include tags and title
                 lineStart: matchedCallout?.lineStart || 0,
                 lineEnd: matchedCallout?.lineEnd || 0
             };
         });
+    }
+
+    /**
+     * Get callouts for autocomplete suggestions
+     * Searches for callouts matching the given tag prefix and callout prefix
+     *
+     * @param tag - The partial tag to search for (e.g., "1.1")
+     * @param prefix - The callout prefix (e.g., "table:", "thm:")
+     * @param sourcePath - The source file path
+     * @returns Array of matching callouts
+     */
+    public async getCalloutsForAutocomplete(
+        tag: string,
+        prefix: string,
+        sourcePath: string
+    ): Promise<RenderedCallout[]> {
+        const normalizedSourcePath = normalizePath(sourcePath);
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath) || [];
+        const { local, crossFile } = this.plugin.settings.enableCrossFileCitation ?
+            splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
+            { local: tag, crossFile: null };
+
+        const { path, filename } = crossFile === null ?
+            { path: normalizedSourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
+            this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes);
+
+        if (!path) return [];
+
+        const calloutsAll = await this.plugin.calloutCache.getCalloutsForFile(path);
+        // Filter by prefix and tag match
+        const callouts = calloutsAll?.filter(callout =>
+            callout.prefix === prefix && callout.tag?.startsWith(local)
+        ) || [];
+
+        if (callouts.length === 0) return [];
+
+        // Extract type from prefix (remove trailing colon)
+        const type = prefix.endsWith(':') ? prefix.slice(0, -1) : prefix;
+
+        return callouts.map(callout => ({
+            type,
+            tag: callout.tag || '',
+            prefix,
+            title: callout.title || null,
+            content: callout.raw,
+            sourcePath: path,
+            filename,
+            footnoteIndex: crossFile,
+            lineStart: callout.lineStart,
+            lineEnd: callout.lineEnd
+        }) as RenderedCallout);
     }
 
     /**

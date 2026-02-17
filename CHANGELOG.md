@@ -83,6 +83,7 @@ Version 1.2.2 - many critical bug fixes and significant improvements for user ex
  - [x] Fix multiple same equations render processing, now it will auto matically be combined, `$\ref{eq:1.1.1, 1.1.1, 1.1.2, 1.1.2, 1.1.3, 1.1.4, 1.1.6,  }$`  now should be rendered as  `(1.1.1~4), (1.1.6)`, which is rendered as `(1.1.1~2), (1.1.2~4), (1.1.6)` in previous versions. 
  - [x] Fix the citation not rendered correctly when there are spaces between ref brace and citation prefix (e.g. `ref{ eq:1.1}` will not be rendered correctly) 
  - [x] Fix PDF export issue : The markdown prepend the path name instead of creating it under the same folder. 
+ - [x] `enableAutoNumberGlobalPrefix` settings is not used, and toggle it has no effect. Now this setting is removed.
 
 ✨ New Features : 
 - [x] **(Significant Improvement)** Cross-File Citation now support use inner braces in citation (A large refactor has been made for this, PDF support and autocomplete are also updated to support this feature). 
@@ -298,6 +299,64 @@ Version 1.3.2 - some new features, enhancements, refactors and bug fixes.
   3. detect single-line illegal equation.
   4. For some case, the code block is counted in, which leads to incorrect line number information. Now fixed.
 
-### 🚢 Coming Soon : 
-1. Auto-number and citation complete add for  figures 
-2. Check citations of figures and tables, all in one 😄
+### Version 1.3.3
+Version 1.3.3 - bug fixes, new features and enhancements.
+
+---
+
+Important Update summaries : 
+- Excalidraw support is now available in figure citation preview!
+- Auto complete for figure and callout citations is now available!
+- Auto-number and rename tags for figures are now available! 
+- Add mobile support for this plugin!
+
+Settings Updates : 
+- We refactored the variable name `quoteCitationPrefixes` to `calloutCitationPrefixes` for clarity. So your current settings for callout citation prefix will be restored. Be sure to re-set the settings for `callout citation prefix` in settings tab to make the callout citation work.
+
+--- 
+
+⭐ New Features :
+- [x] Autocomplete for figure citation and callout citations.
+  - [x] Auto complete supports 2 modes : including rich mode and compact mode (Check `Settings > Advanced > Show full preview in autocomplete`). 
+  - [x] For compact mode, hover on the autocomplete item will show the preview of the figure or callout. (Check `Settings > Advanced > Show preview on hover on autocomplete item`) 
+- [x] Rename tags for figures.
+- [x] Autonumber tags for figures. 
+  - [x] Following figure citations should be updated after auto-numbering or renaming tags. 
+- [x] Add Feature [#140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140), filter for boxed equations in equation manage panel. 
+ - [x] Command for box current equation. 
+- [x] Add Feature [#143](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/143), now we support Excalidraw in figure citation. 
+- [x] Figure citaion format can now cite section preview.
+
+
+🐛 Bug Fixes :
+- [x] fix bug [#136](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/136), add tag for multi-line equation in callout now work correctly. 
+- [x] fix glitch [#137](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/137), when the equation panel file and current active file is different, It will create a new window and jump to correct position.
+- [x] fix bug [#135](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/135), when edit the file at location before some folded titles, it will not unfold now.
+- [x] fig bug [#141](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/141), nested callouts now can be displayed correctly in callout citation preview.
+- [x] fix bug [#142](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/142), now the figures in callout will be correctly recognized and rendered in preview.
+
+🚀 enhancements :
+- [x] fix the reorder button location style in settings tab.
+- [x] add command `insert figure citation` for inserting figure citation quickly.
+- [x] now hovering on Citation superscript for callouts and figures will show the file links.
+- ❌ Stop support the caption for web link figure, and add why we not support it to Quickstart tutorial.
+
+🏗️ refactors : 
+- [x] refactored autocomplete suggest to add support for figure and callout citations.
+- [x] refactored drag and drop handler in equation panel for better code structure and readability.
+- [x] refactored the equation panel file, extract the outline view renderer to a separate file.
+- [x] rename `other settings` in categorical settings tab to `others` (Obsidian plugin rule)
+- [x] added `normalizePath()` to clean up the path throughout the plugin (Obsidian plugin rule)
+- [x] refactor the auto-number function part for better code structure, reuse in figure auto-numbering and scalability. 
+- [x] remove node assert calls for mobile support  
+- [x] fixed lots of sonar issues for better code quality.
+- [x] Now the plugin passed tests on emulator on desktop (`this.app.emulateMobile(true);`), but it seems this still can't work on mobile devices.
+
+### 🕒 ToDo List in v1.3.4
+1. Add support for mobile (currently the plugin can work in mobile mode in emulator, but there are still some problems to be fixed in real mobile test).
+2. Test it for fully support for mobile.
+3. Make more tests to ensure the statbility of this plugin.
+
+### 🚢 Future Plan : 
+1. Auto number for callouts if some1 request it.
+2. Check citations of figures and tables in equation panel, all in one 😄 

@@ -225,10 +225,6 @@
     }
 }
 
-.theme-dark .em-equation-wrapper:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
 /* Animation for smooth appearance */
 @keyframes fadeInUp {
     from {
@@ -556,6 +552,12 @@
     border-radius: 4px;
 }
 
+/* Smaller figure images in autocomplete suggestions */
+.em-equation-option-container .em-figure-image {
+    max-width: 300px;
+    max-height: 200px;
+}
+
 /* Figure metadata (title and description) */
 .em-figure-metadata {
     margin-top: 8px;
@@ -649,3 +651,18 @@
     font-size: 13px;
     text-align: center;
 }
+
+// ------------ Autocomplete Preview Styles ------------
+
+/* Limit size of autocomplete preview popovers */
+// .em-citation-popover-container,
+// .em-figure-citation-popover-container,
+// .em-callout-citation-popover-container {
+//     /* Allow existing popover styles to apply */
+//     /* Popovers inherit normal citation popover styling */
+// }
+
+/* Optional: Smaller images in autocomplete preview context */
+/* This applies when figures/callouts are shown as autocomplete previews */
+
+

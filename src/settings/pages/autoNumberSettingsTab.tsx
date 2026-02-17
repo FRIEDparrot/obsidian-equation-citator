@@ -1,6 +1,6 @@
 import { SETTINGS_METADATA } from "../defaultSettings";
 import { Notice, Setting } from "obsidian";
-import { AutoNumberingType } from "@/utils/core/auto_number_utils";
+import { AutoNumberingType } from "@/utils/core/auto_number_core";
 import EquationCitator from "@/main";
 import { addSubPanelToggle } from "../extensions/subPanelToggle";
 import { validateDelimiter, validateLetterPrefix } from "@/utils/string_processing/string_utils";
@@ -89,30 +89,9 @@ export const AutoNumberSettingsTab = {
             });
     },
 
-    enableAutoNumberGlobalPrefix(
-        containerEl: HTMLElement, plugin: EquationCitator,
-        renderSubpanel = true) {
-        const { name, desc } = SETTINGS_METADATA.enableAutoNumberGlobalPrefix;
-        const autoNumberingPrefixSetting = new Setting(containerEl);
-        autoNumberingPrefixSetting.setName(name)
-            .setDesc(desc);
-        addSubPanelToggle(
-            autoNumberingPrefixSetting,
-            plugin.settings.enableAutoNumberGlobalPrefix,
-            async (toggle) => {
-                plugin.settings.enableAutoNumberGlobalPrefix = toggle;
-                await plugin.saveSettings();
-            },
-            (panel) => {
-                AutoNumberSettingsTab.autoNumberGlobalPrefix(panel, plugin);
-            },
-            renderSubpanel
-        );
-    },
-    
-    autoNumberGlobalPrefix(panel: HTMLElement, plugin: EquationCitator) {
+    autoNumberGlobalPrefix(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.autoNumberGlobalPrefix;
-        new Setting(panel)
+        new Setting(containerEl)
             .setName(name)
             .setDesc(desc)
             .addText((text) => {
@@ -156,6 +135,115 @@ export const AutoNumberSettingsTab = {
             });
     },
 
+    figAutoNumberDelimiter(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.figAutoNumberDelimiter;
+        const figAutoNumberDelimiterSetting = new Setting(containerEl);
+        figAutoNumberDelimiterSetting.setName(name)
+            .setDesc(desc)
+            .addText((text) => {
+                text.inputEl.classList.add("ec-delimiter-input");
+                text.setPlaceholder("Default: .");
+                text.setValue(plugin.settings.figAutoNumberDelimiter);
+                text.inputEl.onblur = async () => {
+                    const newValue = text.getValue();
+                    if (newValue !== plugin.settings.figAutoNumberDelimiter) {
+                        if (validateDelimiter(newValue)) {
+                            plugin.settings.figAutoNumberDelimiter = newValue;
+                            await plugin.saveSettings();
+                        } else {
+                            new Notice("Only special characters (not brace) are allowed, change not saved");
+                            text.setValue(plugin.settings.figAutoNumberDelimiter);
+                        }
+                    }
+                }
+            });
+    },
+
+    figAutoNumberDepth(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.figAutoNumberDepth;
+        const figAutoNumberLevelSetting = new Setting(containerEl);
+        figAutoNumberLevelSetting.setName(name)
+            .setDesc(desc)
+            .addSlider((slider) => {
+                slider.setLimits(1, 6, 1);
+                slider.setValue(plugin.settings.figAutoNumberDepth || 1);
+                slider.setDynamicTooltip();
+                slider.onChange(async (value) => {
+                    plugin.settings.figAutoNumberDepth = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
+    figAutoNumberNoHeadingPrefix(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.figAutoNumberNoHeadingPrefix;
+        const figAutoNumberingNoHeadingPrefixSetting = new Setting(containerEl);
+        figAutoNumberingNoHeadingPrefixSetting.setName(name)
+            .setDesc(desc)
+            .addText((text) => {
+                text.inputEl.classList.add("ec-delimiter-input");
+                text.setPlaceholder("F");
+                text.setValue(plugin.settings.figAutoNumberNoHeadingPrefix);
+                text.inputEl.onblur = async () => {
+                    const newValue = text.getValue();
+                    if (newValue !== plugin.settings.figAutoNumberNoHeadingPrefix) {
+                        if (validateLetterPrefix(newValue)) {
+                            plugin.settings.figAutoNumberNoHeadingPrefix = newValue;
+                            await plugin.saveSettings();
+                        } else {
+                            new Notice("Only letters are allowed, change not saved");
+                            text.setValue(plugin.settings.figAutoNumberNoHeadingPrefix);
+                        }
+                    }
+                };
+            });
+    },
+
+    figAutoNumberGlobalPrefix(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.figAutoNumberGlobalPrefix;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addText((text) => {
+                text.inputEl.classList.add("ec-delimiter-input");
+                text.setValue(plugin.settings.figAutoNumberGlobalPrefix);
+                text.inputEl.onblur = async () => {
+                    const newValue = text.getValue();
+                    if (newValue !== plugin.settings.figAutoNumberGlobalPrefix) {
+                        plugin.settings.figAutoNumberGlobalPrefix = newValue;
+                        await plugin.saveSettings();
+                    }
+                };
+            });
+    },
+
+    enableAutoNumberFigsInQuotes(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.enableAutoNumberFigsInQuotes;
+        const autoNumberingFigsInQuotesSetting = new Setting(containerEl);
+        autoNumberingFigsInQuotesSetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableAutoNumberFigsInQuotes);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableAutoNumberFigsInQuotes = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
+    enableAutoNumberTaggedFigsOnly(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.enableAutoNumberTaggedFigsOnly;
+        const autoNumberingTaggedFigsOnlySetting = new Setting(containerEl);
+        autoNumberingTaggedFigsOnlySetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.enableAutoNumberTaggedFigsOnly);
+                toggle.onChange(async (value) => {
+                    plugin.settings.enableAutoNumberTaggedFigsOnly = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
 
     enableUpdateTagsInAutoNumber(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = true) {
         const { name, desc } = SETTINGS_METADATA.enableUpdateTagsInAutoNumber;
@@ -166,7 +254,7 @@ export const AutoNumberSettingsTab = {
         addSubPanelToggle(
             enableUpdateTagsInAutoNumberSetting,
             plugin.settings.enableUpdateTagsInAutoNumber,
-            async  (toggle) => {
+            async (toggle) => {
                 plugin.settings.enableUpdateTagsInAutoNumber = toggle;
                 await plugin.saveSettings();
             },
@@ -213,12 +301,23 @@ export const AutoNumberSettingsTab = {
  * @param plugin 
  */
 export function addAutoNumberSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
+    new Setting(containerEl).setName("Shared").setHeading();
+    AutoNumberSettingsTab.autoNumberType(containerEl, plugin);
+    AutoNumberSettingsTab.enableUpdateTagsInAutoNumber(containerEl, plugin, true);
+
+    new Setting(containerEl).setName("For equations").setHeading();
     AutoNumberSettingsTab.autoNumberDelimiter(containerEl, plugin);
     AutoNumberSettingsTab.autoNumberDepth(containerEl, plugin);
-    AutoNumberSettingsTab.autoNumberType(containerEl, plugin);
     AutoNumberSettingsTab.autoNumberNoHeadingPrefix(containerEl, plugin);
-    AutoNumberSettingsTab.enableAutoNumberGlobalPrefix(containerEl, plugin, true);
+    AutoNumberSettingsTab.autoNumberGlobalPrefix(containerEl, plugin);
     AutoNumberSettingsTab.enableAutoNumberEquationsInQuotes(containerEl, plugin);
     AutoNumberSettingsTab.enableAutoNumberTaggedEquationsOnly(containerEl, plugin);
-    AutoNumberSettingsTab.enableUpdateTagsInAutoNumber(containerEl, plugin, true);
+    
+    new Setting(containerEl).setName("For figures").setHeading();
+    AutoNumberSettingsTab.figAutoNumberDelimiter(containerEl, plugin);
+    AutoNumberSettingsTab.figAutoNumberDepth(containerEl, plugin);
+    AutoNumberSettingsTab.figAutoNumberNoHeadingPrefix(containerEl, plugin);
+    AutoNumberSettingsTab.figAutoNumberGlobalPrefix(containerEl, plugin);
+    AutoNumberSettingsTab.enableAutoNumberFigsInQuotes(containerEl, plugin);
+    AutoNumberSettingsTab.enableAutoNumberTaggedFigsOnly(containerEl, plugin);
 }

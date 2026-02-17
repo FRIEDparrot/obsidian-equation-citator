@@ -7,8 +7,8 @@ import { Setting } from "obsidian";
  * @param initVal 
  * @param onToggleChange 
  * @param subPanelCreationCallback 
- * @param reverse 
- * @param insertAfter 
+ * @param reverse  reverse the toggle logic, i.e. show subpanel when toggle is off and hide when toggle is on.
+ * @param insertAfter  place subpanel after settingEl
  * @param renderPanel when set to false, the option is used as a common toggle without subpanels 
  */
 export function addSubPanelToggle(

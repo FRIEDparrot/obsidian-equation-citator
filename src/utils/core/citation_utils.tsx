@@ -70,17 +70,17 @@ export function combineContinuousCitationTags(
                 continue;  // move to next tag   
             }
             const num = extractLastNumberFromTag(local, validDelimiters);
-            if (num !== null) {
-                const prefix = extractPrefixBeforeLastNumber(local, validDelimiters);
-                if (!numericGroups[prefix]) numericGroups[prefix] = [];
-                numericGroups[prefix].push({ local, num, order });
-            } else {
+            if (num === null) {
                 // non-numeric tag, add as is  
                 const formatted = formatTag(local);
                 if (!seenTags.has(formatted)) {
                     result.push({ combinedTag: formatted, order });
                     seenTags.add(formatted);
                 }
+            } else {
+                const prefix = extractPrefixBeforeLastNumber(local, validDelimiters);
+                if (!numericGroups[prefix]) numericGroups[prefix] = [];
+                numericGroups[prefix].push({ local, num, order });
             }
         }
         // Process numeric groups to find continuous sequences
@@ -115,7 +115,7 @@ export function combineContinuousCitationTags(
     }
     // Build result preserving original order, but only including each combined form once
     return result
-        .sort((a, b) => a.order - b.order)
+        .toSorted((a, b) => a.order - b.order)
         .filter((item, index, array) =>
             index === array.findIndex(i => i.combinedTag === item.combinedTag)
         )
@@ -157,9 +157,9 @@ export function splitContinuousCitationTags(
 
         // Try to parse the numbers
         const startNum = extractLastNumberFromTag(beforeRange, validDelimiters);
-        const endNum = parseInt(afterRange, 10);
+        const endNum = Number.parseInt(afterRange, 10);
 
-        if (startNum === null || isNaN(endNum) || startNum > endNum) {
+        if (startNum === null || Number.isNaN(endNum) || startNum > endNum) {
             // Invalid range - only add original tag 
             result.push(tag);
             continue;
@@ -231,8 +231,8 @@ export function extractCommonPrefix(a: string, b: string, validDelimiters: strin
  */
 export function extractLastNumber(eq: string, prefix: string): number | null {
     const numStr = eq.substring(prefix.length);
-    const num = parseInt(numStr, 10);
-    return isNaN(num) ? null : num;
+    const num = Number.parseInt(numStr, 10);
+    return Number.isNaN(num) ? null : num;
 }
 
 
@@ -411,7 +411,7 @@ function processInlineReferences(
             if (isInCodeBlock(current.pos) || isInCodeBlock(next.pos)) continue;
             // match the math pattern 
             const content = line.substring(current.pos, next.pos + 1); 
-            if (content.match(inlineMathPattern)) {
+            if (new RegExp(inlineMathPattern).exec(content)) {
                 // only add if it's a inline math pattern  
                 inlineMathRanges.push({ start: current.pos, end: next.pos });
                 j++; // Skip the next position as it's already paired
@@ -445,7 +445,7 @@ function processInlineReferences(
 
     // Replace from end to start 
     let result = line;
-    matches.reverse().forEach(({ mathStart, mathEnd, citations }) => {
+    matches.toReversed().forEach(({ mathStart, mathEnd, citations }) => {
         // Combines continuous citation tags
         const combinedCitations = (rangeSymbol === null) ?
             citations :
@@ -520,6 +520,6 @@ export function extractAutoCompleteInputTag(content: string, delimiter: string):
     if (allTags.length === 0) {
         return "";
     }
-    const lastTag = allTags[allTags.length - 1].trim();  // Get the last tag
+    const lastTag = allTags.at(-1)?.trim() || "";  // Get the last tag
     return lastTag;
 }

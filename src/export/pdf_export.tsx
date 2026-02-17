@@ -14,7 +14,7 @@ import { isCodeBlockToggle } from "@/utils/string_processing/regexp_utils";
  * This is used for PDF export
  * 
  * Replace all citations in markdown with HTML inline format for PDF rendering  
- * @note
+ * @remarks
  * Since the original PDF rendering function is not accessible,
  * and patching it is potentially unstable, we make a  markdown copy by replacing the 
  * markdown with HTML format with inline styles for PDF export to render correctly. 
@@ -58,7 +58,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
     );
 
     // Step 3: Replace callout citations (table, theorem, definition, etc.)
-    for (const prefixConfig of settings.quoteCitationPrefixes) {
+    for (const prefixConfig of settings.calloutCitationPrefixes) {
         result = replaceCalloutCitationsInMarkdown(
             result,
             prefixConfig.prefix,
@@ -211,7 +211,7 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
 function removeImageMetadata(line: string, figPrefix: string): string {
     // Handle weblink format: ![[path|metadata]]
     const weblinkPattern = /^!\[\[([^\]|]+)(?:\|([^\]]*))?\]\]$/;
-    const weblinkMatch = line.match(weblinkPattern);
+    const weblinkMatch = new RegExp(weblinkPattern).exec(line);
 
     if (weblinkMatch) {
         const imagePath = weblinkMatch[1].trim();
@@ -221,7 +221,7 @@ function removeImageMetadata(line: string, figPrefix: string): string {
 
     // Handle markdown format: ![alt|metadata](url)
     const markdownPattern = /^!\[([^\]]*)\]\(([^)]+)\)$/;
-    const markdownMatch = line.match(markdownPattern);
+    const markdownMatch = new RegExp(markdownPattern).exec(line);
 
     if (markdownMatch) {
         const altText = markdownMatch[1];
@@ -259,5 +259,5 @@ function escapeHtml(text: string): string {
         '"': '&quot;',
         "'": '&#39;'
     };
-    return text.replace(/[&<>"']/g, char => htmlEscapeMap[char]);
+    return text.replaceAll(/[&<>"']/g, char => htmlEscapeMap[char]);
 }

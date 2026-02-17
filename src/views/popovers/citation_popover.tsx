@@ -1,6 +1,8 @@
-import { loadMathJax, Notice, WorkspaceLeaf } from "obsidian";
 import EquationCitator from "@/main";
 import {
+    loadMathJax, 
+    Notice, 
+    WorkspaceLeaf,
     Component,
     HoverPopover,
     HoverParent,
@@ -26,16 +28,16 @@ import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
  */
 export class CitationPopover extends HoverPopover {
     tags: string[] = []; // list of tags to be cited
-    private equationsToRender: RenderedEquation[] = [];
-    private targetEl: HTMLElement;
-    private targetComponent: TargetElComponent;
+    private readonly equationsToRender: RenderedEquation[] = [];
+    private readonly targetEl: HTMLElement;
+    private readonly targetComponent: TargetElComponent;
     
     constructor(
-        private plugin: EquationCitator,
+        private readonly plugin: EquationCitator,
         parent: HoverParent,
         targetEl: HTMLElement,
         equationsToRender: RenderedEquation[],
-        private sourcePath: string,
+        private readonly sourcePath: string,
         waitTime?: number
     ) {
         super(parent, targetEl, waitTime);
@@ -97,29 +99,29 @@ export class CitationPopover extends HoverPopover {
         this.equationsToRender.forEach((eq, index) => {
             const equationOptionContainer = equationsContainer.createDiv();
             equationOptionContainer.addClass("em-equation-option-container");
-            void renderEquationWrapper(this.plugin, leaf, this.sourcePath, eq, equationOptionContainer, this.targetComponent, true);
+            void renderEquationWrapper(this.plugin, leaf, eq, equationOptionContainer, this.targetComponent, true);
         });
 
         // Add footer with equation count
         const footer = container.createDiv();
         const totalEquations = this.equationsToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${totalEquations} equation${totalEquations !== 1 ? 's' : ''}`;
+        footer.textContent = `${totalEquations} equation${totalEquations === 1 ? '' : 's'}`;
     }
 }
 
 /**
  * Render the equation container (shared function by reading and live preview mode)
  * @param plugin 
- * @param sourcePath 
+ * @param leaf 
  * @param eq 
  * @param container 
  * @param targetComponent 
+ * @param addLinkJump 
  */
 export async function renderEquationWrapper(
     plugin: EquationCitator,
     leaf: WorkspaceLeaf,
-    sourcePath: string,
     eq: RenderedEquation,
     container: HTMLElement,
     targetComponent: Component,
@@ -131,8 +133,6 @@ export async function renderEquationWrapper(
     }
     const equationWrapper = container.createDiv();
     equationWrapper.addClass("em-equation-wrapper");
-    // equationWrapper.setAttribute("data-equation-index", index.toString()); 
-
     const equationLabelContainer = equationWrapper.createDiv();
     equationLabelContainer.addClass("em-equation-label-container");
 

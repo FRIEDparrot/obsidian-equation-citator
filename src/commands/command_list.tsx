@@ -1,11 +1,12 @@
 import EquationCitator from '@/main';
-import { autoNumberCurrentFileEquations, insertAutoNumberTag } from '@/func/autoNumber';
+import { autoNumberCurrentFileEquations, autoNumberCurrentFileFigures, insertAutoNumberTag } from '@/func/autoNumber';
 import { MarkdownView, Notice } from 'obsidian';
 import { exportCurrentMarkdown } from '@/func/exportMarkdown';
 import { insertTextWithCursorOffset } from '@/utils/workspace/insertTextOnCursor';
 import { createCitationString, createEquationTagString } from '@/utils/string_processing/regexp_utils';
 import { invokeView } from '@/utils/workspace/invokePanelView';
 import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel/mainPanel';
+import { boxSelectedEquation } from '@/func/equations_helper';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
@@ -14,13 +15,17 @@ export default function registerCommands(plugin: EquationCitator) {
         callback: async() => {
             const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
             if (!editor) return;
-            const scrollInfo = editor.getScrollInfo();
-            
             await autoNumberCurrentFileEquations(plugin);
-            // reset the scroll location  
-            setTimeout(() => {
-                editor.scrollTo(scrollInfo.left, scrollInfo.top);
-            }, 50); // delay to allow the editor to update the scroll position 
+        }
+    });
+
+    plugin.addCommand({
+        id: 'auto-number-current-file-figures',
+        name: 'Auto-number current file figures',
+        callback: async() => {
+            const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+            if (!editor) return;
+            await autoNumberCurrentFileFigures(plugin);
         }
     });
 
@@ -45,6 +50,19 @@ export default function registerCommands(plugin: EquationCitator) {
             const citePrefix = plugin.settings.citationPrefix;
             const citationString = createCitationString(citePrefix);
             // Move cursor to the correct position 
+            insertTextWithCursorOffset(editor, citationString, 6 + citePrefix.length);
+        },
+    })
+
+    plugin.addCommand({
+        id: 'insert-figure-citation-on-cursor-position',
+        name: 'Insert figure citation on cursor position',
+        callback: () => {
+            const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+            if (!editor) return;
+            const citePrefix = plugin.settings.figCitationPrefix;
+            const citationString = createCitationString(citePrefix);
+            // Move cursor to the correct position
             insertTextWithCursorOffset(editor, citationString, 6 + citePrefix.length);
         },
     })
@@ -77,6 +95,13 @@ export default function registerCommands(plugin: EquationCitator) {
         }
     })
 
+    plugin.addCommand({
+        id: 'box-current-equation',
+        name: 'Box current equation',
+        callback: () => {
+            boxSelectedEquation(plugin);
+        }
+    })
     
     plugin.addCommand({
         id: 'clear-cache',

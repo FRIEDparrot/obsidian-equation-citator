@@ -1,16 +1,13 @@
-# Common Auto-Numbering Techniques and Tricks
+# Common Usage Techniques and Tricks
 
+> [!summary] 
+> This tutorial gives a collection for **practical tricks and advanced auto-numbering techniques** based on frequent user feedback and common scenarios.
+> 
+> Each section addresses a specific need (like skipping numbers, tagging only key equations, etc.).  
+> 
 
-
-> [!tip]
-> This tutorial collects practical tricks and advanced auto-numbering techniques based on frequent user feedback and common scenarios.
-> Each section addresses a specific need (skipping numbers, tagging only key equations, moving equations between files, etc.).
-> Use this as a reference when handling special formatting or restructuring content.
-
----
-
-## 1. Ignore (Exclude) a Specific Equation from Auto-Numbering
-
+## 1. Auto-numbering tricks 
+### (1) Ignore (Exclude) a specific equation from Auto-Numbering
 If most equations in a file are numbered automatically, but you want one equation to retain a fixed custom tag (e.g. `eq:M1`), you can exclude it from auto-numbering by wrapping it in a quote (or a callout).
 
 Example original equation (that would normally be renumbered):
@@ -28,10 +25,22 @@ To keep a custom tag:
 Notes:
 - Putting the equation in a one-line block with extra inline text both before and after (e.g. inside a table row) can also prevent auto-numbering, but using a quote (`>`) is cleaner and more intentional.
 
+### (2) Ignore a heading from heading list 
+This is a common case when you are drafting an essay and there are **several chapters before the first chapter**, like **Abstract** or **Preface**. You don't want to share the numbering between **abstract** and the main part, you can use HTML format for headings.
 
+```html
+<h1> Abstract </h1>
+```
 
-## 2. Only Number Important Equations
+The above heading will be ignored from the auto-numbering heading list. You can check `settings > Basic > Auto number no heading prefix` and set it as you need (e.g., `A`), then the result would just like : 
+```
+<h1> Abstract </h1>
+$$... \tag{A1}$$
+# Chapter1
+$$... \tag{1.1}$$
+```
 
+### (3) Only Number Important Equations 
 If a file contains many derivation steps but you only want to assign numbers to a few key equations you intend to cite:
 
 1. Enable the option: 
@@ -40,16 +49,13 @@ If a file contains many derivation steps but you only want to assign numbers to 
    - At the end: use your shortcut (e.g. “Insert tag on cursor position auto-number”).
    - Mid-expression: insert with `\tag{A}` or some other, then run auto-numbering. 
 
-After that, only tagged equations will receive numbers.
+After that, only tagged equations will receive numbers. In that case, non-tagged derivations stay unnumbered, while key equations remain stable and citable.
 
+> [!NOTE] An easier way to filter important equations
+> Since the above method still need some effort to manually add tags, After v1.3.3, we added another feature `filter the boxed equation` in equation panel, so I suggest just **add `\boxed{}` to those important equations**. So that you can auto number all equations and just filter them when you need.
 
-
-Result: Non-tagged derivations stay unnumbered, while key equations remain stable and citable.
-
----
-
-## 3. Editing a Table Inside a Callout More Easily
-
+## 2. Figure & Table Citation Tricks
+### (1) Editing a Table Inside a Callout More Easily
 Editing tables inside callouts can be awkward because each line begins with `>`. Here is a workflow to simplify that (see also [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7)):
 
 1. Temporarily remove the quote markers:
@@ -61,15 +67,9 @@ Editing tables inside callouts can be awkward because each line begins with `>`.
    - Ensure the callout header line (e.g. `> [!note]`) is positioned correctly above the table.
 4. Merge adjoining blocks if they split.
 
-
-
----
-
-## 4. Move Equations and Footnotes from One File into Another
-
-When migrating a section (including equations and footnotes) into a larger document while preserving clean numbering, follow these steps.
-
-### Step 1. Update Footnote References Before Moving
+## 3. Move Equations and Footnotes from One File into Another
+When migrating a section (including equations and footnotes) into a larger document while preserving clean numbering, you can follow these steps. 
+#### Step 1. Update Footnote References Before Moving
 
 If your source file has footnote definitions like:
 ```
@@ -86,7 +86,7 @@ Efficient search:
 > [!warning]
 > Don't replace all at once, patterns like `2^{100}` (exponent expressions) may accidentally match your citation format.
 
-### Step 2. Apply a Prefix to the Equations in the Source File
+#### Step 2. Apply a Prefix to the Equations in the Source File
 
 1. Go to: `Settings > Categorial > Auto numbering > Enable auto number prefix`
 2. Set a prefix (e.g. `M`) 
@@ -97,7 +97,7 @@ After this, equations become:
 
 This distinguishes migrated equations from native ones in the destination.
 
-### Step 3. Move Content
+#### Step 3. Move Content
 
 Copy or append :
 - Any content and prefixed equations
@@ -105,11 +105,11 @@ Copy or append :
 
 Paste them into the target file in the desired section.
 
-### Step 4. Update Backlinks
+#### Step 4. Update Backlinks
 
 Open the backlink panel for the original (now empty) file and update references to point to the merged target file if needed (especially if other notes link to the old section).
 
-### Step 5. Re-run Auto-Numbering and Clean Up
+#### Step 5. Re-run Auto-Numbering and Clean Up
 
 In the target file:
 1. Re-auto-number (if the integration recalculates numbers globally).

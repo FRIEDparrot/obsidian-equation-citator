@@ -18,11 +18,11 @@ export class CitationWidget extends WidgetType {
     private el: HTMLElement;
     private view: EditorView;
     private popover: CitationPopover | null = null;
-    private parent: HoverParent | null = null;
+    private readonly parent: HoverParent | null = null;
     constructor(
-        private plugin: EquationCitator,
-        private sourcePath: string,
-        private eqNumbersAll: string[],
+        private readonly plugin: EquationCitator,
+        private readonly sourcePath: string,
+        private readonly eqNumbersAll: string[],
         public range: { from: number; to: number }
     ) {
         super();
@@ -126,8 +126,10 @@ export class CitationWidget extends WidgetType {
 /**
  * Shared rendering function for both modes 
  *    input splitted equation tags, render combined equation citation by settings 
- * @param citeEquationTags 
- * @param settings 
+ * @param plugin - The plugin instance
+ * @param sourcePath - The source file path for the citation, used for resolving cross-file references
+ * @param parent - The hover parent element for attaching popovers, can be null if not in hover context
+ * @param citeEquationTags splitted equation tags to render, e.g. ["1", "2", "3"] for 3 equations with tag 1, 2, 3; or ["1^1.1", "1^3.2"] for cross-file citation
  * @param isInteractive if it's true, show footnote without ctrl key 
  * @returns 
  */
@@ -222,7 +224,7 @@ export function renderEquationCitation(
 
         // add  multi-citation delimiter if needed 
         if (multiCitationDelimiterRender && formatedCiteEquationTags.length > 1 &&
-            tag !== formatedCiteEquationTags[formatedCiteEquationTags.length - 1] // not last one
+            tag !== formatedCiteEquationTags.at(-1) // not last one
         ) {
             const multiDelimEl = document.createElement('span');
             multiDelimEl.className = 'em-math-citation-multi-delimiter';

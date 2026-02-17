@@ -3,7 +3,7 @@
 </div></center>
 
 <center><div width="100%"><span>
-  <img src="https://img.shields.io/badge/Version-1.3.2-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Version-1.3.3-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
     <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads" alt="Downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
@@ -20,15 +20,36 @@
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
-> This plugin supports [typst-style autonumber](https://github.com/azyarashi/obsidian-typst-mate). You can use `Settings > Categorical > Other settings > enable typst mode` to enable it.
+> This plugin now supports desktop, but we have future plan to support mobile (Android) as well. This feature may be added in v1.3.4 or later.
 
 ## 🛠️ Installation 
-1.  You can download it from community plugins After this plugin is published in obsidian vault (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`). 
 
-2.  OR you can just download `main.js`,`manifest.json` and `style.css` in the latest release page and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault. 
+> Now this plugin is waiting for review in Obsidian community plugins at [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298), so you may not find it available in the community plugins list now, but please be patient for it.
+
+1.  You can download it from community plugins After this plugin is published in obsidian community plugins (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`). 
+
+2.  Or you can just download `main.js`,`manifest.json` and `style.css` in the latest release page and put them in `.obsidian/plugins/equation-citator` folder under your obsidian vault.
+
+3. This plugin can also be installed by plugin [BRAT](https://obsidian.md/plugins?id=obsidian42-brat), just copy paste the link of this repo in the options tab of BRAT to add it.
+
+## 👋🏻 Applications & Usages 
+
+> [!note]  
+> **This plugin would be pretty useful if**: 
+> - You're writing academic notes in Obsidian and need to manage numerous equations efficiently with automatic numbering and cross-references
+> - You're drafting research papers or technical documents in Markdown and want LaTeX-style equation citation with accurate numbering
+> - You derive equations in your notes and need to reference them throughout your derivation process or across multiple files
+> - You use Obsidian for school or university notes and want quick navigation to cited equations without endless scrolling
+> - You have figures, tables, or theorem-like content in your notes that requires systematic referencing and organization
+
+> [!warning] 
+> **This plugin is NOT designed for**:
+> - Citing equations or content within PDF files (PDFs are not recognized or processed by the plugin)
+> - Managing bibliographic references or literature citations (use a dedicated citation management plugin instead)
+> - Real-time collaborative editing with automatic sync of equation numbers across users
+> - Processing equations in image files or scanned documents 
 
 ## ✨ What this plugin do 
-
 ### 1. ⚡ **Auto-number equations by heading level** 
 
 **Auto number all the equations in by simply 1 click on the sidebar icon**  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-function-icon lucide-square-function"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 17c2 0 2.8-1 2.8-2.8V10c0-2 1-3.3 3.2-3"/><path d="M9 11.2h5.7"/></svg> 
@@ -44,14 +65,29 @@ Cite equations by drag and drop from equation manage panel. multiple equation ci
 
 ### 3. 🖼️ Cite Images, Tables and Even Theorems 
 
-Cite images by adding field to it. Cite tables and theorems by quote citation feature. 
+Cite images by adding field to it. Cite tables and theorems by quote citation feature. **Excalidraw images** and markdown sections are also supported. 
 
 <center><img src="img\image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px; " /></center>
 
 ### 4.  📜**PDF export support**  
-Not export PDF directly, Run command `Make markdown copy to export PDF` to make a full PDF ready for you to export. 
+Not export PDF directly, Run command `Make markdown copy to export PDF` to make correct markdown ready for you to export  PDF. 
+
+The pdf will be like following picture after exporting, with correct citation and reference numbers :
 
 <center><img src="img\pdf-export-example.png" alt="pdf-export-example" style="zoom:100%; max-height: 350px; " /></center>
+
+## 🛒 Compatibility with other plugins
+
+Following plugins often used for math are tested to be compatible with `Equation Citator`, you can use them together without any problem. 
+
+1. [Excalidraw](https://github.com/zsviczian/obsidian-excalidraw-plugin),  Excalidraw is supported in figure citation preview after version 1.3.3, you can cite an excalidraw picture by adding `fig` field to it just like normal images.
+2. [Typst Mate](https://github.com/azyarashi/obsidian-typst-mate). This plugin supports typst-style autonumber, and you can use `Settings > Categorical > Others > enable typst mode` to enable it.
+3. [Latex Suite](https://github.com/artisticat1/obsidian-latex-suite), it can work seamlessly with this plugin, I really suggest using this for quickly writing long and complex equations.
+4. [Completr](https://github.com/tth05/obsidian-completr), This provide better auto-complete for latex syntax.
+5. [Quick Latex](https://github.com/joeyuping/quick_latex_obsidian). This provide features like auto-enlarge brackets.
+6. [Better math in callouts & blockquotes](https://github.com/RyotaUshio/obsidian-math-in-callout). use it directly for better math rendering in callouts. 
+7. [No More Flickering Inline Math](https://github.com/RyotaUshio/obsidian-inline-math)
+
 
 ## 🚨 Disclaimer
 
@@ -82,13 +118,14 @@ I developed this plugin as a hobby and use it in my daily work. It's completely 
 
 - 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
 
-**Contributors and maintainers are always welcome** :
-- You can contribute to this plugin by simply forking this repo and submitting a PR:
-  - 1. **Please test your code carefully before submitting a PR!**. 
-  - 2. add what you have done into `CHANGELOG.md`. (Use the next patch version number if a neww minor version is not planned in `CHANGELOG.md`)
-  - 3. We have some CI check before merging PR, please make sure your code passes all the checks.
 
-> [!WARNING] 
+> [!NOTE] 
+>  
+> **Contributors and maintainers are always welcome** :
+> You can contribute to this plugin by simply forking this repo and submitting a PR:
+>   1. **Please test your code carefully before submitting a PR!**. 
+>   2. add what you have done into `CHANGELOG.md`. (Use the next patch version number if a neww minor version is not planned in `CHANGELOG.md`)
+>   3. We have some CI check before merging PR, please make sure your code passes all the checks.
 > 
 > For submitting a PR, please commit it to `dev-latest` branch, this is the latest development branch, this is for the convenience of us to test and debug, and I will always sync my dev branch to this branch to prevent potential merge conflicts.
 

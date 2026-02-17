@@ -38,7 +38,10 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "fileCiteDelimiter",
                 "figCitationPrefix",
                 "figCitationFormat",
-                "quoteCitationPrefixes",
+                "enableRichAutoComplete",
+                "enableRichAutoCompleteHoverPreview",
+                "richAutoCompletePreviewDelayTime",
+                "calloutCitationPrefixes",
             ]
         },
         {
@@ -49,10 +52,15 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "autoNumberDepth",
                 "autoNumberType",
                 "autoNumberNoHeadingPrefix",
-                "enableAutoNumberGlobalPrefix",
                 "autoNumberGlobalPrefix",
                 "enableAutoNumberEquationsInQuotes",
                 "enableAutoNumberTaggedEquationsOnly",
+                "figAutoNumberDelimiter",
+                "figAutoNumberDepth",
+                "figAutoNumberNoHeadingPrefix",
+                "figAutoNumberGlobalPrefix",
+                "enableAutoNumberFigsInQuotes",
+                "enableAutoNumberTaggedFigsOnly",
                 "enableUpdateTagsInAutoNumber",
                 "deleteRepeatTagsInAutoNumber",
                 "deleteUnusedTagsInAutoNumber",
@@ -67,6 +75,8 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "equationManagePanelEnableRenderHeadingsOnly",
                 "equationManagePanelLazyUpdateTime",
                 "equationManagePanelFileCheckInterval",
+                "equationManagePanelFilterBoxedEquation",
+                "skipFirstlineInBoxedFilter",
             ]
         },
         {
@@ -99,8 +109,10 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "Others",
             settingKeys: [
                 "enableTypstMode",
+                "typstBoxSymbol",
                 "debugMode",
                 "enableCiteWithCodeBlockInCallout",
+                "extensionsUseMarkdownRenderer",
             ]
         },
     ];

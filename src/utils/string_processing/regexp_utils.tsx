@@ -1,24 +1,17 @@
 export const headingRegex = /^(#{1,6})\s+(.*)$/;
 
+export const CITATION_PADDING = 5; // \\ref{ is 5 characters
+
 /** Change string RegExp to RegExp literal */
 export function escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return string.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
+// #region Standard Patterns and Regexes for parsing equations and citations
 /**
  * This file Manages the regular expressions used in the plugin. 
  */
 export const codeBlockStartRegex = /^\s*(?:>+\s*)*```/
-
-/**
- * Test if a line is a code block toggle  
- * @param line 
- * @returns 
- */
-export function isCodeBlockToggle(line: string): boolean {
-    const codeBlockMatches = codeBlockStartRegex.test(line) ? line.match(/```/g) : null;
-    return Boolean(codeBlockMatches && codeBlockMatches.length % 2 === 1);
-}
 
 // 1 : num , 2: text  
 export const footnoteRegex = /^\[(\^[^\]]+)\]: (.*)/;
@@ -40,13 +33,28 @@ export const equationBlockStartPatternWithWhiteSpace = /^\s*(?<!\\)\$\$(?!\$)/;
 export const equationBlockEndPatternWithWhiteSpace = /(?<!\\)\$\$(?!\$)\s*$/;
 export const equationBlockBracePattern = /(?<!\\)\$\$/g;
 
+export const markdownImagePattern = /^!\[([^\]]*)\]\(([^)]+)\)$/;
+export const weblinkImagePattern = /^!\[\[([^\]|]+)(?:\|([^\]]*))?\]\]$/;
+// #endregion
+
 /**
- * parse the citation with ref inside the formula 
- * usage :  matches = processedLine.matchAll(inlineRefRegex); (remove inline code blocks first) 
- * const [fullMatch, content, label] = match; 
+ * parse the inline math blocks, used for parsing citations.
+ * 
+ * warning: since we support nested citation format, 
+ *    there is no fixed citationRegex (it will always parse wrongly)
  */
-// export const inlineRefRegex = /(?<!\$)\$(?!\$)(?! )([^$]*?\\ref\{([^}]*)\}[^$]*?)(?<! )\$(?!\$)/g; 
-export const inlineMathPattern = /(?<!\\)(?<!\$)\$(?!\$)(?! )((?:\\\$|[^$])*?)(?<! )\$(?!\$)/g;
+export const inlineMathPattern = /(?<!\\)(?<!\$)\$(?!\$)(?! )((?:\\\$|[^$])*?)(?<!\\)(?<! )\$(?!\$)/g;
+
+
+/**
+ * Test if a line is a code block toggle  
+ * @param line 
+ * @returns 
+ */
+export function isCodeBlockToggle(line: string): boolean {
+    const codeBlockMatches = codeBlockStartRegex.test(line) ? line.match(/```/g) : null;
+    return Boolean(codeBlockMatches && codeBlockMatches.length % 2 === 1);
+}
 
 export interface RefMatch {
     fullMatch: string; // full match of the regex 
@@ -60,7 +68,8 @@ export interface RefMatch {
 
 /** 
  * @param citation without bracket, e.g. "\ref{eq:1.3.4}", not with $$ 
- * @param prefix 
+ * @param prefix if use, only match the citation with the label start with the prefix, e.g. "eq:"
+ * @remarks Citation format : only 1 \ref{} in  equation, and is a inline math format
  * @returns 
  */
 export function isValidCitationForm(
@@ -68,19 +77,21 @@ export function isValidCitationForm(
     prefix: string | null = null,
 ): {
     valid: boolean;
+    label: string | null;  // label inside the \ref{} if valid, otherwise null
     index: number;
 } {
     // Skip if multiple \ref{} in same formula
-    const match = citation.match(/\\ref\{[^}]*\}/g);
-    if (!match || match.length !== 1) return { valid: false, index: -1 };
+    const result = matchNestedCitation(citation, prefix);
+    if (!result) return { valid: false, label: null, index: -1 };
 
     // Skip if citation does not start with prefix
-    if (prefix) {
-        // test if there is a \ref{ prefix...} format 
-        const referenceStrartRegex = new RegExp(`\\\\ref\\{\\s*${escapeRegExp(prefix)}[^}]*\\}`);
-        if (!referenceStrartRegex.test(citation)) return { valid: false, index: -1 }; // not start with prefix
-    }
-    return { valid: true, index: citation.indexOf(match[0]) };
+    const label = result.label;
+    const index = citation.indexOf(result.content);  // not use || here (since it overrides 0)
+    return {
+        valid: true,
+        label: label.trim(),
+        index: index
+    };
 }
 
 /** Match the label of nested citation in the math block 
@@ -99,10 +110,12 @@ export function matchNestedCitation(
     const MAX_NESTING_DEPTH = 10; // limit nesting depth to prevent infinite loop
     if (citation.length > MAX_INPUT_LENGTH) return null;
 
-    const { valid, index } = isValidCitationForm(citation, prefix);
-    if (!valid) return null;
+    // parse the ref{} in the citation (only should be 1)
+    const match = citation.match(/\\ref\{[^}]*\}/g);
+    if (!match || match?.length !== 1) return null;
 
-    const braceIndex = index + 5; // position after \\ref{
+    const index = citation.indexOf(match[0]);
+    const braceIndex = index + CITATION_PADDING; // position after \\ref{
     let braceCount = 1;
     let currentIndex = braceIndex;
     let currentDepth = 1; // current depth of nested citation   
@@ -175,7 +188,9 @@ export function createCitationString(
     withDollarBracket = true
 ): string {
     const eqContent = content || "";
-    const citationString = withDollarBracket ? `$\\ref{${prefix}${eqContent}}$` : `\\ref{${prefix}${eqContent}}`;
+    const citationString = withDollarBracket ? 
+        String.raw`$\ref{${prefix}${eqContent}}$` : 
+        String.raw`\ref{${prefix}${eqContent}}`;
     return citationString;
 }
 
@@ -186,21 +201,26 @@ export function createEquationTagRegex(
     typst = false,
 ): RegExp {
     if (!tagName) {
-        return typst
-            ? new RegExp(fullMatch ? /^#label\("([^"]*)"\)$/ : /#label\("([^"]*)"\)/)
-            : new RegExp(fullMatch ? /^\\tag\{([^}]*)\}$/ : /\\tag\{([^}]*)\}/);
+        const typstPattern = fullMatch ? /^#label\("([^"]*)"\)$/ : /#label\("([^"]*)"\)/;
+        const latexPattern = fullMatch ? /^\\tag\{([^}]*)\}$/ : /\\tag\{([^}]*)\}/;
+        const pattern: RegExp = typst ? new RegExp(typstPattern) : new RegExp(latexPattern);
+        return pattern;
     }
+
     const escapedTagName = escapeRegExp(tagName);
-    return typst
-        ? fullMatch
-            ? new RegExp(`^#label\\(\\s*"${escapedTagName}"\\s*\\)$`)
-            : new RegExp(`#label\\(\\s*"${escapedTagName}"\\s*\\)`)
-        : fullMatch
-            ? new RegExp(`^\\\\tag\\{\\s*${escapedTagName}\\s*\\}$`)
-            : new RegExp(`\\\\tag\\{\\s*${escapedTagName}\\s*\\}`);
+
+    if (typst) {
+        return fullMatch
+            ? new RegExp(String.raw`^#label\(\s*"${escapedTagName}"\s*\)$`)
+            : new RegExp(String.raw`#label\(\s*"${escapedTagName}"\s*\)`);
+    } else {
+        return fullMatch
+            ? new RegExp(String.raw`^\\tag\{\s*${escapedTagName}\s*\}$`)
+            : new RegExp(String.raw`\\tag\{\s*${escapedTagName}\s*\}`);
+    }
 }
 
 export function createEquationTagString(content: string, typst: boolean): string {
-    const tagString = typst ? `#label("${content}")` : `\\tag{${content}}`;
+    const tagString = typst ? `#label("${content}")` : String.raw`\tag{${content}}`;
     return tagString;
 }

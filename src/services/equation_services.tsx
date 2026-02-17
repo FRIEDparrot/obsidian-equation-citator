@@ -3,8 +3,9 @@ import Debugger from "@/debug/debugger";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 import { splitFileCitation } from "@/utils/core/citation_utils";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
-import { MarkdownView } from "obsidian";
+import { MarkdownView, normalizePath } from "obsidian";
 import { createEquationTagString } from "@/utils/string_processing/regexp_utils";
+import { processQuoteLine } from "@/utils/string_processing/string_utils";
 
 export interface RenderedEquation {
     tag: string;  // tag of the equation 
@@ -22,7 +23,7 @@ export interface RenderedEquation {
  */
 export class EquationServices {
     constructor(
-        private plugin: EquationCitator
+        private readonly plugin: EquationCitator
     ) { }
 
     /**
@@ -44,8 +45,9 @@ export class EquationServices {
      * - Returns an empty array if no valid equations are found
      */
     public async getEquationsByTags(eqNumbersAll: string[], sourcePath: string): Promise<RenderedEquation[]> {
+        const normalizedSourcePath = normalizePath(sourcePath);
         const settings = this.plugin.settings;
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath);
 
         const equations: RenderedEquation[] = eqNumbersAll.map(tag => {
             const { local, crossFile } = settings.enableCrossFileCitation
@@ -53,9 +55,9 @@ export class EquationServices {
                 : { local: tag, crossFile: null };
 
             const { path, filename } = crossFile
-                ? this.resolveCrossFileRef(sourcePath, crossFile, footnotes)
+                ? this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes)
                 : {
-                    path: sourcePath,
+                    path: normalizedSourcePath,
                     filename: this.plugin.settings.enableRenderLocalFileName ?
                         this.plugin.app.workspace.getActiveFile()?.name || null : null
                 };
@@ -98,19 +100,20 @@ export class EquationServices {
     }
 
     public async getEquationsForAutocomplete(tag: string, sourcePath: string): Promise<RenderedEquation[]> {
-        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(sourcePath);
+        const normalizedSourcePath = normalizePath(sourcePath);
+        const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(normalizedSourcePath);
         const { local, crossFile } = this.plugin.settings.enableCrossFileCitation ?
             splitFileCitation(tag, this.plugin.settings.fileCiteDelimiter) :
             { local: tag, crossFile: null };
 
-        const { path, filename } = crossFile !== null ?
-            this.resolveCrossFileRef(sourcePath, crossFile, footnotes) :
-            { path: sourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null };
+        const { path, filename } = crossFile === null ?
+            { path: normalizedSourcePath, filename: this.plugin.app.workspace.getActiveFile()?.name || null } :
+            this.resolveCrossFileRef(normalizedSourcePath, crossFile, footnotes);
 
         if (!path) return [];
 
         const equationsAll = await this.plugin.equationCache.getEquationsForFile(path);
-        const equations = equationsAll?.filter(eq => eq.tag && eq.tag.startsWith(local)) || [];
+        const equations = equationsAll?.filter(eq => eq.tag?.startsWith(local)) || [];
         if (equations.length === 0) return [];
 
         return equations.map(eq => ({
@@ -135,7 +138,8 @@ export class EquationServices {
     }
 
     /**
-     * Adds a tag to an equation at a specific line range in a file
+     * Adds a tag to an equation at a specific line range to the active file. 
+     *     This function use replaceRange to modify the editor content directly, so its less costy.
      * @param filePath - The path of the file containing the equation
      * @param lineStart - The starting line number of the equation
      * @param lineEnd - The ending line number of the equation
@@ -143,10 +147,11 @@ export class EquationServices {
      * @returns true if successful, false otherwise
      */
     public addTagToEquation(filePath: string, lineStart: number, lineEnd: number, tag: string): boolean {
+        const normalizedPath = normalizePath(filePath);
         // Find the MarkdownView for this file
-        const view = this.getMarkdownViewByPath(filePath);
+        const view = this.getMarkdownViewByPath(normalizedPath);
         if (!view?.editor) {
-            Debugger.log("Cannot find editor for file: ", filePath);
+            Debugger.log("Cannot find editor for file: ", normalizedPath);
             return false;
         }
 
@@ -177,15 +182,14 @@ export class EquationServices {
                 { line: lineStart, ch: line.length }
             );
         } else {
-            // Multi-line equation: find the line before $$
-            const lastLineIndex = equationLines.length - 1;
-            const lastLine = equationLines[lastLineIndex];
-
+            // Multi-line equation: find the line of $$
+            const lastLine = equationLines.at(-1) || '';
+            const { content } = processQuoteLine(lastLine);
             // Insert tag on the line before the closing $$
-            if (lastLine.trim() === '$$') {
+            if (content.trim() === '$$') {
                 // Tag goes on the previous line
-                const tagLineIndex = lineStart + lastLineIndex - 1;
-                const tagLine = editor.getLine(tagLineIndex);
+                const tagLineIndex = lineStart + equationLines.length - 2;
+                const tagLine = equationLines.at(-2) || '';
                 const newTagLine = tagLine.trimEnd() + ' ' + tagString;
                 editor.replaceRange(
                     newTagLine,
@@ -193,8 +197,20 @@ export class EquationServices {
                     { line: tagLineIndex, ch: tagLine.length }
                 );
             } else {
-                Debugger.log("Multi-line equation does not have proper closing $$");
-                return false;
+                // there is content before $$ in the last line
+                const tagLine = equationLines.at(-1) || '';
+                const insertPosition = tagLine.lastIndexOf('$$');
+                if (insertPosition === -1) {
+                    Debugger.log("Multi-line equation does not have proper closing $$");
+                    return false;
+                }
+                const newTagLine = tagLine.slice(0, insertPosition).trimEnd() + ' ' + tagString + ' ' + tagLine.slice(insertPosition);
+
+                editor.replaceRange(
+                    newTagLine,
+                    { line: lineEnd, ch: 0 },
+                    { line: lineEnd, ch: tagLine.length }
+                );
             }
         }
 

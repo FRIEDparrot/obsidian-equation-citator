@@ -1,6 +1,6 @@
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
-import { Notice } from "obsidian";
+import { Notice, normalizePath } from "obsidian";
 
 
 /**
@@ -21,15 +21,18 @@ export async function checkFootnoteExists(
     sourceFilePath: string,
     createIfNotExist = false,
 ): Promise < string | null > {
+    const normalizedTargetPath = normalizePath(targetFilePath);
+    const normalizedSourcePath = normalizePath(sourceFilePath);
+    
     // Get existing footnotes in target file
-    const existingFootnotes = await plugin.footnoteCache.getFootNotesFromFile(targetFilePath);
+    const existingFootnotes = await plugin.footnoteCache.getFootNotesFromFile(normalizedTargetPath);
     if (!existingFootnotes) return null; 
     
     // Check if footnote for this source file already exists
     const existingFootnote = existingFootnotes.find((fn) => {
         if(!fn?.path) return false;
-        const file = plugin.app.metadataCache.getFirstLinkpathDest(fn.path, targetFilePath);
-        return file?.path === sourceFilePath;
+        const file = plugin.app.metadataCache.getFirstLinkpathDest(fn.path, normalizedTargetPath);
+        return file?.path === normalizedSourcePath;
     });
     if(existingFootnote) {
         return existingFootnote.num;
@@ -37,33 +40,33 @@ export async function checkFootnoteExists(
 
     // Need to create a new footnote
     if (!createIfNotExist) return null;
-    const sourceFile = plugin.app.vault.getAbstractFileByPath(sourceFilePath);
+    const sourceFile = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
     if(!sourceFile) return null;
 
     // Find next available footnote number
     const maxNum = existingFootnotes?.reduce((max, fn) => {
-        const num = parseInt(fn.num);
-        return isNaN(num) ? max : Math.max(max, num);
+        const num = Number.parseInt(fn.num);
+        return Number.isNaN(num) ? max : Math.max(max, num);
     }, 0) || 0;
     const newNum = (maxNum + 1).toString();
 
-    if (isNaN(maxNum)) {
+    if (Number.isNaN(maxNum)) {
         new Notice("Invalid footnote number");
         Debugger.error(`Invalid footnote number: ${maxNum}, existing Footnotes are : ${JSON.stringify(existingFootnotes)}`);
         return null;
     }
 
     // Append footnote to target file
-    const targetFileContent = await plugin.app.vault.adapter.read(targetFilePath);
-    const footnoteText = `[^${newNum}]: [[${sourceFilePath}]]`;
+    const targetFileContent = await plugin.app.vault.adapter.read(normalizedTargetPath);
+    const footnoteText = `[^${newNum}]: [[${normalizedSourcePath}]]`;
     
     const delm = targetFileContent.endsWith("\n") ? "\n" : "\n\n";
     
     const newContent = targetFileContent + delm + footnoteText;
-    await plugin.app.vault.adapter.write(targetFilePath, newContent);
+    await plugin.app.vault.adapter.write(normalizedTargetPath, newContent);
 
     // Refresh cache
-    await plugin.footnoteCache.updateFileFootnotes(targetFilePath);
+    await plugin.footnoteCache.updateFileFootnotes(normalizedTargetPath);
 
     return newNum;
 }

@@ -1,15 +1,14 @@
 import { Prec, RangeSetBuilder, StateField } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { HoverParent, MarkdownPostProcessorContext, Notice, TFile } from "obsidian";
+import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, editorInfoField, MarkdownView, normalizePath } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
-import { editorInfoField, MarkdownView } from "obsidian";
 import {
     CitationRef,
     splitContinuousCitationTags
 } from "@/utils/core/citation_utils";
-import { CitationWidget } from "@/views/widgets/citation_widget";
+import { CitationWidget, renderEquationCitation } from "@/views/widgets/citation_widget";
 import { FigureCitationWidget } from "@/views/widgets/figure_citation_widget";
 import { CalloutCitationWidget } from "@/views/widgets/callout_citation_widget";
 import { CitationCache } from "@/cache/citationCache";
@@ -18,7 +17,6 @@ import { CitationPopover } from "@/views/popovers/citation_popover";
 import { FigureCitationPopover } from "@/views/popovers/figure_citation_popover";
 import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popover";
 import { createEquationTagRegex, matchNestedCitation, inlineMathPattern } from "@/utils/string_processing/regexp_utils";
-import { renderEquationCitation } from "@/views/widgets/citation_widget";
 import { renderFigureCitation } from "@/views/widgets/figure_citation_render";
 import { renderCalloutCitation } from "@/views/widgets/callout_citation_render";
 import { find_array } from "@/utils/misc/array_utils";
@@ -26,6 +24,7 @@ import { fastHash } from "@/utils/misc/hash_utils";
 import { isSourceMode } from "@/utils/workspace/workspace_utils";
 import { parseAllImagesFromMarkdown, parseImageLine, ImageMatch } from "@/utils/parsers/image_parser";
 import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
+import { CitationType } from "../auto_complete_suggest";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -60,7 +59,7 @@ function createTagSelectedField(settings: EquationCitatorSettings) {
             const sel = tr.state.selection.main;
             const selectedText = tr.state.sliceDoc(sel.from, sel.to).trim();
             const tagRegex = createEquationTagRegex(true, null, settings.enableTypstMode);
-            const tagContent = selectedText.match(tagRegex)?.[1] || null;
+            const tagContent = new RegExp(tagRegex).exec(selectedText)?.[1] || null;
 
             let tagSelected = false;
             if (tagRegex.test(selectedText)) {
@@ -109,7 +108,7 @@ function createTagSelectedField(settings: EquationCitatorSettings) {
 
 /**
  * Live Preview Extension (CodeMirror ViewPlugin) for render equation in editor   
- * @param settings 
+ * @param plugin - The plugin instance
  * @returns 
  */
 export function createMathCitationExtension(plugin: EquationCitator) {
@@ -137,7 +136,6 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                     update.focusChanged ||
                     update.selectionSet) {
                     this.decorations = this.buildDecorations(update.view);
-                    return;
                 }
             }
 
@@ -172,7 +170,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                         }
                         if (t.includes("math-begin") && !t.includes("math-block")) {
                             currentEqRange = { from: node.from, to: -1 };
-                        } else if (currentEqRange && currentEqRange.to === -1 && t.includes("math-end") && !t.includes("math-block")) {
+                        } else if (currentEqRange?.to === -1 && t.includes("math-end") && !t.includes("math-block")) {
                             currentEqRange.to = node.to;
 
                             const modeRender = !sourceMode || (sourceMode && settings.enableCitationInSourceMode);
@@ -190,7 +188,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
                             // Try callout citations (check all configured prefixes)
                             let calloutCm: ReturnType<typeof matchNestedCitation> = null;
                             let matchedCalloutPrefix: string | null = null;
-                            for (const prefixConfig of settings.quoteCitationPrefixes) {
+                            for (const prefixConfig of settings.calloutCitationPrefixes) {
                                 const cm = matchNestedCitation(text, prefixConfig.prefix);
                                 if (cm) {
                                     calloutCm = cm;
@@ -221,7 +219,7 @@ export function createMathCitationExtension(plugin: EquationCitator) {
 
                                 // Determine widget type and citation type
                                 let widget: CitationWidget | FigureCitationWidget | CalloutCitationWidget;
-                                let citationType: string;
+                                let citationType: CitationType;
 
                                 if (isCalloutCitation && matchedCalloutPrefix) {
                                     widget = new CalloutCitationWidget(
@@ -304,7 +302,6 @@ function getCitationSpan(el: Element): Element[] | null {
  * @param el 
  * @param ctx 
  * @param citationCache citation cache instance of the plugin, to get citation data from cache
- * @param settings 
  * @returns 
  */
 export async function mathCitationPostProcessor(
@@ -313,7 +310,7 @@ export async function mathCitationPostProcessor(
     ctx: MarkdownPostProcessorContext,
     citationCache: CitationCache,
 ): Promise<void> {
-    const { citationPrefix } = plugin.settings;
+    const { calloutCitationPrefixes, figCitationPrefix, citationPrefix } = plugin.settings;
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) return;
     // find citation spans in the section 
@@ -331,7 +328,7 @@ export async function mathCitationPostProcessor(
     const citations = allCitations.filter(
         eq => eq.line >= sectionInfo.lineStart && eq.line <= sectionInfo.lineEnd
     )
-    
+
     const renderCiteSpans = (citeSpans: Element[], citations: CitationRef[]) => {
         citeSpans.forEach((span, index) => {  // no need to match for 2rd time here
             const citation = citations[index];
@@ -343,7 +340,7 @@ export async function mathCitationPostProcessor(
             // Check for callout citations
             let isCalloutCitation = false;
             let calloutPrefix: string | null = null;
-            for (const prefixConfig of plugin.settings.quoteCitationPrefixes) {
+            for (const prefixConfig of calloutCitationPrefixes) {
                 if (citation.label.startsWith(prefixConfig.prefix)) {
                     isCalloutCitation = true;
                     calloutPrefix = prefixConfig.prefix;
@@ -355,8 +352,14 @@ export async function mathCitationPostProcessor(
 
             // Note: CitationRef.label includes the prefix (e.g., "fig:7", "eq:1.1", or "table:1.1")
             // We need to remove it before processing
-            const prefix = isCalloutCitation ? calloutPrefix :
-                          (isFigureCitation ? plugin.settings.figCitationPrefix : citationPrefix);
+            let prefix: string | null = null;
+            if (isCalloutCitation) {
+                prefix = calloutPrefix;
+            } else if (isFigureCitation) {
+                prefix = figCitationPrefix;
+            } else if (isEquationCitation) {
+                prefix = citationPrefix;
+            }
             if (prefix === null) return;
             const label = citation.label.substring(prefix.length);  // get the actual label without prefix
             const numbers: string[] = label.split(plugin.settings.multiCitationDelimiter || ',').map(t => t.trim());
@@ -374,30 +377,33 @@ export async function mathCitationPostProcessor(
                 return;
             }
 
-            const citationWidget = isCalloutCitation && calloutPrefix
-                ? renderCalloutCitation(
+            let citationWidget: HTMLElement | null = null;
+            if (isCalloutCitation && calloutPrefix) {
+                citationWidget = renderCalloutCitation(
                     plugin,
                     ctx.sourcePath,
                     activeLeaf,
                     calloutPrefix,
                     numbersAll,
                     true,
-                )
-                : (isFigureCitation
-                    ? renderFigureCitation(
-                        plugin,
-                        ctx.sourcePath,
-                        activeLeaf,
-                        numbersAll,
-                        true,
-                    )
-                    : renderEquationCitation(
-                        plugin,
-                        ctx.sourcePath,
-                        activeLeaf,
-                        numbersAll,
-                        true,
-                    ));
+                );
+            } else if (isFigureCitation) {
+                citationWidget = renderFigureCitation(
+                    plugin,
+                    ctx.sourcePath,
+                    activeLeaf,
+                    numbersAll,
+                    true,
+                );
+            } else {
+                citationWidget = renderEquationCitation(
+                    plugin,
+                    ctx.sourcePath,
+                    activeLeaf,
+                    numbersAll,
+                    true,
+                );
+            }
 
             if (isCalloutCitation && calloutPrefix) {
                 addReadingModeCalloutPreviewListener(plugin, citationWidget, calloutPrefix, numbersAll, ctx.sourcePath);
@@ -414,7 +420,6 @@ export async function mathCitationPostProcessor(
     if (citations.length === citeSpans.length && isFullArticle) {
         // render equation citation for each math span
         renderCiteSpans(citeSpans, citations);
-        return;  // finish rendering for this block 
     }
     else {
         // not full article, search part of the block for citations 
@@ -559,7 +564,7 @@ export function calloutCitationPostProcessor(
 
     codeCitations.forEach(code => {
         const citeContent = code.innerText.trim();
-        const match = citeContent.match(inlineMathPattern.source);
+        const match = new RegExp(inlineMathPattern.source).exec(citeContent);
 
         if (!match) return;
         const citation = matchNestedCitation(match[1], plugin.settings.citationPrefix);
@@ -635,7 +640,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         captionElements: Map<string, HTMLElement> = new Map();
         captionsByLine: Map<number, { element: Element; caption: HTMLElement }> = new Map();
         lastCursorLine = -1;
-        
+
         constructor(view: EditorView) {
             this.view = view;
             this.lastCursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
@@ -678,7 +683,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
             if (currentLineImage) {
                 const markdown = view.state.doc.toString();
                 images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
-                
+
                 // Force-refresh the cache with the parsed images
                 plugin.imageCache.set(currentFile.path, images);
             } else {
@@ -704,7 +709,6 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
             const imagesWithMetadata = images.filter(img =>
                 img.tag !== undefined && (img.tag || img.title || img.desc)
             );
-
             if (imagesWithMetadata.length === 0) {
                 // No images with metadata, remove all captions
                 const allCaptions = view.dom.querySelectorAll('.em-image-caption');
@@ -721,14 +725,12 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
 
             // Track which elements should have captions
             const elementsWithCaptions = new Set<Element>();
-            const processedLines = new Set<number>();
 
             // Apply captions
             matchedPairs.forEach(({ element, imageData }) => {
                 if (imageData) {
                     this.ensureCaption(element, imageData, settings);
                     elementsWithCaptions.add(element);
-                    processedLines.add(imageData.line);
                 }
             });
 
@@ -875,16 +877,11 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
 
         ensureCaption(element: Element, imageData: ImageMatch, settings: EquationCitatorSettings) {
             // Check if caption already exists
-            let existingCaption = element.querySelector('.em-image-caption');
+            const isInternalEmbed = element.classList.contains('internal-embed');
 
             // For IMG elements, check next sibling
-            if (!existingCaption && element.tagName === 'IMG') {
-                const nextSibling = element.nextElementSibling;
-                if (nextSibling?.classList.contains('em-image-caption')) {
-                    existingCaption = nextSibling;
-                }
-            }
-
+            if (!isInternalEmbed) return
+            let existingCaption = element.querySelector('.em-image-caption');
             if (existingCaption) {
                 // Update existing caption
                 this.updateCaption(existingCaption as HTMLElement, imageData, settings);
@@ -985,7 +982,8 @@ export async function imageCaptionPostProcessor(
     const { figCitationFormat, figCitationPrefix } = plugin.settings;
 
     // Get the source file content
-    const file = plugin.app.vault.getAbstractFileByPath(ctx.sourcePath);
+    const normalizedSourcePath = normalizePath(ctx.sourcePath);
+    const file = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
     if (!file || !(file instanceof TFile)) return;
 
     const content = await plugin.app.vault.read(file);

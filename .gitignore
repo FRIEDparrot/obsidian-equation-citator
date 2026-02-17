@@ -10,8 +10,14 @@ backup/*
 *.iml
 .idea
 
+*/**.html
+
 # npm
 node_modules
+
+# Build output
+dist
+docs 
 
 # Don't include the compiled main.js file in the repo.
 # They should be uploaded to GitHub releases instead.
@@ -31,3 +37,5 @@ data.json
 
 # Exclude eslint configuration files 
 .eslintrc
+
+tmpclaude-*

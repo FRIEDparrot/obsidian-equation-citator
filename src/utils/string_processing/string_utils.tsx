@@ -12,15 +12,16 @@ export function escapeString(str: string, quoteType: '"' | "'" = '"'): string {
     return str.replace(quoteRegex, (char: string) => {
         switch (char) {
             case '\\': return '\\\\';
-            case '"': return quoteType === '"' ? '\\"' : '"';
-            case "'": return quoteType === "'" ? "\\'" : "'";
-            case '\b': return '\\b';
-            case '\f': return '\\f';
-            case '\n': return '\\n';
-            case '\r': return '\\r';
-            case '\t': return '\\t';
-            case '\v': return '\\v';
-            default: return `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`;
+            case '"': return quoteType === '"' ? String.raw`\"` : '"';
+            case "'": return quoteType === "'" ? String.raw`\'` : "'";
+            case '\b': return String.raw`\b`;
+            case '\f': return String.raw`\f`;
+            case '\n': return String.raw`\n`;
+            case '\r': return String.raw`\r`;
+            case '\t': return String.raw`\t`;
+            case '\v': return String.raw`\v`;
+            default: 
+                return String.raw`\u${char.codePointAt(0)!.toString(16).padStart(4, '0')}`;
         }
     });
 }
@@ -90,14 +91,13 @@ export function removeInlineCodeBlocks(line: string): string {
  */
 export function removeBraces(content: string) {
     // Remove all braces { and } 
-    return content.replace(/[{}]/g, '');
+    return content.replaceAll(/[{}]/g, '');
 }
 
 export function removePairedBraces(content: string): string {
     let cnt = 0;
     const result: string[] = [];
-    for (let i = 0; i < content.length; i++) {
-        const char = content[i];
+    for (const char of content) {
         if (char === '{') {
             cnt++;
             continue;
@@ -142,11 +142,7 @@ export function isInInlineCodeEnvironment(line: string, pos: number): boolean {
             }
             // If the number of backslashes is even (including 0), the backtick is not escaped
             if (escapeCount % 2 === 0) {
-                if (!inCodeBlock) {
-                    // Start of code block
-                    codeBlockStart = i + 1; // Position after opening backtick
-                    inCodeBlock = true;
-                } else {
+                if (inCodeBlock) {
                     // End of code block
                     codeBlockEnd = i - 1; // Position before closing backtick
                     // Check if our position is within this code block
@@ -154,6 +150,10 @@ export function isInInlineCodeEnvironment(line: string, pos: number): boolean {
                         return true;
                     }
                     inCodeBlock = false;
+                } else {
+                    // Start of code block
+                    codeBlockStart = i + 1; // Position after opening backtick
+                    inCodeBlock = true;
                 }
             }
         }
@@ -294,12 +294,12 @@ export function findLastUnescapedDollar(line: string, pos: number): number {
 export interface QuoteLineMatch {
     content: string;
     quoteDepth: number;
-    isQuote: boolean;
+    inQuote: boolean;
 }
 
 export function processQuoteLine(line: string): QuoteLineMatch {
     // Match quote pattern: any combination of spaces and > markers
-    const quoteMatch = line.match(/^(\s*(?:>\s*)+)(\[![^\]]*\])?\s*(.*)/);
+    const quoteMatch = new RegExp(/^(\s*(?:>\s*)+)(\[![^\]]*\])?\s*(.*)/).exec(line);
 
     if (quoteMatch) {
         const fullQuoteMarkers = quoteMatch[1];
@@ -312,14 +312,14 @@ export function processQuoteLine(line: string): QuoteLineMatch {
         return {
             content: callout ? `${callout} ${content}` : content,
             quoteDepth: quoteDepth,
-            isQuote: quoteDepth > 0
+            inQuote: quoteDepth > 0
         };
     }
 
     return {
         content: line.trim(),
         quoteDepth: 0,
-        isQuote: false
+        inQuote: false
     }
 }
 
@@ -334,14 +334,14 @@ export interface MarkdownLineEnvironment {
     singleLineEquationMatch?: RegExpMatchArray | null;
     isEquationBlockStart: boolean;
     isEquationBlockEnd: boolean;
-    isImage: boolean;    // Whether the line is an image (starts with !)
+    isImage: boolean;    // Whether the line starts with !, not strictly an image line
     cleanedLine: string;   // Cleaned line with inline code blocks also removed
 }
 
 /**
  * Parse the 
  * @param line 
- * @param parseQuotes 
+ * @param parseQuotes whether to remove quote in lines before processing.
  * @param inCodeBlock 
  * @returns 
  */
@@ -351,12 +351,9 @@ export function parseMarkdownLine(
     inCodeBlock = false
 ): MarkdownLineEnvironment {
     // Process quote line to extract content and quote depth
-    const { content: processedContent, quoteDepth, qt: inQuote } = parseQuotes
-        ? (() => {
-            const { content, quoteDepth, isQuote } = processQuoteLine(line);
-            return { content, quoteDepth: quoteDepth, qt: isQuote };
-        })()
-        : { content: line.trim(), quoteDepth: 0, qt: false };
+    const { content: processedContent, quoteDepth, inQuote } = parseQuotes
+        ? processQuoteLine(line) 
+        : { content: line.trim(), quoteDepth: 0, inQuote: false };
 
     // Handle code blocks 
     const isCodeBlockToggle = isCbToggle(processedContent);
@@ -381,12 +378,12 @@ export function parseMarkdownLine(
     const cleanedLine = removeInlineCodeBlocks(processedContent);
 
     // Check for heading
-    const headingMatch = cleanedLine.match(headingRegex);
+    const headingMatch = new RegExp(headingRegex).exec(cleanedLine);
     const isHeading = !!headingMatch;
 
 
     // Check for single-line equation
-    const singleLineEquationMatch = cleanedLine.match(singleLineEqBlockPattern);
+    const singleLineEquationMatch = new RegExp(singleLineEqBlockPattern).exec(cleanedLine);
     const isSingleLineEquation = Boolean(singleLineEquationMatch);
 
     // Check for multi-line equation block start/end
