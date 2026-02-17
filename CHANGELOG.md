@@ -308,6 +308,7 @@ Important Update summaries :
 - Excalidraw support is now available in figure citation preview!
 - Auto complete for figure and callout citations is now available!
 - Auto-number and rename tags for figures are now available! 
+- Mobile support is now available!
 
 Settings Updates : 
 - We refactored the variable name `quoteCitationPrefixes` to `calloutCitationPrefixes` for clarity. So your current settings for callout citation prefix will be restored. Be sure to re-set the settings for `callout citation prefix` in settings tab to make the callout citation work.
@@ -325,6 +326,7 @@ Settings Updates :
  - [x] Command for box current equation. 
 - [x] Add Feature [#143](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/143), now we support Excalidraw in figure citation. 
 - [x] Figure citaion format can now cite section preview.
+- [x] Add support for mobile devices, also passed test on android devices.
 
 
 🐛 Bug Fixes :
@@ -339,6 +341,7 @@ Settings Updates :
 - [x] add command `insert figure citation` for inserting figure citation quickly.
 - [x] now hovering on Citation superscript for callouts and figures will show the file links.
 - ❌ Stop supporting the caption for web link figure, and add why we not support it to Quickstart tutorial.
+- [x] Now the plugin passed tests on emulator on desktop (`this.app.emulateMobile(true);`), also changed the `manifest.json` to support mobile platform.
 
 🏗️ refactors : 
 - [x] refactored autocomplete suggest to add support for figure and callout citations.
@@ -349,7 +352,6 @@ Settings Updates :
 - [x] refactor the auto-number function part for better code structure, reuse in figure auto-numbering and scalability. 
 - [x] remove node assert calls for mobile support  
 - [x] fixed lots of sonar issues for better code quality.
-- [x] Now the plugin passed tests on emulator on desktop (`this.app.emulateMobile(true);`), but it seems this still can't work on mobile devices.
 
 
 ### Version 1.3.4
@@ -357,15 +359,12 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
 ✈️ Multi-Platform Support :
 - [ ] Test this plugin on Linux platform 
-- [ ] Add support for mobile (android) devices, and test it for fully support for mobile. 
+- [ ] More test for fully support on mobile. 
 
 🏗️ refactors :  
 [x] Change MarkdownfileProcessor callback function to sync function.
 
 
-
-### 🕒 ToDo List in v1.3.4
-1. Make more tests to ensure the stability of this plugin.
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.

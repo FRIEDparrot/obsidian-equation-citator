@@ -20,7 +20,7 @@
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
-> This plugin now supports desktop, but we have future plan to support mobile (Android) as well. This feature may be added in v1.3.4 or later.
+📱 **Platform support**: This plugin is primarily for Windows. Since v1.3.3, both desktop and Android are supported. Some features (e.g., drag-drop citation and certain previews) may be limited on mobile.
 
 ## 🛠️ Installation 
 
@@ -117,7 +117,6 @@ Also, if u have suggestions and questions for this plugin, feel free to leave it
 I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. 
 
 - 💖 I would be very glad if anyone can help me to maintain this plugin (since I'm busy during school time).  
-
 
 > [!NOTE] 
 >  
