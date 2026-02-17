@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath } from "obsidian";
+import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath, Platform } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
@@ -159,15 +159,17 @@ export class EquationArrangePanel extends ItemView {
         const initialFile = this.app.workspace.getActiveFile();
         this.currentActiveFile = initialFile?.path || "";
 
-        // Register drop handler for equation drag-drop
+        // Register drop handler for equation drag-drop (desktop only)
         // Clean up existing handler if it exists (in case onOpen is called multiple times)
-        if (this.dragDropHandler) {
-            this.dragDropHandler.unload();
-            this.dragDropHandler = undefined;
+        if (!Platform.isMobile) {
+            if (this.dragDropHandler) {
+                this.dragDropHandler.unload();
+                this.dragDropHandler = undefined;
+            }
+            this.dragDropHandler = new EquationPanelDragDropHandler(
+                this.plugin, this
+            );
         }
-        this.dragDropHandler = new EquationPanelDragDropHandler(
-            this.plugin, this
-        )
         this.outlineViewRenderer = new EquationPanelOutlineViewRenderer(
             this.plugin, this
         )
@@ -452,7 +454,11 @@ export class EquationArrangePanel extends ItemView {
 
         // Drag start event
         eqDiv.addEventListener('dragstart', (event: DragEvent) => {
-            if (!event.dataTransfer) return;
+            // Skip drag on mobile devices
+            if (Platform.isMobile) {
+                event.preventDefault();
+                return;
+            }
 
             // Change cursor to grabbing hand
             document.body.classList.add('ec-equation-dragging');
@@ -466,8 +472,10 @@ export class EquationArrangePanel extends ItemView {
                 lineEnd: equation.lineEnd
             };
             const dataString = JSON.stringify(equationData);
-            event.dataTransfer.setData('ec-equations/drop-citations', dataString);
-            event.dataTransfer.effectAllowed = 'copy';
+            if (event.dataTransfer) {
+                event.dataTransfer.setData('ec-equations/drop-citations', dataString);
+                event.dataTransfer.effectAllowed = 'copy';
+            }
         });
 
         // Drag end event

@@ -3,7 +3,7 @@
 </div></center>
 
 <center><div width="100%"><span>
-  <img src="https://img.shields.io/badge/Version-1.3.2-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Version-1.3.3-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
     <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads" alt="Downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
@@ -19,6 +19,8 @@
 ✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details. 
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
+
+> This plugin now supports desktop, but we have future plan to support mobile (Android) as well. 
 
 ## 🛠️ Installation 
 

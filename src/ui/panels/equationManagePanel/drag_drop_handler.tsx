@@ -1,4 +1,4 @@
-import { App, MarkdownView } from "obsidian";
+import { App, MarkdownView, Platform } from "obsidian";
 import TagInputModal from "@/ui/modals/tagInputModal";
 import EquationCitator from "@/main";
 import { drawCursorAtDragPosition, clearDragCursor, getEditorDropLocation } from "@/utils/workspace/drag_drop_event";
@@ -37,6 +37,10 @@ export class EquationPanelDragDropHandler {
     }
 
     private registerDropEquationHandler(): void {
+        if (Platform.isMobile) {
+            Debugger.log("Mobile platform, skipping drag-and-drop handlers");
+            return;
+        }
         // Dragover handler - show visual cursor and allow drop
         this.dragoverHandler = (evt: DragEvent) => {
             // Check if we're dragging equation data

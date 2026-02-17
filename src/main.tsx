@@ -1,7 +1,7 @@
 import {
     Plugin, MarkdownView, WorkspaceLeaf,
     MarkdownPostProcessorContext,
-    Editor,
+    Editor, Platform
 } from 'obsidian';
 import { cleanUpStyles, loadStyles, SettingsTabView } from "@/settings/SettingsTab";
 import { DEFAULT_SETTINGS, EquationCitatorSettings } from "@/settings/defaultSettings";
@@ -86,6 +86,8 @@ export default class EquationCitator extends Plugin {
         registerRibbonButton(this);
         registerRightClickHandler(this);
         registerCommands(this);
+
+        Debugger.log("Equation Citator plugin loaded successfully", Platform.isMobile ? "(Mobile)" : "(Desktop)");
     }
 
     onunload() {
@@ -149,8 +151,10 @@ export default class EquationCitator extends Plugin {
                 createImageCaptionExtension(this)
             )
         );
-        // Register drag cursor field for equation drag-drop visual feedback
-        this.registerEditorExtension(dropCursorField);
+        // Register drag cursor field for equation drag-drop visual feedback (desktop only)
+        if (!Platform.isMobile) {
+            this.registerEditorExtension(dropCursorField);
+        }
     }
 
     loadReadingModeExtensions() {

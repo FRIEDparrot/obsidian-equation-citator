@@ -350,7 +350,11 @@ Settings Updates :
 - [x] refactor the auto-number function part for better code structure, reuse in figure auto-numbering and scalability. 
 - [x] remove node assert calls for mobile support  
 - [x] fixed lots of sonar issues for better code quality.
-- [ ] test for mobile support and fix bugs for mobile.
+- [x] Now the plugin passed tests on emulator on desktop (`this.app.emulateMobile(true);`), but it seems this still can't work on mobile devices.
+
+### 🕒 ToDo List in v1.3.4
+1. Add support for mobile (currently the plugin can work in mobile mode in emulator, but there are still some problems to be fixed in real mobile test).
+2. Test it for fully support for mobile.
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.
