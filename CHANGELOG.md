@@ -338,7 +338,7 @@ Settings Updates :
 - [x] fix the reorder button location style in settings tab.
 - [x] add command `insert figure citation` for inserting figure citation quickly.
 - [x] now hovering on Citation superscript for callouts and figures will show the file links.
-- ❌ Stop supportting the caption for web link figure, and add why we not support it to Quickstart tutorial.
+- ❌ Stop supporting the caption for web link figure, and add why we not support it to Quickstart tutorial.
 
 🏗️ refactors : 
 - [x] refactored autocomplete suggest to add support for figure and callout citations.
@@ -365,7 +365,7 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
 
 ### 🕒 ToDo List in v1.3.4
-1. Make more tests to ensure the statbility of this plugin.
+1. Make more tests to ensure the stability of this plugin.
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.
