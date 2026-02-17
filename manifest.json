@@ -2,7 +2,7 @@
 	"id": "equation-citator",
 	"name": "Equation Citator",
 	"author": "Fried Parrot",
-	"version": "1.3.2",
+	"version": "1.3.3",
 	"minAppVersion": "1.8.10",
 	"description": "A powerful LaTeX-like Academic Citation Tool for equations, figures, and more.", 
 	"authorUrl": "https://github.com/friedparrot", 

@@ -85,7 +85,7 @@ export const OtherSettingsTab = {
     extensionsUseMarkdownRenderer(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
             .setName("Extension names using Markdown renderer")
-            .setDesc("Some types of images (e.g., excalidraw) may not render correctly in preview with the default image renderer. You can specify file extensions here to use the Markdown renderer for better render support.");
+            .setDesc("Use Markdown renderer for better render support to those figure files");
 
         // Container for the list of extensions
         const extensionListContainer = containerEl.createDiv("ec-extension-list-container");
@@ -154,7 +154,7 @@ export const OtherSettingsTab = {
             setting.addText((text) => {
                 text.inputEl.classList.add("ec-extension-input");
                 text.setValue(extension);
-                text.setPlaceholder("E.g., excalidraw");
+                text.setPlaceholder("For example, `excalidraw`");
                 text.inputEl.onblur = () => handleExtensionBlur(extension, index, text.inputEl);
             });
 

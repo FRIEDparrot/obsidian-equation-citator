@@ -154,7 +154,7 @@ async function executeAutoNumber(
     const processor = new MarkdownFileProcessor(
         plugin,
         sourceFile,
-        async (content) => {
+        (content) => {
             const { md, tagMapping: tm } = processorContentCallback(content);
             tagMapping = tm;
             // rename tags by tagmapping
