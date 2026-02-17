@@ -29,7 +29,7 @@ export function isMarkdownFilePath(filePath: string) : boolean {
 export class MarkdownFileProcessor {
     constructor(private readonly plugin: EquationCitator,
         private readonly sourcePath: string,
-        private readonly callback: (content: string) => Promise<string>) { }
+        private readonly callback: (content: string) => string) { }
     
     public async execute() : Promise<boolean> {
         const normalizedPath = normalizePath(this.sourcePath);
@@ -41,7 +41,7 @@ export class MarkdownFileProcessor {
         
         try {
             const content = await this.plugin.app.vault.read(file);
-            const processedContent = await this.callback(content);
+            const processedContent = this.callback(content);
             await this.plugin.app.vault.process(file, () => processedContent);
             return true;
         }
