@@ -4,6 +4,13 @@ This folder contains CSS snippets that enhance the visual presentation of your O
 
 ## Available Snippets
 
+### 📋 triple_line_table.css
+Creates professional Booktabs-style tables:
+- Implements the classic three-line table design (top rule, header separator, bottom rule)
+- Removes unnecessary borders and zebra striping for a clean look
+- Adds subtle hover effect for better interactivity
+- Ideal for academic and professional documents
+
 ### 📊 better_table_align.css
 Improves table formatting by:
 - Centering the entire table block within the document
@@ -25,19 +32,10 @@ Centers all figure elements in your document:
 - Works in both editor (Live Preview) and reading mode
 - Great for presenting equations with accompanying figures
 
-### 📋 triple_line_table.css
-Creates professional Booktabs-style tables:
-- Implements the classic three-line table design (top rule, header separator, bottom rule)
-- Removes unnecessary borders and zebra striping for a clean look
-- Adds subtle hover effect for better interactivity
-- Ideal for academic and professional documents
-
 ## How to Use
 
 1. Copy any CSS snippet to your Obsidian vault's CSS snippets folder: `.obsidian/snippets/`
-2. Rename the file with a `.css` extension if needed
-3. Enable the snippet in Obsidian Settings → Appearance → CSS Snippets
-4. Reload your vault for changes to take effect
+2. Enable the snippet in Obsidian Settings → Appearance → CSS Snippets
 
 ## Notes
 
