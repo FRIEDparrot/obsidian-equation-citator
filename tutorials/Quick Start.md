@@ -138,8 +138,12 @@ The syntax is: `$\ref{eq:footnote^{tag}}$`,  For example,  As shown in equation 
 - **Open in Split**: `Ctrl + Double-click` opens the equation in an adjacent panel
 - **Rename Tags**: Right-click on any `\tag{}` to rename it (all citations update automatically)
 
+### 1.5 Rename equation tags 
+Select the `\tag{}` in the equation you want to rename, then right-click and select `Rename equation tag`. Citations will be automatically updated to match the new tag.
+
 ## 2. Figure and Callout Citations (New in v1.3.0) 
 ### 1) Figure Citations 
+#### 1. Grammar  
 We use the enhanced image syntax to make figures citable : 
 
 ```markdown
@@ -160,6 +164,7 @@ This will create :
 - A caption displayed below the image
 - A description for extended context 
 
+#### 2. Suppoer for Excalidraw and section preview
 
 ![[Excalidraw Support|fig:1.5]]
 Also, after `v1.3.3`, we can also cite the `excalidraw` image with same syntax  $\ref{fig:1.5, }$. 
@@ -170,7 +175,13 @@ But **since the grammar of external file link view `![[#(3) Citing Clarity|fig:1
 
 ![[#(3) Citing Clarity|fig:1.6]]
 
+#### 3. Auto-numbering Figures and rename tags
+
 This plugin also support **autonumber for figures** after v1.3.3, so you can use the ribbon button or command `auto-number current file figures` to auto-number all figures in current file.
+
+To rename figure tags, you can right-click image to select the whole, and select `Rename tag for this picture`, then input new tag name.
+
+#### 4. Limitations 
 
 > Note this plugin doesn't support creating caption for markdown link format images from web-link. But you can still cite it with $\ref{fig:1.7}$. 
 > 
@@ -178,9 +189,6 @@ This plugin also support **autonumber for figures** after v1.3.3, so you can use
 
 ![fig:1.7|200](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJUGwUw60NYwnmZEKiGJtoRXpa56J1Ko0QjA&s)
 
-
-> [!HINT] 
-> Currently the plugin don't support autonumber and rename for callouts. Since there might not be a lot of them. You can manage them manually now. Or you can request this feature in the [issue page](https://github.com/FRIEDparrot/obsidian-equation-citator/issues) if you really need it.
 
 ### 2) Callout Citations 
 #### 1. grammar
@@ -209,8 +217,6 @@ Citation inside callouts must match case exactly. Example:
 - Callout tag: `> [!NOTE:1]`
 - Cite with: `$\ref:{NOTE:1}$` (case-sensitive)   
 
-**NOTE: We don't support render image in callout and cite it currently. So please not use images in callout.**
-
 All figure and callout citations support syntax and interactive features in [[#1. Basic Equation Citations]]. 
 
 #### 2. Custom Callout Colors
@@ -227,7 +233,11 @@ We also support customize callout colors by adding [callout.css](https://gist.gi
 > | Widget B | 150K | +22% |
 > | Widget C | 200K | +33% |
 
-Unfortunately, we don't support customize icon for callout yet. Since it use icon as `data-callout`. And we also use first field as citation label.
+#### 3. Limitations 
+
+1. Currently the plugin don't support autonumber and rename for callouts. Since there might not be a lot of them. You can manage them manually now. Or you can request this feature in the [issue page](https://github.com/FRIEDparrot/obsidian-equation-citator/issues) if you really need it.
+
+2. Unfortunately, we don't support customize icon for callout yet. Since it use icon as `data-callout`. And we also use first field as citation label.
 
 ## 3. Equations Manage Panel (New in v1.3.0)
 
