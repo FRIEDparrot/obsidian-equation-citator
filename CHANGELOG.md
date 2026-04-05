@@ -367,8 +367,7 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 🔩 Improvements
 - [ ] Fix all new sonar issues for better code quality. 
 - [x] Add settings usage in tutorial.  
-
-
+- [x] Rename `auto-number xxx in quotes` to `auto-number xxx in callouts` for better clarity.
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.

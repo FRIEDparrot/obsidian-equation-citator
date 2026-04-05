@@ -16,11 +16,11 @@ export class CalloutCitationWidget extends WidgetType {
     private popover: CalloutCitationPopover | null = null;
 
     constructor(
-        private plugin: EquationCitator,
-        private sourcePath: string,
-        private prefix: string,  // e.g., "table:", "thm:", "def:"
-        private calloutTagsAll: string[],  // e.g., ["1.1", "1.2"]
-        public range: { from: number; to: number }
+        private readonly plugin: EquationCitator,
+        private readonly sourcePath: string,
+        private readonly prefix: string,  // e.g., "table:", "thm:", "def:"
+        private readonly calloutTagsAll: string[],  // e.g., ["1.1", "1.2"]
+        public readonly range: { from: number; to: number }
     ) {
         super();
     }

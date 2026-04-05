@@ -329,7 +329,7 @@ export class SettingsTabView extends PluginSettingTab {
 
         const metadata = SETTINGS_METADATA[key as keyof typeof SETTINGS_METADATA];
         if (!metadata) return false;
-
+        // search in name, description, and key
         const searchTerms = [
             metadata.name.toLowerCase(),
             metadata.desc.toLowerCase(),

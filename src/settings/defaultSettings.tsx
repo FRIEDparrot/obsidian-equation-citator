@@ -63,14 +63,14 @@ export interface EquationCitatorSettings {
     autoNumberDepth: number; // Maximum depth for auto numbering level 
     autoNumberNoHeadingPrefix: string; //  equation numbering prefix for no heading level equations 
     autoNumberGlobalPrefix: string; // Global Auto numbering prefix for equations without any heading level  
-    enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
+    enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in callouts 
     enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
     
     figAutoNumberDelimiter: string; // Auto numbering delimiter for figures
     figAutoNumberDepth: number; // Maximum depth for auto numbering figures (sepreate from the equations)
     figAutoNumberNoHeadingPrefix: string; // figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: string; // Global Auto numbering prefix for figures without any heading level
-    enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in quotes,
+    enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in callouts,
     enableAutoNumberTaggedFigsOnly: boolean; // Enable auto numbering only for tagged figures
 
     // by default, auto-number rename the citation, I don't provide this as option 
@@ -145,7 +145,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     autoNumberType: AutoNumberingType.Relative, // Default is using relative heading level 
     autoNumberNoHeadingPrefix: "P",
     autoNumberGlobalPrefix: "", // Default to empty string for no prefix 
-    enableAutoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes 
+    enableAutoNumberEquationsInQuotes: false, // Default to false, not to number equations in callouts
     enableAutoNumberTaggedEquationsOnly: false, // Default to false, number all equations
     enableUpdateTagsInAutoNumber: true, // Default to true, update citation in auto numbering  
     deleteRepeatTagsInAutoNumber: true, // Default to true, delete repeat tags in auto numbering 
@@ -155,7 +155,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     figAutoNumberDepth: 2, // Default to 2 for figure auto numbering (i.e., fig:1.1)
     figAutoNumberNoHeadingPrefix: "F", // Default figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: "", // Default to empty string for no prefix for figure auto numbering
-    enableAutoNumberFigsInQuotes: false, // Default to false, not to number figures in quotes
+    enableAutoNumberFigsInQuotes: false, // Default to false, not to number figures in callouts
     enableAutoNumberTaggedFigsOnly: false, // Default to false, number all figures
     typstBoxSymbol: "boxed", // Default symbol for boxed equation in typst mode
 
@@ -293,7 +293,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
     calloutCitationPrefixes: {
         name: "Callout citation prefixes",
-        desc: "Prefixes for citing callouts/quotes. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions.",
+        desc: "Prefixes for citing callouts. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions.",
         type: "array",
         renderCallback: (el: HTMLElement, plugin: EquationCitator) => {
             CitationSettingsTab.calloutCitationPrefixes(el, plugin);
@@ -398,8 +398,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberEquationsInQuotes: {
-        name: "Auto numbering equations in quotes",
-        desc: "Enable auto numbering for equations in quotes",
+        name: "Auto numbering equations in callouts",
+        desc: "Enable auto numbering for equations in callouts",
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberEquationsInQuotes(el, plugin);
@@ -446,8 +446,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberFigsInQuotes: {
-        name: "Auto numbering figures in quotes",
-        desc: "Enable auto numbering for figures in quotes",
+        name: "Auto numbering figures in callouts",
+        desc: "Enable auto numbering for figures in callouts",
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberFigsInQuotes(el, plugin);
