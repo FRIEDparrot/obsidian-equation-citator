@@ -11,15 +11,15 @@ import { renderFigureCitation } from "@/views/widgets/figure_citation_render";
  * Similar to CitationWidget but for figures
  */
 export class FigureCitationWidget extends WidgetType {
-    private el: HTMLElement;
-    private view: EditorView;
+    private el: HTMLElement|null = null;
+    private view: EditorView| null = null;
     private popover: FigureCitationPopover | null = null;
 
     constructor(
-        private plugin: EquationCitator,
-        private sourcePath: string,
-        private figureTagsAll: string[],
-        public range: { from: number; to: number }
+        private readonly plugin: EquationCitator,
+        private readonly sourcePath: string,
+        private readonly figureTagsAll: string[],
+        public readonly range: { from: number; to: number }
     ) {
         super();
     }
@@ -77,11 +77,8 @@ export class FigureCitationWidget extends WidgetType {
     }
 
     private getMarkdownView(): MarkdownView | null {
-        const mdView = this.view.state.field(editorInfoField, false) as MarkdownView | undefined;
-        if (mdView) {
-            return mdView;
-        }
-        return null;
+        const mdView = this.view?.state.field(editorInfoField, false) as MarkdownView | undefined;
+        return mdView || null;
     }
 
     /**
@@ -114,9 +111,11 @@ export class FigureCitationWidget extends WidgetType {
             300
         );
 
-        this.popover.onClose = function () {
+        const originalOnClose = this.popover.onClose.bind(this.popover);
+        this.popover.onClose = () => {
+            originalOnClose();
             this.popover = null;  // remove popover when closed
-        }.bind(this);
+        };
     }
 
     ignoreEvent() {

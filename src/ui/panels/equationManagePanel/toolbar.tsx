@@ -16,7 +16,6 @@ function updateModeButtons(panel: EquationArrangePanel): void {
     panel.sortButton.toggle(listMode);
 
     panel.collapseButton.toggle(!listMode);
-    panel.expandButton.toggle(!listMode);
     panel.filterEmptyHeadingsButton.toggle(!listMode);
     panel.enableRenderHeadingOnlyButton.toggle(!listMode);
 }
@@ -145,7 +144,7 @@ async function handleCollapseAll(
     allHeadings.forEach((heading) => {
         const id = (heading as HTMLElement).dataset.id;
         if (id) {
-            renderer.collapsedHeadings.add(id);
+            renderer.currentCollapseHeadingId.add(id);
         }
     });
     await panel.refreshView();
@@ -155,7 +154,7 @@ async function handleExpandAll(
     panel: EquationArrangePanel,
     renderer: EquationPanelOutlineViewRenderer,
 ): Promise<void> {
-    renderer.collapsedHeadings.clear();
+    renderer.currentCollapseHeadingId.clear();
     await panel.refreshView();
 }
 
@@ -193,15 +192,15 @@ function renderToolBarSubPanel(
         void panel.refreshView();
     });
 
-    panel.expandButton = subPanel.createEl("button", {
-        cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Expand all" },
-    });
-    setIcon(panel.expandButton, "chevrons-up-down");
-    setTooltip(panel.expandButton, "Expand all");
-    panel.expandButton.addEventListener("click", () => {
-        void handleExpandAll(panel, renderer);
-    });
+    // panel.expandButton = subPanel.createEl("button", {
+    //     cls: "clickable-icon ec-mode-button",
+    //     attr: { "aria-label": "Expand all" },
+    // });
+    // setIcon(panel.expandButton, "chevrons-up-down");
+    // setTooltip(panel.expandButton, "Expand all");
+    // panel.expandButton.addEventListener("click", () => {
+    //     void handleExpandAll(panel, renderer);
+    // });
 
     panel.collapseButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",

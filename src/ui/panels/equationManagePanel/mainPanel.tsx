@@ -25,19 +25,18 @@ export class EquationArrangePanel extends ItemView {
     // Public UI Element objects for share between several modules
     public viewModeButton!: HTMLElement;
     public viewPanel!: HTMLElement;
-    public lockRefreshButton: HTMLElement;
+    public lockRefreshButton!: HTMLElement;
     public searchButton!: HTMLElement;
     public searchInput!: HTMLInputElement;
     public quitSearchButton!: HTMLElement;
-    public enableRenderHeadingOnlyButton: HTMLElement;
-    public extendToolBarButton: HTMLElement;
+    public enableRenderHeadingOnlyButton!: HTMLElement;
+    public extendToolBarButton!: HTMLElement;
     public subToolbarPanel!: HTMLElement;
     public sortButton!: HTMLElement;
     public collapseButton!: HTMLElement;
-    public expandButton!: HTMLElement;
-    public toggleTagShowButton: HTMLElement;
-    public filterEmptyHeadingsButton: HTMLElement;
-    public filtersForEquationsButton: HTMLElement;
+    public toggleTagShowButton!: HTMLElement;
+    public filterEmptyHeadingsButton!: HTMLElement;
+    public filtersForEquationsButton!: HTMLElement;
 
     // State variables  
     public viewMode: ViewMode = "list";
@@ -60,10 +59,10 @@ export class EquationArrangePanel extends ItemView {
     public currentEquationHash = "";
     private currentActiveFile = "";      // current active file path (used for fast refresh)
     private currentViewMode = "";    // current display mode (used for fast refresh)
-        
+
     private currentSortMode = "";    // current sort mode (used for fast refresh)
     private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
-    private outlineViewRenderer: EquationPanelOutlineViewRenderer;
+    private outlineViewRenderer!: EquationPanelOutlineViewRenderer;
 
     // Cached data for lock refresh mode (public for toolbar access)
     public cachedEquations: EquationMatch[] = [];
@@ -71,14 +70,14 @@ export class EquationArrangePanel extends ItemView {
 
     // Event handlers
     private readonly updateHandler: () => void;
-    
+
     private dragDropHandler?: EquationPanelDragDropHandler;
 
     constructor(private readonly plugin: EquationCitator, leaf: WorkspaceLeaf) {
         super(leaf);
 
         this.currentActiveFile = "";  // enforce refresh when the panel is opened
-
+        
         // Debounced handler for file modifications
         this.updateHandler = () => {
             if (this.lockRefreshEnabled) return; // Skip automatic update when locked
@@ -102,6 +101,7 @@ export class EquationArrangePanel extends ItemView {
                     this.refreshDebounceTimer = null;
                 }, this.plugin.settings.equationManagePanelLazyUpdateTime
             );
+            
         };
     }
 
@@ -120,6 +120,9 @@ export class EquationArrangePanel extends ItemView {
     async onOpen(): Promise<void> {
         const { containerEl } = this;
         containerEl.empty();
+        this.outlineViewRenderer = new EquationPanelOutlineViewRenderer(
+            this.plugin, this
+        );
         const panelWrapper = containerEl.createDiv("ec-manage-panel-wrapper");
 
         // Render toolbar and sub-panel
@@ -170,9 +173,7 @@ export class EquationArrangePanel extends ItemView {
                 this.plugin, this
             );
         }
-        this.outlineViewRenderer = new EquationPanelOutlineViewRenderer(
-            this.plugin, this
-        )
+
         await this.refreshView();
     }
 
@@ -358,9 +359,9 @@ export class EquationArrangePanel extends ItemView {
         } = this.plugin.settings;
         const tagFilter = (eq: EquationMatch) => !this.filterTagOnlyEquation || (eq.tag && eq.tag.trim().length > 0);
         const boxedFilter = (
-            eq: EquationMatch) => !this.filterBoxedEquation || 
+            eq: EquationMatch) => !this.filterBoxedEquation ||
             boxedEquationFilter(eq, enableTypstMode, skipFirstlineInBoxedFilter, typstBoxSymbol
-        );
+            );
 
         if (!this.searchQuery || this.searchQuery.trim().length === 0) {
             return equations.filter(tagFilter).filter(boxedFilter);

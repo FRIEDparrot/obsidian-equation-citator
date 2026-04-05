@@ -11,8 +11,8 @@ import { renderCalloutCitation } from "@/views/widgets/callout_citation_render";
  * Similar to FigureCitationWidget but for callouts/quotes
  */
 export class CalloutCitationWidget extends WidgetType {
-    private el: HTMLElement;
-    private view: EditorView;
+    private el: HTMLElement| null = null;
+    private view: EditorView | null = null;
     private popover: CalloutCitationPopover | null = null;
 
     constructor(
@@ -81,11 +81,8 @@ export class CalloutCitationWidget extends WidgetType {
     }
 
     private getMarkdownView(): MarkdownView | null {
-        const mdView = this.view.state.field(editorInfoField, false) as MarkdownView | undefined;
-        if (mdView) {
-            return mdView;
-        }
-        return null;
+        const mdView = this.view?.state.field(editorInfoField, false) as MarkdownView | undefined;
+        return mdView || null; 
     }
 
     /**
@@ -123,9 +120,11 @@ export class CalloutCitationWidget extends WidgetType {
             300
         );
 
-        this.popover.onClose = function () {
+        const originalOnClose = this.popover.onClose.bind(this.popover);
+        this.popover.onClose = () => {
+            originalOnClose();
             this.popover = null;  // remove popover when closed
-        }.bind(this);
+        };
     }
 
     ignoreEvent() {

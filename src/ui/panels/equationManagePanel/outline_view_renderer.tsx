@@ -35,8 +35,8 @@ export class EquationPanelOutlineViewRenderer {
     private currentHeadings: Heading[] = [];
 
     // Stores composite keys: "headingKey|occurrenceNumber"
-    public collapsedHeadings: Set<string> = new Set();
-    private currentCollapseHeadingId: Set<string> = new Set();
+    private readonly parsedCollapsedHeadings: Set<string> = new Set();
+    public currentCollapseHeadingId: Set<string> = new Set();
 
     // Record the occurrence counts of each heading key during rendering
     private readonly currentHeadingOccurrences: Map<string, number> = new Map();
@@ -60,8 +60,8 @@ export class EquationPanelOutlineViewRenderer {
         const equationsHash = hashEquations(displayEquations);
         const equationsEqual = (equationsHash === this.panel.currentEquationHash);
         const collapseEqual = (
-            this.currentCollapseHeadingId.size === this.collapsedHeadings.size &&
-            [...this.currentCollapseHeadingId].every(x => this.collapsedHeadings.has(x))
+            this.currentCollapseHeadingId.size === this.parsedCollapsedHeadings.size &&
+            [...this.currentCollapseHeadingId].every(x => this.parsedCollapsedHeadings.has(x))
         );
         const headingsEqual = (
             headings.length === this.currentHeadings.length &&
@@ -75,16 +75,17 @@ export class EquationPanelOutlineViewRenderer {
 
         // Update state
         this.panel.currentEquationHash = equationsHash;
-        this.currentCollapseHeadingId = new Set(this.collapsedHeadings);
         this.currentHeadings = headings;
         this.currentHeadingOccurrences.clear(); // Clear occurrence tracking for new render
-
+        
         this.panel.viewPanel?.empty();
+        this.parsedCollapsedHeadings.clear(); // Clear collapsed state for new render 
         if (headings.length === 0 && displayEquations.length === 0) {
             this.panel.renderEmptyPanelView();
             return;
         }
         await this.renderOutlineView(displayEquations, headings);
+        this.currentCollapseHeadingId = new Set(this.parsedCollapsedHeadings);
     }
 
     private async renderOutlineView(
@@ -189,15 +190,13 @@ export class EquationPanelOutlineViewRenderer {
 
         collapseIcon.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isCurrentlyCollapsed = this.collapsedHeadings.has(id);
+            const isCurrentlyCollapsed = this.currentCollapseHeadingId.has(id);
 
             if (isCurrentlyCollapsed) {
-                this.collapsedHeadings.delete(id);
                 this.currentCollapseHeadingId.delete(id);
                 setIcon(collapseIcon, "chevron-down");
                 contentContainer.show();
             } else {
-                this.collapsedHeadings.add(id);
                 this.currentCollapseHeadingId.add(id);
                 setIcon(collapseIcon, "chevron-right");
                 contentContainer.hide();
@@ -253,6 +252,10 @@ export class EquationPanelOutlineViewRenderer {
         return subheadingIndices;
     }
 
+    /**
+     * In this function, it build a headingKey using : 
+     * - level | text | occurrence number (to differentiate between multiple same headings in the file)
+     */
     private getHeadingMetadata(
         allGroups: EquationGroup[],
         currentIndex: number,
@@ -316,6 +319,7 @@ export class EquationPanelOutlineViewRenderer {
         // Hide content container BEFORE rendering if collapsed (better UX - no flash)
         if (isCollapsed) {
             contentContainer.hide();
+            this.parsedCollapsedHeadings.add(id); // Ensure state is consistent on initial render
         }
 
         // Get DIRECT subheading indices only (not all nested levels)

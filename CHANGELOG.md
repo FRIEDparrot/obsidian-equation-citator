@@ -358,16 +358,22 @@ Settings Updates :
 Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
 🐛 Fixed Bugs : 
-
+- [ ] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
+- [x] refactor `collapsedHeadings` to `parsedCollapsedHeadings` to prevent collapse state from growing indefinitely when switching between files.
 
 ✈️ Multi-Platform Support :
-- [ ] Test this plugin on Linux platform 
-- [ ] More test for fully support on mobile. 
+- [x] Test this plugin on Linux and Mac platform (thanks to my friend @Tiddlefox)
+- [ ] More tests for fully support on mobile. 
+
 
 🔩 Improvements
 - [ ] Fix all new sonar issues for better code quality. 
 - [x] Add settings usage in tutorial.  
-- [x] Rename `auto-number xxx in quotes` to `auto-number xxx in callouts` for better clarity.
+- [x] Rename `auto-number xxx in quotes` to `auto-number xxx in callouts` for better clarity (issue [#154](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/154)).
+- [x] Remove `basePath=.` in `manifest.json` for further compatibility.
+- [ ] Added **Webpage version of the tutorials** and the **API documentations**.
+
+
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.
