@@ -352,17 +352,21 @@ Settings Updates :
 - [x] refactor the auto-number function part for better code structure, reuse in figure auto-numbering and scalability. 
 - [x] remove node assert calls for mobile support  
 - [x] fixed lots of sonar issues for better code quality.
-
+- [x] Change MarkdownfileProcessor callback function to sync function.
 
 ### Version 1.3.4
 Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
+
+🐛 Fixed Bugs : 
+
 
 ✈️ Multi-Platform Support :
 - [ ] Test this plugin on Linux platform 
 - [ ] More test for fully support on mobile. 
 
-🏗️ refactors :  
-[x] Change MarkdownfileProcessor callback function to sync function.
+🔩 Improvements
+- [ ] Fix all new sonar issues for better code quality. 
+- [x] Add settings usage in tutorial.  
 
 
 

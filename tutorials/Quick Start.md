@@ -46,9 +46,15 @@ $$ du = \left(\frac{\partial u}{\partial s}\right)_v ds +\left( \frac{\partial u
 
 ❌ NOT SUPPORTED EXAMPLES :
 
-```latex
-this  is an $$ equation
-$$ block  # not write content before or after equation block in one line!
+```Latex
+%% not write text before first $$, This will cause issue! just not do it!!!%%
+this  is an $$ equation 1         # # text before equation block 
+$$ 
+
+%% not write text after $$, this will stop auto-numbering%% 
+$$
+Equation 2
+$$ block  # text after equation block
 ```
 
 **Q : Why we don't support this**? 
@@ -82,6 +88,16 @@ This will cause heading dismatch in Auto-numbering, and `# title` grammar is pro
 > [!warning] 
 > You should follow above rules if you use this plugin. Issues caused by not following above rules may be closed without being fixed. 
 
+## ⚙️ How to use Settings Tab 
+There are 3 different display options in settings Tab, including : 
+1. Concise 
+2. Categorical  
+3. List (All Settings)
+
+**IMPORTANT** : You will **not find all settings in concise mode since some settings are hidden in both "basic" and "advanced" section**, you need to enable it in "Customize Display sections" or **switch to "Categorical"** or "List" mode to find all settings. 
+
+List mode will display all settings, use this mode mainly for search settings. 
+
 ## 1. Basic Equation Citations 
 
 The citation syntax are summarized as following table,  if you think these are very simple, you can jump to [[#3. Equations Manage Panel (New in v1.3.0)|Manage Panel Tutorial]] directly. 
@@ -104,7 +120,10 @@ $$
 \Large\boxed{E = mc^2} \tag{1.1}
 $$
 
-To cite this equation, use `\ref{eq:1.1}` which renders as: $\ref{eq:1.1}$
+To cite this equation, type `\ref{eq:1.1}` which renders as: $\ref{eq:1.1}$
+
+> [!tip] 
+> sometimes just typing is faster than dragging citations, since we support auto-complete for all types of citations. 
 
 **Quick Commands** (use ctrl + p to search and add a hotkey to that😄!):  
 - `Insert a citation in cursor position` : Quickly insert `\ref{}`
