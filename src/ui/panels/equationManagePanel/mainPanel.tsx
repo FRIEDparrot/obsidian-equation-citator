@@ -1,16 +1,17 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath, Platform, Menu } from "obsidian";
+import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath, Platform, Menu, MarkdownRenderer } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
-import { hashEquations } from "@/utils/misc/hash_utils";
+import { ImageMatch } from "@/utils/parsers/image_parser";
+import { CalloutMatch } from "@/utils/parsers/callout_parser";
+import { hashPanelItems } from "@/utils/misc/hash_utils";
 import { parseHeadingsInMarkdown } from "@/utils/parsers/heading_parser";
 import Debugger from "@/debug/debugger";
 
 import { scrollToEquationByTag } from "@/utils/workspace/equation_navigation";
 import { isMarkdownFilePath } from "@/utils/misc/fileProcessor";
 import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
-import { copyEquationToClipboard } from "@/utils/misc/equation_copy";
+import { copyEquationToClipboard } from "@/utils/misc/equation_copy"; 
 
-import { ViewMode, SortType } from "./types";
 import {
     renderToolbar,
     setToolbarDefaultState
@@ -18,6 +19,7 @@ import {
 import { EquationPanelDragDropHandler } from "./drag_drop_handler";
 import { EquationPanelOutlineViewRenderer } from "./outline_view_renderer";
 import { boxedEquationFilter } from "./box_filters";
+import { PanelItem, getItemLine, getItemTag, getItemSearchableContent, ViewMode, SortType} from "./panelItemTypes";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -68,7 +70,7 @@ export class EquationArrangePanel extends ItemView {
     private outlineViewRenderer!: EquationPanelOutlineViewRenderer;
 
     // Cached data for lock refresh mode (public for toolbar access)
-    public cachedEquations: EquationMatch[] = [];
+    public cachedItems: PanelItem[] = [];
     public cachedFilePath: string = "";
 
     // Event handlers
@@ -104,7 +106,6 @@ export class EquationArrangePanel extends ItemView {
                     this.refreshDebounceTimer = null;
                 }, this.plugin.settings.equationManagePanelLazyUpdateTime
             );
-            
         };
     }
 
@@ -222,29 +223,44 @@ export class EquationArrangePanel extends ItemView {
         }
     }
 
-    private async getEquationsToRender(filePath: string): Promise<EquationMatch[]> {
-        let equations: EquationMatch[];
+    private async getItemsToRender(filePath: string): Promise<PanelItem[]> {
+        let items: PanelItem[];
 
         if (this.lockRefreshEnabled) {
-            // Use cached equations when lock is enabled
-            equations = this.cachedEquations;
+            // Use cached items when lock is enabled
+            items = this.cachedItems;
         } else {
-            // Fetch equations for the given file path
-            const fetchedEquations = await this.plugin.equationCache.getEquationsForFile(filePath);
-            equations = fetchedEquations || [];
+            // Fetch items based on preview object type
+            switch (this.previewObjectType) {
+                case "equation": {
+                    const equations = await this.plugin.equationCache.getEquationsForFile(filePath) || [];
+                    items = equations.map(eq => ({ type: "equation" as const, data: eq }));
+                    break;
+                }
+                case "figure": {
+                    const figures = await this.plugin.imageCache.getImagesForFile(filePath) || [];
+                    items = figures.map(fig => ({ type: "figure" as const, data: fig }));
+                    break;
+                }
+                case "callout": {
+                    const callouts = await this.plugin.calloutCache.getCalloutsForFile(filePath) || [];
+                    items = callouts.map(callout => ({ type: "callout" as const, data: callout }));
+                    break;
+                }
+            }
 
             // Update cache when not locked
-            this.cachedEquations = equations;
+            this.cachedItems = items;
             this.cachedFilePath = filePath;
         }
 
-        if (equations.length === 0) {
+        if (items.length === 0) {
             return [];
         }
 
-        // Filter equations based on search query (always applied)
-        const filteredEquations = this.filterEquations(equations);
-        return filteredEquations;
+        // Filter items based on search query (always applied)
+        const filteredItems = this.filterItems(items);
+        return filteredItems;
     }
 
     /**
@@ -263,34 +279,44 @@ export class EquationArrangePanel extends ItemView {
 
     public renderEmptyPanelView(): void {
         if (this.viewPanel) {
+            const objectTypeLabels = {
+                equation: "equation",
+                figure: "figure",
+                callout: "callout"
+            };
+            const objectLabel = objectTypeLabels[this.previewObjectType];
+            const message = this.searchQuery 
+                ? `No ${objectLabel} match your search` 
+                : `No ${objectLabel} found in current file`;
+            
             this.viewPanel.createDiv({
-                text: this.searchQuery ? "No equation match your search" : "No equation found in current file",
+                text: message,
                 cls: "ec-empty-message"
             });
         }
-        this.currentEquationHash = hashEquations([]);
+        this.currentEquationHash = hashPanelItems([]);
     }
 
     public async handleListViewRefresh(
-        equations: EquationMatch[],
+        items: PanelItem[],
         viewStateEqual: boolean,
     ): Promise<void> {
-        // List mode: Handle no equations case
-        const equationsHash = hashEquations(equations);
-        const equationsEqual = (equationsHash === this.currentEquationHash);
+        // List mode: Handle no items case
+        const itemsHash = hashPanelItems(items);
+        const itemsEqual = (itemsHash === this.currentEquationHash);
 
-        if (viewStateEqual && equationsEqual) {
+        if (viewStateEqual && itemsEqual) {
             Debugger.log("View state equal, no need to refresh");
             return;
         }
         // Update state
-        this.currentEquationHash = equationsHash;
+        this.currentEquationHash = itemsHash;
         this.viewPanel?.empty();
-        if (equations.length === 0) {
+        if (items.length === 0) {
             this.renderEmptyPanelView();
             return;
         }
-        await this.renderRowsView(equations);
+        await this.renderRowsView(items);
     }
 
     /**
@@ -307,7 +333,7 @@ export class EquationArrangePanel extends ItemView {
                 this.viewPanel.empty();
                 this.viewPanel.createDiv({ text: "No active file", cls: "ec-empty-message" });
             }
-            this.currentEquationHash = hashEquations([]);
+            this.currentEquationHash = hashPanelItems([]);
             return;
         }
 
@@ -319,12 +345,12 @@ export class EquationArrangePanel extends ItemView {
                 this.viewPanel.empty();
                 this.viewPanel.createDiv({ text: "File not found", cls: "ec-empty-message" });
             }
-            this.currentEquationHash = hashEquations([]);
+            this.currentEquationHash = hashPanelItems([]);
             return;
         }
 
         // Fetch and filter equations for the current file
-        const equations = await this.getEquationsToRender(normalizedPath);
+        const itemsToRender = await this.getItemsToRender(normalizedPath);
 
         // viewState => tool bar state
         const viewStateEqual = (
@@ -344,65 +370,83 @@ export class EquationArrangePanel extends ItemView {
             const headings = parseHeadingsInMarkdown(fileContent);
             // if there are no headings, fall back to list view
             if (headings.length === 0) {
-                await this.handleListViewRefresh(equations, viewStateEqual);
+                await this.handleListViewRefresh(itemsToRender, viewStateEqual);
                 return;
             }
-            await this.outlineViewRenderer.handleOutlineViewRefresh(equations, headings, viewStateEqual);
+            await this.outlineViewRenderer.handleOutlineViewRefresh(itemsToRender, headings, viewStateEqual);
         }
         else {
-            await this.handleListViewRefresh(equations, viewStateEqual);
+            await this.handleListViewRefresh(itemsToRender, viewStateEqual);
         }
     }
 
-    private filterEquations(equations: EquationMatch[]): EquationMatch[] {
+    private filterItems(items: PanelItem[]): PanelItem[] {
         const {
             enableTypstMode,
             skipFirstlineInBoxedFilter,
             typstBoxSymbol,
         } = this.plugin.settings;
-        const tagFilter = (eq: EquationMatch) => !this.filterTagOnlyEquation || (eq.tag && eq.tag.trim().length > 0);
-        const boxedFilter = (
-            eq: EquationMatch) => !this.filterBoxedEquation ||
-            boxedEquationFilter(eq, enableTypstMode, skipFirstlineInBoxedFilter, typstBoxSymbol
-            );
+        
+        // Apply tag filter (for equations and figures - callouts are always tagged)
+        const tagFilter = (item: PanelItem) => {
+            if (item.type === "callout") return true; // Callouts are always tagged
+            return !this.filterTagOnlyEquation || (item.data.tag && item.data.tag.trim().length > 0);
+        };
+        
+        // Apply boxed filter (only for equations)
+        const boxedFilter = (item: PanelItem) => {
+            if (item.type !== "equation") return true; // Only filter equations
+            return !this.filterBoxedEquation ||
+                boxedEquationFilter(item.data, enableTypstMode, skipFirstlineInBoxedFilter, typstBoxSymbol);
+        };
 
         if (!this.searchQuery || this.searchQuery.trim().length === 0) {
-            return equations.filter(tagFilter).filter(boxedFilter);
+            return items.filter(tagFilter).filter(boxedFilter);
         }
+        
         const query = this.searchQuery.toLowerCase();
-        return equations.filter(eq => {
-            // Search in content (without $$ delimiters)
-            const searchContent = eq.content.toLowerCase();
-            if (searchContent.includes(query)) return true;
-            // Search in tag if exists
-            if (eq.tag?.toLowerCase().includes(query)) return true;
-            return false;
-        }).filter(tagFilter).filter(boxedFilter);
+        return items.filter(item => {
+            // Check tag and boxed filters first
+            if (!tagFilter(item) || !boxedFilter(item)) return false;
+            
+            // Search in item content
+            const searchContent = getItemSearchableContent(item).toLowerCase();
+            return searchContent.includes(query);
+        });
     }
 
-    private sortEquations(equations: EquationMatch[]): EquationMatch[] {
+    private sortItems(items: PanelItem[]): PanelItem[] {
         if (this.sortMode === "tag") {
-            // Sort by tag (equations with tags first, then by tag alphabetically)
-            return [...equations].sort((a, b) => {
-                if (!a.tag && !b.tag) return a.lineStart - b.lineStart;
-                if (!a.tag) return 1;
-                if (!b.tag) return -1;
-                return a.tag.localeCompare(b.tag);
+            // Sort by tag (items with tags first, then by tag alphabetically)
+            return [...items].sort((a, b) => {
+                const tagA = getItemTag(a);
+                const tagB = getItemTag(b);
+                
+                if (!tagA && !tagB) return getItemLine(a) - getItemLine(b);
+                if (!tagA) return 1;
+                if (!tagB) return -1;
+                return tagA.localeCompare(tagB);
             });
         } else {
             // Sort by sequence (line number)
-            return [...equations].sort((a, b) => a.lineStart - b.lineStart);
+            return [...items].sort((a, b) => getItemLine(a) - getItemLine(b));
         }
     }
 
-    private async renderRowsView(equations: EquationMatch[]): Promise<void> {
-        const filteredEquations = this.filterEquations(equations);
-        // Sort equations
-        const sortedEquations = this.sortEquations(filteredEquations);
+    private async renderRowsView(items: PanelItem[]): Promise<void> {
+        const filteredItems = this.filterItems(items);
+        // Sort items
+        const sortedItems = this.sortItems(filteredItems);
         const listContainer = this.viewPanel.createDiv("ec-list-view");
 
-        for (const eq of sortedEquations) {
-            await this.renderEquationItem(listContainer, eq);
+        for (const item of sortedItems) {
+            if (item.type === "equation") {
+                await this.renderEquationItem(listContainer, item.data);
+            } else if (item.type === "figure") {
+                await this.renderFigureItem(listContainer, item.data);
+            } else if (item.type === "callout") {
+                await this.renderCalloutItem(listContainer, item.data);
+            }
         }
     }
 
@@ -503,6 +547,108 @@ export class EquationArrangePanel extends ItemView {
             
             menu.showAtMouseEvent(event);
         });
+    }
+
+    public async renderFigureItem(container: HTMLElement, figure: ImageMatch): Promise<void> {
+        const figDiv = container.createDiv("ec-figure-item");
+
+        // Tag section (if exists)
+        if (figure.tag) {
+            const tagDiv = figDiv.createDiv({ cls: "ec-figure-tag ec-tag-show" });
+            tagDiv.createSpan({ text: figure.tag, cls: "ec-tag-text" });
+        }
+
+        // Create figure content div
+        const contentDiv = figDiv.createDiv("ec-figure-content");
+
+        // Render the figure using MarkdownRenderer (use raw markdown)
+        await MarkdownRenderer.render(this.app, figure.raw, contentDiv, '', this);
+
+        // Add double-click handler to jump to figure in the editor
+        const currentFile = this.app.workspace.getActiveFile();
+        figDiv.addEventListener('dblclick', (event: MouseEvent) => {
+            const ctrlKey = event.ctrlKey || event.metaKey;
+            if (ctrlKey && figure.tag && currentFile) {
+                // Create a new split panel on the right
+                const newLeaf = this.app.workspace.getLeaf("split");
+                if (newLeaf) {
+                    this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
+                    this.app.workspace.openLinkText("", currentFile.path, false).then().catch(console.error);
+
+                    // Scroll to the figure after layout is ready
+                    this.app.workspace.onLayoutReady(() => {
+                        setTimeout(() => {
+                            this.jumpToLine(figure.line).then().catch(console.error);
+                        }, 50);
+                    });
+                }
+            } else {
+                // Normal double click - jump in current view
+                this.jumpToLine(figure.line).then().catch(console.error);
+            }
+        });
+    }
+
+    public async renderCalloutItem(container: HTMLElement, callout: CalloutMatch): Promise<void> {
+        const calloutDiv = container.createDiv("ec-callout-item");
+
+        // Tag section (if exists)
+        if (callout.tag) {
+            const tagDiv = calloutDiv.createDiv({ cls: "ec-callout-tag ec-tag-show" });
+            tagDiv.createSpan({ text: callout.tag, cls: "ec-tag-text" });
+        }
+
+        // Create callout content div
+        const contentDiv = calloutDiv.createDiv("ec-callout-content");
+
+        // Render the callout using MarkdownRenderer (use raw content with quote marks)
+        await MarkdownRenderer.render(this.app, callout.raw, contentDiv, '', this);
+
+        // Add double-click handler to jump to callout in the editor
+        const currentFile = this.app.workspace.getActiveFile();
+        calloutDiv.addEventListener('dblclick', (event: MouseEvent) => {
+            const ctrlKey = event.ctrlKey || event.metaKey;
+            if (ctrlKey && callout.tag && currentFile) {
+                // Create a new split panel on the right
+                const newLeaf = this.app.workspace.getLeaf("split");
+                if (newLeaf) {
+                    this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
+                    this.app.workspace.openLinkText("", currentFile.path, false).then().catch(console.error);
+
+                    // Scroll to the callout after layout is ready
+                    this.app.workspace.onLayoutReady(() => {
+                        setTimeout(() => {
+                            this.jumpToLine(callout.lineStart).then().catch(console.error);
+                        }, 50);
+                    });
+                }
+            } else {
+                // Normal double click - jump in current view
+                this.jumpToLine(callout.lineStart).then().catch(console.error);
+            }
+        });
+    }
+
+    private async jumpToLine(lineNumber: number): Promise<void> {
+        const filePath = this.getCurrentActiveFile();
+        const normalizedPath = filePath ? normalizePath(filePath) : null;
+        const currentFile = normalizedPath ? this.app.vault.getAbstractFileByPath(normalizedPath) : null;
+        if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
+
+        // Open the file and jump to the line
+        const leaf = this.app.workspace.getLeaf(false);
+        await leaf.openFile(currentFile);
+
+        const view = leaf.view;
+        if (view instanceof MarkdownView) {
+            const editor = view.editor;
+            editor.setCursor({ line: lineNumber, ch: 0 });
+            editor.scrollIntoView({ from: { line: lineNumber, ch: 0 }, to: { line: lineNumber, ch: 0 } }, true);
+        }
+    }
+
+    public async renderMarkdownInContainer(container: HTMLElement, markdown: string, sourcePath: string): Promise<void> {
+        await MarkdownRenderer.render(this.plugin.app, markdown, container, sourcePath, this);
     }
 
     private async jumpToEquation(equation: EquationMatch): Promise<void> {

@@ -1,6 +1,7 @@
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import Debugger from "@/debug/debugger";
 import { CalloutCitationPrefix } from "@/settings/defaultSettings";
+import { calloutPattern } from "@/utils/string_processing/regexp_utils";
 
 /**
  * The matched callout/quote information
@@ -35,7 +36,7 @@ function parseCalloutCitation(
     prefixes: CalloutCitationPrefix[]
 ): { type: string; tag: string; label: string; prefix: string; title: string | null } | null {
     // Match callout syntax: [!anything] and capture everything after it
-    const calloutMatch = new RegExp(/^\[!([^\]]+)\](.*)$/).exec(line);
+    const calloutMatch = calloutPattern.exec(line);
     if (!calloutMatch) return null;
 
     // Get the content inside brackets and the title after brackets
@@ -160,17 +161,44 @@ export function parseAllCalloutsFromMarkdown(
             }
         }
 
-        // Check if this line starts a new callout with citation
+        // Check if this line starts a new callout (with or without citation)
         if (!inCallout && parseResult.inQuote) {
-            const citation = parseCalloutCitation(parseResult.processedContent, prefixes);
-
-            if (citation) {
-                // Start a new callout block
+            // Match callout syntax: [!anything] or [!anything]+/- and capture everything after it
+            const calloutMatch = calloutPattern.exec(parseResult.processedContent);
+            
+            if (calloutMatch) {
+                // Start a new callout block (with or without tag)
                 inCallout = true;
                 calloutStartLine = lineNum;
                 calloutQuoteDepth = parseResult.quoteDepth;
                 calloutBuffer = [line]; // Use original line to preserve > quote marks
-                calloutCitation = citation;
+                
+                // Try to parse citation (for tagged callouts)
+                const citation = parseCalloutCitation(parseResult.processedContent, prefixes);
+                
+                if (citation) {
+                    // Tagged callout
+                    calloutCitation = citation;
+                } else {
+                    // Untagged callout - extract type and title
+                    const insideBrackets = calloutMatch[1];
+                    const afterBrackets = calloutMatch[2].trim();
+                    const title = afterBrackets || null;
+                    
+                    // Get only the first part before pipe (e.g., "note|red" -> "note")
+                    const calloutContent = insideBrackets.split('|')[0].trim();
+                    
+                    // Remove foldable markers (+/-)
+                    const type = calloutContent.replace(/[+-]$/, '').trim();
+                    
+                    calloutCitation = {
+                        type,
+                        tag: '', // No tag
+                        label: '', // No label
+                        prefix: '', // No prefix
+                        title
+                    };
+                }
             }
         }
     }

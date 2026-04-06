@@ -77,7 +77,7 @@ function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): v
     
     // when unlock, clear cached data and refresh view
     if (!enabled) {
-        panel.cachedEquations = [];
+        panel.cachedItems = [];
         panel.cachedFilePath = "";
         void panel.refreshView();
     }
