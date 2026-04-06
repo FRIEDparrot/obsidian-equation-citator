@@ -195,7 +195,7 @@ export abstract class BaseCache<T> extends BaseCacheSimple<T> {
         catch (error) {
             this.cache.delete(key);
             new Notice(`Failed to update ${this.getCacheTypeName()} cache, turn on debug mode for details`);
-            Debugger.error(error);
+            Debugger.error(error instanceof Error ? error.message : String(error));
         }
     }
     /**

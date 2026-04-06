@@ -84,7 +84,8 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
             renamePairs,
             deleteRepeatTags,
             deleteUnusedTags
-        )
+        ),
+        enableTaggedOnly ? "Finished auto numbering tagged equations." : "Finished auto numbering all equations."
     );
 }
 
@@ -92,7 +93,7 @@ export async function autoNumberCurrentFileFigures(plugin: EquationCitator) {
     const {
         figAutoNumberDelimiter, figAutoNumberGlobalPrefix, figAutoNumberNoHeadingPrefix,
         figAutoNumberDepth, figCitationPrefix, enableAutoNumberFigsInQuotes,
-        autoNumberType, enableAutoNumberTaggedFigsOnly
+        autoNumberType, enableAutoNumberTaggedFigsOnly : enableTaggedOnly,
     } = plugin.settings;
 
     const {
@@ -107,7 +108,7 @@ export async function autoNumberCurrentFileFigures(plugin: EquationCitator) {
         noHeadingPrefix: figAutoNumberNoHeadingPrefix,
         globalPrefix: figAutoNumberGlobalPrefix,
         parseQuotes: enableAutoNumberFigsInQuotes,
-        enableTaggedOnly: enableAutoNumberTaggedFigsOnly,
+        enableTaggedOnly: enableTaggedOnly,
         figCitationPrefix
     }
 
@@ -119,7 +120,8 @@ export async function autoNumberCurrentFileFigures(plugin: EquationCitator) {
             renamePairs,
             deleteRepeatTags,
             deleteUnusedTags
-        )
+        ),
+        enableTaggedOnly ? "Finished auto numbering tagged figures." : "Finished auto numbering all figures."
     );
 }
 
@@ -134,8 +136,9 @@ export async function autoNumberCurrentFileFigures(plugin: EquationCitator) {
 async function executeAutoNumber(
     plugin: EquationCitator,
     processorContentCallback: (content: string) => AutoNumberProceedResult,
-    updateCitationsCallback: (sourceFile: string, renamePairs: TagRenamePair[]) => Promise<TagRenameResult | undefined>
-) {
+    updateCitationsCallback: (sourceFile: string, renamePairs: TagRenamePair[]) => Promise<TagRenameResult | undefined>,
+    doneMessage: string = "Auto numbering finished."
+): Promise<TagRenameResult | undefined> {
     const {
         enableUpdateTagsInAutoNumber: enableUpdateTags,
     } = plugin.settings;
@@ -143,7 +146,7 @@ async function executeAutoNumber(
     const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
     if (!sourceFile || !editor) {
         new Notice("Auto number is not supported in reading mode");
-        return;
+        return undefined;
     }
     let citationUpdateResult: TagRenameResult | undefined;
     let tagMapping: Map<string, string> = new Map();
@@ -164,7 +167,7 @@ async function executeAutoNumber(
     const succeed = await processor.execute();  // process current file content
     if (!succeed) {
         new Notice("Some error occurred during auto numbering. Turn on debug mode for details.");
-        return;
+        return undefined;
     }
 
     // remove "tagMapping.size > 0" -> update citations also if no tags are changed
@@ -181,15 +184,16 @@ async function executeAutoNumber(
     }
     // Restore cursor position after all processing (and make it visible)
     if (editor && originalCursorPos) {
-        restoreCursorPosition(editor, originalCursorPos, false);
+        restoreCursorPosition(editor, originalCursorPos, true);
     }
     // show notice message
-    let msg = "Auto numbering finished.";
+    let msg = doneMessage;
     if (citationUpdateResult) {
         const citeUpdateMsg = assemblyCitationUpdateMessage(citationUpdateResult);
         msg += '\n' + citeUpdateMsg;
     }
     new Notice(msg);
+    return citationUpdateResult;
 }
 
 export function insertAutoNumberTag(plugin: EquationCitator): void {

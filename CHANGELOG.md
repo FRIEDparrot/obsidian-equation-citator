@@ -380,7 +380,7 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] Rename `auto-number xxx in quotes` to `auto-number xxx in callouts` for better clarity (issue [#154](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/154)).
 - [x] Remove `basePath=.` in `manifest.json` for further compatibility.
 - [x] Simplify `Auto numbering` in some of setting options to `Auto number`
-- [ ] different tips on different autonumber types 
+- [x] Improved auto-number logging : different tips on different autonumber types. 
 - [x] when click 'open equation panel' button will also reveal it in right panel.
 - [x] **Better PDF export configs** : optional captions and descriptions in PDF export for image
 
