@@ -304,7 +304,6 @@
     display: flex;
 }
 
-
 .ec-tag-text {
     font-family: var(--font-monospace);
     font-size: 12px;
@@ -359,4 +358,104 @@
     display: flex;
     gap: 8px;
     justify-content: flex-end;
+}
+
+
+/* ─── Figure Item Styles ─────────────────────────────────────────── */
+.ec-figure-item {
+    position: relative;
+    padding: 6px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background-color: var(--background-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+        border-color: var(--interactive-accent);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.ec-figure-tag {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    z-index: 1;
+    display: none;
+    align-items: center;
+
+    &.ec-tag-show {
+        display: flex;
+    }
+}
+
+.ec-figure-content {
+    display: flex;
+    justify-content: center;
+    max-height: 350px;
+    overflow: hidden;
+
+    img,
+    video {
+        max-height: 350px;
+        max-width: 100%;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+
+    // Obsidian renders ![[...]] inside a <p> > <img> structure
+    p {
+        display: flex;
+        justify-content: center;
+        margin: 0;
+    }
+}
+
+/* ─── Callout Item Styles ────────────────────────────────────────── */
+.ec-callout-item {
+    position: relative;
+    padding: 6px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background-color: var(--background-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+        border-color: var(--interactive-accent);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.ec-callout-tag {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    z-index: 1;
+    display: none;
+    align-items: center;
+
+    &.ec-tag-show {
+        display: flex;
+    }
+}
+
+.ec-callout-content {
+    max-height: 350px;
+    overflow-y: auto;
+
+    // Obsidian renders callouts as .callout blocks — center and constrain them
+    .callout {
+        margin: 0;
+        max-width: 100%;
+    }
+
+    // Ensure text content is readable and not clipped awkwardly
+    p, li {
+        font-size: 13px;
+    }
 }

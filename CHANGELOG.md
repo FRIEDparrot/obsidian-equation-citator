@@ -363,7 +363,8 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
 ⭐ New Features :
 - [x] right-click to copy equations (both in equation panel and editor popover).
-- [ ] Show figures and callouts in the equation panel, not only equations.
+- [x] Show figures and callouts in the equation panel, not only equations.
+  - [ ] Better Style + interaction for figure and callout items in the panel.
 - [ ] Check citations of equations, figures and tables in equation panel.
 
 🐛 Fixed Bugs : 
