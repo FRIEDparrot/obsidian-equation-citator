@@ -1,9 +1,17 @@
 import EquationCitator from "@/main"; 
 import { WorkspaceLeaf } from "obsidian";
 
+/**
+ * Invoke a view by its type, 
+ * if the view already exists in the workspace, return itself,
+ * otherwise a new one will be created in the right sidebar. 
+ * 
+ * reveal this leaf if reveal is set to true, otherwise just create the leaf without switching to it.
+ */
 export async function invokeView (
     plugin: EquationCitator,
-    panel_type: string
+    panel_type: string,
+    reveal = true, // whether to reveal the leaf after creating it
 ) {
     const workspace = plugin.app.workspace;
     /** wait until the workspace layout is ready in this window */
@@ -23,6 +31,9 @@ export async function invokeView (
                 { type: panel_type, active: true }
             );
         }
+    }
+    if (leaf && reveal) {
+        await plugin.app.workspace.revealLeaf(leaf);
     }
     return leaf;
 }

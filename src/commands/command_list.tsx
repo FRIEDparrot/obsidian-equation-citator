@@ -116,7 +116,7 @@ export default function registerCommands(plugin: EquationCitator) {
         id: 'open-equation-manage-panel',
         name: 'Open equation manage panel',
         callback: async () => {
-            await invokeView(plugin, EQUATION_MANAGE_PANEL_TYPE)
+            await invokeView(plugin, EQUATION_MANAGE_PANEL_TYPE);
         }
     })
 }

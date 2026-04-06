@@ -381,8 +381,8 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] Remove `basePath=.` in `manifest.json` for further compatibility.
 - [x] Simplify `Auto numbering` in some of setting options to `Auto number`
 - [ ] different tips on different autonumber types 
-- [ ] open right side panel when click the button to open equation panel in settings tab.
-
+- [x] when click 'open equation panel' button will also reveal it in right panel.
+- [ ] optional captions and descriptions in PDF export for image
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.
