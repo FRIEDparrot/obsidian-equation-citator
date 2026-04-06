@@ -272,23 +272,24 @@ We also support customize callout colors by adding [callout.css](https://gist.gi
 
 ## 3. Equations Manage Panel (New in v1.3.0)
 
-### 1) Opening the Panel  
+### 1) Open the Panel  
 You can open the equation mange panel by : 
 - Command palette: `Open Equations Manage Panel`
 - Toolbar icon (if enabled) 
 
-### 2) How to use 
-Equation Manage panel is one of the most powerful feature of v1.3.0 :
+### 2) How to use this panel   
+Equation Manage panel is one of the most powerful feature of v1.3.0, it allows you to cite and search equation fast and easy, **No need to scroll or remember syntax or equation numbers!** 
 
 #### 2.1 Usage of buttons on panel toolbar :
 
 ![Tool bar Image](panel_toolbars.png)
 
 We use the button on `outline` mode for tutorial, The main panel includes following buttons :  
-1. View mode buttons : Switch between `outline` view and `list` view.
-2. Disable refresh : Disable auto refresh, Lock the **File, Equations and Headings rendered in panel**, but `view mode change`, `filters` and `search` will still work. 
-3. Search : Search equations by content. 
-4. More Options : show subpanel. 
+1. Preview item select : select between `equations`, `figures` and `callouts` to preview in the panel.
+2. View mode buttons : Switch between `outline` view and `list` view.
+3. Disable refresh : Disable auto refresh, Lock the **File, Equations and Headings rendered in panel**, but `view mode change`, `filters` and `search` will still work. 
+4. Search : Search equations by content. 
+5. More Options : show / fold subpanel. 
 
 The subpanel includes :
 1. Show headings only : Only show headings, hide equations (use the panel as an outline!).
@@ -296,17 +297,14 @@ The subpanel includes :
 3. Collapse / Expand all : Collapse or Expand all headings in outline view.
 4. Show/Hide tags : Show or hide tags in the panel. 
 5. Show all headings / Only show headings with equations.
-6. Filters : Show only tagged equations, or show only boxed equations.
+6. Filters : Show only tagged equations, or show only boxed equations. (These only work for equations)
 
 #### 2.2 Drag and Drop Citations 
 1. **Drag** the item from the panel, **Drop** it into your text where you want the citation (Cross file drag will automatically create footnote for citation)  
 2. The properly formatted `\ref{}` citation is automatically inserted!
-3. If you have **multiple files opened in editor**, you can also drag equations to other files, and the plugin will **automatically create footnotes for cross-file citations**.
+3. If you have **multiple files opened in editor**, you can also **drag equations to other files**. The plugin will **automatically create footnotes for cross-file citations**.
 
-This panel allows you to check and search equation very fast, **No need to scroll or remember syntax or equation numbers!** 
-
-
-### 3) Special Filters
+#### 2.3 Special Filters
 
 Filters are very useful features for you to manage important equations. Currently we provide 2 filters :
 

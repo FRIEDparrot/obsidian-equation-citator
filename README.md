@@ -3,7 +3,7 @@
 </div></center>
 
 <center><div width="100%"><span>
-  <img src="https://img.shields.io/badge/Version-1.3.3-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Version-1.3.4-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
     <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads" alt="Downloads">
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
@@ -14,7 +14,7 @@
 
 ---
 
-🚀 **Quick Start** : see [Quick Start](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for basic rules, syntax, and most important operations. It only takes < 10 mins but will make everything go smoothly.
+🚀 **Quick Start** : see [Quick Start](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for basic rules, syntax, and most important operations. It only takes < 5 mins but will make everything go smoothly.
 
 ✨ **Complete Features & Updates** : see [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details. 
 
@@ -50,22 +50,31 @@
 > - Processing equations in image files or scanned documents 
 
 ## ✨ What this plugin do 
-### 1. ⚡ **Auto-number equations by heading level** 
-
-**Auto number all the equations in by simply 1 click on the sidebar icon**  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-function-icon lucide-square-function"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 17c2 0 2.8-1 2.8-2.8V10c0-2 1-3.3 3.2-3"/><path d="M9 11.2h5.7"/></svg> 
-, making them to be super easy to manage and cite. (Citations will be auto-updated so you can easily insert or delete any equation)
+### 1. ⚡ **Auto-number equations/figures by heading level** 
+One-click auto number now supports for : 
+-  All equations / Tagged equations only   
+-  Auto figures / Tagged figures only
+-  Full support for auto-updating citaion numbers after auto-numbering, allows you to easily add/delete equations without worrying about the numbering and citation.
 
 <center><img src="img\auto_number_vid.gif" alt="auto-number" style="zoom: 50%;" /></center>
 
 ### 2. 🖥️ **Compact Equation Manage Panel, Cite by Drag and Drop**
 
-Cite equations by drag and drop from equation manage panel. multiple equation citations and cross-file citation are all supported. 
+- Browse and cite **equations, figures, and callouts** by **drag and drop** from the manage panel
+- Full support on **multiple citation & continuous citation & cross-file citation**.
+- **Drag-drop citations** with all-type, cross-file support 
+- **Right-click to copy** equations directly from the panel or editor popover.
+- **Jump to equations,** figures and callouts directly from the Popover and  Equation Manage Panel.  
 
 <center><img src="img\drag-drop-cite.gif" alt="drag-drop-cite" style="zoom: 50%;" /></center>
 
-### 3. 🖼️ Cite Images, Tables and Even Theorems 
+### 3. 🖼️ Cite Figures, Tables and Theorems 
 
-Cite images by adding field to it. Cite tables and theorems by quote citation feature. **Excalidraw images** and markdown sections are also supported. 
+-  Cite figures by adding field to it.
+-  Cite tables / theorems by callout citation 
+-  Support **Excalidraw images** and **markdown sections**. 
+
+
 
 <center><img src="img\image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px; " /></center>
 

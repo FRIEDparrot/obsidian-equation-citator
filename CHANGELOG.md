@@ -365,6 +365,7 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] right-click to copy equations (both in equation panel and editor popover).
 - [x] Show figures and callouts in the equation panel, not only equations.
   - [x] Better Style + interaction for figure and callout items in the panel.
+  - [x] correct render for section view (better store at cache). 
 
 🐛 Fixed Bugs : 
 - [x] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
