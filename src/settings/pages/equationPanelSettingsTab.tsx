@@ -104,6 +104,22 @@ export const EquationPanelSettingsTab = {
                     await plugin.saveSettings();
                 });
             })
+    },
+    equationWidgetRightClickCopyType(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.equationWidgetRightClickCopyType;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addDropdown((dropdown) => {
+                dropdown.addOption("full", "Full equation");
+                dropdown.addOption("noTag", "Without tags");
+                dropdown.addOption("eq", "Without tags and braces");
+                dropdown.setValue(plugin.settings.equationWidgetRightClickCopyType);
+                dropdown.onChange(async (value) => {                    plugin.settings.equationWidgetRightClickCopyType = value as "full" | "noTag" | "eq";
+                    await plugin.saveSettings();
+                }
+            );
+        });
     }
 };
 
@@ -120,4 +136,5 @@ export function addEquationPanelSettingsTab(containerEl: HTMLElement, plugin: Eq
     EquationPanelSettingsTab.equationManagePanelEnableRenderHeadingsOnly(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelLazyUpdateTime(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelFileCheckInterval(containerEl, plugin);
+    EquationPanelSettingsTab.equationWidgetRightClickCopyType(containerEl, plugin);
 }

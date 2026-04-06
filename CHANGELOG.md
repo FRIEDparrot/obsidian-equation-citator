@@ -357,18 +357,18 @@ Settings Updates :
 ### Version 1.3.4
 Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
-⭐ New Features :
-- [ ] right-click to copy some equations.
 
+✈️ Full-Cross-Platform Support :
+- [x] Test this plugin on Linux and Mac platform (thanks to my friend @Tiddlefox)
+
+⭐ New Features :
+- [ ] right-click to copy equations in equation panel.
 
 🐛 Fixed Bugs : 
 - [x] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
 - [x] refactor `collapsedHeadings` to `parsedCollapsedHeadings` to prevent collapse state from growing indefinitely when switching between files.
 - [x] Fix bug [#152](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/152), line number information will refresh after editing the file before some headings.
 - [ ] Fix all new sonar issues for better code quality. 
-
-✈️ Multi-Platform Support :
-- [x] Test this plugin on Linux and Mac platform (thanks to my friend @Tiddlefox)
 
 📖 Documentation : 
 - [x] Add settings usage in tutorial. 
@@ -386,4 +386,6 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
 ### 🚢 If you want following features, you can request it in issue page :  
 1. Auto number for callouts.
-2. Check citations of figures and tables in equation panel, all in one 😄 
+2. Check citations of figures and tables in equation panel, all in one 
+3. Show figures and callouts in the equation panel, not only equations.
+(Adding 2 and 3 would be a minor version update)😄 

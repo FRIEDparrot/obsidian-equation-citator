@@ -77,6 +77,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "equationManagePanelFileCheckInterval",
                 "equationManagePanelFilterBoxedEquation",
                 "skipFirstlineInBoxedFilter",
+                "equationWidgetRightClickCopyType",
             ]
         },
         {
@@ -95,6 +96,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             settingKeys: [
                 "citationColorInPdf",
                 "addImageCaptionsInPdf",
+                "addImageDescInPdf",
             ]
         },
         {

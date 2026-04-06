@@ -17,6 +17,9 @@ The Equation Citator plugin transforms Obsidian into a powerful academic writing
 - **Figure & Table Citations** (New in v1.3.0): Cite images and tables with custom syntax   
 - **Drag & Drop Citations** (New in v1.3.0): Drag equations from the management panel
 
+> [!tip]
+> **Typst Mode support** : This plugin also support [obsidian typst mate](https://github.com/azyarashi/obsidian-typst-mate), you can set `settings > Display (Categorical) > Others > enable typst mode` make it compatible with typst syntax.
+
 ## 👋🏻 Before Everything start 
 There are some very simple writing guidelines you should follow : 
 ### (1) Code block format 
@@ -328,7 +331,11 @@ Use the command `Auto-number current file equations` or the toolbar button can a
 **Numbering depth (1-6)** : controls the max level to auto-number `(1.1), (1.1.1)`  
 
 ### 2) Citation Updates During Auto-numbering 
-When auto-numbering runs, all citations are automatically updated to match new numbers. This allows you insert an  equation any where  
+When auto-numbering runs, all citations are automatically updated to match new numbers. This allows you insert or delete equations any where and no need to worry about renumbering or broken citations. 
+
+But there are 2 settings to resolve the conflict in auto-numbering process: 
+1. **Auto delete conflict tag citations** (default: true) : when a tag is renamed into another one, while the old citations for this tag still exist(not modified after auto-numbering), they will be automatically deleted to avoid wrong citations. 
+2. **Auto delete unused tag citations** (default: false) :  if a citations is not used, it will be automatically deleted. (Only use this settings if you rely solely on auto-number for tag management).
 
 ## 5. PDF Export 
 

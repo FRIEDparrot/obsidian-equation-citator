@@ -79,7 +79,6 @@ export interface EquationCitatorSettings {
     enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in callouts,
     enableAutoNumberTaggedFigsOnly: boolean; // Enable auto numbering only for tagged figures
 
-    // by default, auto-number rename the citation, I don't provide this as option 
     enableUpdateTagsInAutoNumber: boolean; // Update citation in auto numbering 
     deleteRepeatTagsInAutoNumber: boolean; // Delete repeat tags in auto numbering  
     deleteUnusedTagsInAutoNumber: boolean; // Delete unused tags in auto numbering  
@@ -108,6 +107,7 @@ export interface EquationCitatorSettings {
     skipFirstlineInBoxedFilter: boolean;
     typstBoxSymbol: string; // Override symbol for boxed equation in typst mode, default to box
     equationManagePanelEnableRenderHeadingsOnly: boolean;
+    equationWidgetRightClickCopyType: "full" | "noTag" | "eq", // right click to copy full content or only equation code in equation panel.
 
     // settings UI
     settingsDisplayMode: "categorical" | "concise" | "list"; // settings tab display mode
@@ -167,9 +167,9 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     figAutoNumberGlobalPrefix: "", // Default to empty string for no prefix for figure auto numbering
     enableAutoNumberFigsInQuotes: false, // Default to false, not to number figures in callouts
     enableAutoNumberTaggedFigsOnly: false, // Default to false, number all figures
-    typstBoxSymbol: "boxed", // Default symbol for boxed equation in typst mode
-
+    
     enableTypstMode: false,
+    typstBoxSymbol: "boxed", // Default symbol for boxed equation in typst mode
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
     extensionsUseMarkdownRenderer: ["excalidraw", "excalidraw.md", "md"], // default to use markdown renderer for svg and excalidraw files
     // settings UI defaults
@@ -212,7 +212,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     equationManagePanelFilterTagOnlyEquation: false,
     equationManagePanelEnableRenderHeadingsOnly: false,
     equationManagePanelFilterBoxedEquation: false,
-    skipFirstlineInBoxedFilter: false,
+    skipFirstlineInBoxedFilter: false, 
+    equationWidgetRightClickCopyType: "full",
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
@@ -482,7 +483,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     deleteRepeatTagsInAutoNumber: {
-        name: "Auto delete conflicting tag citations",
+        name: "Auto delete conflict tag citations",
         desc: "Automatically delete conflicting tag citations during auto numbering.",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -672,4 +673,12 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             EquationPanelSettingsTab.skipFirstlineInBoxedFilter(el, plugin);
         }
     },
+    equationWidgetRightClickCopyType: {
+        name: "Equation widget right click copy type",
+        desc: "What to copy when select copy in equation panel",
+        type: "select",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationWidgetRightClickCopyType(el, plugin);
+        }
+    }
 }
