@@ -400,7 +400,27 @@ export class EquationPanelOutlineViewRenderer {
             headingTextSpan.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (group.heading) {
-                    void this.jumpToHeading(group.heading);
+                    // Walk up to the heading item div that carries data-line,
+                    // so we always get the current line even after the early-return refresh.
+                    const headingItemDiv = headingTextSpan.closest('.ec-heading-item') as HTMLElement;
+                    const currentLine = headingItemDiv
+                        ? Number.parseInt(headingItemDiv.dataset['line'] ?? '-1', 10)
+                        : group.heading.line; // fallback to stale value if DOM lookup fails
+
+                    void this.jumpToHeading({ ...group.heading, line: currentLine });
+                }
+            });
+        }
+    }
+
+    private refreshHeadingLineDomAttributes(headings: Heading[]): void {
+        if (!this.panel.viewPanel) return;
+        for (const heading of headings) {
+            // Match by level + text since the composite id is level|text|occurrence
+            const key = `${heading.level}|${heading.text}`;
+            this.panel.viewPanel.querySelectorAll<HTMLElement>('.ec-heading-item').forEach(el => {
+                if (el.dataset['id']?.startsWith(key)) {
+                    el.dataset['line'] = heading.line.toString();
                 }
             });
         }

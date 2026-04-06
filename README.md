@@ -20,7 +20,7 @@
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
 
-📱 **Platform support**: This plugin is primarily for Windows. Since v1.3.3, both desktop and Android are supported. Some features (e.g., drag-drop citation and certain previews) may be limited on mobile.
+📱 **Platform support**: This plugin has been tested on **Windows, Linux, Mac, and Android**. (It's primarily designed for Windows and added support for Android after v1.3.3, some features, e.g., drag-and-drop citation and certain previews may be limited on mobile.)
 
 ## 🛠️ Installation 
 

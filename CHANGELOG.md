@@ -365,7 +365,6 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
 ✈️ Multi-Platform Support :
 - [x] Test this plugin on Linux and Mac platform (thanks to my friend @Tiddlefox)
-- [ ] More tests for fully support on mobile. 
 
 📖 Documentation : 
 - [x] Add settings usage in tutorial. 
@@ -376,7 +375,7 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] Rename `auto-number xxx in quotes` to `auto-number xxx in callouts` for better clarity (issue [#154](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/154)).
 - [x] Remove `basePath=.` in `manifest.json` for further compatibility.
 - [ ] different tips on different autonumber types 
-
+- [ ] open right side panel when click the button to open equation panel in settings tab.
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.

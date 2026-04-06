@@ -41,7 +41,7 @@ export function hashEquations(equations: EquationMatch[]): string {
     for (let i = 0; i < str.length; i++) {
         const chr = str.charCodeAt(i);
         hash = ((hash << 5) - hash) + chr;
-        hash |= 0; // convert to 32bit int
+        hash = Math.trunc(hash); // convert to 32bit int
     }
     return hash.toString();
 }

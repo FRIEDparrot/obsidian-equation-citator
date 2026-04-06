@@ -289,6 +289,7 @@ The subpanel includes :
 #### 2.2 Drag and Drop Citations 
 1. **Drag** the item from the panel, **Drop** it into your text where you want the citation (Cross file drag will automatically create footnote for citation)  
 2. The properly formatted `\ref{}` citation is automatically inserted!
+3. If you have **multiple files opened in editor**, you can also drag equations to other files, and the plugin will **automatically create footnotes for cross-file citations**.
 
 This panel allows you to check and search equation very fast, **No need to scroll or remember syntax or equation numbers!** 
 
