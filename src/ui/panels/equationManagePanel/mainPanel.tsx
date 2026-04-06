@@ -550,6 +550,11 @@ export class EquationArrangePanel extends ItemView {
     public async renderFigureItem(container: HTMLElement, figure: ImageMatch): Promise<void> {
         const figDiv = container.createDiv("ec-figure-item");
 
+        // Make figure draggable
+        figDiv.draggable = true;
+        figDiv.dataset.figureTag = figure.tag || '';
+        figDiv.dataset.figureLine = figure.line.toString();
+
         // Tag section (if exists)
         if (figure.tag) {
             const tagDiv = figDiv.createDiv({ cls: "ec-figure-tag ec-tag-show" });
@@ -561,6 +566,11 @@ export class EquationArrangePanel extends ItemView {
 
         // Render the figure using MarkdownRenderer (use raw markdown)
         await MarkdownRenderer.render(this.app, figure.raw, contentDiv, '', this);
+
+        // Disable native drag on images to allow parent drag
+        contentDiv.querySelectorAll('img').forEach(img => {
+            img.draggable = false;
+        });
 
         // Add double-click handler to jump to figure in the editor
         const currentFile = this.app.workspace.getActiveFile();
@@ -586,20 +596,40 @@ export class EquationArrangePanel extends ItemView {
             }
         });
 
+        
         figDiv.addEventListener('dragstart', (event: DragEvent) => {
+            // Skip drag on mobile devices
             if (Platform.isMobile) {
                 event.preventDefault();
                 return;
             }
-            // Change cursor to grabbing hand           
-            document.body.classList.add('ec-figure-dragging');
+
+            // Change cursor to grabbing hand
             figDiv.classList.add('ec-is-dragging');
-            // Store figure data for drag-drop
+            
+            // Store figure data
+            const figureData = {
+                tag: figure.tag || '',
+                type: 'figure',
+                sourcePath: currentFile?.path || '',
+                line: figure.line
+            };
+            const dataString = JSON.stringify(figureData);
+            if (event.dataTransfer) {
+                event.dataTransfer.setData('ec-equations/drop-citations', dataString);
+                event.dataTransfer.effectAllowed = 'copy';
+            }
+        });
+
+        // Drag end event
+        figDiv.addEventListener('dragend', () => {
+            figDiv.classList.remove('ec-is-dragging');
         });
     }
 
     public async renderCalloutItem(container: HTMLElement, callout: CalloutMatch): Promise<void> {
         const calloutDiv = container.createDiv("ec-callout-item");
+        const { calloutCitationPrefixes } = this.plugin.settings;
 
         // Make callout draggable
         calloutDiv.draggable = true;
@@ -609,7 +639,9 @@ export class EquationArrangePanel extends ItemView {
         // Tag section (if exists)
         if (callout.tag) {
             const tagDiv = calloutDiv.createDiv({ cls: "ec-callout-tag ec-tag-show" });
-            tagDiv.createSpan({ text: callout.tag, cls: "ec-tag-text" });
+            const fmt = calloutCitationPrefixes.find(t => t.prefix === callout.prefix)?.format || '';
+            const label = fmt.replace('#', callout.tag);
+            tagDiv.createSpan({ text: label, cls: "ec-tag-text" });
         }
 
         // Create callout content div

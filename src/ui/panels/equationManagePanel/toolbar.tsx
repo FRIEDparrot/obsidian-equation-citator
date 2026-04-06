@@ -136,6 +136,7 @@ async function toggleSearchMode(panel: EquationArrangePanel, enable: boolean): P
     panel.viewModeButton.toggle(!enable);
     panel.lockRefreshButton.toggle(!enable);
     panel.extendToolBarButton.toggle(!enable);
+    panel.previewObjectTypeButton.toggle(!enable);
     
     // Hide sub-panel when in search mode
     if (enable) {
@@ -361,7 +362,7 @@ export function renderToolbar(
         cls: "ec-search-input",
         attr: {
             type: "text",
-            placeholder: "Search equations..."
+            placeholder: "Search items..."
         },
     });
     panel.searchInput.addEventListener("input", () => {

@@ -364,8 +364,7 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 ⭐ New Features :
 - [x] right-click to copy equations (both in equation panel and editor popover).
 - [x] Show figures and callouts in the equation panel, not only equations.
-  - [ ] Better Style + interaction for figure and callout items in the panel.
-- [ ] Check citations of equations, figures and tables in equation panel.
+  - [x] Better Style + interaction for figure and callout items in the panel.
 
 🐛 Fixed Bugs : 
 - [x] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
@@ -376,7 +375,6 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 📖 Documentation : 
 - [x] Add settings usage in tutorial. 
 - [x] Add equation panel button usage in tutorial.
-- [ ] Added **Webpage version of the tutorials** and the **API documentations**.
 - [ ] Updated Chinese translation for readme 
 
 🔩 Improvements
@@ -387,5 +385,10 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] when click 'open equation panel' button will also reveal it in right panel.
 - [x] **Better PDF export configs** : optional captions and descriptions in PDF export for image
 
+
+### Future Plans : 
+- [ ] Added **Webpage version of the tutorials** and the **API documentations**.
+
 ### 🚢 If you want following features, you can request it in issue page :  
 1. Auto number for callouts.
+2. Check citations of equations, figures and tables in equation manage panel.

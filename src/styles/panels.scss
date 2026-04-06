@@ -418,6 +418,7 @@
     justify-content: center;
     max-height: 350px;
     overflow: hidden;
+    pointer-events: none; // Disable interaction with rendered content to allow drag on parent
 
     img,
     video {
@@ -484,6 +485,7 @@
 .ec-callout-content {
     max-height: 350px;
     overflow-y: auto;
+    pointer-events: none; // Disable interaction with rendered content to allow drag on parent
 
     // Obsidian renders callouts as .callout blocks — center and constrain them
     .callout {
