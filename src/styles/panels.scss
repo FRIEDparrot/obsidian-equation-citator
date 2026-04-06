@@ -300,8 +300,16 @@
     opacity: 0.8;
 }
 
-.ec-tag-show .ec-equation-tag {
-    display: flex;
+.ec-tag-show {
+    & .ec-equation-tag {
+        display: flex;
+    }
+    & .ec-figure-tag {
+        display: flex;
+    }
+    & .ec-callout-tag {
+        display: flex;
+    }
 }
 
 .ec-tag-text {
@@ -368,13 +376,30 @@
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
     background-color: var(--background-primary);
-    cursor: pointer;
+    cursor: grab;
     transition: all 0.2s;
 
     &:hover {
         background-color: var(--background-modifier-hover);
         border-color: var(--interactive-accent);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    &[draggable="true"] {
+        user-select: none;
+    }
+
+    /* Visual cue on the dragged figure */
+    &.ec-is-dragging {
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+        &:hover {
+            cursor: grabbing;
+        }
     }
 }
 
@@ -385,11 +410,8 @@
     z-index: 1;
     display: none;
     align-items: center;
-
-    &.ec-tag-show {
-        display: flex;
-    }
 }
+
 
 .ec-figure-content {
     display: flex;
@@ -421,13 +443,30 @@
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
     background-color: var(--background-primary);
-    cursor: pointer;
+    cursor: grab;
     transition: all 0.2s;
 
     &:hover {
         background-color: var(--background-modifier-hover);
         border-color: var(--interactive-accent);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    &[draggable="true"] {
+        user-select: none;
+    }
+
+    /* Visual cue on the dragged callout */
+    &.ec-is-dragging {
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+        &:hover {
+            cursor: grabbing;
+        }
     }
 }
 
@@ -438,11 +477,9 @@
     z-index: 1;
     display: none;
     align-items: center;
-
-    &.ec-tag-show {
-        display: flex;
-    }
 }
+
+
 
 .ec-callout-content {
     max-height: 350px;

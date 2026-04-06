@@ -10,7 +10,7 @@ import Debugger from "@/debug/debugger";
 import { scrollToEquationByTag } from "@/utils/workspace/equation_navigation";
 import { isMarkdownFilePath } from "@/utils/misc/fileProcessor";
 import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
-import { copyEquationToClipboard } from "@/utils/misc/equation_copy"; 
+import { copyEquationToClipboard } from "@/utils/misc/equation_copy";
 
 import {
     renderToolbar,
@@ -19,7 +19,7 @@ import {
 import { EquationPanelDragDropHandler } from "./drag_drop_handler";
 import { EquationPanelOutlineViewRenderer } from "./outline_view_renderer";
 import { boxedEquationFilter } from "./box_filters";
-import { PanelItem, getItemLine, getItemTag, getItemSearchableContent, ViewMode, SortType} from "./panelItemTypes";
+import { PanelItem, getItemLine, getItemTag, getItemSearchableContent, ViewMode, SortType } from "./panelItemTypes";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -82,7 +82,7 @@ export class EquationArrangePanel extends ItemView {
         super(leaf);
 
         this.currentActiveFile = "";  // enforce refresh when the panel is opened
-        
+
         // Debounced handler for file modifications
         this.updateHandler = () => {
             if (this.lockRefreshEnabled) return; // Skip automatic update when locked
@@ -285,10 +285,10 @@ export class EquationArrangePanel extends ItemView {
                 callout: "callout"
             };
             const objectLabel = objectTypeLabels[this.previewObjectType];
-            const message = this.searchQuery 
-                ? `No ${objectLabel} match your search` 
+            const message = this.searchQuery
+                ? `No ${objectLabel} match your search`
                 : `No ${objectLabel} found in current file`;
-            
+
             this.viewPanel.createDiv({
                 text: message,
                 cls: "ec-empty-message"
@@ -386,13 +386,13 @@ export class EquationArrangePanel extends ItemView {
             skipFirstlineInBoxedFilter,
             typstBoxSymbol,
         } = this.plugin.settings;
-        
+
         // Apply tag filter (for equations and figures - callouts are always tagged)
         const tagFilter = (item: PanelItem) => {
             if (item.type === "callout") return true; // Callouts are always tagged
             return !this.filterTagOnlyEquation || (item.data.tag && item.data.tag.trim().length > 0);
         };
-        
+
         // Apply boxed filter (only for equations)
         const boxedFilter = (item: PanelItem) => {
             if (item.type !== "equation") return true; // Only filter equations
@@ -403,12 +403,12 @@ export class EquationArrangePanel extends ItemView {
         if (!this.searchQuery || this.searchQuery.trim().length === 0) {
             return items.filter(tagFilter).filter(boxedFilter);
         }
-        
+
         const query = this.searchQuery.toLowerCase();
         return items.filter(item => {
             // Check tag and boxed filters first
             if (!tagFilter(item) || !boxedFilter(item)) return false;
-            
+
             // Search in item content
             const searchContent = getItemSearchableContent(item).toLowerCase();
             return searchContent.includes(query);
@@ -421,7 +421,7 @@ export class EquationArrangePanel extends ItemView {
             return [...items].sort((a, b) => {
                 const tagA = getItemTag(a);
                 const tagB = getItemTag(b);
-                
+
                 if (!tagA && !tagB) return getItemLine(a) - getItemLine(b);
                 if (!tagA) return 1;
                 if (!tagB) return -1;
@@ -509,7 +509,6 @@ export class EquationArrangePanel extends ItemView {
             }
 
             // Change cursor to grabbing hand
-            document.body.classList.add('ec-equation-dragging');
             eqDiv.classList.add('ec-is-dragging');
             // Store equation data including line range for tag insertion
             const equationData = {
@@ -528,7 +527,6 @@ export class EquationArrangePanel extends ItemView {
 
         // Drag end event
         eqDiv.addEventListener('dragend', () => {
-            document.body.classList.remove('ec-equation-dragging');
             eqDiv.classList.remove('ec-is-dragging');
         });
 
@@ -536,7 +534,7 @@ export class EquationArrangePanel extends ItemView {
         eqDiv.addEventListener('contextmenu', (event: MouseEvent) => {
             event.preventDefault();
             const menu = new Menu();
-            
+
             menu.addItem((item) => {
                 item.setTitle("Copy");
                 item.setIcon("copy");
@@ -544,7 +542,7 @@ export class EquationArrangePanel extends ItemView {
                     this.handleEquationCopy(equation);
                 });
             });
-            
+
             menu.showAtMouseEvent(event);
         });
     }
@@ -587,10 +585,26 @@ export class EquationArrangePanel extends ItemView {
                 this.jumpToLine(figure.line).then().catch(console.error);
             }
         });
+
+        figDiv.addEventListener('dragstart', (event: DragEvent) => {
+            if (Platform.isMobile) {
+                event.preventDefault();
+                return;
+            }
+            // Change cursor to grabbing hand           
+            document.body.classList.add('ec-figure-dragging');
+            figDiv.classList.add('ec-is-dragging');
+            // Store figure data for drag-drop
+        });
     }
 
     public async renderCalloutItem(container: HTMLElement, callout: CalloutMatch): Promise<void> {
         const calloutDiv = container.createDiv("ec-callout-item");
+
+        // Make callout draggable
+        calloutDiv.draggable = true;
+        calloutDiv.dataset.calloutTag = callout.tag || '';
+        calloutDiv.dataset.calloutLineStart = callout.lineStart.toString();
 
         // Tag section (if exists)
         if (callout.tag) {
@@ -626,6 +640,37 @@ export class EquationArrangePanel extends ItemView {
                 // Normal double click - jump in current view
                 this.jumpToLine(callout.lineStart).then().catch(console.error);
             }
+        });
+
+        // Drag start event
+        calloutDiv.addEventListener('dragstart', (event: DragEvent) => {
+            // Skip drag on mobile devices
+            if (Platform.isMobile) {
+                event.preventDefault();
+                return;
+            }
+
+            // Change cursor to grabbing hand
+            calloutDiv.classList.add('ec-is-dragging');
+            
+            // Store callout data
+            const calloutData = {
+                tag: callout.tag || '',
+                type: 'callout',
+                prefix: callout.prefix || '',
+                sourcePath: currentFile?.path || '',
+                lineStart: callout.lineStart
+            };
+            const dataString = JSON.stringify(calloutData);
+            if (event.dataTransfer) {
+                event.dataTransfer.setData('ec-equations/drop-citations', dataString);
+                event.dataTransfer.effectAllowed = 'copy';
+            }
+        });
+
+        // Drag end event
+        calloutDiv.addEventListener('dragend', () => {
+            calloutDiv.classList.remove('ec-is-dragging');
         });
     }
 
