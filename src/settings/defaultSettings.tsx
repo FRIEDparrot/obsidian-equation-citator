@@ -102,6 +102,7 @@ export interface EquationCitatorSettings {
     equationManagePanelLazyUpdateTime: number,
     equationManagePanelFileCheckInterval: number,
     equationManagePanelDefaultViewType: "outline" | "list",
+    equationManagePanelPreviewObjectType: "equation" | "figure" | "callout", // Preview object type in equation panel
     equationManagePanelFilterTagOnlyEquation: boolean;
     equationManagePanelFilterBoxedEquation: boolean;
     skipFirstlineInBoxedFilter: boolean;
@@ -209,6 +210,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     equationManagePanelLazyUpdateTime: 5000,
     equationManagePanelFileCheckInterval: 1000,
     equationManagePanelDefaultViewType: "list",
+    equationManagePanelPreviewObjectType: "equation",
     equationManagePanelFilterTagOnlyEquation: false,
     equationManagePanelEnableRenderHeadingsOnly: false,
     equationManagePanelFilterBoxedEquation: false,
@@ -639,6 +641,14 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "select",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelDefaultViewType(el, plugin);
+        }
+    },
+    equationManagePanelPreviewObjectType: {
+        name: "Equation panel preview object type",
+        desc: "Type of object to preview in the equation panel (equations, figures, or callouts)",
+        type: "select",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationManagePanelPreviewObjectType(el, plugin);
         }
     },
     equationManagePanelFilterTagOnlyEquation: {

@@ -38,10 +38,12 @@ export class EquationArrangePanel extends ItemView {
     public toggleTagShowButton!: HTMLElement;
     public filterEmptyHeadingsButton!: HTMLElement;
     public filtersForEquationsButton!: HTMLElement;
+    public previewObjectTypeButton!: HTMLElement;
 
     // State variables  
     public viewMode: ViewMode = "list";
     public sortMode: SortType = "seq";
+    public previewObjectType: "equation" | "figure" | "callout" = "equation";
     public showEquationTags = false;
     public isSearchMode = false;
     public searchQuery = "";

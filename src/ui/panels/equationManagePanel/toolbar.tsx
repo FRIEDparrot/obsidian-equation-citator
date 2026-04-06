@@ -97,6 +97,27 @@ function updateHeadingOnlyButton(panel: EquationArrangePanel): void {
     setTooltip(panel.enableRenderHeadingOnlyButton, tooltipText);
 }
 
+function updatePreviewObjectType(panel: EquationArrangePanel, type: "equation" | "figure" | "callout"): void {
+    panel.previewObjectType = type;
+    
+    // Set icon based on type
+    const iconMap = {
+        equation: "percent",
+        figure: "image",
+        callout: "message-square"
+    };
+    
+    // Set tooltip based on type
+    const labelMap = {
+        equation: "Equations",
+        figure: "Figures",
+        callout: "Callouts"
+    };
+    
+    setIcon(panel.previewObjectTypeButton, iconMap[type]);
+    setTooltip(panel.previewObjectTypeButton, `Preview: ${labelMap[type]}`);
+}
+
 function toggleTagShow(panel: EquationArrangePanel, mode: boolean): void {
     panel.showEquationTags = mode;
     setIcon(panel.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");
@@ -266,6 +287,19 @@ export function renderToolbar(
 ): void {
     const toolbar = panelWrapper.createDiv("ec-manage-panel-toolbar");
 
+    // Preview object type button (FIRST button)
+    panel.previewObjectTypeButton = toolbar.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Preview object type" },
+    });
+    panel.previewObjectTypeButton.addEventListener("click", () => {
+        const types: Array<"equation" | "figure" | "callout"> = ["equation", "figure", "callout"];
+        const currentIndex = types.indexOf(panel.previewObjectType);
+        const nextType = types[(currentIndex + 1) % types.length];
+        updatePreviewObjectType(panel, nextType);
+        void panel.refreshView();
+    });
+
     // View mode button
     panel.viewModeButton = toolbar.createDiv("ec-view-mode-button clickable-icon");
     panel.viewModeButton.addEventListener('click', () => {
@@ -353,12 +387,16 @@ export function setToolbarDefaultState(
 ): void {
     const {
         equationManagePanelDefaultViewType: defaultViewMode,
+        equationManagePanelPreviewObjectType: previewObjectType,
         equationManagePanelEnableRenderHeadingsOnly: enableRenderHeadingsOnly,
         equationManagePanelFilterTagOnlyEquation: filterTagOnlyEquation,
         equationManagePanelFilterBoxedEquation: filterBoxedEquation,
     } = plugin.settings;
     // Set default view mode
     updatePanelViewMode(panel, defaultViewMode);
+    
+    // Set default preview object type
+    updatePreviewObjectType(panel, previewObjectType);
     
     // Set default sort mode
     updateSortMode(panel, "seq");

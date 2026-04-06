@@ -71,6 +71,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "Equation panel",
             settingKeys: [
                 "equationManagePanelDefaultViewType",
+                "equationManagePanelPreviewObjectType",
                 "equationManagePanelFilterTagOnlyEquation",
                 "equationManagePanelEnableRenderHeadingsOnly",
                 "equationManagePanelLazyUpdateTime",
