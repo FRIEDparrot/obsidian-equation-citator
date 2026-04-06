@@ -267,6 +267,26 @@ You can open the equation mange panel by :
 
 ### 2) How to use 
 Equation Manage panel is one of the most powerful feature of v1.3.0 :
+
+#### 2.1 Usage of buttons on panel toolbar :
+
+![Tool bar Image](panel_toolbars.png)
+
+We use the button on `outline` mode for tutorial, The main panel includes following buttons :  
+1. View mode buttons : Switch between `outline` view and `list` view.
+2. Disable refresh : Disable auto refresh, Lock the **File, Equations and Headings rendered in panel**, but `view mode change`, `filters` and `search` will still work. 
+3. Search : Search equations by content. 
+4. More Options : show subpanel. 
+
+The subpanel includes :
+1. Show headings only : Only show headings, hide equations (use the panel as an outline!).
+2. Sort equations (In List mode) : Sort equations by their order in the file, or by their tag name.
+3. Collapse / Expand all : Collapse or Expand all headings in outline view.
+4. Show/Hide tags : Show or hide tags in the panel. 
+5. Show all headings / Only show headings with equations.
+6. Filters : Show only tagged equations, or show only boxed equations.
+
+#### 2.2 Drag and Drop Citations 
 1. **Drag** the item from the panel, **Drop** it into your text where you want the citation (Cross file drag will automatically create footnote for citation)  
 2. The properly formatted `\ref{}` citation is automatically inserted!
 
