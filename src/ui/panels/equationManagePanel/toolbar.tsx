@@ -144,7 +144,7 @@ async function handleCollapseAll(
     allHeadings.forEach((heading) => {
         const id = (heading as HTMLElement).dataset.id;
         if (id) {
-            renderer.currentCollapseHeadingId.add(id);
+            renderer.collapseHeadings.add(id);
         }
     });
     await panel.refreshView();
@@ -154,7 +154,7 @@ async function handleExpandAll(
     panel: EquationArrangePanel,
     renderer: EquationPanelOutlineViewRenderer,
 ): Promise<void> {
-    renderer.currentCollapseHeadingId.clear();
+    renderer.collapseHeadings.clear();
     await panel.refreshView();
 }
 
@@ -192,16 +192,6 @@ function renderToolBarSubPanel(
         void panel.refreshView();
     });
 
-    // panel.expandButton = subPanel.createEl("button", {
-    //     cls: "clickable-icon ec-mode-button",
-    //     attr: { "aria-label": "Expand all" },
-    // });
-    // setIcon(panel.expandButton, "chevrons-up-down");
-    // setTooltip(panel.expandButton, "Expand all");
-    // panel.expandButton.addEventListener("click", () => {
-    //     void handleExpandAll(panel, renderer);
-    // });
-
     panel.collapseButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
         attr: { "aria-label": "Collapse all" },
@@ -209,7 +199,18 @@ function renderToolBarSubPanel(
     setIcon(panel.collapseButton, "chevrons-down-up");
     setTooltip(panel.collapseButton, "Collapse all");
     panel.collapseButton.addEventListener("click", () => {
-        void handleCollapseAll(panel, renderer);
+        if (renderer.collapseAllState === false) {
+            void handleCollapseAll(panel, renderer);
+            renderer.collapseAllState = true;
+            setIcon(panel.collapseButton, "chevrons-up-down");
+            setTooltip(panel.collapseButton, "Expand all");
+        }
+        else {
+            void handleExpandAll(panel, renderer);
+            renderer.collapseAllState = false;
+            setIcon(panel.collapseButton, "chevrons-down-up");
+            setTooltip(panel.collapseButton, "Collapse all");
+        }
     });
 
     // hide tag button

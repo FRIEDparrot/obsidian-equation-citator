@@ -358,7 +358,7 @@ Settings Updates :
 Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
 🐛 Fixed Bugs : 
-- [ ] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
+- [x] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
 - [x] refactor `collapsedHeadings` to `parsedCollapsedHeadings` to prevent collapse state from growing indefinitely when switching between files.
 
 ✈️ Multi-Platform Support :
