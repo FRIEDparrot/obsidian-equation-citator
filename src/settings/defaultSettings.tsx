@@ -22,7 +22,13 @@ export interface SettingsMetadata {
     hasSubPanel?: boolean; // whether this setting can have a subpanel to render
 }
 
-
+/**
+ * To add a new setting:
+ * 1. add into EquationCitatorSettings 
+ * 2. add default value in DEFAULT_SETTINGS
+ * 3. add callback function in SettingsMetadata, and implement the callback function
+ * 4. add settings into `settingsHelper` script (to give it a clear category)
+ */
 export interface EquationCitatorSettings {
     //#region citation settings 
     enableCitationInSourceMode: boolean; // Enable citation in source mode 
@@ -84,7 +90,9 @@ export interface EquationCitatorSettings {
 
     // pdf rendering settings
     citationColorInPdf: string; // default citation color in PDF rendering
-
+    addImageCaptionsInPdf: boolean; // whether to add image captions in PDF export
+    addImageDescInPdf: boolean; // whether to add image description in PDF export
+    
     // other settings  
     enableTypstMode: boolean; // Enable compatibility with Typst syntax
     debugMode: boolean; // Optional setting for debug mode
@@ -137,6 +145,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes) 
 
     citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
+    addImageCaptionsInPdf: true, // add image captions in PDF export by default
+    addImageDescInPdf: true, // add image description in PDF export by default
 
     enableCiteWithCodeBlockInCallout: false, // cite with inline code block in quote
 
@@ -547,6 +557,25 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             PdfExportSettingsTab.citationColorInPdf(el, plugin);
         }
     },
+
+    addImageCaptionsInPdf : {
+        name: "Add image captions in PDF",
+        desc: "Whether to add image captions in PDF export",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.addImageCaptionsInPdf(el, plugin);
+        } 
+    },
+
+    addImageDescInPdf : {
+        name: "Add image description in PDF",
+        desc: "Whether to add image description in PDF export (only works when image captions are rendered)",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.addImageDescInPdf(el, plugin);
+        }
+    },
+
     enableTypstMode: {
         name: "Enable typst mode",
         desc: "Enable compatibility with Typst syntax",

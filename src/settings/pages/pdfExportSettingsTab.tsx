@@ -22,10 +22,38 @@ export const PdfExportSettingsTab = {
             text: "💡tip: original pdf export would failed to render citations, please use plugin command `Make markdown copy to export PDF`, this will make a correctly-rendered markdown from current note to export pdf.(superscripts will also be converted to normal superscript grammar)",
             cls: "ec-settings-tip"
         });
-    }
-}
+    },
+    addImageCaptionsInPdf(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.addImageCaptionsInPdf;
+        const setting = new Setting(containerEl);
+        setting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => { 
+                toggle.setValue(plugin.settings.addImageCaptionsInPdf);
+                toggle.onChange(async (value) => {
+                    plugin.settings.addImageCaptionsInPdf = value;
+                    await plugin.saveSettings();
+                });
+        });
+    },
+    addImageDescInPdf(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.addImageDescInPdf;
+        const setting = new Setting(containerEl);
+        setting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => { 
+                toggle.setValue(plugin.settings.addImageDescInPdf);
+                toggle.onChange(async (value) => {
+                    plugin.settings.addImageDescInPdf = value;
+                    await plugin.saveSettings();
+                });
+        });
+    },
+}   
 
 export function addPdfExportSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) { 
     PdfExportSettingsTab.pdfExportTip(containerEl, plugin); 
     PdfExportSettingsTab.citationColorInPdf(containerEl, plugin);
+    PdfExportSettingsTab.addImageCaptionsInPdf(containerEl, plugin);
+    PdfExportSettingsTab.addImageDescInPdf(containerEl, plugin);
 }

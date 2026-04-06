@@ -142,6 +142,8 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
 
     // Parse all images to find figure metadata
     const images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
+    const addCaptions = settings.addImageCaptionsInPdf;
+    const addDesc = settings.addImageDescInPdf;
 
     // Filter to only images with tags (figures)
     const figures = images.filter(img => img.tag);
@@ -176,6 +178,8 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
 
             // Build caption with figure number and title
             const figNumber = settings.figCitationFormat.replace('#', figureOnLine.tag || '');
+            
+            if (!addCaptions) continue;
 
             // Combine figure number with title if title exists
             let captionText = figNumber;
@@ -187,7 +191,7 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
             processedLines.push(`<center><strong>${escapeHtml(captionText)}</strong></center>`);
 
             // Add description if present
-            if (figureOnLine.desc) {
+            if (figureOnLine.desc && addDesc) {
                 const descHtml = `<center><small>${escapeHtml(figureOnLine.desc)}</small></center>`;
                 processedLines.push(descHtml);
             }

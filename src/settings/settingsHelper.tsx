@@ -94,6 +94,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "PDF export",
             settingKeys: [
                 "citationColorInPdf",
+                "addImageCaptionsInPdf",
             ]
         },
         {

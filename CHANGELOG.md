@@ -382,8 +382,8 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] Simplify `Auto numbering` in some of setting options to `Auto number`
 - [ ] different tips on different autonumber types 
 - [x] when click 'open equation panel' button will also reveal it in right panel.
-- [ ] optional captions and descriptions in PDF export for image
+- [x] **Better PDF export configs** : optional captions and descriptions in PDF export for image
 
-### 🚢 Future Plan : 
-1. Auto number for callouts if some1 request it.
+### 🚢 If you want following features, you can request it in issue page :  
+1. Auto number for callouts.
 2. Check citations of figures and tables in equation panel, all in one 😄 

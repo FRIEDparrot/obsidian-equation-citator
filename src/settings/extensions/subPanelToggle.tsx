@@ -25,8 +25,8 @@ export function addSubPanelToggle(
     setting.setClass("ec-settings-subpanel-toggle");
     setting.addToggle((toggle) => {
         const parent = setting.settingEl.parentElement;
-        const createSubPanel = (value: boolean) => {
-            if (renderPanel && value && parent && !subPanel) {
+        const showSubPanel = () => {
+            if (renderPanel && parent && !subPanel) {
                 subPanel = document.createElement("div");
                 subPanel.classList.add("ec-settings-subpanel");
                 if (insertAfter) {
@@ -41,15 +41,25 @@ export function addSubPanelToggle(
                 subPanel = null;
             }
         };
+        const hideSubPanel = () => {
+            if (subPanel) {
+                subPanel.remove();
+                subPanel = null;
+            }
+        };
         // Set initial toggle value
         toggle.setValue(initVal);
         // **Render initial subpanel state**
-        createSubPanel(reverse ? !initVal : initVal);
+        const display = reverse ? !initVal : initVal;
+        if (display) showSubPanel();
+        else hideSubPanel();
+        
         toggle.onChange((value) => {
             // call the callback function 
             void onToggleChange(value);
             const display = reverse ? !value : value;
-            createSubPanel(display);
+            if (display) showSubPanel();
+            else hideSubPanel();
         });
     });
 }
