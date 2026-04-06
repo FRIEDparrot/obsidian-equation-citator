@@ -413,19 +413,6 @@ export class EquationPanelOutlineViewRenderer {
         }
     }
 
-    private refreshHeadingLineDomAttributes(headings: Heading[]): void {
-        if (!this.panel.viewPanel) return;
-        for (const heading of headings) {
-            // Match by level + text since the composite id is level|text|occurrence
-            const key = `${heading.level}|${heading.text}`;
-            this.panel.viewPanel.querySelectorAll<HTMLElement>('.ec-heading-item').forEach(el => {
-                if (el.dataset['id']?.startsWith(key)) {
-                    el.dataset['line'] = heading.line.toString();
-                }
-            });
-        }
-    }
-
     private createEquationCountBadge(headingHeader: HTMLElement, totalEquationCount: number): void {
         if (totalEquationCount > 0) {
             headingHeader.createSpan({
