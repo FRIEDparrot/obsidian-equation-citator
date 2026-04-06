@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath, Platform } from "obsidian";
+import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath, Platform, Menu } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { hashEquations } from "@/utils/misc/hash_utils";
@@ -8,6 +8,7 @@ import Debugger from "@/debug/debugger";
 import { scrollToEquationByTag } from "@/utils/workspace/equation_navigation";
 import { isMarkdownFilePath } from "@/utils/misc/fileProcessor";
 import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
+import { copyEquationToClipboard } from "@/utils/misc/equation_copy";
 
 import { ViewMode, SortType } from "./types";
 import {
@@ -484,6 +485,22 @@ export class EquationArrangePanel extends ItemView {
             document.body.classList.remove('ec-equation-dragging');
             eqDiv.classList.remove('ec-is-dragging');
         });
+
+        // Right-click context menu for copy
+        eqDiv.addEventListener('contextmenu', (event: MouseEvent) => {
+            event.preventDefault();
+            const menu = new Menu();
+            
+            menu.addItem((item) => {
+                item.setTitle("Copy");
+                item.setIcon("copy");
+                item.onClick(() => {
+                    this.handleEquationCopy(equation);
+                });
+            });
+            
+            menu.showAtMouseEvent(event);
+        });
     }
 
     private async jumpToEquation(equation: EquationMatch): Promise<void> {
@@ -502,5 +519,14 @@ export class EquationArrangePanel extends ItemView {
                 }
             });
         }
+    }
+
+    /**
+     * Copy equation to clipboard based on the copy type setting
+     * @param equation - The equation to copy
+     */
+    private handleEquationCopy(equation: EquationMatch): void {
+        const copyType = this.plugin.settings.equationWidgetRightClickCopyType;
+        copyEquationToClipboard(equation.contentWithTag, equation.content, copyType);
     }
 }

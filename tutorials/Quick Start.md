@@ -154,11 +154,20 @@ The cross-file citation **relies on the built-in footnote system of obsidian** :
 
 The syntax is: `$\ref{eq:footnote^{tag}}$`,  For example,  As shown in equation $\ref{eq:1^{2.3.1}}$ from Paper A[^1]. 
 
-### 1.4 Interactive Features 
-- **Preview**: Hold `Ctrl` and hover over any citation to preview the equation
-- **Jump to Equation**: `Double-click` any equation preview to jump to its equation
-- **Open in Split**: `Ctrl + Double-click` opens the equation in an adjacent panel
-- **Rename Tags**: Right-click on any `\tag{}` to rename it (all citations update automatically)
+### 1.4 Interactive Features
+The following interactive features are really useful for you to quickly check and manage your equations, supports are listed in following table :
+
+| Feature                                   | Editor Popover | Equation Panel | Equations | Figures | Callouts |
+| ----------------------------------------- | ---------------- | -------------- | --------- | ------- | -------- |
+| **Preview** (Hold `Ctrl` + hover)         | ✅                | already        | ✅         | ✅       | ✅        |
+| **Jump to Source** (`Double-click`)       | ✅                | ✅              | ✅         | ✅       | ✅        |
+| **Open in Split** (`Ctrl + Double-click`) | ✅                | ✅              | ✅         | ✅       | ✅        |
+| **Rename Tag** (`Right-click` on tag)     | ✅                | ❌              | ✅         | ✅       | ❌        |
+| **Right-Click Copy**                  | ✅                | ✅              | ✅<br>     | ❌       | ❌        |
+
+- For **Open in Split**, if more than one editor is already open, it will reuse the existing adjacent editor rather than opening a new one 
+- Select `\tag{}` to rename equation tag, select entire image `![[image.png|fig:1.1]]` to rename figure tag.
+- You can customize what to copy in `settings > Display (Categorical) > Equation Panel > Equation widget right click copy content`, choose whether to copy the equation content with tag/braces
 
 ### 1.5 Rename equation tags 
 Select the `\tag{}` in the equation you want to rename, then right-click and select `Rename equation tag`. Citations will be automatically updated to match the new tag.
@@ -299,17 +308,19 @@ This panel allows you to check and search equation very fast, **No need to scrol
 
 ### 3) Special Filters
 
-You can use filters to filter important equations. Currently we provide 2 filters :
+Filters are very useful features for you to manage important equations. Currently we provide 2 filters :
 
-1. **Tag-only filter**: Show only equations with tags. 
+1. **Tag-only filter**: Show only equations with tags.
+
+This is added for many derivates need no tags. See [issue #105](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/105) for details. But **I suggest to use boxed filter since this still need you to manually tag equations**.  
 
 You may use this with `Auto-number tagged equations only`. see [[Useful Tricks & techniques#(3) Only Number Important Equations]] for details.
 
-2. **boxed filters**: Show only equations wrapped with `\boxed{}`. Note for simplicity in this filter it only check if the first non-blank line of equations is start with `\boxed`. 
+2. **boxed filters**: Show only equations wrapped with `\boxed{}`. Note for simplicity in this filter it only check if the first non-blank line of equations has `\boxed`. 
 
 You can use Latex Suite `box current equation` command to box equations, we also provide a command `box current equation` in our plugin, so you can just select a equation and run this command to box it 
 
-To support [typst mode](https://github.com/azyarashi/obsidian-typst-mate) box, and for better support to `typst mate` plugin, this plugin use `boxed` as default typst box symbol. This can be set at `settings > Display (Categorical) > Others > Typst box symbol`, see [feature #140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140) for details.
+>  To support [typst mode](https://github.com/azyarashi/obsidian-typst-mate) box, this plugin use `boxed` as default typst box symbol (for `typst mate` plugin). This can be set at `settings > Display (Categorical) > Others > Typst box symbol`, see [feature #140](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/140) for details.
 
 For some users, they use the first line of multi-line equation as class, we also provide an option to this. Check `Settings > Display (Categorical) > Equation Panel > Skip first line when filter boxed equation` to enable this feature.
 ```latex

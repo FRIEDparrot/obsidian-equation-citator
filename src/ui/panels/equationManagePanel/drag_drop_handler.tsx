@@ -10,9 +10,9 @@ import Debugger from "@/debug/debugger";
 import { EquationArrangePanel } from "./mainPanel";
 
 export class EquationPanelDragDropHandler {
-    private dropHandler: (evt: DragEvent) => void;
-    private dragoverHandler: (evt: DragEvent) => void;
-    private dragendHandler: (evt: DragEvent) => void;
+    private dropHandler: ((evt: DragEvent) => void) | undefined;
+    private dragoverHandler: ((evt: DragEvent) => void) | undefined;
+    private dragendHandler: ((evt: DragEvent) => void) | undefined;
     private lastDragTargetView: MarkdownView | null = null;
     private readonly app: App;
     constructor(

@@ -5,7 +5,7 @@ import { AutoNumberSettingsTab } from "./pages/autoNumberSettingsTab";
 import { StyleSettingsTab } from "./pages/styleSettingsTab";
 import { CacheSettingsTab } from "./pages/cacheSettingsTab";
 import { PdfExportSettingsTab } from "./pages/pdfExportSettingsTab";
-import { OtherSettingsTab } from "./pages/OtherSettingsTab";
+import { OtherSettingsTab } from "./pages/otherSettingsTab";
 import { EquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
 
 export interface CalloutCitationPrefix {
@@ -674,8 +674,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     equationWidgetRightClickCopyType: {
-        name: "Equation widget right click copy type",
-        desc: "What to copy when select copy in equation panel",
+        name: "Equation widget right click copy content",
+        desc: "What to copy when select copy in equation widget",
         type: "select",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationWidgetRightClickCopyType(el, plugin);

@@ -5,7 +5,7 @@ import { WidgetSizeManager } from "./styleManagers/widgetSizeManager";
 
 import { addPdfExportSettingsTab } from "@/settings/pages/pdfExportSettingsTab";
 import { addStyleSettingsTab } from "@/settings/pages/styleSettingsTab";
-import { addOtherSettingsTab } from "@/settings/pages/OtherSettingsTab";
+import { addOtherSettingsTab } from "@/settings/pages/otherSettingsTab";
 import { addCacheSettingsTab } from "@/settings/pages/cacheSettingsTab";
 import { createFoldablePanel } from "@/settings/extensions/foldablePanel";
 import { addCitationSettingsTab } from "@/settings/pages/citationSettingsTab";
