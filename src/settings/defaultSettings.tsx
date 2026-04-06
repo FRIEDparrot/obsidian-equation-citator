@@ -358,7 +358,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberDelimiter: {
-        name: "Auto numbering delimiter",
+        name: "Auto number delimiter",
         desc: "Delimiter used for numbering equations, e.g. '.' for '1.1', '-' for '1-1', etc.",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -366,7 +366,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberType: {
-        name: "Auto numbering method",
+        name: "Auto number method",
         desc: "Use absolute or relative heading level for auto numbering (shared by equations and figures)",
         type: "select",
         renderCallback: (el, plugin) => {
@@ -374,7 +374,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberDepth: {
-        name: "Auto numbering depth",
+        name: "Auto number depth",
         desc: "Maximum depth for equation numbers (e.g., depth of 2 gives '1.1', depth of 3 gives '1.1.1')",
         type: "number",
         renderCallback: (el, plugin) => {
@@ -382,7 +382,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberNoHeadingPrefix: {
-        name: "Auto numbering no heading prefix",
+        name: "Auto number no heading prefix",
         desc: "Prefix for equations without any heading level (e.g., 'P1', 'P2', etc.)",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -390,7 +390,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberGlobalPrefix: {
-        name: "Auto numbering global prefix",
+        name: "Auto number global prefix",
         desc: "Global auto equation numbering prefix for purpose like chapter",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -398,7 +398,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberEquationsInQuotes: {
-        name: "Auto numbering equations in callouts",
+        name: "Auto number equations in callouts",
         desc: "Enable auto numbering for equations in callouts",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -406,7 +406,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberTaggedEquationsOnly: {
-        name: "Auto numbering tagged equations only",
+        name: "Auto number tagged equations only",
         desc: "When auto-numbering, only update the equations that are already tagged",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -414,7 +414,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figAutoNumberDelimiter: {
-        name: "Figure auto numbering delimiter",
+        name: "Figure auto number delimiter",
         desc: "Delimiter used for numbering figures, e.g. '.' for '1.1', '-' for '1-1', etc.",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -422,7 +422,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figAutoNumberDepth: {
-        name: "Auto numbering depth for figures",
+        name: "Auto number depth for figures",
         desc: "Maximum depth for figure numbers (e.g., depth of 2 gives 'fig:1.1')",
         type: "number",
         renderCallback: (el, plugin) => {
@@ -430,7 +430,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figAutoNumberNoHeadingPrefix: {
-        name: "Figure auto numbering no heading prefix",
+        name: "Figure auto number no heading prefix",
         desc: "Prefix for figures without any heading level (e.g., 'F1', 'F2', etc.)",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -438,7 +438,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figAutoNumberGlobalPrefix: {
-        name: "Figure auto numbering global prefix",
+        name: "Figure auto number global prefix",
         desc: "Global prefix for figure auto numbering for figures without any heading level",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -446,7 +446,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberFigsInQuotes: {
-        name: "Auto numbering figures in callouts",
+        name: "Auto number figures in callouts",
         desc: "Enable auto numbering for figures in callouts",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -454,7 +454,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberTaggedFigsOnly: {
-        name: "Auto numbering tagged figures only",
+        name: "Auto number tagged figures only",
         desc: "When auto-numbering, only update the figures that are already tagged",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -463,7 +463,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
     // These 3 options are shared by figures and equations
     enableUpdateTagsInAutoNumber: {
-        name: "Auto update citations in auto numbering",
+        name: "Auto update citations in auto number",
         desc: "Enable auto update citations during auto numbering. Always keep it selected to ensure citations are correctly updated",
         type: "boolean",
         hasSubPanel: true,

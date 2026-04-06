@@ -357,6 +357,10 @@ Settings Updates :
 ### Version 1.3.4
 Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
+⭐ New Features :
+- [ ] right-click to copy some equations.
+
+
 🐛 Fixed Bugs : 
 - [x] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
 - [x] refactor `collapsedHeadings` to `parsedCollapsedHeadings` to prevent collapse state from growing indefinitely when switching between files.
@@ -370,12 +374,15 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] Add settings usage in tutorial. 
 - [x] Add equation panel button usage in tutorial.
 - [ ] Added **Webpage version of the tutorials** and the **API documentations**.
+- [ ] Updated Chinese translation for readme 
 
 🔩 Improvements
 - [x] Rename `auto-number xxx in quotes` to `auto-number xxx in callouts` for better clarity (issue [#154](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/154)).
 - [x] Remove `basePath=.` in `manifest.json` for further compatibility.
+- [x] Simplify `Auto numbering` in some of setting options to `Auto number`
 - [ ] different tips on different autonumber types 
 - [ ] open right side panel when click the button to open equation panel in settings tab.
+
 
 ### 🚢 Future Plan : 
 1. Auto number for callouts if some1 request it.
