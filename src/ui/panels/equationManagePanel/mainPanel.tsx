@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath, Platform, Menu, MarkdownRenderer } from "obsidian";
+import { ItemView, WorkspaceLeaf, MarkdownView, TFile, loadMathJax, normalizePath, Platform, Menu, MarkdownRenderer, renderMath, finishRenderMath } from "obsidian";
 import EquationCitator from "@/main";
 import { EquationMatch } from "@/utils/parsers/equation_parser";
 import { ImageMatch } from "@/utils/parsers/image_parser";
@@ -9,7 +9,6 @@ import Debugger from "@/debug/debugger";
 
 import { scrollToEquationByTag } from "@/utils/workspace/equation_navigation";
 import { isMarkdownFilePath } from "@/utils/misc/fileProcessor";
-import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
 import { copyEquationToClipboard } from "@/utils/misc/equation_copy";
 
 import {
@@ -469,8 +468,16 @@ export class EquationArrangePanel extends ItemView {
 
         // Render the equation
         if (!window.MathJax) await loadMathJax();
-        mathDiv.replaceChildren(window.MathJax!.tex2chtml(equation.content, { display: true }));
-        await forceMathRefresh(mathDiv, this.viewPanel);
+        
+        if (this.plugin.settings.useFastMathRenderer) {
+            // Fast method: Direct conversion 
+            mathDiv.replaceChildren(window.MathJax!.tex2chtml(equation.content, { display: true }));
+        } else {
+            // Reliable method: Use typesetPromise for proper rendering
+            const  rendered = renderMath(equation.content, true);
+            mathDiv.replaceChildren(rendered);
+            await finishRenderMath();
+        }
 
         // Add click handler to jump to equation in the editor
         // Ctrl/Cmd + double click always creates new panel on right

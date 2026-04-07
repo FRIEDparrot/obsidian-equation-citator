@@ -109,6 +109,7 @@ export interface EquationCitatorSettings {
     typstBoxSymbol: string; // Override symbol for boxed equation in typst mode, default to box
     equationManagePanelEnableRenderHeadingsOnly: boolean;
     equationWidgetRightClickCopyType: "full" | "noTag" | "eq", // right click to copy full content or only equation code in equation panel.
+    useFastMathRenderer: boolean; // whether to use fast but less reliable math rendering method in equation panel, default to false
 
     // settings UI
     settingsDisplayMode: "categorical" | "concise" | "list"; // settings tab display mode
@@ -203,6 +204,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "enableAutoNumberEquationsInQuotes",
         "enableUpdateTagsInAutoNumber",
         "enableTypstMode",
+        "useFastMathRenderer",
         "cacheUpdateTime",
         "cacheCleanTime",
         "debugMode",
@@ -216,6 +218,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     equationManagePanelFilterBoxedEquation: false,
     skipFirstlineInBoxedFilter: false, 
     equationWidgetRightClickCopyType: "full",
+    useFastMathRenderer: false, // default to false, use reliable math rendering method in equation panel
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
@@ -690,5 +693,13 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationWidgetRightClickCopyType(el, plugin);
         }
-    }
+    },
+    useFastMathRenderer: {
+        name: "Use fast math renderer in equation panel",
+        desc: "Whether to use a fast math rendering for equations. Fast renderer can significantly speed up the load of equations, but may cause rendering issues at first, this will often be resolved after scrolling",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.useFastMathRenderer(el, plugin);
+        }
+    },
 }

@@ -279,10 +279,13 @@ You can open the equation mange panel by :
 - Command palette: `Open Equations Manage Panel`
 - Toolbar icon (if enabled) 
 
-### 2) How to use this panel   
+### 2) Math Renderer Settings
+By default, the panel uses a **reliable rendering method** that ensures equations display correctly. If you have many equations and experience slow loading, enable **"Use fast math renderer"** in settings (**Settings > Display (Categorical) > Equation Panel > Use fast math renderer in equation panel**). The fast renderer may show empty containers initially, but they'll appear correctly after scrolling.
+
+### 3) How to use this panel
 Equation Manage panel is one of the most powerful feature of v1.3.0, it allows you to cite and search equation fast and easy, **No need to scroll or remember syntax or equation numbers!** 
 
-#### 2.1 Usage of buttons on panel toolbar :
+#### 3.1 Usage of buttons on panel toolbar :
 
 ![Tool bar Image](panel_toolbars.png)
 
@@ -303,13 +306,13 @@ The subpanel includes :
     - 1.Show only tagged equations/figures/callouts. (This works for all types of content)
     - 2. show only boxed equations. (This only works for equations)
 
-#### 2.2 Drag and Drop Citations 
+#### 3.2 Drag and Drop Citations 
 1. **Drag** the item from the panel, **Drop** it into your text where you want the citation, the properly formatted `\ref{}` citation is automatically inserted
 2. If you have **multiple files opened in editor**, you can also **drag equations to other files**. The plugin will **automatically create footnotes for cross-file citations**.
 3. For callouts in panel, we don't support drag-cite callouts without correct tags (since it will break original prefix), please add tag for it manually.
 
 
-#### 2.3 Special Filters
+#### 3.3 Special Filters
 
 Filters are very useful features for you to manage important equations. Currently we provide 2 filters :
 

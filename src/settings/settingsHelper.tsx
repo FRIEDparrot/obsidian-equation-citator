@@ -79,6 +79,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "equationManagePanelFilterBoxedEquation",
                 "skipFirstlineInBoxedFilter",
                 "equationWidgetRightClickCopyType",
+                "useFastMathRenderer",
             ]
         },
         {

@@ -328,14 +328,18 @@
 }
 
 .ec-equation-math {
+    display: block; // Ensure block layout for proper rendering
     font-size: 14px;
     overflow-x: auto;
+    min-height: 1px; // Force layout calculation
+    flex-shrink: 0; // Prevent flex container from collapsing
 
     /* Style the rendered math */
     .math {
         font-size: 1em;
     }
     
+    // Ensure MathJax output is visible and properly laid out
     mjx-container {
         margin: 0;
     }
