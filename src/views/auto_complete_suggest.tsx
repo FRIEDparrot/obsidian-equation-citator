@@ -38,7 +38,6 @@ export interface CitationParseResult {
 
 export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
     inCodeBlockState = false; // whether the cursor is inside a code block or not
-    currentCursorLine: number; // only update codeblock state when cursor line change
     lastCodeBlockStateUpdateTime = 0; // update codeblock state when last update time is more than 300ms
     private suggestionComponents: TargetElComponent[] = [];
     private currentCitationType: CitationType | null = null; // Track current citation type
@@ -476,17 +475,41 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         figPreview.empty(); // remove rendered preview
     };
 
-    selectSuggestion(value: CitationItem, evt: MouseEvent | KeyboardEvent): void {
+    buildNewTag(lastTag: string, itemTag: string, footnoteIndex: string | null): string | null {
         const {
-            multiCitationDelimiter,
             enableCrossFileCitation,
             fileCiteDelimiter,
             enableContinuousCitation,
             continuousRangeSymbol,
             continuousDelimiters,
         } = this.plugin.settings;
+        const isRangeContinuation = lastTag.endsWith(continuousRangeSymbol) && lastTag.length > 1;
         const validDelimiters = continuousDelimiters.split(" ").filter(Boolean); // split by space and remove empty string
 
+        let newTag: string;
+
+        // Handle continuous citation for all types
+        if (isRangeContinuation && enableContinuousCitation) {
+            // infer next number from chosen item
+            const basePart = lastTag.slice(0, -continuousRangeSymbol.length);
+            const nextNum = extractLastNumberFromTag(itemTag, validDelimiters);
+            if (nextNum === null) return null; // should not happen
+            // parse local part
+            const local = enableCrossFileCitation ? splitFileCitation(basePart, fileCiteDelimiter).local : itemTag;
+            newTag = footnoteIndex
+                ? `${footnoteIndex}${fileCiteDelimiter}{${local}${continuousRangeSymbol}${nextNum}}`
+                : `${local}${continuousRangeSymbol}${nextNum}`;
+        } else {
+            newTag = footnoteIndex
+                ? `${footnoteIndex}${fileCiteDelimiter}{${itemTag}}`
+                : itemTag;
+        }
+        return newTag;
+    };
+
+    selectSuggestion(value: CitationItem, evt: MouseEvent | KeyboardEvent): void {
+        const { multiCitationDelimiter} = this.plugin.settings;
+        
         const editor = this.context?.editor;
         if (!this.context || !editor) return;
 
@@ -503,26 +526,12 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
 
         // ======== begin creating new tags for citation complete ======================
         const lastTag = this.context.query;  // last tag for suggestion
-        const isRangeContinuation = lastTag.endsWith(continuousRangeSymbol) && lastTag.length > 1;
-        let newTag: string;
-
-        // Handle continuous citation for all types
-        if (isRangeContinuation && enableContinuousCitation) {
-            // infer next number from chosen item
-            const basePart = lastTag.slice(0, -continuousRangeSymbol.length);
-            const nextNum = extractLastNumberFromTag(itemTag, validDelimiters);
-            if (nextNum === null) return; // should not happen
-            // parse local part
-            const local = enableCrossFileCitation ? splitFileCitation(basePart, fileCiteDelimiter).local : itemTag;
-            newTag = footnoteIndex
-                ? `${footnoteIndex}${fileCiteDelimiter}{${local}${continuousRangeSymbol}${nextNum}}`
-                : `${local}${continuousRangeSymbol}${nextNum}`;
-        } else {
-            newTag = footnoteIndex
-                ? `${footnoteIndex}${fileCiteDelimiter}{${itemTag}}`
-                : itemTag;
-        }
         const newTagIdx = lastTag ? citationInfo.currentTags.length - 1 : citationInfo.currentTags.length;
+        const newTag = this.buildNewTag(lastTag, itemTag, footnoteIndex);
+        if (newTag === null) {
+            Debugger.log("Failed to build new tag for citation. lastTag:", lastTag, "itemTag:", itemTag, "footnoteIndex:", footnoteIndex);
+            return; // if new tag is null, do not proceed
+        }
 
         if (lastTag === "") {
             // if last tag is empty, insert new tag at correct position; or replace last tag(on cursor) with new tag

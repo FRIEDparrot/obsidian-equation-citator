@@ -53,6 +53,24 @@ export const EquationPanelSettingsTab = {
                 });
             });
     },
+
+    equationManagePanelPreviewObjectType(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.equationManagePanelPreviewObjectType;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addDropdown((dropdown) => {
+                dropdown.addOption("equation", "Equations");
+                dropdown.addOption("figure", "Figures");
+                dropdown.addOption("callout", "Callouts");
+                dropdown.setValue(plugin.settings.equationManagePanelPreviewObjectType);
+                dropdown.onChange(async (value) => {
+                    plugin.settings.equationManagePanelPreviewObjectType = value as "equation" | "figure" | "callout";
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
     equationManagePanelFilterTagOnlyEquation(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.equationManagePanelFilterTagOnlyEquation;
         new Setting(containerEl)
@@ -104,6 +122,22 @@ export const EquationPanelSettingsTab = {
                     await plugin.saveSettings();
                 });
             })
+    },
+    equationWidgetRightClickCopyType(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.equationWidgetRightClickCopyType;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addDropdown((dropdown) => {
+                dropdown.addOption("full", "Full equation");
+                dropdown.addOption("noTag", "Without tags");
+                dropdown.addOption("eq", "Without tags and braces");
+                dropdown.setValue(plugin.settings.equationWidgetRightClickCopyType);
+                dropdown.onChange(async (value) => { 
+                    plugin.settings.equationWidgetRightClickCopyType = value as "full" | "noTag" | "eq";
+                    await plugin.saveSettings();
+                });
+        });
     }
 };
 
@@ -114,10 +148,12 @@ export const EquationPanelSettingsTab = {
  */
 export function addEquationPanelSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     EquationPanelSettingsTab.equationManagePanelDefaultViewType(containerEl, plugin);
+    EquationPanelSettingsTab.equationManagePanelPreviewObjectType(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelFilterTagOnlyEquation(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelFilterBoxedEquation(containerEl, plugin);
     EquationPanelSettingsTab.skipFirstlineInBoxedFilter(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelEnableRenderHeadingsOnly(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelLazyUpdateTime(containerEl, plugin);
     EquationPanelSettingsTab.equationManagePanelFileCheckInterval(containerEl, plugin);
+    EquationPanelSettingsTab.equationWidgetRightClickCopyType(containerEl, plugin);
 }

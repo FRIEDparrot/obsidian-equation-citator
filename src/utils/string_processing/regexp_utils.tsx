@@ -35,6 +35,11 @@ export const equationBlockBracePattern = /(?<!\\)\$\$/g;
 
 export const markdownImagePattern = /^!\[([^\]]*)\]\(([^)]+)\)$/;
 export const weblinkImagePattern = /^!\[\[([^\]|]+)(?:\|([^\]]*))?\]\]$/;
+
+// Callout pattern: matches [!type] or [!type]+/- with optional content after
+// Group 1: content inside brackets (e.g., "note", "table:1.1|red")
+// Group 2: everything after the closing bracket (title text)
+export const calloutPattern = /^\[!([^\]]+)\](.*)$/;
 // #endregion
 
 /**

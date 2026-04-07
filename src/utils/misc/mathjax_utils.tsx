@@ -13,15 +13,18 @@
  * ```typescript
  * equationDiv.replaceChildren(window.MathJax!.tex2chtml(eqTag.content, { display: true }));  // Render new math
  * // Refresh math in a specific element
- * await forceMathRefresh(myElement);
+ * await forceMathRefresh(myElement, this.viewPanel); 
  * 
  * // Refresh math in the default view panel
  * await forceMathRefresh();
  * ```
  */
-export async function forceMathRefresh(container ?: HTMLElement) {
+export async function forceMathRefresh(
+        container ?: HTMLElement,
+        viewPanel ?: HTMLElement
+): Promise<void> {
     // Pick the math container if not provided
-    const el = container ?? this.viewPanel;
+    const el = container ?? viewPanel;
     if (!el) return;
     try {
         // Re-typeset only within this panel to avoid global work

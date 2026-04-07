@@ -16,7 +16,6 @@ function updateModeButtons(panel: EquationArrangePanel): void {
     panel.sortButton.toggle(listMode);
 
     panel.collapseButton.toggle(!listMode);
-    panel.expandButton.toggle(!listMode);
     panel.filterEmptyHeadingsButton.toggle(!listMode);
     panel.enableRenderHeadingOnlyButton.toggle(!listMode);
 }
@@ -34,7 +33,7 @@ function updateSortMode(panel: EquationArrangePanel, mode: "tag" | "seq"): void 
 }
 
 function updateFiltersButton(panel: EquationArrangePanel): void {
-    const anyFilterActive = panel.filterTagOnlyEquation || panel.filterBoxedEquation;
+    const anyFilterActive = panel.filterTagOnlyItems || panel.filterBoxedEquation;
     panel.filtersForEquationsButton.toggleClass("is-active", anyFilterActive);
     const tooltipText = "Show filters";
     setIcon(panel.filtersForEquationsButton, "filter");
@@ -46,11 +45,11 @@ function showFiltersMenu(panel: EquationArrangePanel, event: MouseEvent): void {
 
     // Tag-only filter menu item
     menu.addItem((item) => {
-        item.setTitle("Filter tagged equations")
+        item.setTitle("Filter tagged items")
             .setIcon("tag")
-            .setChecked(panel.filterTagOnlyEquation)
+            .setChecked(panel.filterTagOnlyItems)
             .onClick(() => {
-                panel.filterTagOnlyEquation = !panel.filterTagOnlyEquation;
+                panel.filterTagOnlyItems = !panel.filterTagOnlyItems;
                 updateFiltersButton(panel);
                 void panel.refreshView();
             });
@@ -78,7 +77,7 @@ function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): v
     
     // when unlock, clear cached data and refresh view
     if (!enabled) {
-        panel.cachedEquations = [];
+        panel.cachedItems = [];
         panel.cachedFilePath = "";
         void panel.refreshView();
     }
@@ -96,6 +95,27 @@ function updateHeadingOnlyButton(panel: EquationArrangePanel): void {
     panel.enableRenderHeadingOnlyButton.toggleClass("is-active", panel.enableRenderHeadingOnly);
     const tooltipText = panel.enableRenderHeadingOnly ? "Show headings only: On" : "Show headings only: Off";
     setTooltip(panel.enableRenderHeadingOnlyButton, tooltipText);
+}
+
+function updatePreviewObjectType(panel: EquationArrangePanel, type: "equation" | "figure" | "callout"): void {
+    panel.previewObjectType = type;
+    
+    // Set icon based on type
+    const iconMap = {
+        equation: "percent",
+        figure: "image",
+        callout: "message-square"
+    };
+    
+    // Set tooltip based on type
+    const labelMap = {
+        equation: "Equations",
+        figure: "Figures",
+        callout: "Callouts"
+    };
+    
+    setIcon(panel.previewObjectTypeButton, iconMap[type]);
+    setTooltip(panel.previewObjectTypeButton, `Preview: ${labelMap[type]}`);
 }
 
 function toggleTagShow(panel: EquationArrangePanel, mode: boolean): void {
@@ -116,6 +136,7 @@ async function toggleSearchMode(panel: EquationArrangePanel, enable: boolean): P
     panel.viewModeButton.toggle(!enable);
     panel.lockRefreshButton.toggle(!enable);
     panel.extendToolBarButton.toggle(!enable);
+    panel.previewObjectTypeButton.toggle(!enable);
     
     // Hide sub-panel when in search mode
     if (enable) {
@@ -145,7 +166,7 @@ async function handleCollapseAll(
     allHeadings.forEach((heading) => {
         const id = (heading as HTMLElement).dataset.id;
         if (id) {
-            renderer.collapsedHeadings.add(id);
+            renderer.collapseHeadings.add(id);
         }
     });
     await panel.refreshView();
@@ -155,7 +176,7 @@ async function handleExpandAll(
     panel: EquationArrangePanel,
     renderer: EquationPanelOutlineViewRenderer,
 ): Promise<void> {
-    renderer.collapsedHeadings.clear();
+    renderer.collapseHeadings.clear();
     await panel.refreshView();
 }
 
@@ -193,16 +214,6 @@ function renderToolBarSubPanel(
         void panel.refreshView();
     });
 
-    panel.expandButton = subPanel.createEl("button", {
-        cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Expand all" },
-    });
-    setIcon(panel.expandButton, "chevrons-up-down");
-    setTooltip(panel.expandButton, "Expand all");
-    panel.expandButton.addEventListener("click", () => {
-        void handleExpandAll(panel, renderer);
-    });
-
     panel.collapseButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
         attr: { "aria-label": "Collapse all" },
@@ -210,7 +221,18 @@ function renderToolBarSubPanel(
     setIcon(panel.collapseButton, "chevrons-down-up");
     setTooltip(panel.collapseButton, "Collapse all");
     panel.collapseButton.addEventListener("click", () => {
-        void handleCollapseAll(panel, renderer);
+        if (renderer.collapseAllState === false) {
+            void handleCollapseAll(panel, renderer);
+            renderer.collapseAllState = true;
+            setIcon(panel.collapseButton, "chevrons-up-down");
+            setTooltip(panel.collapseButton, "Expand all");
+        }
+        else {
+            void handleExpandAll(panel, renderer);
+            renderer.collapseAllState = false;
+            setIcon(panel.collapseButton, "chevrons-down-up");
+            setTooltip(panel.collapseButton, "Collapse all");
+        }
     });
 
     // hide tag button
@@ -265,6 +287,19 @@ export function renderToolbar(
     renderer: EquationPanelOutlineViewRenderer
 ): void {
     const toolbar = panelWrapper.createDiv("ec-manage-panel-toolbar");
+
+    // Preview object type button (FIRST button)
+    panel.previewObjectTypeButton = toolbar.createEl("button", {
+        cls: "clickable-icon ec-mode-button",
+        attr: { "aria-label": "Preview object type" },
+    });
+    panel.previewObjectTypeButton.addEventListener("click", () => {
+        const types: Array<"equation" | "figure" | "callout"> = ["equation", "figure", "callout"];
+        const currentIndex = types.indexOf(panel.previewObjectType);
+        const nextType = types[(currentIndex + 1) % types.length];
+        updatePreviewObjectType(panel, nextType);
+        void panel.refreshView();
+    });
 
     // View mode button
     panel.viewModeButton = toolbar.createDiv("ec-view-mode-button clickable-icon");
@@ -327,7 +362,7 @@ export function renderToolbar(
         cls: "ec-search-input",
         attr: {
             type: "text",
-            placeholder: "Search equations..."
+            placeholder: "Search items..."
         },
     });
     panel.searchInput.addEventListener("input", () => {
@@ -353,6 +388,7 @@ export function setToolbarDefaultState(
 ): void {
     const {
         equationManagePanelDefaultViewType: defaultViewMode,
+        equationManagePanelPreviewObjectType: previewObjectType,
         equationManagePanelEnableRenderHeadingsOnly: enableRenderHeadingsOnly,
         equationManagePanelFilterTagOnlyEquation: filterTagOnlyEquation,
         equationManagePanelFilterBoxedEquation: filterBoxedEquation,
@@ -360,13 +396,16 @@ export function setToolbarDefaultState(
     // Set default view mode
     updatePanelViewMode(panel, defaultViewMode);
     
+    // Set default preview object type
+    updatePreviewObjectType(panel, previewObjectType);
+    
     // Set default sort mode
     updateSortMode(panel, "seq");
     
     // Update mode buttons visibility
     updateModeButtons(panel);
 
-    panel.filterTagOnlyEquation = filterTagOnlyEquation;
+    panel.filterTagOnlyItems = filterTagOnlyEquation;
     panel.filterBoxedEquation = filterBoxedEquation;
     updateFiltersButton(panel);
     

@@ -1,0 +1,40 @@
+/* ── Table column alignment: col-1 left, col-2+ center ─────────── */
+.cm-table-widget {
+    width: 100%;
+    margin: 0 auto;        /* Center the table block */
+    display: block;
+}
+
+.el-table {
+    width: 100%;
+    margin: 0 auto;        /* Center the table block */
+    display: block;
+}
+
+.cm-table-widget .table-wrapper{
+    margin: 0 auto;
+}
+
+.markdown-rendered table,
+.markdown-preview-view table {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+
+/* First column: left align (th and td) */
+.markdown-rendered table th:nth-child(1),
+.markdown-rendered table td:nth-child(1),
+.markdown-preview-view table th:nth-child(1),
+.markdown-preview-view table td:nth-child(1) {
+    text-align: left !important;
+}
+
+/* Second column and beyond: center align */
+.markdown-rendered table th:nth-child(n+2),
+.markdown-rendered table td:nth-child(n+2),
+.markdown-preview-view table th:nth-child(n+2),
+.markdown-preview-view table td:nth-child(n+2) {
+    text-align: center !important;
+}

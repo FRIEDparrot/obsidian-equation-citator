@@ -5,7 +5,7 @@ import { WidgetSizeManager } from "./styleManagers/widgetSizeManager";
 
 import { addPdfExportSettingsTab } from "@/settings/pages/pdfExportSettingsTab";
 import { addStyleSettingsTab } from "@/settings/pages/styleSettingsTab";
-import { addOtherSettingsTab } from "@/settings/pages/OtherSettingsTab";
+import { addOtherSettingsTab } from "@/settings/pages/otherSettingsTab";
 import { addCacheSettingsTab } from "@/settings/pages/cacheSettingsTab";
 import { createFoldablePanel } from "@/settings/extensions/foldablePanel";
 import { addCitationSettingsTab } from "@/settings/pages/citationSettingsTab";
@@ -329,7 +329,7 @@ export class SettingsTabView extends PluginSettingTab {
 
         const metadata = SETTINGS_METADATA[key as keyof typeof SETTINGS_METADATA];
         if (!metadata) return false;
-
+        // search in name, description, and key
         const searchTerms = [
             metadata.name.toLowerCase(),
             metadata.desc.toLowerCase(),

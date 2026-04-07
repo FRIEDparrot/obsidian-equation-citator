@@ -5,7 +5,7 @@ import { AutoNumberSettingsTab } from "./pages/autoNumberSettingsTab";
 import { StyleSettingsTab } from "./pages/styleSettingsTab";
 import { CacheSettingsTab } from "./pages/cacheSettingsTab";
 import { PdfExportSettingsTab } from "./pages/pdfExportSettingsTab";
-import { OtherSettingsTab } from "./pages/OtherSettingsTab";
+import { OtherSettingsTab } from "./pages/otherSettingsTab";
 import { EquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
 
 export interface CalloutCitationPrefix {
@@ -22,7 +22,13 @@ export interface SettingsMetadata {
     hasSubPanel?: boolean; // whether this setting can have a subpanel to render
 }
 
-
+/**
+ * To add a new setting:
+ * 1. add into EquationCitatorSettings 
+ * 2. add default value in DEFAULT_SETTINGS
+ * 3. add callback function in SettingsMetadata, and implement the callback function
+ * 4. add settings into `settingsHelper` script (to give it a clear category)
+ */
 export interface EquationCitatorSettings {
     //#region citation settings 
     enableCitationInSourceMode: boolean; // Enable citation in source mode 
@@ -63,17 +69,16 @@ export interface EquationCitatorSettings {
     autoNumberDepth: number; // Maximum depth for auto numbering level 
     autoNumberNoHeadingPrefix: string; //  equation numbering prefix for no heading level equations 
     autoNumberGlobalPrefix: string; // Global Auto numbering prefix for equations without any heading level  
-    enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in quotes 
+    enableAutoNumberEquationsInQuotes: boolean; // Enable auto numbering for equations in callouts 
     enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
     
     figAutoNumberDelimiter: string; // Auto numbering delimiter for figures
     figAutoNumberDepth: number; // Maximum depth for auto numbering figures (sepreate from the equations)
     figAutoNumberNoHeadingPrefix: string; // figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: string; // Global Auto numbering prefix for figures without any heading level
-    enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in quotes,
+    enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in callouts,
     enableAutoNumberTaggedFigsOnly: boolean; // Enable auto numbering only for tagged figures
 
-    // by default, auto-number rename the citation, I don't provide this as option 
     enableUpdateTagsInAutoNumber: boolean; // Update citation in auto numbering 
     deleteRepeatTagsInAutoNumber: boolean; // Delete repeat tags in auto numbering  
     deleteUnusedTagsInAutoNumber: boolean; // Delete unused tags in auto numbering  
@@ -84,7 +89,9 @@ export interface EquationCitatorSettings {
 
     // pdf rendering settings
     citationColorInPdf: string; // default citation color in PDF rendering
-
+    addImageCaptionsInPdf: boolean; // whether to add image captions in PDF export
+    addImageDescInPdf: boolean; // whether to add image description in PDF export
+    
     // other settings  
     enableTypstMode: boolean; // Enable compatibility with Typst syntax
     debugMode: boolean; // Optional setting for debug mode
@@ -95,11 +102,13 @@ export interface EquationCitatorSettings {
     equationManagePanelLazyUpdateTime: number,
     equationManagePanelFileCheckInterval: number,
     equationManagePanelDefaultViewType: "outline" | "list",
+    equationManagePanelPreviewObjectType: "equation" | "figure" | "callout", // Preview object type in equation panel
     equationManagePanelFilterTagOnlyEquation: boolean;
     equationManagePanelFilterBoxedEquation: boolean;
     skipFirstlineInBoxedFilter: boolean;
     typstBoxSymbol: string; // Override symbol for boxed equation in typst mode, default to box
     equationManagePanelEnableRenderHeadingsOnly: boolean;
+    equationWidgetRightClickCopyType: "full" | "noTag" | "eq", // right click to copy full content or only equation code in equation panel.
 
     // settings UI
     settingsDisplayMode: "categorical" | "concise" | "list"; // settings tab display mode
@@ -137,6 +146,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes) 
 
     citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
+    addImageCaptionsInPdf: true, // add image captions in PDF export by default
+    addImageDescInPdf: true, // add image description in PDF export by default
 
     enableCiteWithCodeBlockInCallout: false, // cite with inline code block in quote
 
@@ -145,7 +156,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     autoNumberType: AutoNumberingType.Relative, // Default is using relative heading level 
     autoNumberNoHeadingPrefix: "P",
     autoNumberGlobalPrefix: "", // Default to empty string for no prefix 
-    enableAutoNumberEquationsInQuotes: false, // Default to false, not to number equations in quotes 
+    enableAutoNumberEquationsInQuotes: false, // Default to false, not to number equations in callouts
     enableAutoNumberTaggedEquationsOnly: false, // Default to false, number all equations
     enableUpdateTagsInAutoNumber: true, // Default to true, update citation in auto numbering  
     deleteRepeatTagsInAutoNumber: true, // Default to true, delete repeat tags in auto numbering 
@@ -155,11 +166,11 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     figAutoNumberDepth: 2, // Default to 2 for figure auto numbering (i.e., fig:1.1)
     figAutoNumberNoHeadingPrefix: "F", // Default figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: "", // Default to empty string for no prefix for figure auto numbering
-    enableAutoNumberFigsInQuotes: false, // Default to false, not to number figures in quotes
+    enableAutoNumberFigsInQuotes: false, // Default to false, not to number figures in callouts
     enableAutoNumberTaggedFigsOnly: false, // Default to false, number all figures
-    typstBoxSymbol: "boxed", // Default symbol for boxed equation in typst mode
-
+    
     enableTypstMode: false,
+    typstBoxSymbol: "boxed", // Default symbol for boxed equation in typst mode
     debugMode: false, // debug mode is off by default (for set default, see debugger.tsx)
     extensionsUseMarkdownRenderer: ["excalidraw", "excalidraw.md", "md"], // default to use markdown renderer for svg and excalidraw files
     // settings UI defaults
@@ -199,10 +210,12 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     equationManagePanelLazyUpdateTime: 5000,
     equationManagePanelFileCheckInterval: 1000,
     equationManagePanelDefaultViewType: "list",
+    equationManagePanelPreviewObjectType: "equation",
     equationManagePanelFilterTagOnlyEquation: false,
     equationManagePanelEnableRenderHeadingsOnly: false,
     equationManagePanelFilterBoxedEquation: false,
-    skipFirstlineInBoxedFilter: false,
+    skipFirstlineInBoxedFilter: false, 
+    equationWidgetRightClickCopyType: "full",
 };
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
@@ -293,7 +306,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
     calloutCitationPrefixes: {
         name: "Callout citation prefixes",
-        desc: "Prefixes for citing callouts/quotes. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions.",
+        desc: "Prefixes for citing callouts. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions.",
         type: "array",
         renderCallback: (el: HTMLElement, plugin: EquationCitator) => {
             CitationSettingsTab.calloutCitationPrefixes(el, plugin);
@@ -358,7 +371,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberDelimiter: {
-        name: "Auto numbering delimiter",
+        name: "Auto number delimiter",
         desc: "Delimiter used for numbering equations, e.g. '.' for '1.1', '-' for '1-1', etc.",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -366,7 +379,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberType: {
-        name: "Auto numbering method",
+        name: "Auto number method",
         desc: "Use absolute or relative heading level for auto numbering (shared by equations and figures)",
         type: "select",
         renderCallback: (el, plugin) => {
@@ -374,7 +387,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberDepth: {
-        name: "Auto numbering depth",
+        name: "Auto number depth",
         desc: "Maximum depth for equation numbers (e.g., depth of 2 gives '1.1', depth of 3 gives '1.1.1')",
         type: "number",
         renderCallback: (el, plugin) => {
@@ -382,7 +395,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberNoHeadingPrefix: {
-        name: "Auto numbering no heading prefix",
+        name: "Auto number no heading prefix",
         desc: "Prefix for equations without any heading level (e.g., 'P1', 'P2', etc.)",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -390,7 +403,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     autoNumberGlobalPrefix: {
-        name: "Auto numbering global prefix",
+        name: "Auto number global prefix",
         desc: "Global auto equation numbering prefix for purpose like chapter",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -398,15 +411,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberEquationsInQuotes: {
-        name: "Auto numbering equations in quotes",
-        desc: "Enable auto numbering for equations in quotes",
+        name: "Auto number equations in callouts",
+        desc: "Enable auto numbering for equations in callouts",
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberEquationsInQuotes(el, plugin);
         }
     },
     enableAutoNumberTaggedEquationsOnly: {
-        name: "Auto numbering tagged equations only",
+        name: "Auto number tagged equations only",
         desc: "When auto-numbering, only update the equations that are already tagged",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -414,7 +427,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figAutoNumberDelimiter: {
-        name: "Figure auto numbering delimiter",
+        name: "Figure auto number delimiter",
         desc: "Delimiter used for numbering figures, e.g. '.' for '1.1', '-' for '1-1', etc.",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -422,7 +435,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figAutoNumberDepth: {
-        name: "Auto numbering depth for figures",
+        name: "Auto number depth for figures",
         desc: "Maximum depth for figure numbers (e.g., depth of 2 gives 'fig:1.1')",
         type: "number",
         renderCallback: (el, plugin) => {
@@ -430,7 +443,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figAutoNumberNoHeadingPrefix: {
-        name: "Figure auto numbering no heading prefix",
+        name: "Figure auto number no heading prefix",
         desc: "Prefix for figures without any heading level (e.g., 'F1', 'F2', etc.)",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -438,7 +451,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     figAutoNumberGlobalPrefix: {
-        name: "Figure auto numbering global prefix",
+        name: "Figure auto number global prefix",
         desc: "Global prefix for figure auto numbering for figures without any heading level",
         type: "string",
         renderCallback: (el, plugin) => {
@@ -446,15 +459,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableAutoNumberFigsInQuotes: {
-        name: "Auto numbering figures in quotes",
-        desc: "Enable auto numbering for figures in quotes",
+        name: "Auto number figures in callouts",
+        desc: "Enable auto numbering for figures in callouts",
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberFigsInQuotes(el, plugin);
         }
     },
     enableAutoNumberTaggedFigsOnly: {
-        name: "Auto numbering tagged figures only",
+        name: "Auto number tagged figures only",
         desc: "When auto-numbering, only update the figures that are already tagged",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -463,7 +476,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
     // These 3 options are shared by figures and equations
     enableUpdateTagsInAutoNumber: {
-        name: "Auto update citations in auto numbering",
+        name: "Auto update citations in auto number",
         desc: "Enable auto update citations during auto numbering. Always keep it selected to ensure citations are correctly updated",
         type: "boolean",
         hasSubPanel: true,
@@ -472,7 +485,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     deleteRepeatTagsInAutoNumber: {
-        name: "Auto delete conflicting tag citations",
+        name: "Auto delete conflict tag citations",
         desc: "Automatically delete conflicting tag citations during auto numbering.",
         type: "boolean",
         renderCallback: (el, plugin) => {
@@ -547,6 +560,25 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             PdfExportSettingsTab.citationColorInPdf(el, plugin);
         }
     },
+
+    addImageCaptionsInPdf : {
+        name: "Add image captions in PDF",
+        desc: "Whether to add image captions in PDF export",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.addImageCaptionsInPdf(el, plugin);
+        } 
+    },
+
+    addImageDescInPdf : {
+        name: "Add image description in PDF",
+        desc: "Whether to add image description in PDF export (only works when image captions are rendered)",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.addImageDescInPdf(el, plugin);
+        }
+    },
+
     enableTypstMode: {
         name: "Enable typst mode",
         desc: "Enable compatibility with Typst syntax",
@@ -611,6 +643,14 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             EquationPanelSettingsTab.equationManagePanelDefaultViewType(el, plugin);
         }
     },
+    equationManagePanelPreviewObjectType: {
+        name: "Equation panel preview object type",
+        desc: "Type of object to preview in the equation panel (equations, figures, or callouts)",
+        type: "select",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationManagePanelPreviewObjectType(el, plugin);
+        }
+    },
     equationManagePanelFilterTagOnlyEquation: {
         name: "Filter tag only equation",
         desc: "Default value for filter tag only equations",
@@ -643,4 +683,12 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             EquationPanelSettingsTab.skipFirstlineInBoxedFilter(el, plugin);
         }
     },
+    equationWidgetRightClickCopyType: {
+        name: "Equation widget right click copy content",
+        desc: "What to copy when select copy in equation widget",
+        type: "select",
+        renderCallback: (el, plugin) => {
+            EquationPanelSettingsTab.equationWidgetRightClickCopyType(el, plugin);
+        }
+    }
 }

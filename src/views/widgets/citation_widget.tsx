@@ -15,8 +15,8 @@ import { FileSuperScriptPopover } from "@/views/popovers/file_superscript_popove
  * Widget for render citation in Live Preview mode. 
  */
 export class CitationWidget extends WidgetType {
-    private el: HTMLElement;
-    private view: EditorView;
+    private el: HTMLElement|null = null;
+    private view: EditorView| null = null;
     private popover: CitationPopover | null = null;
     private readonly parent: HoverParent | null = null;
     constructor(
@@ -79,11 +79,8 @@ export class CitationWidget extends WidgetType {
         }
     }
     private getMarkdownView(): MarkdownView | null {
-        const mdView = this.view.state.field(editorInfoField, false) as MarkdownView | undefined;
-        if (mdView) {
-            return mdView;
-        }
-        return null;
+        const mdView = this.view?.state.field(editorInfoField, false) as MarkdownView | undefined;
+        return mdView || null;
     }
 
     /**
@@ -112,9 +109,11 @@ export class CitationWidget extends WidgetType {
             this.plugin.app.workspace.getActiveFile()?.path || "",
             300
         );
-        this.popover.onClose = function () {
+        const originalOnClose = this.popover.onClose.bind(this.popover);
+        this.popover.onClose = () => {
+            originalOnClose();
             this.popover = null;  // remove popover when closed 
-        }.bind(this);
+        };
     }
 
     ignoreEvent() {

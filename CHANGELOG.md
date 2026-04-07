@@ -352,20 +352,46 @@ Settings Updates :
 - [x] refactor the auto-number function part for better code structure, reuse in figure auto-numbering and scalability. 
 - [x] remove node assert calls for mobile support  
 - [x] fixed lots of sonar issues for better code quality.
-
+- [x] Change MarkdownfileProcessor callback function to sync function.
 
 ### Version 1.3.4
 Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
-✈️ Multi-Platform Support :
-- [ ] Test this plugin on Linux platform 
-- [ ] More test for fully support on mobile. 
 
-🏗️ refactors :  
-[x] Change MarkdownfileProcessor callback function to sync function.
+✈️ Full-Cross-Platform Support :
+- [x] Test this plugin on Linux and Mac platform (thanks to my friend @Tiddlefox)
+
+⭐ New Features :
+- [x] right-click to copy equations (both in equation panel and editor popover).
+- [x] Show figures and callouts in the equation panel, not only equations.
+  - [x] Better Style + interaction for figure and callout items in the panel.
+  - [x] correct render for section view (better store at cache). 
+
+🐛 Fixed Bugs : 
+- [x] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
+- [x] refactor `collapsedHeadings` to `parsedCollapsedHeadings` to prevent collapse state from growing indefinitely when switching between files.
+- [x] Fix bug [#152](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/152), line number information will refresh after editing the file before some headings.
+- [x] Add `data-line` reassign mechanism for `viewStateEqual` case. So the line-number information still refresh correctly when editing at middle at pure-text files. 
+- [x] fix [issue #151](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/151), add css to make up for style change in `obsidian 1.12.4` 
+- [x] Fix all new sonar issues for better code quality. 
+
+📖 Documentation : 
+- [x] Add settings usage | equation panel button usage | rich auto complete mode in tutorial.
+- [x] Updated Chinese translation for readme 
+- [x] Remade readme file for full feature introduction. 
+
+🔩 Improvements
+- [x] Rename `auto-number xxx in quotes` to `auto-number xxx in callouts` for better clarity (issue [#154](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/154)).
+- [x] Remove `basePath=.` in `manifest.json` for further compatibility.
+- [x] Simplify `Auto numbering` in some of setting options to `Auto number`
+- [x] Improved auto-number logging : different tips on different autonumber types. 
+- [x] when click 'open equation panel' button will also reveal it in right panel.
+- [x] **Better PDF export configs** : optional captions and descriptions in PDF export for image
 
 
+### Future Plans : 
+- [ ] Added **Webpage version of the tutorials** and the **API documentations**.
 
-### 🚢 Future Plan : 
-1. Auto number for callouts if some1 request it.
-2. Check citations of figures and tables in equation panel, all in one 😄 
+### 🚢 If you want following features, you can request it in issue page :  
+1. Auto number for callouts.
+2. Check citations of equations, figures and tables in equation manage panel.

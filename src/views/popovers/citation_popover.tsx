@@ -7,6 +7,7 @@ import {
     HoverPopover,
     HoverParent,
     MarkdownView,
+    Menu,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
 
@@ -22,6 +23,7 @@ import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigati
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
+import { copyEquationToClipboard } from "@/utils/misc/equation_copy";
 
 /**
  * Citaton Popover Class, render the equations in the popover 
@@ -160,6 +162,8 @@ export async function renderEquationWrapper(
     if (addLinkJump) {
         addClickLinkJump(plugin, equationWrapper, eq, leaf);
     }
+    // Add right-click context menu for copy
+    addContextMenuCopy(plugin, equationWrapper, eqTag.contentWithTag, eqTag.content);
 }
 
 
@@ -200,5 +204,28 @@ function addClickLinkJump(
             ctrlKey,  // open in split if ctrl key is pressed
             view.leaf  // current leaf: used for opening when not splitting, or excluded when splitting
         ).then().catch((error) => { Debugger.error("Error opening file:", error); });
+    });
+}
+
+function addContextMenuCopy(
+    plugin: EquationCitator,
+    equationWrapper: HTMLElement,
+    contentWithTag: string,
+    content: string
+): void {
+    equationWrapper.addEventListener('contextmenu', (event: MouseEvent) => {
+        event.preventDefault();
+        const menu = new Menu();
+        
+        menu.addItem((item) => {
+            item.setTitle("Copy");
+            item.setIcon("copy");
+            item.onClick(() => {
+                const copyType = plugin.settings.equationWidgetRightClickCopyType;
+                copyEquationToClipboard(contentWithTag, content, copyType);
+            });
+        });
+        
+        menu.showAtMouseEvent(event);
     });
 }

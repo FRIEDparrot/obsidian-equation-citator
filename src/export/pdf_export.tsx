@@ -132,6 +132,60 @@ function replaceCalloutCitationsInMarkdown(
     );
 }
 
+function addFigureMetadataToMarkdownLine(args: {
+    line: string;
+    lineIndex: number;
+    inMultilineCodeBlock: boolean;
+    figureByLine: Map<number, { tag?: string; title?: string; desc?: string }>;
+    settings: EquationCitatorSettings;
+    addCaptions: boolean;
+    addDesc: boolean;
+}): { processedLines: string[]; inMultilineCodeBlock: boolean } {
+    let inMultilineCodeBlock = args.inMultilineCodeBlock;
+
+    if (isCodeBlockToggle(args.line)) {
+        inMultilineCodeBlock = !inMultilineCodeBlock;
+    }
+
+    const figureOnLine = args.figureByLine.get(args.lineIndex);
+    if (!figureOnLine || inMultilineCodeBlock) {
+        return {
+            processedLines: [args.line],
+            inMultilineCodeBlock,
+        };
+    }
+
+    const processedLines: string[] = [];
+
+    const cleanedImageLine = removeImageMetadata(args.line, args.settings.figCitationPrefix);
+    processedLines.push(cleanedImageLine);
+
+    if (!args.addCaptions) {
+        return {
+            processedLines,
+            inMultilineCodeBlock,
+        };
+    }
+
+    const figNumber = args.settings.figCitationFormat.replace('#', figureOnLine.tag || '');
+    let captionText = figNumber;
+    if (figureOnLine.title) {
+        captionText = `${figNumber}: ${figureOnLine.title}`;
+    }
+    processedLines.push(`<center><strong>${escapeHtml(captionText)}</strong></center>`);
+
+    if (figureOnLine.desc && args.addDesc) {
+        processedLines.push(`<center><small>${escapeHtml(figureOnLine.desc)}</small></center>`);
+    }
+
+    processedLines.push('');
+
+    return {
+        processedLines,
+        inMultilineCodeBlock,
+    };
+}
+
 /**
  * Add figure titles and descriptions to markdown for PDF export
  * - Removes metadata from image markdown (title:, desc:, fig: tags)
@@ -142,12 +196,18 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
 
     // Parse all images to find figure metadata
     const images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
+    const addCaptions = settings.addImageCaptionsInPdf;
+    const addDesc = settings.addImageDescInPdf;
 
     // Filter to only images with tags (figures)
     const figures = images.filter(img => img.tag);
+    if (figures.length === 0) return markdown; // No figures to process
 
-    if (figures.length === 0) {
-        return markdown; // No figures to process
+    const figureByLine = new Map<number, { tag?: string; title?: string; desc?: string }>();
+    for (const fig of figures) {
+        if (!figureByLine.has(fig.line)) {
+            figureByLine.set(fig.line, fig);
+        }
     }
 
     const lines = markdown.split('\n');
@@ -157,47 +217,18 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
     const processedLines: string[] = [];
 
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+        const { processedLines: lineOutput, inMultilineCodeBlock: nextInCodeBlock } = addFigureMetadataToMarkdownLine({
+            line: lines[i],
+            lineIndex: i,
+            inMultilineCodeBlock,
+            figureByLine,
+            settings,
+            addCaptions,
+            addDesc,
+        });
 
-        // Track code block state
-        if (isCodeBlockToggle(line)) {
-            inMultilineCodeBlock = !inMultilineCodeBlock;
-        }
-
-        // Check if this line contains a figure
-        const figureOnLine = figures.find(fig => fig.line === i);
-
-        if (figureOnLine && !inMultilineCodeBlock) {
-            // Remove metadata from image line
-            const cleanedImageLine = removeImageMetadata(line, settings.figCitationPrefix);
-
-            // Add the cleaned image line (without center tags - markdown won't center properly)
-            processedLines.push(cleanedImageLine);
-
-            // Build caption with figure number and title
-            const figNumber = settings.figCitationFormat.replace('#', figureOnLine.tag || '');
-
-            // Combine figure number with title if title exists
-            let captionText = figNumber;
-            if (figureOnLine.title) {
-                captionText = `${figNumber}: ${figureOnLine.title}`;
-            }
-
-            // Add figure number and title as centered bold text
-            processedLines.push(`<center><strong>${escapeHtml(captionText)}</strong></center>`);
-
-            // Add description if present
-            if (figureOnLine.desc) {
-                const descHtml = `<center><small>${escapeHtml(figureOnLine.desc)}</small></center>`;
-                processedLines.push(descHtml);
-            }
-
-            // Add an empty line after metadata for better spacing
-            processedLines.push('');
-        } else {
-            // Add the original line unchanged
-            processedLines.push(line);
-        }
+        inMultilineCodeBlock = nextInCodeBlock;
+        processedLines.push(...lineOutput);
     }
 
     return processedLines.join('\n');

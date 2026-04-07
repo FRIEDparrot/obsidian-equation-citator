@@ -1,4 +1,5 @@
 import { EquationMatch } from "@/utils/parsers/equation_parser";
+import { PanelItem, getItemLineRange } from "@/ui/panels/equationManagePanel/panelItemTypes";
 
 export function fnv1aHash(str: string): number {
     let hash = 0x811c9dc5; // FNV offset basis
@@ -18,7 +19,7 @@ export function fastHash(str: string): number {
     const len = str.length; 
     // process 4 bytes at a time  
     while (i + 3 < len) {
-        hash ^= (str.charCodeAt(i) | (str.charCodeAt(i + 1) << 8) |
+        hash ^= (str.charCodeAt(i) | (str.charCodeAt(i + 1)   << 8) |
             (str.charCodeAt(i + 2) << 16) | (str.charCodeAt(i + 3) << 24));
         hash = (hash * 0x01000193) >>> 0;
         i += 4;
@@ -36,6 +37,21 @@ export function hashEquations(equations: EquationMatch[]): string {
     const str = equations.map(eq =>
         `${eq.raw}|${eq.lineStart}|${eq.lineEnd}|${eq.inQuote}`
     ).join(";");
+    // simple hash function for browsers:
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const chr = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0; // convert to 32bit int
+    }
+    return hash.toString();
+}
+
+export function hashPanelItems(items: PanelItem[]): string {
+    const str = items.map(item => {
+        const lineRange = getItemLineRange(item);
+        return `${item.type}|${item.data.raw}|${lineRange.lineStart}|${lineRange.lineEnd}`;
+    }).join(";");
     // simple hash function for browsers:
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

@@ -1,5 +1,5 @@
 import EquationCitator from "@/main"
-import { Menu, App, Editor, MarkdownView, MenuItem } from "obsidian"
+import { Menu, App, Editor, MarkdownView, MarkdownFileInfo, MenuItem } from "obsidian"
 import { EditorSelectionInfo } from "@/views/widgets/citation_render";
 import { EditorState } from "@codemirror/state";
 import Debugger from "@/debug/debugger";
@@ -10,7 +10,7 @@ export function registerRightClickHandler(plugin: EquationCitator) {
     const app: App = plugin.app;
     plugin.registerEvent(
         //  right click menu for tag rename 
-        app.workspace.on("editor-menu", (menu: Menu, editor: Editor, view: MarkdownView): void => {
+        app.workspace.on("editor-menu", (menu: Menu, editor: Editor, view: MarkdownView | MarkdownFileInfo): void => {
             if (handleEquationTagRename(plugin, menu, editor, view)) return;
             if (handleFigureTagRename(plugin, menu, editor, view)) return;
         })
@@ -27,7 +27,7 @@ export function registerRightClickHandler(plugin: EquationCitator) {
  * @view - The markdown view associated with the editor, not used directly in this function but can be useful for future enhancements.
  * @returns {boolean} True if a menu item was added, false otherwise.
  */
-function handleEquationTagRename(plugin: EquationCitator, menu: Menu, editor: Editor, view: MarkdownView): boolean {
+function handleEquationTagRename(plugin: EquationCitator, menu: Menu, editor: Editor, view: MarkdownView | MarkdownFileInfo): boolean {
     if (!(view instanceof MarkdownView)) return false;
     let tagInfo: EditorSelectionInfo;
     const state: EditorState = editor.cm.state;
@@ -75,7 +75,7 @@ function handleEquationTagRename(plugin: EquationCitator, menu: Menu, editor: Ed
  * @view - The markdown view associated with the editor, not used directly in this function but can be useful for future enhancements.
  * @returns {boolean} True if a menu item was added, false otherwise.
  */
-function handleFigureTagRename(plugin: EquationCitator, menu: Menu, editor: Editor, view: MarkdownView): boolean {
+function handleFigureTagRename(plugin: EquationCitator, menu: Menu, editor: Editor, view: MarkdownView | MarkdownFileInfo): boolean {
     if (!(view instanceof MarkdownView)) return false;
     const selectedText = editor.getSelection();
     if (!selectedText) return false;

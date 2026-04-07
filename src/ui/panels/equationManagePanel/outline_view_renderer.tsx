@@ -1,12 +1,10 @@
 import { Heading, relativeHeadingLevel } from "@/utils/parsers/heading_parser";
-import { EquationMatch } from "@/utils/parsers/equation_parser";
+import { PanelItem, getItemLine, PanelItemGroup} from "./panelItemTypes";
 import EquationCitator from "@/main";
-import { hashEquations } from "@/utils/misc/hash_utils";
+import { hashPanelItems } from "@/utils/misc/hash_utils";
 import { EquationArrangePanel } from "./mainPanel";
 import { App, setIcon, TFile, normalizePath } from "obsidian";
 import Debugger from "@/debug/debugger";
-
-import { EquationGroup } from "./types";
 
 const NO_HEADING_LEVEL = 7; // Use level 7 to prevent any heading as subheading
 
@@ -18,11 +16,11 @@ interface CollapseHeadingMetadata {
 
 interface HeadingMetadata extends CollapseHeadingMetadata {
     heading: Heading | null;     // store the current heading informatin
-    hasDirectEquations: boolean;
+    hasDirectItems: boolean;
     hasSubheadings: boolean;
-    hasContent: boolean;         // either has direct equations or subheadings
-    totalEquationCount: number;  // equation count under this heading including subheadings 
-    isNoHeadingGroup: boolean;   // true if this group is for equations without headings
+    hasContent: boolean;         // either has direct items or subheadings
+    totalItemCount: number;      // item count under this heading including subheadings 
+    isNoHeadingGroup: boolean;   // true if this group is for items without headings
 }
 
 /**
@@ -30,17 +28,19 @@ interface HeadingMetadata extends CollapseHeadingMetadata {
  *     we encapsulate its rendering logic into a separate class 
  *     for better code organization.
  */
-
 export class EquationPanelOutlineViewRenderer {
     private currentHeadings: Heading[] = [];
 
     // Stores composite keys: "headingKey|occurrenceNumber"
-    public collapsedHeadings: Set<string> = new Set();
-    private currentCollapseHeadingId: Set<string> = new Set();
+    private readonly parsedCollapsedHeadings: Set<string> = new Set();
+    public collapseHeadings: Set<string> = new Set();
+
+    public collapseAllState: boolean = false; // Track whether all headings are currently collapsed or expanded
+    private currentCollapseAllState: boolean = false; // Track the current state of "Collapse All" for proper toggling
 
     // Record the occurrence counts of each heading key during rendering
     private readonly currentHeadingOccurrences: Map<string, number> = new Map();
-
+    
     private readonly app: App;
     constructor(
         private readonly plugin: EquationCitator,
@@ -50,61 +50,101 @@ export class EquationPanelOutlineViewRenderer {
     }
 
     public async handleOutlineViewRefresh(
-        equations: EquationMatch[],
+        items: PanelItem[],
         headings: Heading[],
         viewStateEqual: boolean
     ): Promise<void> {
-        // If headings-only mode is enabled, render without equations
-        const displayEquations = this.panel.enableRenderHeadingOnly ? [] : (equations || []);
+        // If headings-only mode is enabled, render without items
+        const displayItems = this.panel.enableRenderHeadingOnly ? [] : (items || []);
 
-        const equationsHash = hashEquations(displayEquations);
-        const equationsEqual = (equationsHash === this.panel.currentEquationHash);
-        const collapseEqual = (
-            this.currentCollapseHeadingId.size === this.collapsedHeadings.size &&
-            [...this.currentCollapseHeadingId].every(x => this.collapsedHeadings.has(x))
-        );
+        const itemsHash = hashPanelItems(displayItems); // Re-use hash function for now
+        const itemsEqual = (itemsHash === this.panel.currentEquationHash);
         const headingsEqual = (
             headings.length === this.currentHeadings.length &&
             headings.every((h, i) => h.level === this.currentHeadings[i].level && h.text === this.currentHeadings[i].text)
         );
-        // viewState + equation + headings + collapsed state all equal 
-        if (viewStateEqual && equationsEqual && headingsEqual && collapseEqual) {
-            Debugger.log("View state equal, no need to refresh");
+        const collapseAllStateEqual = (this.collapseAllState === this.currentCollapseAllState);
+        
+        // Check if heading lines are still correct
+        const headingLinesEqual = (
+            headings.length === this.currentHeadings.length &&
+            headings.every((h, i) => h.line === this.currentHeadings[i].line)
+        );
+        
+        // viewState + items + headings state all equal 
+        if (viewStateEqual && itemsEqual && headingsEqual && collapseAllStateEqual) {
+            // If lines don't match, update data-line attributes without full re-render
+            if (headingLinesEqual) {
+                Debugger.log("View state equal, no need to refresh");
+            } else {
+                Debugger.log("Headings equal but lines changed, updating data-line attributes");
+                this.updateHeadingLines(headings);
+                this.currentHeadings = headings;
+            }
             return;
         }
 
         // Update state
-        this.panel.currentEquationHash = equationsHash;
-        this.currentCollapseHeadingId = new Set(this.collapsedHeadings);
+        this.panel.currentEquationHash = itemsHash;
         this.currentHeadings = headings;
         this.currentHeadingOccurrences.clear(); // Clear occurrence tracking for new render
+        this.currentCollapseAllState = this.collapseAllState;
 
         this.panel.viewPanel?.empty();
-        if (headings.length === 0 && displayEquations.length === 0) {
+        this.parsedCollapsedHeadings.clear(); // Clear collapsed state (determine by `collapseHeadings` state)
+        if (headings.length === 0 && displayItems.length === 0) {
             this.panel.renderEmptyPanelView();
             return;
         }
-        await this.renderOutlineView(displayEquations, headings);
+        await this.renderOutlineView(displayItems, headings);
+        this.collapseHeadings = new Set(this.parsedCollapsedHeadings);
+    }
+
+    /**
+     * Update the data-line attributes of heading elements when lines have changed
+     * but heading structure (level, text) remains the same.
+     * This avoids a full re-render when only line numbers shift (e.g., text edits above headings).
+     */
+    private updateHeadingLines(headings: Heading[]): void {
+        if (!this.panel.viewPanel) return;
+
+        // Build occurrence map to generate correct data-id for each heading
+        const occurrenceMap: Map<string, number> = new Map();
+        
+        headings.forEach((heading, index) => {
+            const key = `${heading.level}|${heading.text}`;
+            const occurrence = occurrenceMap.get(key) || 0;
+            occurrenceMap.set(key, occurrence + 1);
+            
+            const dataId = `${key}|${occurrence}`;
+            const headingElement = this.panel.viewPanel?.querySelector(
+                `.ec-heading-item[data-id="${CSS.escape(dataId)}"]`
+            ) as HTMLElement;
+            
+            if (headingElement) {
+                headingElement.dataset['line'] = heading.line.toString();
+            }
+        });
     }
 
     private async renderOutlineView(
-        equations: EquationMatch[],
+        items: PanelItem[],
         headings: Heading[],
     ): Promise<void> {
-        // Group equations by headings
-        const groups = this.groupEquationsByHeadings(equations, headings);
+        // Group items by headings
+        const groups = this.groupItemsByHeadings(items, headings);
 
-        // Filter groups if filter is enabled - need to check total equations including subheadings
+        // Filter groups if filter is enabled - need to check total items including subheadings
         const filteredGroups = this.panel.filterEmptyHeadings
             ? groups.filter((group, index) => {
-                // Include if has direct equations
-                if (group.equations.length > 0) return true;
+                // Include if has direct items
+                if (group.items.length > 0) return true;
 
-                // Include if has equations in subheadings
+                // Include if has items in subheadings
                 if (group.heading) {
                     const headingIndexInAll = headings.findIndex(h => h.line === group.heading?.line);
                     if (headingIndexInAll >= 0) {
-                        const totalCount = this.getTotalEquationsForHeading(equations, headings, headingIndexInAll);
+                        const totalCount = this.getTotalItemsForHeading(items, headings, headingIndexInAll);
                         return totalCount > 0;
                     }
                 }
@@ -120,42 +160,42 @@ export class EquationPanelOutlineViewRenderer {
             const isTopLevel = i === 0 || !this.hasParentHeading(filteredGroups, i);
 
             if (isTopLevel || filteredGroups[i].heading === null) {
-                await this.renderHeadingGroup(outlineContainer, filteredGroups, i, equations, headings);
+                await this.renderHeadingGroup(outlineContainer, filteredGroups, i, items, headings);
             }
         }
     }
 
-    private groupEquationsByHeadings(equations: EquationMatch[], headings: Heading[]): EquationGroup[] {
-        const groups: EquationGroup[] = [];
-        const eqs_sorted = equations.toSorted((a, b) => a.lineStart - b.lineStart);
+    private groupItemsByHeadings(items: PanelItem[], headings: Heading[]): PanelItemGroup[] {
+        const groups: PanelItemGroup[] = [];
+        const items_sorted = items.toSorted((a, b) => getItemLine(a) - getItemLine(b));
 
-        // Group non-heading equations first (if any exist before first heading)
-        const nonHeadingEquations = headings.length > 0
-            ? eqs_sorted.filter(eq => eq.lineStart < headings[0].line)
-            : eqs_sorted; // If no headings at all, all equations are non-heading
+        // Group non-heading items first (if any exist before first heading)
+        const nonHeadingItems = headings.length > 0
+            ? items_sorted.filter(item => getItemLine(item) < headings[0].line)
+            : items_sorted; // If no headings at all, all items are non-heading
 
-        if (nonHeadingEquations.length > 0) {
-            const group: EquationGroup = {
+        if (nonHeadingItems.length > 0) {
+            const group: PanelItemGroup = {
                 heading: null,
-                equations: nonHeadingEquations,
+                items: nonHeadingItems,
                 absoluteLevel: NO_HEADING_LEVEL,
                 relativeLevel: NO_HEADING_LEVEL
             };
             groups.push(group);
         }
 
-        // Process ALL headings, not just those with equations
+        // Process ALL headings, not just those with items
         for (let i = 0; i < headings.length; i++) {
             const heading = headings[i];
 
-            // Get only direct equations (not in subheadings) for rendering
-            const directEquations = this.getDirectEquationsForHeading(eqs_sorted, headings, i);
+            // Get only direct items (not in subheadings) for rendering
+            const directItems = this.getDirectItemsForHeading(items_sorted, headings, i);
 
-            // Add all headings, regardless of whether they have equations
+            // Add all headings, regardless of whether they have items
             const relLevel = relativeHeadingLevel(headings, i);
             groups.push({
                 heading,
-                equations: directEquations, // Only store direct equations for rendering
+                items: directItems, // Only store direct items for rendering
                 absoluteLevel: heading.level,
                 relativeLevel: relLevel
             });
@@ -164,7 +204,7 @@ export class EquationPanelOutlineViewRenderer {
         return groups;
     }
 
-    private hasParentHeading(groups: EquationGroup[], currentIndex: number): boolean {
+    private hasParentHeading(groups: PanelItemGroup[], currentIndex: number): boolean {
         // Check if this heading has a parent (a heading with lower relative level before it)
         const currentGroup = groups[currentIndex];
         const currentLevel = currentGroup.relativeLevel;
@@ -189,16 +229,14 @@ export class EquationPanelOutlineViewRenderer {
 
         collapseIcon.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isCurrentlyCollapsed = this.collapsedHeadings.has(id);
+            const isCurrentlyCollapsed = this.collapseHeadings.has(id);
 
             if (isCurrentlyCollapsed) {
-                this.collapsedHeadings.delete(id);
-                this.currentCollapseHeadingId.delete(id);
+                this.collapseHeadings.delete(id);
                 setIcon(collapseIcon, "chevron-down");
                 contentContainer.show();
             } else {
-                this.collapsedHeadings.add(id);
-                this.currentCollapseHeadingId.add(id);
+                this.collapseHeadings.add(id);
                 setIcon(collapseIcon, "chevron-right");
                 contentContainer.hide();
             }
@@ -223,12 +261,12 @@ export class EquationPanelOutlineViewRenderer {
         }
     }
 
-    private hasSubheadings(groups: EquationGroup[], currentIndex: number): boolean {
+    private hasSubheadings(groups: PanelItemGroup[], currentIndex: number): boolean {
         // Check if this heading has any direct subheadings
         return this.getDirectSubheadingIndices(groups, currentIndex).length > 0;
     }
 
-    private getDirectSubheadingIndices(groups: EquationGroup[], currentIndex: number): number[] {
+    private getDirectSubheadingIndices(groups: PanelItemGroup[], currentIndex: number): number[] {
         // Get only DIRECT children subheading indices (not grandchildren)
         const subheadingIndices: number[] = [];
         if (currentIndex >= groups.length - 1) return subheadingIndices;
@@ -253,21 +291,25 @@ export class EquationPanelOutlineViewRenderer {
         return subheadingIndices;
     }
 
+    /**
+     * In this function, it build a headingKey using : 
+     * - level | text | occurrence number (to differentiate between multiple same headings in the file)
+     */
     private getHeadingMetadata(
-        allGroups: EquationGroup[],
+        allGroups: PanelItemGroup[],
         currentIndex: number,
-        allEquations: EquationMatch[],
+        allItems: PanelItem[],
         allHeadings: Heading[]
     ): HeadingMetadata {
         const group = allGroups[currentIndex];
-        const hasDirectEquations = group.equations.length > 0;
+        const hasDirectItems = group.items.length > 0;
         const hasSubheadings = this.hasSubheadings(allGroups, currentIndex);
-        const hasContent = hasDirectEquations || hasSubheadings;
+        const hasContent = hasDirectItems || hasSubheadings;
 
         const headingIndexInAll = group.heading ? allHeadings.findIndex(h => h.line === group.heading?.line) : -1;
-        const totalEquationCount = headingIndexInAll >= 0
-            ? this.getTotalEquationsForHeading(allEquations, allHeadings, headingIndexInAll)
-            : group.equations.length;
+        const totalItemCount = headingIndexInAll >= 0
+            ? this.getTotalItemsForHeading(allItems, allHeadings, headingIndexInAll)
+            : group.items.length;
 
         const lineNumber = group.heading ? group.heading.line : -1;
         const isNoHeadingGroup = group.heading === null;
@@ -281,51 +323,63 @@ export class EquationPanelOutlineViewRenderer {
 
         // Create composite key for collapse tracking
         const id = `${headingKey}|${occurrenceNumber}`;
-        const isCollapsed = this.currentCollapseHeadingId.has(id);
+        const isCollapsed = this.collapseHeadings.has(id);
 
         return {
             id,
             lineNumber,
             isCollapsed,
             heading: groupHeading,
-            hasDirectEquations,
+            hasDirectItems,
             hasSubheadings,
             hasContent,
-            totalEquationCount,
+            totalItemCount,
             isNoHeadingGroup,
         }
     }
 
     private async renderHeadingGroup(
         container: HTMLElement,
-        allGroups: EquationGroup[],
+        allGroups: PanelItemGroup[],
         currentIndex: number,
-        allEquations: EquationMatch[],
+        allItems: PanelItem[],
         allHeadings: Heading[]
     ): Promise<void> {
-        const metadata = this.getHeadingMetadata(allGroups, currentIndex, allEquations, allHeadings);
-        const { hasDirectEquations, hasContent, id, isCollapsed } = metadata;
+        const metadata = this.getHeadingMetadata(allGroups, currentIndex, allItems, allHeadings);
+        const { hasDirectItems, hasContent, id, isCollapsed } = metadata;
         
         const group = allGroups[currentIndex];
         const headingDiv = this.createHeadingDiv(container, group, metadata);
         const { collapseIcon } = this.createHeadingHeader(headingDiv, group, metadata);
 
-        // Create a content container that will hold subheadings and equations
+        // Create a content container that will hold subheadings and items
         const contentContainer = headingDiv.createDiv("ec-heading-content");
 
         // Hide content container BEFORE rendering if collapsed (better UX - no flash)
         if (isCollapsed) {
+            this.parsedCollapsedHeadings.add(id); // Ensure state is consistent on initial render
             contentContainer.hide();
+        }
+        else {
+            this.parsedCollapsedHeadings.delete(id);
+            contentContainer.show();
         }
 
         // Get DIRECT subheading indices only (not all nested levels)
         const directSubheadingIndices = this.getDirectSubheadingIndices(allGroups, currentIndex);
 
-        // First, render direct equations (not in subheadings)
-        if (hasDirectEquations) {
-            const directEquationsContainer = contentContainer.createDiv("ec-heading-equations");
-            for (const eq of group.equations) {
-                await this.panel.renderEquationItem(directEquationsContainer, eq);
+        // First, render direct items (not in subheadings)
+        if (hasDirectItems) {
+            const directItemsContainer = contentContainer.createDiv("ec-heading-equations");
+            for (const item of group.items) {
+                // Render based on item type
+                if (item.type === "equation") {
+                    await this.panel.renderEquationItem(directItemsContainer, item.data);
+                } else if (item.type === "figure") {
+                    await this.panel.renderFigureItem(directItemsContainer, item.data);
+                } else if (item.type === "callout") {
+                    await this.panel.renderCalloutItem(directItemsContainer, item.data);
+                }
             }
         }
 
@@ -335,7 +389,7 @@ export class EquationPanelOutlineViewRenderer {
                 contentContainer,
                 allGroups,
                 subIndex,
-                allEquations,
+                allItems,
                 allHeadings
             );
         }
@@ -343,7 +397,7 @@ export class EquationPanelOutlineViewRenderer {
         this.attachCollapseHandler(hasContent, collapseIcon, id, contentContainer);
     }
 
-    private createHeadingDiv(container: HTMLElement, group: EquationGroup, metadata: HeadingMetadata): HTMLElement {
+    private createHeadingDiv(container: HTMLElement, group: PanelItemGroup, metadata: HeadingMetadata): HTMLElement {
         const headingClasses = metadata.isNoHeadingGroup
             ? "ec-heading-item ec-no-heading-group"
             : `ec-heading-item ec-heading-level-${group.relativeLevel}`;
@@ -357,19 +411,19 @@ export class EquationPanelOutlineViewRenderer {
         });
     }
 
-    private createHeadingHeader(headingDiv: HTMLElement, group: EquationGroup, metadata: HeadingMetadata): {
+    private createHeadingHeader(headingDiv: HTMLElement, group: PanelItemGroup, metadata: HeadingMetadata): {
         headingHeader: HTMLElement;
         collapseIcon: HTMLElement | null;
     } {
         const headingHeader = headingDiv.createDiv("ec-heading-header ec-clickable");
         const collapseIcon = this.createCollapseIcon(headingHeader, group, metadata);
         this.createHeadingText(headingHeader, group);
-        this.createEquationCountBadge(headingHeader, metadata.totalEquationCount);
+        this.createEquationCountBadge(headingHeader, metadata.totalItemCount);
 
         return { headingHeader, collapseIcon };
     }
 
-    private createCollapseIcon(headingHeader: HTMLElement, group: EquationGroup, metadata: HeadingMetadata): HTMLElement | null {
+    private createCollapseIcon(headingHeader: HTMLElement, group: PanelItemGroup, metadata: HeadingMetadata): HTMLElement | null {
         if (metadata.hasContent) {
             const collapseIcon = headingHeader.createSpan(`ec-collapse-icon ec-heading-collapse-icon-${group.absoluteLevel}`);
             setIcon(collapseIcon, metadata.isCollapsed ? "chevron-right" : "chevron-down");
@@ -379,8 +433,8 @@ export class EquationPanelOutlineViewRenderer {
         return null;
     }
 
-    private createHeadingText(headingHeader: HTMLElement, group: EquationGroup): void {
-        const headingText = group.heading ? group.heading.text : "Equations without heading";
+    private createHeadingText(headingHeader: HTMLElement, group: PanelItemGroup): void {
+        const headingText = group.heading ? group.heading.text : "Items without headings";
         const headingTextSpan = headingHeader.createSpan({
             cls: `ec-heading-text ec-heading-text-${group.absoluteLevel}`,
             text: headingText
@@ -391,30 +445,37 @@ export class EquationPanelOutlineViewRenderer {
             headingTextSpan.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (group.heading) {
-                    void this.jumpToHeading(group.heading);
+                    // Walk up to the heading item div that carries data-line,
+                    // so we always get the current line even after the early-return refresh.
+                    const headingItemDiv = headingTextSpan.closest('.ec-heading-item') as HTMLElement;
+                    const currentLine = headingItemDiv
+                        ? Number.parseInt(headingItemDiv.dataset['line'] ?? '-1', 10)
+                        : group.heading.line; // fallback to stale value if DOM lookup fails
+
+                    void this.jumpToHeading({ ...group.heading, line: currentLine });
                 }
             });
         }
     }
 
-    private createEquationCountBadge(headingHeader: HTMLElement, totalEquationCount: number): void {
-        if (totalEquationCount > 0) {
+    private createEquationCountBadge(headingHeader: HTMLElement, totalItemCount: number): void {
+        if (totalItemCount > 0) {
             headingHeader.createSpan({
                 cls: "ec-equation-count",
-                text: totalEquationCount.toString()
+                text: totalItemCount.toString()
             });
         }
     }
 
-    private getTotalEquationsForHeading(equations: EquationMatch[], headings: Heading[], currentIndex: number): number {
-        // Get total count of equations in this heading including all subheadings
+    private getTotalItemsForHeading(items: PanelItem[], headings: Heading[], currentIndex: number): number {
+        // Get total count of items in this heading including all subheadings
         const endLine = this.getEndLineForHeading(headings, currentIndex);
         const heading = headings[currentIndex];
 
-        const totalEquations = equations.filter(eq =>
-            eq.lineStart > heading.line && eq.lineStart < endLine
+        const totalItems = items.filter(item =>
+            getItemLine(item) > heading.line && getItemLine(item) < endLine
         );
-        return totalEquations.length;
+        return totalItems.length;
     }
 
     private getEndLineForHeading(headings: Heading[], currentIndex: number): number {
@@ -433,16 +494,16 @@ export class EquationPanelOutlineViewRenderer {
         return Infinity;
     }
 
-    private getDirectEquationsForHeading(equations: EquationMatch[], headings: Heading[], currentIndex: number): EquationMatch[] {
-        // Get only the equations directly under this heading (not in any subheading)
+    private getDirectItemsForHeading(items: PanelItem[], headings: Heading[], currentIndex: number): PanelItem[] {
+        // Get only the items directly under this heading (not in any subheading)
         const heading = headings[currentIndex];
         const nextHeadingLine = currentIndex < headings.length - 1 ? headings[currentIndex + 1].line : Infinity;
 
-        // Find equations between this heading and the next heading
-        const directEquations = equations.filter(eq =>
-            eq.lineStart > heading.line && eq.lineStart < nextHeadingLine
+        // Find items between this heading and the next heading
+        const directItems = items.filter(item =>
+            getItemLine(item) > heading.line && getItemLine(item) < nextHeadingLine
         );
 
-        return directEquations;
+        return directItems;
     }
 }

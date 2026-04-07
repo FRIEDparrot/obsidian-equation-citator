@@ -1,0 +1,41 @@
+/* ── Three-line (Booktabs-style) table ─────────────────────────── */
+
+/* Remove all default borders first */
+.markdown-rendered table,
+.markdown-preview-view table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: none;
+    width: auto;
+    margin: 1.2em 0;
+}
+
+/* Remove ALL cell borders and background striping */
+.markdown-rendered table th,
+.markdown-rendered table td,
+.markdown-preview-view table th,
+.markdown-preview-view table td {
+    border: none;
+    padding: 6px 16px;
+    text-align: left;
+    background: none !important;
+}
+
+/* ── Line 1 & 2: Top rule and Mid rule (Header section) ── */
+.markdown-rendered table thead tr:first-child th,
+.markdown-preview-view table thead tr:first-child th {
+    border-top: 3px solid currentColor;
+    border-bottom: 1.2px solid currentColor;
+}
+
+/* ── Line 3: Bottom rule (Below last row) ── */
+.markdown-rendered table tbody tr:last-child td,
+.markdown-preview-view table tbody tr:last-child td {
+    border-bottom: 3px solid currentColor;
+}
+
+/* Optional: subtle hover highlight without background noise */
+.markdown-rendered table tbody tr:hover td,
+.markdown-preview-view table tbody tr:hover td {
+    background-color: rgba(125, 125, 125, 0.07) !important;
+}

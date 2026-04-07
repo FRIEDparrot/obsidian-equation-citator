@@ -1,4 +1,4 @@
-import { App, MarkdownView, Platform } from "obsidian";
+import { App, MarkdownView, Platform, Notice } from "obsidian";
 import TagInputModal from "@/ui/modals/tagInputModal";
 import EquationCitator from "@/main";
 import { drawCursorAtDragPosition, clearDragCursor, getEditorDropLocation } from "@/utils/workspace/drag_drop_event";
@@ -10,9 +10,9 @@ import Debugger from "@/debug/debugger";
 import { EquationArrangePanel } from "./mainPanel";
 
 export class EquationPanelDragDropHandler {
-    private dropHandler: (evt: DragEvent) => void;
-    private dragoverHandler: (evt: DragEvent) => void;
-    private dragendHandler: (evt: DragEvent) => void;
+    private dropHandler: ((evt: DragEvent) => void) | undefined;
+    private dragoverHandler: ((evt: DragEvent) => void) | undefined;
+    private dragendHandler: ((evt: DragEvent) => void) | undefined;
     private lastDragTargetView: MarkdownView | null = null;
     private readonly app: App;
     constructor(
@@ -79,14 +79,16 @@ export class EquationPanelDragDropHandler {
             evt.preventDefault();
             evt.stopPropagation();
 
-            const equationData = JSON.parse(data);
-            // Also move the editor cursor for visual feedback
-            // Only handle our equation drops (must have content field)
-            if (!equationData.content) {
-                return;
+            const dropData = JSON.parse(data);
+            // Handle different types of drops
+            if (dropData.type === 'figure') {
+                void this.handleFigureDrop(dropData, evt);
+            } else if (dropData.type === 'callout') {
+                void this.handleCalloutDrop(dropData, evt);
+            } else if (dropData.content) {
+                // Original equation drop (has content field, no type field for backward compatibility)
+                void this.handleEquationDrop(dropData, evt);
             }
-
-            void this.handleEquationDrop(equationData, evt);
         };
 
         // Dragend handler - clean up cursor
@@ -187,4 +189,128 @@ export class EquationPanelDragDropHandler {
             modal.open();
         });
     }
-} 
+
+    private async handleFigureDrop(
+        figureData: {
+            type: 'figure';
+            tag: string;
+            sourcePath: string;
+            line: number;
+        },
+        evt: DragEvent
+    ): Promise<void> {
+        const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
+        if (!targetView) return;
+
+        const editor = targetView.editor;
+        const targetFile = targetView.file;
+        if (!targetFile || !editor) {
+            return;
+        }
+
+        let tag = figureData.tag;
+        // If no tag, show notice
+        if (!tag) {
+            new Notice("This figure has no tag. Please manually add a tag to the figure first.");
+            return;
+        }
+
+        // Check if this is a cross-file citation
+        const isTargetSameAsSource = targetFile.path === figureData.sourcePath;
+        const figurePrefix = this.plugin.settings.figCitationPrefix;
+        let citation: string;
+
+        if (isTargetSameAsSource) {
+            // Same-file citation: $\ref{figPrefix:tag}$
+            citation = String.raw`$\ref{${figurePrefix}${tag}}$`;
+        } else {
+            // Cross-file citation: need to create or find footnote
+            const footnoteNum = await checkFootnoteExists(
+                this.plugin,
+                targetFile.path,
+                figureData.sourcePath,
+                true  // Create footnote if it doesn't exist
+            );
+
+            if (!footnoteNum) return;
+
+            // Cross-file citation with footnote: $\ref{figPrefix:footnote^{tag}}$
+            citation = String.raw`$\ref{${figurePrefix}${footnoteNum}^{${tag}}}$`;
+        }
+
+        // Insert citation at drop position
+        const dropPosition = getEditorDropLocation(editor, evt);
+        if (!dropPosition) return;
+
+        editor.setCursor(dropPosition);
+        insertTextWithCursorOffset(editor, citation, citation.length);
+        // Focus the editor to ensure it's active
+        await targetView.leaf.setViewState({
+            ...targetView.leaf.getViewState(),
+            active: true
+        });
+    }
+
+    private async handleCalloutDrop(
+        calloutData: {
+            type: 'callout';
+            tag: string;
+            prefix: string;
+            sourcePath: string;
+            lineStart: number;
+        },
+        evt: DragEvent
+    ): Promise<void> {
+        const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
+        if (!targetView) return;
+
+        const editor = targetView.editor;
+        const targetFile = targetView.file;
+        if (!targetFile || !editor) {
+            return;
+        }
+
+        const tag = calloutData.tag;
+        const prefix = calloutData.prefix;
+        
+        // If no tag, show notice that callout needs a tag
+        if (!tag) {
+            new Notice("This callout has no tag. Please manually add a tag to the callout first.");
+            return;
+        }
+
+        // Check if this is a cross-file citation
+        const isTargetSameAsSource = targetFile.path === calloutData.sourcePath;
+        let citation: string;
+
+        if (isTargetSameAsSource) {
+            // Same-file citation: $\ref{prefix:tag}$ (use the callout's own prefix)
+            citation = String.raw`$\ref{${prefix}${tag}}$`;
+        } else {
+            // Cross-file citation: need to create or find footnote
+            const footnoteNum = await checkFootnoteExists(
+                this.plugin,
+                targetFile.path,
+                calloutData.sourcePath,
+                true  // Create footnote if it doesn't exist
+            );
+
+            if (!footnoteNum) return;
+
+            // Cross-file citation with footnote: $\ref{prefix:footnote^{tag}}$
+            citation = String.raw`$\ref{${prefix}${footnoteNum}^{${tag}}}$`;
+        }
+
+        // Insert citation at drop position
+        const dropPosition = getEditorDropLocation(editor, evt);
+        if (!dropPosition) return;
+
+        editor.setCursor(dropPosition);
+        insertTextWithCursorOffset(editor, citation, citation.length);
+        // Focus the editor to ensure it's active
+        await targetView.leaf.setViewState({
+            ...targetView.leaf.getViewState(),
+            active: true
+        });
+    }
+}

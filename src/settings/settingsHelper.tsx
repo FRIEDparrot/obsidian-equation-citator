@@ -71,12 +71,14 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "Equation panel",
             settingKeys: [
                 "equationManagePanelDefaultViewType",
+                "equationManagePanelPreviewObjectType",
                 "equationManagePanelFilterTagOnlyEquation",
                 "equationManagePanelEnableRenderHeadingsOnly",
                 "equationManagePanelLazyUpdateTime",
                 "equationManagePanelFileCheckInterval",
                 "equationManagePanelFilterBoxedEquation",
                 "skipFirstlineInBoxedFilter",
+                "equationWidgetRightClickCopyType",
             ]
         },
         {
@@ -94,6 +96,8 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "PDF export",
             settingKeys: [
                 "citationColorInPdf",
+                "addImageCaptionsInPdf",
+                "addImageDescInPdf",
             ]
         },
         {
