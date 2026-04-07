@@ -133,10 +133,10 @@ export const EquationPanelSettingsTab = {
                 dropdown.addOption("noTag", "Without tags");
                 dropdown.addOption("eq", "Without tags and braces");
                 dropdown.setValue(plugin.settings.equationWidgetRightClickCopyType);
-                dropdown.onChange(async (value) => {                    plugin.settings.equationWidgetRightClickCopyType = value as "full" | "noTag" | "eq";
+                dropdown.onChange(async (value) => { 
+                    plugin.settings.equationWidgetRightClickCopyType = value as "full" | "noTag" | "eq";
                     await plugin.saveSettings();
-                }
-            );
+                });
         });
     }
 };

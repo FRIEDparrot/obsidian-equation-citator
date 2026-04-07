@@ -471,7 +471,7 @@ export class EquationArrangePanel extends ItemView {
         // Render the equation
         if (!window.MathJax) await loadMathJax();
         mathDiv.replaceChildren(window.MathJax!.tex2chtml(equation.content, { display: true }));
-        await forceMathRefresh(mathDiv);
+        await forceMathRefresh(mathDiv, this.viewPanel);
 
         // Add click handler to jump to equation in the editor
         // Ctrl/Cmd + double click always creates new panel on right

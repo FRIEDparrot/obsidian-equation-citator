@@ -19,13 +19,13 @@ export function fastHash(str: string): number {
     const len = str.length; 
     // process 4 bytes at a time  
     while (i + 3 < len) {
-        hash ^= (str.codePointAt(i) ?? 0 | (str.codePointAt(i + 1) ?? 0 << 8) |
-            (str.codePointAt(i + 2) ?? 0 << 16) | (str.codePointAt(i + 3) ?? 0 << 24));
+        hash ^= (str.codePointAt(i) ?? 0 | ((str.codePointAt(i + 1) ?? 0) << 8) |
+            ((str.codePointAt(i + 2) ?? 0) << 16) | ((str.codePointAt(i + 3) ?? 0) << 24));
         hash = (hash * 0x01000193) >>> 0;
         i += 4;
     }
     while (i < len) {
-        hash ^= str.codePointAt(i) ?? 0;
+        hash ^= (str.codePointAt(i) ?? 0);
         hash = (hash * 0x01000193) >>> 0;
         i++;
     }
