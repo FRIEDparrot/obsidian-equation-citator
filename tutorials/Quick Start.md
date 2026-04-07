@@ -299,7 +299,9 @@ The subpanel includes :
 3. Collapse / Expand all : Collapse or Expand all headings in outline view.
 4. Show/Hide tags : Show or hide tags in the panel. 
 5. Show all headings / Only show headings with equations.
-6. Filters : Show only tagged equations, or show only boxed equations. (These only work for equations)
+6. Filters : 
+    - 1.Show only tagged equations/figures/callouts. (This works for all types of content)
+    - 2. show only boxed equations. (This only works for equations)
 
 #### 2.2 Drag and Drop Citations 
 1. **Drag** the item from the panel, **Drop** it into your text where you want the citation, the properly formatted `\ref{}` citation is automatically inserted

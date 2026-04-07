@@ -33,7 +33,7 @@ function updateSortMode(panel: EquationArrangePanel, mode: "tag" | "seq"): void 
 }
 
 function updateFiltersButton(panel: EquationArrangePanel): void {
-    const anyFilterActive = panel.filterTagOnlyEquation || panel.filterBoxedEquation;
+    const anyFilterActive = panel.filterTagOnlyItems || panel.filterBoxedEquation;
     panel.filtersForEquationsButton.toggleClass("is-active", anyFilterActive);
     const tooltipText = "Show filters";
     setIcon(panel.filtersForEquationsButton, "filter");
@@ -45,11 +45,11 @@ function showFiltersMenu(panel: EquationArrangePanel, event: MouseEvent): void {
 
     // Tag-only filter menu item
     menu.addItem((item) => {
-        item.setTitle("Filter tagged equations")
+        item.setTitle("Filter tagged items")
             .setIcon("tag")
-            .setChecked(panel.filterTagOnlyEquation)
+            .setChecked(panel.filterTagOnlyItems)
             .onClick(() => {
-                panel.filterTagOnlyEquation = !panel.filterTagOnlyEquation;
+                panel.filterTagOnlyItems = !panel.filterTagOnlyItems;
                 updateFiltersButton(panel);
                 void panel.refreshView();
             });
@@ -405,7 +405,7 @@ export function setToolbarDefaultState(
     // Update mode buttons visibility
     updateModeButtons(panel);
 
-    panel.filterTagOnlyEquation = filterTagOnlyEquation;
+    panel.filterTagOnlyItems = filterTagOnlyEquation;
     panel.filterBoxedEquation = filterBoxedEquation;
     updateFiltersButton(panel);
     

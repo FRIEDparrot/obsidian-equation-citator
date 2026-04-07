@@ -50,7 +50,7 @@ export class EquationArrangePanel extends ItemView {
     public isSearchMode = false;
     public searchQuery = "";
     public filterEmptyHeadings = false; // Default to outline view (show all headings)
-    public filterTagOnlyEquation = false;
+    public filterTagOnlyItems = false;
     public filterBoxedEquation = false;
     public lockRefreshEnabled = false;
     public enableRenderHeadingOnly = false; // in outline mode, only render headings without equations 
@@ -389,7 +389,7 @@ export class EquationArrangePanel extends ItemView {
 
         // Apply tag filter (for equations and figures - callouts are always tagged)
         const tagFilter = (item: PanelItem) => {
-            return !this.filterTagOnlyEquation || (item.data.tag && item.data.tag.trim().length > 0);
+            return !this.filterTagOnlyItems || (item.data.tag && item.data.tag.trim().length > 0);
         };
 
         // Apply boxed filter (only for equations)
