@@ -1,9 +1,9 @@
+🚀 **Enable the plugin and copy all files in the tutorial folder to your vault to follow along interactively.**  
+
 > [!summary] 
-> 🚀 **Enable the plugin and copy all files in the tutorial folder to your vault to follow along interactively.**
+> 1.  This tutorial covers all the essential features, basic grammars to get you started with this plugin. But for more special needs like essay drafting, you may check [[Useful Tricks & techniques]] for more practical tricks that can be commonly used in this plugin. 
 > 
-> This tutorial covers all the essential features, basic grammars to get you started with this plugin. 
-> 
-> But for more special needs like essay drafting, you may check [[Useful Tricks & techniques]] for more practical tricks that can be commonly used in this plugin. 
+> 2. There are also several useful css snippets in the `useful snippets` folder. You can also check them out. 
 
 ![[Equation Citator Logo.excalidraw|fig:1|title:Equation Citaor|250]]
 

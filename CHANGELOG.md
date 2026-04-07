@@ -371,6 +371,7 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] fix bug [#153](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/153), the collapse all button were combined into one and can work correctly now. 
 - [x] refactor `collapsedHeadings` to `parsedCollapsedHeadings` to prevent collapse state from growing indefinitely when switching between files.
 - [x] Fix bug [#152](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/152), line number information will refresh after editing the file before some headings.
+- [x] fix [issue #151](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/151), add css to make up for style change in `obsidian 1.12.4` 
 - [ ] Fix all new sonar issues for better code quality. 
 
 📖 Documentation : 

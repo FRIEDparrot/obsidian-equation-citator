@@ -1,49 +1,15 @@
-# Useful CSS Snippets
+# Useful CSS snippets
 
-This folder contains CSS snippets that enhance the visual presentation of your Obsidian vault when using the Equation Citator plugin.
+Small, optional CSS files to improve the look of tables, callouts, and figures in Obsidian.
 
-## Available Snippets
+## Snippets
 
-### 📋 triple_line_table.css
-Creates professional Booktabs-style tables:
-- Implements the classic three-line table design (top rule, header separator, bottom rule)
-- Removes unnecessary borders and zebra striping for a clean look
-- Adds subtle hover effect for better interactivity
-- Ideal for academic and professional documents
+- `triple_line_table.css`: Booktabs-style tables (top/mid/bottom rules), removes borders/striping, and adds a subtle row hover.
+- `better_table_align.css`: Centers tables, left-aligns the first column, and centers all remaining columns.
+- `callouts.css`: Adds callout color presets via metadata (e.g. `|red`, `|blue`) and maps many Lucide icons to callouts by name.
+- `figures_centering.css`: (Only work in reading mode) Centers images and embeds by making them `display: block` with auto inline margins.
 
-### 📊 better_table_align.css
-Improves table formatting by:
-- Centering the entire table block within the document
-- Left-aligning the first column (typically for row labels)
-- Center-aligning all other columns for better visual balance
-- Useful for scientific/mathematical tables where consistency matters
+## How to use
 
-### 🎨 callouts.css
-Extensive customization options for Obsidian callouts:
-- Adds multiple color options (red, blue, purple, cyan, orange, green, yellow, pink)
-- Includes a large collection of Lucide icons that can be assigned to callouts
-- Allows metadata-based color and icon styling for callouts
-- Perfect for highlighting important notes, warnings, or theorem statements alongside equations
-
-### 🖼️ figures_centering.css
-Centers all figure elements in your document:
-- Applies to images, embedded videos, and iframes
-- Ensures consistent horizontal centering across all media types
-- Works in both editor (Live Preview) and reading mode
-- Great for presenting equations with accompanying figures
-
-## How to Use
-
-1. Copy any CSS snippet to your Obsidian vault's CSS snippets folder: `.obsidian/snippets/`
-2. Enable the snippet in Obsidian Settings → Appearance → CSS Snippets
-
-## Notes
-
-- These snippets use `!important` flags in some cases to ensure consistent styling
-- They work in both Live Preview and Reading Mode
-- No conflicts expected with Equation Citator plugin functionality
-- Feel free to customize the CSS to match your vault's theme
-
----
-
-**Tip:** Combine multiple snippets for a polished, professional appearance in your mathematical and scientific documents.
+1. Copy a `.css` file into your vault: `.obsidian/snippets/`
+2. Enable it in Obsidian: Settings → Appearance → CSS snippets

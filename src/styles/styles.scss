@@ -73,3 +73,8 @@ when generating markdown for print pdf,
     cursor: pointer;
 }
 
+/* This is make up for style issue after obsidian 1.12.4 */
+.internal-embed.image-embed.is-loaded {
+    display: flex;
+    flex-direction: column;
+}
