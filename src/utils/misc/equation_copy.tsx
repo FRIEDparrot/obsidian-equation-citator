@@ -13,30 +13,34 @@ export function copyEquationToClipboard(
     copyType: "full" | "noTag" | "eq"
 ): void {
     let textToCopy = "";
-    
+
     switch (copyType) {
         case "full":
-            // Full equation with braces and tags
             textToCopy = `$$${contentWithTag}$$`;
             break;
         case "noTag":
-            // Equation without tags but with braces
             textToCopy = `$$${content}$$`;
             break;
         case "eq":
-            // Equation without braces and tags
             textToCopy = content;
             break;
         default:
             textToCopy = `$$${contentWithTag}$$`;
     }
-    
-    navigator.clipboard.writeText(textToCopy)
-        .then(() => {
-            new Notice("Equation copied to clipboard");
-        })
-        .catch((err) => {
-            Debugger.error("Failed to copy equation:", err);
-            new Notice("Failed to copy equation");
-        });
+
+    // Try navigator.clipboard (async, may be unavailable in some contexts)
+    try {
+        const cb = navigator?.clipboard;
+        if (!cb?.writeText) throw new Error("navigator.clipboard.writeText unavailable");
+
+        cb.writeText(textToCopy)
+            .then(() => new Notice("Equation copied to clipboard"))
+            .catch((err) => {
+                Debugger.error("Failed to copy equation:", err);
+                new Notice("Failed to copy equation");
+            });
+    } catch (err) {
+        Debugger.error("Failed to copy equation (sync):", err);
+        new Notice("Failed to copy equation");
+    }
 }
