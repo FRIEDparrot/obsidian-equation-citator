@@ -548,6 +548,7 @@ export class EquationArrangePanel extends ItemView {
 
     public async renderFigureItem(container: HTMLElement, figure: ImageMatch): Promise<void> {
         const figDiv = container.createDiv("ec-figure-item");
+        const currentFile = this.app.workspace.getActiveFile();
 
         // Make figure draggable
         figDiv.draggable = true;
@@ -564,7 +565,7 @@ export class EquationArrangePanel extends ItemView {
         const contentDiv = figDiv.createDiv("ec-figure-content");
 
         // Render the figure using MarkdownRenderer (use raw markdown)
-        await MarkdownRenderer.render(this.app, figure.raw, contentDiv, '', this);
+        await MarkdownRenderer.render(this.app, figure.raw, contentDiv, currentFile?.path || '', this);
 
         // Disable native drag on images to allow parent drag
         contentDiv.querySelectorAll('img').forEach(img => {
@@ -572,7 +573,6 @@ export class EquationArrangePanel extends ItemView {
         });
 
         // Add double-click handler to jump to figure in the editor
-        const currentFile = this.app.workspace.getActiveFile();
         figDiv.addEventListener('dblclick', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
             if (ctrlKey && figure.tag && currentFile) {
