@@ -645,12 +645,12 @@ export class EquationArrangePanel extends ItemView {
 
         // Create callout content div
         const contentDiv = calloutDiv.createDiv("ec-callout-content");
+        const currentFile = this.app.workspace.getActiveFile();
 
         // Render the callout using MarkdownRenderer (use raw content with quote marks)
-        await MarkdownRenderer.render(this.app, callout.raw, contentDiv, '', this);
+        await MarkdownRenderer.render(this.app, callout.raw, contentDiv, currentFile?.path || '', this);
 
         // Add double-click handler to jump to callout in the editor
-        const currentFile = this.app.workspace.getActiveFile();
         calloutDiv.addEventListener('dblclick', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
             if (ctrlKey && callout.tag && currentFile) {
