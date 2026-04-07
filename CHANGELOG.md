@@ -374,9 +374,9 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [ ] Fix all new sonar issues for better code quality. 
 
 📖 Documentation : 
-- [x] Add settings usage in tutorial. 
-- [x] Add equation panel button usage in tutorial.
-- [ ] Updated Chinese translation for readme 
+- [x] Add settings usage | equation panel button usage | rich auto complete mode in tutorial.
+- [x] Updated Chinese translation for readme 
+- [x] Remade readme file for full feature introduction. 
 
 🔩 Improvements
 - [x] Rename `auto-number xxx in quotes` to `auto-number xxx in callouts` for better clarity (issue [#154](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/154)).

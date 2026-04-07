@@ -93,13 +93,11 @@ This will cause heading dismatch in Auto-numbering, and `# title` grammar is pro
 
 ## ⚙️ How to use Settings Tab 
 There are 3 different display options in settings Tab, including : 
-1. Concise 
-2. Categorical  
-3. List (All Settings)
+1. Concise : only show important settings
+2. Categorical : categorized settings. 
+3. List : displays all settings, use this mode mainly for search settings. 
 
-**IMPORTANT** : You will **not find all settings in concise mode since some settings are hidden in both "basic" and "advanced" section**, you need to enable it in "Customize Display sections" or **switch to "Categorical"** or "List" mode to find all settings. 
-
-List mode will display all settings, use this mode mainly for search settings. 
+**IMPORTANT** : You will **not find all settings in concise mode since some settings are hidden in both "basic" and "advanced" section**, you need to enable it in "Customize Display sections" or **switch to "Categorical"** or **List** mode to find all settings. 
 
 ## 1. Basic Equation Citations 
 
@@ -125,15 +123,19 @@ $$
 
 To cite this equation, type `\ref{eq:1.1}` which renders as: $\ref{eq:1.1}$
 
-> [!tip] 
-> sometimes just typing is faster than dragging citations, since we support auto-complete for all types of citations. 
-
 **Quick Commands** (use ctrl + p to search and add a hotkey to that😄!):  
 - `Insert a citation in cursor position` : Quickly insert `\ref{}`
 - `Insert equation citation on cursor position`: Quickly insert `\ref{eq:}`
 - `Insert tag on cursor position with auto-number`: Add tags with automatic numbering when cursor is in an equation block.  
 
-> [!tip]  
+> [!tip] 
+> **Auto-Complete Feature** : just inserting `\ref{eq:}` and typing is much faster than dragging citations, since we support auto-complete for all types of citations. 
+> 
+> For equations, just select what you want to insert in auto-complete panel. 
+> 
+> **Concise/Rich autocomplete mode**: for figures and callouts, by default only tag and title will show. You can preview contents by hovering your mouse on option. Or you can use `settings > citation > show full preview in autocomplete` to show full picture/callout in autocomplete options.
+
+> [!warning]  
 > You can **only cite 1 type** of either  equation, figure or callout in a citation, such as `$\ref{eq:1.1, 1.2, 1.3}$` or `$\ref{fig:1.1, 1.2, 1.3}$`,  and it will take the begin from `ref{` as the prefix to mark which type you cite. So mixed citation `\ref{eq:1.1, fig:1.2, table:1.3}` is not allowed.  
 
 ### 1.2 Multiple Citations
@@ -300,9 +302,10 @@ The subpanel includes :
 6. Filters : Show only tagged equations, or show only boxed equations. (These only work for equations)
 
 #### 2.2 Drag and Drop Citations 
-1. **Drag** the item from the panel, **Drop** it into your text where you want the citation (Cross file drag will automatically create footnote for citation)  
-2. The properly formatted `\ref{}` citation is automatically inserted!
-3. If you have **multiple files opened in editor**, you can also **drag equations to other files**. The plugin will **automatically create footnotes for cross-file citations**.
+1. **Drag** the item from the panel, **Drop** it into your text where you want the citation, the properly formatted `\ref{}` citation is automatically inserted
+2. If you have **multiple files opened in editor**, you can also **drag equations to other files**. The plugin will **automatically create footnotes for cross-file citations**.
+3. For callouts in panel, we don't support drag-cite callouts without correct tags (since it will break original prefix), please add tag for it manually.
+
 
 #### 2.3 Special Filters
 
@@ -354,10 +357,10 @@ Note images may not centered after export, so I recommend you to add a simple sn
 
 ## 6. Beta Features 
 
-Citations will failed to render in callout part. Since its a built-in problem for obsidian, we won't fully supported write citations in callouts (Including not auto-update and not auto export). So I strongly recommend you not to use this Feature. 
+I strongly recommend you not to use `Cite with inline code block in callout`. Citations will failed to render inside the callout. Since its a built-in problem for links in obsidian, we won't fully support writing citations in callouts (Including not auto-update and not auto export). 
 
 ---------
 
 Congrats 🎉! You are all ready to use this plugin😄 !
 
-*Created for Equation Citator v1.3.0 - For updates and issues, visit the [GitHub repository](https://github.com/FRIEDparrot/obsidian-equation-citator)* 
+*Created for Equation Citator v1.3.4 - For updates and issues, visit the [GitHub repository](https://github.com/FRIEDparrot/obsidian-equation-citator)* 
