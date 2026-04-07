@@ -5,7 +5,7 @@
 > 2. For more special needs like essay drafting, you may check [[Useful Tricks & techniques]] for more practical tricks that can be commonly used in this plugin. 
 > 3. There are also several useful css snippets in the `useful snippets` folder. You can also check them out. 
 
-![[Equation Citator Logo.excalidraw|fig:1|title:Equation Citaor|250]]
+![[Equation Citator Logo.excalidraw|fig:1|title:Equation Citator|250]]
 
 ### ✨ Core Features
 
