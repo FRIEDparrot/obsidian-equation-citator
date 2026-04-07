@@ -8,6 +8,8 @@ import {
     HoverParent,
     MarkdownView,
     Menu,
+    renderMath,
+    finishRenderMath,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
 
@@ -22,7 +24,6 @@ import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigation";
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
-import { forceMathRefresh } from "@/utils/misc/mathjax_utils";
 import { copyEquationToClipboard } from "@/utils/misc/equation_copy";
 
 /**
@@ -155,8 +156,17 @@ export async function renderEquationWrapper(
     // Render the equation
     if (!window.MathJax) await loadMathJax();
     const eqTag = parseEquationTag(eq.md);
-    equationDiv.replaceChildren(window.MathJax!.tex2chtml(eqTag.content, { display: true }));
-    await forceMathRefresh(equationDiv);
+    
+    // render the math equation
+    if (plugin.settings.useFastMathRenderer) {
+        // Fast method: Direct conversion
+        equationDiv.replaceChildren(window.MathJax!.tex2chtml(eqTag.content, { display: true }));
+    } else {
+        const rendered = renderMath(eqTag.content, true);
+        equationDiv.replaceChildren(rendered);
+        await finishRenderMath();
+    }
+    
     // Add click effects to each equation
     addClickEffects(equationWrapper);
     if (addLinkJump) {

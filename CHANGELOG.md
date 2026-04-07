@@ -357,6 +357,12 @@ Settings Updates :
 ### Version 1.3.4
 Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 
+---
+
+Breaking Update Changes : 
+- Now we use a configurable math renderer, we changed default renderer to a slow one for better stability, but you can still use the fast one by `Settings > Display (Categorical) > Equation Panel > Use fast math renderer in equation panel`.
+
+----- 
 
 ✈️ Full-Cross-Platform Support :
 - [x] Test this plugin on Linux and Mac platform (thanks to my friend @Tiddlefox)
@@ -374,6 +380,7 @@ Version 1.3.4 - Multi-Platform Support, bug fixes and improvements.
 - [x] Add `data-line` reassign mechanism for `viewStateEqual` case. So the line-number information still refresh correctly when editing at middle at pure-text files. 
 - [x] fix [issue #151](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/151), add css to make up for style change in `obsidian 1.12.4` 
 - [x] Fix all new sonar issues for better code quality. 
+- [x] (Critical) Fix [critical #157](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/157), by default we use slow but more stable obsidian build-in renderer. But `MathJax` is still available by `Settings > Display (Categorical) > Equation Panel > Use fast math renderer in equation panel`. 
 
 📖 Documentation : 
 - [x] Add settings usage | equation panel button usage | rich auto complete mode in tutorial.
