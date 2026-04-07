@@ -389,7 +389,6 @@ export class EquationArrangePanel extends ItemView {
 
         // Apply tag filter (for equations and figures - callouts are always tagged)
         const tagFilter = (item: PanelItem) => {
-            if (item.type === "callout") return true; // Callouts are always tagged
             return !this.filterTagOnlyEquation || (item.data.tag && item.data.tag.trim().length > 0);
         };
 
