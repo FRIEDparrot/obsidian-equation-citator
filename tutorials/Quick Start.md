@@ -197,7 +197,7 @@ This will create :
 - A caption displayed below the image
 - A description for extended context 
 
-#### 2. Suppoer for Excalidraw and section preview
+#### 2. Support for Excalidraw and section preview
 
 ![[Excalidraw Support|fig:1.5]]
 Also, after `v1.3.3`, we can also cite the `excalidraw` image with same syntax  $\ref{fig:1.5, }$. 
