@@ -28,7 +28,6 @@ interface HeadingMetadata extends CollapseHeadingMetadata {
  *     we encapsulate its rendering logic into a separate class 
  *     for better code organization.
  */
-
 export class EquationPanelOutlineViewRenderer {
     private currentHeadings: Heading[] = [];
 
@@ -65,9 +64,23 @@ export class EquationPanelOutlineViewRenderer {
             headings.every((h, i) => h.level === this.currentHeadings[i].level && h.text === this.currentHeadings[i].text)
         );
         const collapseAllStateEqual = (this.collapseAllState === this.currentCollapseAllState);
+        
+        // Check if heading lines are still correct
+        const headingLinesEqual = (
+            headings.length === this.currentHeadings.length &&
+            headings.every((h, i) => h.line === this.currentHeadings[i].line)
+        );
+        
         // viewState + items + headings state all equal 
         if (viewStateEqual && itemsEqual && headingsEqual && collapseAllStateEqual) {
-            Debugger.log("View state equal, no need to refresh");
+            // If lines don't match, update data-line attributes without full re-render
+            if (headingLinesEqual) {
+                Debugger.log("View state equal, no need to refresh");
+            } else {
+                Debugger.log("Headings equal but lines changed, updating data-line attributes");
+                this.updateHeadingLines(headings);
+                this.currentHeadings = headings;
+            }
             return;
         }
 
@@ -85,6 +98,33 @@ export class EquationPanelOutlineViewRenderer {
         }
         await this.renderOutlineView(displayItems, headings);
         this.collapseHeadings = new Set(this.parsedCollapsedHeadings);
+    }
+
+    /**
+     * Update the data-line attributes of heading elements when lines have changed
+     * but heading structure (level, text) remains the same.
+     * This avoids a full re-render when only line numbers shift (e.g., text edits above headings).
+     */
+    private updateHeadingLines(headings: Heading[]): void {
+        if (!this.panel.viewPanel) return;
+
+        // Build occurrence map to generate correct data-id for each heading
+        const occurrenceMap: Map<string, number> = new Map();
+        
+        headings.forEach((heading, index) => {
+            const key = `${heading.level}|${heading.text}`;
+            const occurrence = occurrenceMap.get(key) || 0;
+            occurrenceMap.set(key, occurrence + 1);
+            
+            const dataId = `${key}|${occurrence}`;
+            const headingElement = this.panel.viewPanel?.querySelector(
+                `.ec-heading-item[data-id="${CSS.escape(dataId)}"]`
+            ) as HTMLElement;
+            
+            if (headingElement) {
+                headingElement.dataset['line'] = heading.line.toString();
+            }
+        });
     }
 
     private async renderOutlineView(
