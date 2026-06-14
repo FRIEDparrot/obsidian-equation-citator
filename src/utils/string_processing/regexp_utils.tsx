@@ -100,6 +100,8 @@ export function isValidCitationForm(
 }
 
 /** Match the label of nested citation in the math block 
+ * CITATION FORMAT : 
+ *   with  only 1 \ref{} in any location between $$, should have at least closed {} pairs 
  * @param citation inline-math citation content without $$ 
  * @example ****\ref{eq:1^{1.2.3}, 2^{1.3.1~3}}****
  * @returns label or null if not match or bracket not closed correctly 
@@ -116,42 +118,37 @@ export function matchNestedCitation(
     if (citation.length > MAX_INPUT_LENGTH) return null;
 
     // parse the ref{} in the citation (only should be 1)
-    const match = citation.match(/\\ref\{[^}]*\}/g);
-    if (!match || match?.length !== 1) return null;
-
-    const index = citation.indexOf(match[0]);
-    const braceIndex = index + CITATION_PADDING; // position after \\ref{
-    let braceCount = 1;
-    let currentIndex = braceIndex;
-    let currentDepth = 1; // current depth of nested citation   
+    const REF_TOKEN = String.raw`\ref{`;
+    const startIdx = citation.indexOf(REF_TOKEN);
+    
+    if (startIdx === -1 || citation.includes(REF_TOKEN, startIdx + 1)) return null;
+    
+    const braceIndex = startIdx + REF_TOKEN.length; // position after \\ref{
+    let i = braceIndex;
+    let depth = 1; // current depth of nested citation   
 
     // find the closing bracket  
-    while (currentIndex < citation.length) {
-        const currentChar = citation[currentIndex];
-        if (currentChar === '{') {
-            braceCount++;
-            currentDepth++;
-            if (currentDepth > MAX_NESTING_DEPTH) {
+    while (i < citation.length && depth > 0) {
+        const ch = citation[i];
+        if (ch === '{') {
+            depth++;
+            if (depth > MAX_NESTING_DEPTH) {
                 return null; // Too deeply nested
             }
-        } else if (currentChar === '}') {
-            braceCount--;
-            if (braceCount === 0) {
-                // ref{} content  
-                const content = citation.substring(index, currentIndex + 1);
-                const labelWithPrefix = citation.substring(braceIndex, currentIndex).trim(); // get the label inside the ref{}
-
-                if (prefix && !labelWithPrefix.startsWith(prefix)) return null;
-                const label = prefix ? labelWithPrefix.substring(prefix.length).trim() : labelWithPrefix;
-
-                return { content, label }   //  label has been trimmed
-            }
-            currentDepth--;  // decrease depth 
+        } else if (ch === '}') {        
+            depth--;  // decrease depth 
         }
-        currentIndex++;  // move to next character  
+        i++;  // move to next character  
     }
-    // not find a closing bracket, return null 
-    return null;
+    if (depth !== 0) return null;  // not find a closing bracket, return null 
+
+    const content = citation.substring(startIdx, i + 1);
+    const labelWithPrefix = citation.substring(braceIndex, i).trim(); // get the label inside the ref{}
+
+    if (prefix && !labelWithPrefix.startsWith(prefix)) return null;
+    const label = prefix ? labelWithPrefix.substring(prefix.length).trim() : labelWithPrefix;
+
+    return { content, label }   //  label has been trimmed
 }
 
 export function matchCitationsInLine(line: string): Array<RefMatch> {
