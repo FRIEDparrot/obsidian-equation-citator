@@ -236,10 +236,8 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
             .map(prefix => prefix.trim())
             .filter(Boolean);
 
-        const uniqueSortedPrefixes = [...new Set(prefixes)].sort((a, b) => a.localeCompare(b));
+        const uniqueSortedPrefixes = [...new Set(prefixes)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
         const normalizedParsedPrefix = parsedPrefix.trim();
-
-        console.log(normalizedParsedPrefix)
         const filteredPrefixes : UnfinishedCitationItem[] = uniqueSortedPrefixes
             .filter(prefix => normalizedParsedPrefix === "" || prefix.startsWith(normalizedParsedPrefix))
             .map(prefix => ({
@@ -376,7 +374,6 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         el.addClass("em-equation-option-container");
         switch (this.currentCitationType) {
             case 'unfinished':
-                console.log("received unfinished rendering req")
                 this.renderUnfinishedSuggestion(value as UnfinishedCitationItem, el);
                 break;
             case 'equation': {
@@ -387,7 +384,6 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
                 if (!view) return;
                 this.renderEquationSuggestion(value as RenderedEquation, el, targetComponent, view);
                 break;
-
             }
             case 'figure': {
                 const targetEl = el.createDiv();
