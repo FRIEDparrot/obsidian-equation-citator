@@ -299,7 +299,7 @@ export const CitationSettingsTab = {
                             await plugin.saveSettings();
                         } else {
                             new Notice("Only special characters (not brace) are allowed, change not saved");
-                            // text.setValue(plugin.settings.figCitationPrefix);
+                            text.setValue(plugin.settings.figCitationPrefix);
                         }
                     }
                 }
