@@ -40,7 +40,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
         settings.citationFormat,
         {
             citationColorInPdf
-        } as SpanStyles,
+        },  // span styles 
     );
 
     // Step 2: Replace figure citations
@@ -54,7 +54,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
         settings.figCitationFormat,
         {
             citationColorInPdf
-        } as SpanStyles
+        }
     );
 
     // Step 3: Replace callout citations (table, theorem, definition, etc.)
@@ -69,7 +69,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
             prefixConfig.format,
             {
                 citationColorInPdf
-            } as SpanStyles
+            }
         );
     }
 

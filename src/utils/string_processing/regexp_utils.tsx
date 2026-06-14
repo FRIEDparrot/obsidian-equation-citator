@@ -142,9 +142,9 @@ export function matchNestedCitation(
     }
     if (depth !== 0) return null;  // not find a closing bracket, return null 
 
-    const content = citation.substring(startIdx, i + 1);
-    const labelWithPrefix = citation.substring(braceIndex, i).trim(); // get the label inside the ref{}
-
+    const content = citation.substring(startIdx, i);
+    const labelWithPrefix = citation.substring(braceIndex, i-1).trim(); // get the label inside the ref{}
+    
     if (prefix && !labelWithPrefix.startsWith(prefix)) return null;
     const label = prefix ? labelWithPrefix.substring(prefix.length).trim() : labelWithPrefix;
 

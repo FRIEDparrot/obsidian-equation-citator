@@ -317,11 +317,7 @@ export function replaceCitationsInMarkdownWithSpan(
         }
         // Handles display math block state
         const displayMathMatches = line.match(equationBlockBracePattern);
-        if (displayMathMatches) {
-            for (let i = 0; i < displayMathMatches.length; i++) {
-                inDisplayMath = !inDisplayMath;
-            }
-        }
+        if (displayMathMatches && displayMathMatches.length % 2 !== 0) inDisplayMath = !inDisplayMath;
         if (inDisplayMath) {
             return line; // In display math block - skip processing
         }
