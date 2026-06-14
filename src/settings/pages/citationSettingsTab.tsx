@@ -78,15 +78,19 @@ export const CitationSettingsTab = {
                 text.setValue(plugin.settings.citationPrefix);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
-                    const valid = containSafeCharAndNotBlank(newValue);
-                    if (!valid) {
-                        new Notice("Invalid prefix, {}, $ or blank prefix are not allowed");
+                    if (!newValue.endsWith(":")) {
+                        new Notice("Please add a colon (:) to the end of the prefix, change not saved");
                         text.setValue(plugin.settings.citationPrefix);
                         return;
                     }
-                    if (newValue !== plugin.settings.citationPrefix && valid) {
+                    
+                    if (newValue !== plugin.settings.citationPrefix && containSafeCharAndNotBlank(newValue)) {
                         plugin.settings.citationPrefix = newValue;
                         await plugin.saveSettings();
+                    }
+                    else { 
+                        new Notice("Invalid prefix, {}, $ or blank prefix are not allowed");
+                        text.setValue(plugin.settings.citationPrefix);
                     }
                 };
             });
@@ -295,6 +299,7 @@ export const CitationSettingsTab = {
                             await plugin.saveSettings();
                         } else {
                             new Notice("Only special characters (not brace) are allowed, change not saved");
+                            // text.setValue(plugin.settings.figCitationPrefix);
                         }
                     }
                 }
