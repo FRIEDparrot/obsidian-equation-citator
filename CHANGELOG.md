@@ -395,6 +395,17 @@ Breaking Update Changes :
 - [x] when click 'open equation panel' button will also reveal it in right panel.
 - [x] **Better PDF export configs** : optional captions and descriptions in PDF export for image
 
+### Version 1.3.5 
+Bug fixes, small refactors and improvements, major support for the webpage 
+
+🐛 Fixed Bugs : 
+- [x] fixed [#162](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/162), viewState refresh correctly when switch files 
+- [x] fixed [#169](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/169), the colon is forced to be added in the citation prefix 
+- [ ] fixed [#163](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/163), when switch between files, initial fold state should be stored
+
+
+🏗️ refactors : 
+- [x] refactored and shortened pdf export code part 
 
 ### Future Plans : 
 - [ ] Added **Webpage version of the tutorials** and the **API documentations**.

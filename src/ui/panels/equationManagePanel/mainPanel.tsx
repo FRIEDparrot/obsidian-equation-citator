@@ -51,7 +51,7 @@ export class EquationArrangePanel extends ItemView {
     public filterEmptyHeadings = false; // Default to outline view (show all headings)
     public filterTagOnlyItems = false;
     public filterBoxedEquation = false;
-    public lockRefreshEnabled = false;
+    public lockRefreshEnabled = false;  // lock : file path and cached items 
     public enableRenderHeadingOnly = false; // in outline mode, only render headings without equations 
     // #endregion
 
@@ -62,7 +62,8 @@ export class EquationArrangePanel extends ItemView {
     // last state stored for avoid frequent refresh
     public currentEquationHash = "";
     private currentActiveFile = "";      // current active file path (used for fast refresh)
-    private currentViewMode = "";    // current display mode (used for fast refresh)
+    private lastActiveFile = "";         // last active file path (used for fast refresh)
+    private currentViewMode = "";        // current display mode (used for fast refresh)
 
     private currentSortMode = "";    // current sort mode (used for fast refresh)
     private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
@@ -324,7 +325,10 @@ export class EquationArrangePanel extends ItemView {
     public async refreshView(): Promise<void> {
         // Get the active file path (respecting lock mode)
         const activeFilePath = this.getCurrentActiveFile() || "";
+        const fileSwitched = (this.lastActiveFile !== this.currentActiveFile);
+        
         this.currentActiveFile = activeFilePath;   // used for record current state 
+        this.lastActiveFile = activeFilePath;
 
         // Handle no active file case
         if (!activeFilePath) {
@@ -371,6 +375,18 @@ export class EquationArrangePanel extends ItemView {
             if (headings.length === 0) {
                 await this.handleListViewRefresh(itemsToRender, viewStateEqual);
                 return;
+            }
+            // when switching to a new file, restore fold state (issue #163) 
+            if (fileSwitched && this.outlineViewRenderer.collapseAllState === true) {
+                const occurrenceMap: Map<string, number> = new Map();
+                headings.forEach((heading, index) => {
+                    // see outline_view_renderer, function updateHeadingLines
+                    const key = `${heading.level}|${heading.text}`;
+                    const occurrence = occurrenceMap.get(key) || 0;
+                    occurrenceMap.set(key, occurrence + 1);
+                    const dataId = `${key}|${occurrence}`;
+                    this.outlineViewRenderer.collapseHeadings.add(dataId);
+                })
             }
             await this.outlineViewRenderer.handleOutlineViewRefresh(itemsToRender, headings, viewStateEqual);
         }
