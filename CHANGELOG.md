@@ -401,7 +401,7 @@ Bug fixes, small refactors and improvements, major support for the webpage
 🐛 Fixed Bugs : 
 - [x] fixed [#162](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/162), viewState refresh correctly when switch files 
 - [x] fixed [#169](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/169), the colon is forced to be added in the citation prefix 
-- [ ] fixed [#163](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/163), when switch between files, initial fold state should be stored
+- [x] fixed [#163](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/163), when switch between files, the initial fold state will be stored. 
 
 
 🏗️ refactors : 

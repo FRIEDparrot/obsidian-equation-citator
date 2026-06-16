@@ -266,7 +266,7 @@ function renderToolBarSubPanel(
     setTooltip(panel.filtersForEquationsButton, "Show filters");
     panel.filtersForEquationsButton.addEventListener("click", (event) => {
         event.preventDefault();
-        showFiltersMenu(panel, event as MouseEvent);
+        showFiltersMenu(panel, event);
     });
     updateFiltersButton(panel); // Set initial state
 }
