@@ -302,10 +302,10 @@ export class EquationArrangePanel extends ItemView {
     ): Promise<void> {
         // List mode: Handle no items case
         const itemsHash = hashPanelItems(items);
-        const itemsEqual = (itemsHash === this.currentEquationHash);
+        const itemsEqual = (items.length !==0) && (itemsHash === this.currentEquationHash);
 
         if (viewStateEqual && itemsEqual) {
-            Debugger.log("View state equal, no need to refresh");
+            Debugger.log("View state equal, no need to refresh list view");
             return;
         }
         // Update state

@@ -58,7 +58,7 @@ export class EquationPanelOutlineViewRenderer {
         const displayItems = this.panel.enableRenderHeadingOnly ? [] : (items || []);
 
         const itemsHash = hashPanelItems(displayItems); // Re-use hash function for now
-        const itemsEqual = (itemsHash === this.panel.currentEquationHash);
+        const itemsEqual = (items.length !==0) && (itemsHash === this.panel.currentEquationHash);
         const headingsEqual = (
             headings.length === this.currentHeadings.length &&
             headings.every((h, i) => h.level === this.currentHeadings[i].level && h.text === this.currentHeadings[i].text)
@@ -75,7 +75,7 @@ export class EquationPanelOutlineViewRenderer {
         if (viewStateEqual && itemsEqual && headingsEqual && collapseAllStateEqual) {
             // If lines don't match, update data-line attributes without full re-render
             if (headingLinesEqual) {
-                Debugger.log("View state equal, no need to refresh");
+                Debugger.log("View state equal, no need to refresh outline view");
             } else {
                 Debugger.log("Headings equal but lines changed, updating data-line attributes");
                 this.updateHeadingLines(headings);

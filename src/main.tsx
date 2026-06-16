@@ -35,24 +35,24 @@ import { dropCursorField } from '@/utils/workspace/drag_drop_event';
 
 
 export default class EquationCitator extends Plugin {
-    settings: EquationCitatorSettings;
+    settings!: EquationCitatorSettings;
     extensions: Extension[] = [];
-    equationServices: EquationServices;
-    figureServices: FigureServices;
-    calloutServices: CalloutServices;
-    tagService: TagService;
-    figureTagService: FigureTagService;
-    tagSelectedField: StateField<EditorSelectionInfo>;
+    equationServices!: EquationServices;
+    figureServices!: FigureServices;
+    calloutServices!: CalloutServices;
+    tagService!: TagService;
+    figureTagService!: FigureTagService;
+    tagSelectedField!: StateField<EditorSelectionInfo>;
 
     // initialize caches
-    public citationCache: CitationCache;   // citation cache instance
-    public equationCache: EquationCache;     // equation cache instance
-    public footnoteCache: FootNoteCache;     // footnote cache instance
-    public imageCache: ImageCache;           // image cache instance
-    public calloutCache: CalloutCache;       // callout cache instance
-    public lineHashCache: LineHashCache;     // line hash cache instance 
+    public citationCache!: CitationCache;   // citation cache instance
+    public equationCache!: EquationCache;     // equation cache instance
+    public footnoteCache!: FootNoteCache;     // footnote cache instance
+    public imageCache!: ImageCache;           // image cache instance
+    public calloutCache!: CalloutCache;       // callout cache instance
+    public lineHashCache!: LineHashCache;     // line hash cache instance 
 
-    private autoCompleteSuggest: AutoCompleteSuggest;
+    private autoCompleteSuggest!: AutoCompleteSuggest;
     private readonly mathCitationCompartment = new Compartment();
     private readonly imageCaptionCompartment = new Compartment();
 

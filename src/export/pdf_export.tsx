@@ -2,7 +2,6 @@ import { EquationCitatorSettings } from "@/settings/defaultSettings";
 import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
 import {
     replaceCitationsInMarkdownWithSpan,
-    SpanStyles
 } from "@/utils/core/citation_utils";
 import { parseAllImagesFromMarkdown } from "@/utils/parsers/image_parser";
 import { isCodeBlockToggle } from "@/utils/string_processing/regexp_utils";
@@ -44,7 +43,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
     );
 
     // Step 2: Replace figure citations
-    result = replaceFigureCitationsInMarkdown(
+    result = replaceCitationsInMarkdownWithSpan(
         result,
         settings.figCitationPrefix,
         rangeSymbol,
@@ -59,7 +58,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
 
     // Step 3: Replace callout citations (table, theorem, definition, etc.)
     for (const prefixConfig of settings.calloutCitationPrefixes) {
-        result = replaceCalloutCitationsInMarkdown(
+        result = replaceCitationsInMarkdownWithSpan(
             result,
             prefixConfig.prefix,
             rangeSymbol,
@@ -77,59 +76,6 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
     result = addFigureMetadataToMarkdown(result, settings);
 
     return result;
-}
-
-/**
- * Replace figure citations with styled spans for PDF export
- * Similar to replaceCitationsInMarkdownWithSpan but for figures
- */
-function replaceFigureCitationsInMarkdown(
-    markdown: string,
-    figPrefix: string,
-    rangeSymbol: string | null,
-    validDelimiters: string[],
-    fileDelimiter: string,
-    multiCitationDelimiter: string,
-    citationFormat: string,
-    spanStyles: SpanStyles
-): string {
-    // Reuse the same logic as equation citations, just with different prefix
-    return replaceCitationsInMarkdownWithSpan(
-        markdown,
-        figPrefix,
-        rangeSymbol,
-        validDelimiters,
-        fileDelimiter,
-        multiCitationDelimiter,
-        citationFormat,
-        spanStyles
-    );
-}
-
-/**
- * Replace callout citations (table, thm, def, etc.) with styled spans for PDF export
- */
-function replaceCalloutCitationsInMarkdown(
-    markdown: string,
-    calloutPrefix: string,
-    rangeSymbol: string | null,
-    validDelimiters: string[],
-    fileDelimiter: string,
-    multiCitationDelimiter: string,
-    citationFormat: string,
-    spanStyles: SpanStyles
-): string {
-    // Reuse the same logic as equation citations, just with different prefix
-    return replaceCitationsInMarkdownWithSpan(
-        markdown,
-        calloutPrefix,
-        rangeSymbol,
-        validDelimiters,
-        fileDelimiter,
-        multiCitationDelimiter,
-        citationFormat,
-        spanStyles
-    );
 }
 
 function addFigureMetadataToMarkdownLine(args: {
