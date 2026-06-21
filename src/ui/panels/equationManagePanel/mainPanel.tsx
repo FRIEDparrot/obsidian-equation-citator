@@ -509,7 +509,7 @@ export class EquationArrangePanel extends ItemView {
 
                     // Scroll to the equation after layout is ready
                     this.app.workspace.onLayoutReady(() => {
-                        setTimeout(() => {
+                        activeWindow.setTimeout(() => {
                             if (equation.tag) {
                                 void scrollToEquationByTag(this.plugin, equation.tag, currentFile.path);
                             }
@@ -607,7 +607,7 @@ export class EquationArrangePanel extends ItemView {
 
                     // Scroll to the figure after layout is ready
                     this.app.workspace.onLayoutReady(() => {
-                        setTimeout(() => {
+                        activeWindow.setTimeout(() => {
                             this.jumpToLine(figure.line).then().catch(console.error);
                         }, 50);
                     });
@@ -685,7 +685,7 @@ export class EquationArrangePanel extends ItemView {
 
                     // Scroll to the callout after layout is ready
                     this.app.workspace.onLayoutReady(() => {
-                        setTimeout(() => {
+                        activeWindow.setTimeout(() => {
                             this.jumpToLine(callout.lineStart).then().catch(console.error);
                         }, 50);
                     });
