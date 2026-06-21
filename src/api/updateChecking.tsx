@@ -3,6 +3,7 @@ import { Notice, requestUrl } from "obsidian";
 const versionUrl = "https://raw.githubusercontent.com/FRIEDparrot/obsidian-equation-citator/refs/heads/master/manifest.json"
 
 
+
 /**
  * Check if a new version of the plugin is available by fetching the latest version from GitHub and comparing it with the current version.
  * 

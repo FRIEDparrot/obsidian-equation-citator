@@ -413,6 +413,37 @@
     font-size: 12px;
 }
 
+.em-callout-content,
+.ec-callout-content {
+    pre {
+        margin: 6px 0;
+        padding: 8px 10px;
+        overflow-x: auto;
+        background: var(--code-background, var(--background-secondary));
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 4px;
+        white-space: pre;
+    }
+
+    pre > code {
+        display: block;
+        padding: 0;
+        overflow-wrap: normal;
+        white-space: pre;
+        word-break: normal;
+        background: transparent;
+        border-radius: 0;
+        color: var(--code-normal, var(--text-normal));
+        font-family: var(--font-monospace);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .copy-code-button {
+        display: none;
+    }
+}
+
 /* Handle callout blocks within the preview */
 .em-callout-content .callout {
     margin: 8px 0;

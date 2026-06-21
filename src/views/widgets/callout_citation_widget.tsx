@@ -102,7 +102,7 @@ export class CalloutCitationWidget extends WidgetType {
             this.prefix,
             sourcePath
         );
-
+        
         if (renderedCallouts.length === 0) {
             Debugger.log(`No valid callouts found for citation: ${this.calloutTagsAll.join(', ')}`);
             // Show a simple notice to the user instead of throwing an error

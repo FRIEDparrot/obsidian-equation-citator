@@ -121,7 +121,9 @@ export function parseAllCalloutsFromMarkdown(
         }
         
         // Skip lines in code blocks
-        if (inCodeBlock) continue;
+        if (inCodeBlock && !inCallout) {
+            continue;
+        }
 
         // Check if we're currently in a callout block
         if (inCallout) {
