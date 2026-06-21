@@ -5,12 +5,16 @@
 <center><div width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.4-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
-  <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads" alt="Downloads">
+  <a href="https://obsidian.md/plugins?id=equation-citator">
+  <img src="https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22equation-citator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json" alt="Downloads">
+</a>
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
   <img src="https://sonarcloud.io/api/project_badges/measure?project=FRIEDparrot_obsidian-equation-citator&metric=alert_status" alt="Quality Gate">
 </span></div></center>
 <center><b>English</b> | <a href="README_zh.md" target="_blank"><b>简体中文</b></a></center>
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4></center>
+
+<center><b><i>Thanks for 1.5k downloads!</i></b></center> 
 
 ---
 
@@ -24,13 +28,9 @@
 
 ## 🛠️ Installation
 
-> Now this plugin is waiting for review in Obsidian community plugins at [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298), so you may not find it available in the community plugins list now, but please be patient for it.
-
-1. You can download it from community plugins after this plugin is published (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`).
+1. You can download it from community plugins (`Settings` > `Community plugins` > `Browse` and search for `equation-citator`).
 
 2. Or you can download `main.js`, `manifest.json` and `style.css` from the latest release page and place them in `.obsidian/plugins/equation-citator` in your Obsidian vault.
-
-3. This plugin can also be installed via [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) — just paste the link of this repo into the BRAT options tab.
 
 ## 👋🏻 Applications & Usages
 

@@ -396,12 +396,13 @@ Breaking Update Changes :
 - [x] **Better PDF export configs** : optional captions and descriptions in PDF export for image
 
 ### Version 1.3.5 
-Bug fixes, small refactors and improvements, major support for the webpage 
+Bug fixes, small refactors and improvements, major support for the webpage notes 
 
 🐛 Fixed Bugs : 
 - [x] fixed [#162](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/162), viewState refresh correctly when switch files 
 - [x] fixed [#169](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/169), the colon is forced to be added in the citation prefix 
 - [x] fixed [#163](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/163), when switch between files, the initial fold state will be stored. 
+- [x] fixed [#164](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/164), code blocks now render correctly in callouts. 
 
 
 🏗️ refactors : 
