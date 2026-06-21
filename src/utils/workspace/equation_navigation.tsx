@@ -56,7 +56,7 @@ export async function scrollToEquationByTag(
             editor.scrollIntoView(scrollRange, true);
         } else if (retries > 0) {
             Debugger.log(`Line count ${editor.lineCount()} is less than lineStart ${lineStart}, retrying...`);
-            setTimeout(() => {
+            activeWindow.setTimeout(() => {
                 tryScroll(retries - 1);
             }, 350);
         } else if (retries === 0) {
@@ -139,7 +139,7 @@ export async function openFileAndScrollToEquation(
     // Scroll to the equation after layout is ready
     plugin.app.workspace.onLayoutReady(() => {
         // Ensure the layout is ready before scrolling to the tag
-        setTimeout(() => {
+        activeWindow.setTimeout(() => {
             scrollToEquationByTag(plugin, tag, normalizedSourcePath).then().catch(console.error);
         }, 50);
     });

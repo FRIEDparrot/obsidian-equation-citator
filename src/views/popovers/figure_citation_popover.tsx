@@ -279,7 +279,7 @@ function addClickEffects(figureWrapper: HTMLElement): void {
 
     figureWrapper.addEventListener("click", () => {
         figureWrapper.addClass("em-figure-clicked");
-        setTimeout(() => {
+        activeWindow.setTimeout(() => {
             figureWrapper.removeClass("em-figure-clicked");
         }, 300);
     });
@@ -373,7 +373,7 @@ async function openFileAndScrollToFigure(
     }
 
     // Scroll to the figure
-    setTimeout(() => {
+    activeWindow.setTimeout(() => {
         const view = targetLeaf.view;
         if (view instanceof MarkdownView && view.editor) {
             const editor = view.editor;

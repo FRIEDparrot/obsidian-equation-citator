@@ -21,7 +21,8 @@ export default defineConfig([
             parserOptions: { project: "./tsconfig.json" },
             globals: {
                 ...globals.browser,
-                ...globals.node,
+                activeWindow: "readonly",
+                activeDocument: "readonly",
             },
         },
         plugins: {
