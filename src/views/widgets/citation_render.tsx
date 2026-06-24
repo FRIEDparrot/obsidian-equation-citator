@@ -1,7 +1,7 @@
 import { Prec, RangeSetBuilder, StateField } from "@codemirror/state";
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, editorInfoField, MarkdownView, normalizePath } from "obsidian";
+import { HoverParent, MarkdownPostProcessorContext, Notice, TFile, editorInfoField, MarkdownView, normalizePath, MarkdownRenderer, MarkdownRenderChild, Component } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
 import {
@@ -640,9 +640,12 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         captionElements: Map<string, HTMLElement> = new Map();
         captionsByLine: Map<number, { element: Element; caption: HTMLElement }> = new Map();
         lastCursorLine = -1;
+        // Owns the lifecycle of MarkdownRenderer.render() calls used for caption descriptions
+        mathRenderComponent: Component = new Component();
 
         constructor(view: EditorView) {
             this.view = view;
+            this.mathRenderComponent.load();
             this.lastCursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
             this.renderImageCaptions(view);
         }
@@ -921,16 +924,26 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 captionDiv.appendChild(titleLine);
             }
 
-            // Second line: description
+            // Description - rendered as Markdown so inline math (e.g. $n_g$) is supported
             if (image.desc) {
                 const descLine = document.createElement('div');
                 descLine.className = 'em-image-caption-desc';
-                descLine.textContent = image.desc;
                 captionDiv.appendChild(descLine);
+                this.renderCaptionDesc(descLine, image.desc);
             }
 
             // Only append to internal embeds (not IMG elements)
             element.appendChild(captionDiv);
+        }
+
+        /**
+         * Render the figure description as Markdown (so inline math like $n_g$ works)
+         * into the given element, scoped to this view's source file.
+         */
+        renderCaptionDesc(descLine: HTMLElement, desc: string) {
+            const currentFile = this.view.state.field(editorInfoField).file;
+            const sourcePath = currentFile instanceof TFile ? currentFile.path : '';
+            void MarkdownRenderer.render(plugin.app, desc, descLine, sourcePath, this.mathRenderComponent);
         }
 
         updateCaption(captionEl: HTMLElement, image: ImageMatch, settings: EquationCitatorSettings) {
@@ -955,16 +968,17 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 captionEl.appendChild(titleLine);
             }
 
-            // Second line: description
+            // Second line: description - rendered as Markdown so inline math works
             if (image.desc) {
                 const descLine = document.createElement('div');
                 descLine.className = 'em-image-caption-desc';
-                descLine.textContent = image.desc;
                 captionEl.appendChild(descLine);
+                this.renderCaptionDesc(descLine, image.desc);
             }
         }
 
         destroy() {
+            this.mathRenderComponent.unload();
             this.captionElements.clear();
             this.captionsByLine.clear();
         }
@@ -1034,7 +1048,7 @@ export async function imageCaptionPostProcessor(
         for (let i = 0; i < sectionImages.length; i++) {
             if (!usedIndices.has(i)) {
                 usedIndices.add(i);
-                createImageCaption(element, sectionImages[i], figCitationFormat);
+                createImageCaption(plugin, ctx, element, sectionImages[i], figCitationFormat);
                 break;
             }
         }
@@ -1045,7 +1059,13 @@ export async function imageCaptionPostProcessor(
  * Helper function to create image caption element
  * Only for internal embeds (local files)
  */
-function createImageCaption(element: Element, image: ImageMatch, figCitationFormat: string): void {
+function createImageCaption(
+    plugin: EquationCitator,
+    ctx: MarkdownPostProcessorContext,
+    element: Element,
+    image: ImageMatch,
+    figCitationFormat: string
+): void {
     const captionDiv = document.createElement('div');
     captionDiv.className = 'em-image-caption';
 
@@ -1067,12 +1087,16 @@ function createImageCaption(element: Element, image: ImageMatch, figCitationForm
         captionDiv.appendChild(titleLine);
     }
 
-    // Second line: description
+    // Second line: description - rendered as Markdown so inline math (e.g. $n_g$) works
     if (image.desc) {
         const descLine = document.createElement('div');
         descLine.className = 'em-image-caption-desc';
-        descLine.textContent = image.desc;
         captionDiv.appendChild(descLine);
+
+        // Tie the render's lifecycle (and any embedded widgets) to this post-processor block
+        const component = new MarkdownRenderChild(descLine);
+        ctx.addChild(component);
+        void MarkdownRenderer.render(plugin.app, image.desc, descLine, ctx.sourcePath, component);
     }
 
     // Append to internal embed element
