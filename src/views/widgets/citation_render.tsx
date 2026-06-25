@@ -922,8 +922,8 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                     titleText += (titleText ? ' ' : '') + image.title;
                 }
 
-                titleLine.textContent = titleText;
                 captionDiv.appendChild(titleLine);
+                this.renderMarkdown(titleLine, titleText, this.mathRenderComponentCapt);
             }
 
             // Description - rendered as Markdown so inline math (e.g. $n_g$) is supported
@@ -931,7 +931,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 const descLine = document.createElement('div');
                 descLine.className = 'em-image-caption-desc';
                 captionDiv.appendChild(descLine);
-                this.renderMarkdown(descLine, image.desc);
+                this.renderMarkdown(descLine, image.desc, this.mathRenderComponentCapt);
             }
 
             // Only append to internal embeds (not IMG elements)
