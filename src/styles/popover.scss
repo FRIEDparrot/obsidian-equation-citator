@@ -144,7 +144,6 @@
     display: inline-block;     // needed for ellipsis inside flex/inline contexts
     overflow: hidden;          // hide overflow
     text-overflow: ellipsis;   // show ellipsis
-    white-space: nowrap;       // prevent wrapping
 }
 
 /* Equation content */
