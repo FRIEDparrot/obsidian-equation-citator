@@ -448,7 +448,7 @@ export async function mathCitationPostProcessor(
 function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, eqNumbersAll: string[], sourcePath: string): void {
     const citationSpans = citationEl.querySelectorAll('span.em-math-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', (event: MouseEvent) => {
+        (span as HTMLElement).addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
             void showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath, event);
@@ -459,7 +459,7 @@ function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTML
 function addReadingModeFigurePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, figureTagsAll: string[], sourcePath: string): void {
     const citationSpans = citationEl.querySelectorAll('span.em-figure-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', (event: MouseEvent) => {
+        (span as HTMLElement).addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
             void showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath, event);
@@ -508,7 +508,7 @@ function addReadingModeCalloutPreviewListener(
 ): void {
     const citationSpans = citationEl.querySelectorAll('span.em-callout-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', (event: MouseEvent) => {
+        (span as HTMLElement).addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
             void showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath, event);
@@ -641,11 +641,13 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         captionsByLine: Map<number, { element: Element; caption: HTMLElement }> = new Map();
         lastCursorLine = -1;
         // Owns the lifecycle of MarkdownRenderer.render() calls used for caption descriptions
-        mathRenderComponent: Component = new Component();
+        mathRenderComponentCapt: Component = new Component();
+        mathRenderComponentDesc: Component = new Component();
 
         constructor(view: EditorView) {
             this.view = view;
-            this.mathRenderComponent.load();
+            this.mathRenderComponentCapt.load();
+            this.mathRenderComponentDesc.load();
             this.lastCursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
             this.renderImageCaptions(view);
         }
@@ -929,7 +931,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 const descLine = document.createElement('div');
                 descLine.className = 'em-image-caption-desc';
                 captionDiv.appendChild(descLine);
-                this.renderCaptionDesc(descLine, image.desc);
+                this.renderMarkdown(descLine, image.desc);
             }
 
             // Only append to internal embeds (not IMG elements)
@@ -940,10 +942,10 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
          * Render the figure description as Markdown (so inline math like $n_g$ works)
          * into the given element, scoped to this view's source file.
          */
-        renderCaptionDesc(descLine: HTMLElement, desc: string) {
+        renderMarkdown(descLine: HTMLElement, desc: string, mathComp: Component) {
             const currentFile = this.view.state.field(editorInfoField).file;
             const sourcePath = currentFile instanceof TFile ? currentFile.path : '';
-            void MarkdownRenderer.render(plugin.app, desc, descLine, sourcePath, this.mathRenderComponent);
+            void MarkdownRenderer.render(plugin.app, desc, descLine, sourcePath, mathComp);
         }
 
         updateCaption(captionEl: HTMLElement, image: ImageMatch, settings: EquationCitatorSettings) {
@@ -963,9 +965,8 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 if (image.title) {
                     titleText += (titleText ? ' ' : '') + image.title;
                 }
-
-                titleLine.textContent = titleText;
                 captionEl.appendChild(titleLine);
+                this.renderMarkdown(titleLine, titleText, this.mathRenderComponentCapt);
             }
 
             // Second line: description - rendered as Markdown so inline math works
@@ -973,12 +974,13 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 const descLine = document.createElement('div');
                 descLine.className = 'em-image-caption-desc';
                 captionEl.appendChild(descLine);
-                this.renderCaptionDesc(descLine, image.desc);
+                this.renderMarkdown(descLine, image.desc, this.mathRenderComponentDesc);
             }
         }
 
         destroy() {
-            this.mathRenderComponent.unload();
+            this.mathRenderComponentCapt.unload();
+            this.mathRenderComponentDesc.unload();
             this.captionElements.clear();
             this.captionsByLine.clear();
         }
@@ -1082,8 +1084,9 @@ function createImageCaption(
         if (image.title) {
             titleText += (titleText ? ' ' : '') + image.title;
         }
-
-        titleLine.textContent = titleText;
+        const componentTitle = new MarkdownRenderChild(titleLine);
+        ctx.addChild(componentTitle);
+        void  MarkdownRenderer.render(plugin.app, titleText, titleLine, ctx.sourcePath, componentTitle);
         captionDiv.appendChild(titleLine);
     }
 
