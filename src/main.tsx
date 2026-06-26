@@ -35,14 +35,15 @@ import { dropCursorField } from '@/utils/workspace/drag_drop_event';
 
 
 export default class EquationCitator extends Plugin {
-    settings!: EquationCitatorSettings;
-    extensions: Extension[] = [];
-    equationServices!: EquationServices;
-    figureServices!: FigureServices;
-    calloutServices!: CalloutServices;
-    tagService!: TagService;
-    figureTagService!: FigureTagService;
-    tagSelectedField!: StateField<EditorSelectionInfo>;
+    public settings!: EquationCitatorSettings;
+    public tagService!: TagService;
+    public figureTagService!: FigureTagService;
+    public equationServices!: EquationServices;
+    public figureServices!: FigureServices;
+    public calloutServices!: CalloutServices;
+    public readonly extensions: Extension[] = [];
+    
+    public tagSelectedField!: StateField<EditorSelectionInfo>;
 
     // initialize caches
     public citationCache!: CitationCache;   // citation cache instance

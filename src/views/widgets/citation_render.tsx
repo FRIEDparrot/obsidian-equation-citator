@@ -448,7 +448,7 @@ export async function mathCitationPostProcessor(
 function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, eqNumbersAll: string[], sourcePath: string): void {
     const citationSpans = citationEl.querySelectorAll('span.em-math-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', (event: MouseEvent) => {
+        (span as HTMLElement).addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
             void showReadingModePopover(plugin, citationEl, eqNumbersAll, sourcePath, event);
@@ -459,7 +459,7 @@ function addReadingModePreviewListener(plugin: EquationCitator, citationEl: HTML
 function addReadingModeFigurePreviewListener(plugin: EquationCitator, citationEl: HTMLElement, figureTagsAll: string[], sourcePath: string): void {
     const citationSpans = citationEl.querySelectorAll('span.em-figure-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', (event: MouseEvent) => {
+        (span as HTMLElement).addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
             void showReadingModeFigurePopover(plugin, citationEl, figureTagsAll, sourcePath, event);
@@ -508,7 +508,7 @@ function addReadingModeCalloutPreviewListener(
 ): void {
     const citationSpans = citationEl.querySelectorAll('span.em-callout-citation');
     citationSpans.forEach(span => {
-        span.addEventListener('mouseenter', (event: MouseEvent) => {
+        (span as HTMLElement).addEventListener('mouseenter', (event: MouseEvent) => {
             event.preventDefault();
             event.stopPropagation();
             void showReadingModeCalloutPopover(plugin, citationEl, prefix, calloutTagsAll, sourcePath, event);
