@@ -114,14 +114,10 @@ function addFigureMetadataToMarkdownLine(args: {
     }
 
     const figNumber = args.settings.figCitationFormat.replace('#', figureOnLine.tag || '');
-    let captionText = figNumber;
-    if (figureOnLine.title) {
-        captionText = `${figNumber}: ${figureOnLine.title}`;
-    }
-    processedLines.push(`<center><strong>${escapeHtml(captionText)}</strong></center>`);
+    processedLines.push(buildFigureTitleMarkdown(figNumber, figureOnLine.title));
 
     if (figureOnLine.desc && args.addDesc) {
-        processedLines.push(`<center><small>${escapeHtml(figureOnLine.desc)}</small></center>`);
+        processedLines.push(buildFigureDescMarkdown(figureOnLine.desc));
     }
 
     processedLines.push('');
@@ -226,15 +222,28 @@ function removeImageMetadata(line: string, figPrefix: string): string {
 }
 
 /**
- * Escape HTML special characters to prevent XSS
+ * Build an export-safe markdown line for figure title.
+ *
+ * We intentionally avoid wrapping the content in block HTML because Obsidian
+ * will stop parsing markdown syntax inside HTML blocks. The inline marker span
+ * gives CSS a hook for centering/sizing while preserving markdown and inline math
+ * in the actual title text.
  */
-function escapeHtml(text: string): string {
-    const htmlEscapeMap: Record<string, string> = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    };
-    return text.replaceAll(/[&<>"']/g, char => htmlEscapeMap[char]);
+function buildFigureTitleMarkdown(figNumber: string, title?: string): string {
+    const marker = '<span class="ec-pdf-figure-title-marker"></span>';
+    const formattedNumber = figNumber.trim() ? `**${figNumber.trim()}**` : '';
+    const formattedTitle = title?.trim() || '';
+
+    if (formattedNumber && formattedTitle) {
+        return `${marker}${formattedNumber}: ${formattedTitle}`;
+    }
+
+    return `${marker}${formattedNumber || formattedTitle}`;
+}
+
+/**
+ * Build an export-safe markdown line for figure description.
+ */
+function buildFigureDescMarkdown(desc: string): string {
+    return `<span class="ec-pdf-figure-desc-marker"></span>${desc.trim()}`;
 }
