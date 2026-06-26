@@ -144,7 +144,6 @@
     display: inline-block;     // needed for ellipsis inside flex/inline contexts
     overflow: hidden;          // hide overflow
     text-overflow: ellipsis;   // show ellipsis
-    white-space: nowrap;       // prevent wrapping
 }
 
 /* Equation content */
@@ -255,7 +254,7 @@
 .em-file-superscript-popover-content {
   line-height: 1.4;
   font-size: 0.9em;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .em-file-superscript-popover-link {
@@ -655,32 +654,41 @@
     margin-right: auto;
 }
 
-/* Image caption container */
+/* Image caption container - title and description flow together as one piece of text,
+   so a long description wraps word-by-word after the title instead of dropping
+   to its own line below it. */
 .em-image-caption {
     margin-top: 6px;
     padding: 0;
     background: transparent;
-    text-align: center;
     font-size: 12px;
     line-height: 1.4;
+    text-align: center;
 }
 
-/* Image caption title (Fig. X.X title) */
+/* Image caption title (Fig. X.X title) - inline so the description can flow right after it */
 .em-image-caption-title {
     font-weight: 600;
     font-size: 14px;
     color: var(--em-text-normal);
     margin-bottom: 3px;
-    text-align: center;
+    margin-right: 0.4em;
 }
 
-/* Image caption description */
+/* Image caption description - inline, continues the same text flow as the title and
+   wraps normally (word by word) when it's too long to fit on one line */
 .em-image-caption-desc {
     color: var(--em-text-muted);
     opacity: 0.7;
     font-style: normal;
-    font-size: 13px;
-    text-align: center;
+    font-size: 12px;
+}
+
+/* Math rendered inside the caption shouldn't add its own block margins */
+.em-image-caption-title p,
+.em-image-caption-desc p {
+    display: inline;
+    margin: 0;
 }
 
 // ------------ Autocomplete Preview Styles ------------
