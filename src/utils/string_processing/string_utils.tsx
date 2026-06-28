@@ -26,6 +26,14 @@ export function escapeString(str: string, quoteType: '"' | "'" = '"'): string {
     });
 }
 
+export function validateNumber(value: string): boolean {
+    if (!/^\d+(?:\.\d+)?$/.test(value)) {
+        return false;
+    }
+    const numericWidth = Number(value);
+    return Number.isFinite(numericWidth) && numericWidth > 0;
+}
+
 export function validateDelimiter(delimiter: string): boolean {
     // only allow special characters as delimiters. disallow unsafe characters { }, $ 
     if (!(/^[^a-zA-Z0-9\s]+$/.test(delimiter))) return false;

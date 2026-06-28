@@ -82,7 +82,8 @@ when generating markdown for print pdf,
 /* Exported markdown figure caption hooks for PDF export */
 p:has(.ec-pdf-figure-title-marker) {
     text-align: center;
-    font-size: 1.05em;
+    color: var(--text-normal);
+    font-size: 1.15em;
     font-weight: 600;
     line-height: 1.45;
     margin-top: 0.45em;
@@ -96,6 +97,7 @@ p:has(.ec-pdf-figure-desc-marker) {
     color: var(--text-muted);
     margin-top: 0;
     margin-bottom: 0.75em;
+    opacity: 0.9;
 }
 
 .ec-pdf-figure-title-marker,

@@ -1,5 +1,5 @@
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
-import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
+import { DISABLED_DELIMITER, validateNumber } from "@/utils/string_processing/string_utils";
 import {
     replaceCitationsInMarkdownWithSpan,
 } from "@/utils/core/citation_utils";
@@ -103,7 +103,7 @@ function addFigureMetadataToMarkdownLine(args: {
 
     const processedLines: string[] = [];
 
-    const cleanedImageLine = removeImageMetadata(args.line, args.settings.figCitationPrefix);
+    const cleanedImageLine = removeImageMetadata(args.line, args.settings.figCitationPrefix, true);
     processedLines.push(cleanedImageLine);
 
     if (!args.addCaptions) {
@@ -117,6 +117,7 @@ function addFigureMetadataToMarkdownLine(args: {
     processedLines.push(buildFigureTitleMarkdown(figNumber, figureOnLine.title));
 
     if (figureOnLine.desc && args.addDesc) {
+        processedLines.push(''); // add another line for separate the paragraph 
         processedLines.push(buildFigureDescMarkdown(figureOnLine.desc));
     }
 
@@ -178,17 +179,24 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
 
 /**
  * Remove metadata from image markdown line
- * Example: ![[image.png|fig:4|title:Test|desc:Description]] → ![[image.png]]
+ * Example: ![[image.png|fig:4|title:Test|desc:Description|width]] → ![[image.png|width]]
  * Example: ![alt|fig:3|title:Test|desc:Description](url) → ![alt](url)
  */
-function removeImageMetadata(line: string, figPrefix: string): string {
+function removeImageMetadata(line: string, figPrefix: string, keepWidth: boolean): string {
     // Handle weblink format: ![[path|metadata]]
     const weblinkPattern = /^!\[\[([^\]|]+)(?:\|([^\]]*))?\]\]$/;
     const weblinkMatch = new RegExp(weblinkPattern).exec(line);
 
     if (weblinkMatch) {
         const imagePath = weblinkMatch[1].trim();
+        const metadata = weblinkMatch[2] || '';
+        const width = keepWidth ? getLastMetadataWidth(metadata) : null;
+
         // Return just the image path without metadata
+        if (width) {
+            return `![[${imagePath}|${width}]]`;
+        }
+
         return `![[${imagePath}]]`;
     }
 
@@ -199,13 +207,15 @@ function removeImageMetadata(line: string, figPrefix: string): string {
     if (markdownMatch) {
         const altText = markdownMatch[1];
         const imageUrl = markdownMatch[2].trim();
+        const width = keepWidth ? getLastMetadataWidth(altText) : null;
 
         // Parse alt text to remove metadata (fig:, title:, desc:)
         // Split by | and keep only the first part (actual alt text)
         const altParts = altText.split('|').map(p => p.trim());
+        const altPartsWithoutWidth = width ? altParts.slice(0, -1) : altParts;
 
         // Filter out metadata parts that start with fig:, title:, or desc:
-        const cleanAltParts = altParts.filter(part => {
+        const cleanAltParts = altPartsWithoutWidth.filter(part => {
             return !part.startsWith(figPrefix) &&
                    !part.startsWith('title:') &&
                    !part.startsWith('desc:');
@@ -213,12 +223,23 @@ function removeImageMetadata(line: string, figPrefix: string): string {
 
         // Use the first non-metadata part as alt text, or empty if none
         const cleanAlt = cleanAltParts.length > 0 ? cleanAltParts[0] : '';
+        const cleanAltWithWidth = width ? [cleanAlt, width].filter(Boolean).join('|') : cleanAlt;
 
-        return `![${cleanAlt}](${imageUrl})`;
+        return `![${cleanAltWithWidth}](${imageUrl})`;
     }
 
     // Return line unchanged if it doesn't match any pattern
     return line;
+}
+
+function getLastMetadataWidth(metadata: string): string | null {
+    const metaParts = metadata.split('|').map(p => p.trim()).filter(p => p.length > 0);
+    const lastPart = metaParts.at(-1);
+
+    if (!lastPart || !validateNumber(lastPart)) {
+        return null;
+    }
+    return lastPart;
 }
 
 /**

@@ -7,11 +7,15 @@ import Debugger from "@/debug/debugger";
 
 export async function exportCurrentMarkdown(plugin: EquationCitator) {
     const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view)
+    if (!view) {
+        new Notice("No active markdown view found");
         return;
+    }
     const file = view.file;
-    if (!file)
+    if (!file || !(file instanceof TFile) || file.extension !== 'md') {
+        new Notice("Invalid file type");
         return;
+    }
     const md = await plugin.app.vault.read(file);
     if (!md) {
         new Notice("File is empty");
@@ -25,8 +29,8 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
 
     const originalName = file.name.replace(/\.md$/, '');
     const newName = originalName + '-exported.md';
-    const folderPath = file.path.substring(0, file.path.lastIndexOf('/'));
-    const newFilePath = folderPath + '/' + newName;
+    const folderPath = file.path.substring(0, file.path.lastIndexOf('/')) || '';
+    const newFilePath = folderPath ? (folderPath + '/') + newName : newName;
     const normalizedNewFilePath = normalizePath(newFilePath);
     const existingFile = plugin.app.vault.getAbstractFileByPath(normalizedNewFilePath);
 
