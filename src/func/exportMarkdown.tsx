@@ -41,6 +41,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
         plugin.app.workspace.setActiveLeaf(newLeaf, { focus: true });
         await plugin.app.workspace.openLinkText("", newFilePath, false);
     }
+    const getErrorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error);
 
     if (existingFile instanceof TFile) {
         const confirmOption: ModalOption = {
@@ -53,7 +54,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
                     await finishExport(newFilePath);
                 }
                 catch (error) {
-                    new Notice(`Export failed: ${error.message}`);
+                    new Notice(`Export failed: ${getErrorMessage(error)}`);
                 }
             }
         }
@@ -76,8 +77,8 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
             await finishExport(newFilePath);
         }
         catch (error) {
-            new Notice(`Error while exporting to ${newFilePath}: ${error.message}`);
-            Debugger.error(error);
+            new Notice(`Error while exporting to ${newFilePath}: ${getErrorMessage(error)}`);
+            Debugger.error(getErrorMessage(error));
         }
     }
 }   
