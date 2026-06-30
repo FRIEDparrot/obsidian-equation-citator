@@ -1,10 +1,14 @@
 import { EquationCitatorSettings } from "@/settings/defaultSettings";
-import { DISABLED_DELIMITER, validateNumber } from "@/utils/string_processing/string_utils";
+import { combineContinuousCitationTags, splitFileCitation } from "@/utils/core/citation_utils";
+import { DISABLED_DELIMITER, escapeString, removeInlineCodeBlocks, validateNumber } from "@/utils/string_processing/string_utils";
 import {
-    replaceCitationsInMarkdownWithSpan,
-} from "@/utils/core/citation_utils";
+    equationBlockBracePattern,
+    equationBlockStartPatternWithWhiteSpace,
+    inlineMathPattern,
+    isCodeBlockToggle,
+    matchNestedCitation,
+} from "@/utils/string_processing/regexp_utils";
 import { parseAllImagesFromMarkdown } from "@/utils/parsers/image_parser";
-import { isCodeBlockToggle } from "@/utils/string_processing/regexp_utils";
 
 //////////////////////////  Make Markdown for PDF Export  ////////////////////////  
 
@@ -267,4 +271,215 @@ function buildFigureTitleMarkdown(figNumber: string, title?: string): string {
  */
 function buildFigureDescMarkdown(desc: string): string {
     return `<span class="ec-pdf-figure-desc-marker"></span>${desc.trim()}`;
+}
+
+////////////////////  Citation span replacement for PDF export  ///////////////////////// 
+
+export interface SpanStyles {
+    citationColorInPdf: string;
+}
+
+/**
+ * Replaces inline citations in markdown with <span> tags.
+ * Ignores multiline code blocks, inline code blocks, and display math blocks.
+ */
+export function replaceCitationsInMarkdownWithSpan(
+    markdown: string,
+    prefix: string,
+    rangeSymbol: string | null,
+    validDelimiters: string[],
+    fileDelimiter: string,
+    multiCitationDelimiter = ',',
+    citationFormat = '(#)',
+    spanStyles = {} as SpanStyles
+): string {
+    if (!markdown.trim()) return markdown;
+
+    const lines = markdown.split('\n');
+    let inMultilineCodeBlock = false;
+    let inDisplayMath = false;
+
+    const processedLines = lines.map((line) => {
+        if (isCodeBlockToggle(line)) {
+            inMultilineCodeBlock = !inMultilineCodeBlock;
+            return line;
+        }
+        if (inMultilineCodeBlock) {
+            return line;
+        }
+
+        const cleanedLine = removeInlineCodeBlocks(line);
+        if (inDisplayMath) {
+            const displayMathMatches = line.match(equationBlockBracePattern);
+            if (displayMathMatches && displayMathMatches.length % 2 !== 0) {
+                inDisplayMath = false;
+            }
+            return line;
+        }
+
+        if (equationBlockStartPatternWithWhiteSpace.test(cleanedLine)) {
+            const displayMathMatches = cleanedLine.match(equationBlockBracePattern);
+            if (!displayMathMatches || displayMathMatches.length % 2 !== 0) {
+                inDisplayMath = true;
+            }
+            return line;
+        }
+
+        return processInlineReferences(
+            line, prefix, rangeSymbol, validDelimiters, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles
+        );
+    });
+    return processedLines.join('\n');
+}
+
+/**
+ * Processes inline citations to span while avoiding inline code blocks.
+ */
+function processInlineReferences(
+    line: string,
+    prefix: string,
+    rangeSymbol: string | null,
+    validDelimiters: string[],
+    fileDelimiter: string,
+    multiCitationDelimiter = ',',
+    citationFormat = '(#)',
+    spanStyles = {} as SpanStyles
+): string {
+    const codeBlockRanges: Array<{ start: number, end: number }> = [];
+    let i = 0;
+
+    while (i < line.length) {
+        if (line[i] === '`' && (i === 0 || line[i - 1] !== '\\')) {
+            const start = i;
+            i++;
+            while (i < line.length) {
+                if (line[i] === '`' && line[i - 1] !== '\\') {
+                    codeBlockRanges.push({ start, end: i });
+                    break;
+                }
+                i++;
+            }
+        }
+        i++;
+    }
+
+    const isInCodeBlock = (pos: number): boolean => {
+        return codeBlockRanges.some(range => pos >= range.start && pos <= range.end);
+    };
+
+    const dollarPositions: Array<{ pos: number, type: 'single' | 'double' }> = [];
+    i = 0;
+    let backslashRun = 0;
+    while (i < line.length) {
+        const ch = line[i];
+        if (ch === '\\') {
+            backslashRun++;
+            i++;
+            continue;
+        }
+        if (ch === '$') {
+            const isEscaped = (backslashRun % 2 === 1);
+            if (!isEscaped) {
+                if (i + 1 < line.length && line[i + 1] === '$') {
+                    dollarPositions.push({ pos: i, type: 'double' });
+                    i += 2;
+                } else {
+                    dollarPositions.push({ pos: i, type: 'single' });
+                    i += 1;
+                }
+                backslashRun = 0;
+                continue;
+            }
+        }
+        backslashRun = 0;
+        i++;
+    }
+
+    const inlineMathRanges: Array<{ start: number, end: number }> = [];
+    for (let j = 0; j < dollarPositions.length - 1; j++) {
+        const current = dollarPositions[j];
+        const next = dollarPositions[j + 1];
+        if (current.type === 'single' && next.type === 'single') {
+            if (isInCodeBlock(current.pos) || isInCodeBlock(next.pos)) continue;
+            const content = line.substring(current.pos, next.pos + 1);
+            if (new RegExp(inlineMathPattern).exec(content)) {
+                inlineMathRanges.push({ start: current.pos, end: next.pos });
+                j++;
+            }
+        }
+    }
+
+    const matches: Array<{
+        mathStart: number,
+        mathEnd: number,
+        citations: string[]
+    }> = [];
+    for (const mathRange of inlineMathRanges) {
+        const mathContent = line.substring(mathRange.start + 1, mathRange.end);
+        const match = matchNestedCitation(mathContent, prefix);
+
+        if (match) {
+            const citations = match.label.split(multiCitationDelimiter).map(c => c.trim()).filter(c => c.length > 0);
+            matches.push({
+                mathStart: mathRange.start,
+                mathEnd: mathRange.end + 1,
+                citations
+            });
+        }
+    }
+
+    let result = line;
+    matches.toReversed().forEach(({ mathStart, mathEnd, citations }) => {
+        const combinedCitations = (rangeSymbol === null) ?
+            citations :
+            combineContinuousCitationTags(
+                citations,
+                rangeSymbol,
+                validDelimiters,
+                fileDelimiter
+            );
+
+        const replacement = generateCitationSpans(
+            combinedCitations, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles
+        );
+        result = result.substring(0, mathStart) + replacement + result.substring(mathEnd);
+    });
+    return result;
+}
+
+const DEFAULT_CONTAINER_STYLE = 'cursor: default;';
+const DEFAULT_CITATION_STYLE = 'text-decoration: none; cursor: pointer;';
+
+/**
+ * Generates span tags for citations.
+ */
+export function generateCitationSpans(
+    citations: string[],
+    fileDelimiter: string,
+    multiCitationDelimiter = ',',
+    citationFormat = '(#)',
+    spanStyles = {} as SpanStyles
+): string {
+    const spans = citations.map((citation) => {
+        const { local, crossFile } = splitFileCitation(citation, fileDelimiter);
+        const citationColorInPdf = spanStyles.citationColorInPdf || '#000000';
+
+        const containerStyle = escapeString(
+            DEFAULT_CONTAINER_STYLE + ` color: ${citationColorInPdf};`,
+            "\""
+        );
+
+        const citationStyle = escapeString(
+            DEFAULT_CITATION_STYLE + ` color: ${citationColorInPdf};`,
+            "\""
+        );
+        let result = `<span style="${containerStyle}">` + citationFormat.replace('#', `<span style="${citationStyle}">${local}</span>`);
+        result += '</span>';
+        if (crossFile) {
+            result += `${'[^' + crossFile + ']'}`;
+        }
+
+        return result;
+    });
+    return spans.join(multiCitationDelimiter + ' ');
 }
