@@ -99,6 +99,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "citationColorInPdf",
                 "addImageCaptionsInPdf",
                 "addImageDescInPdf",
+                "injectCitationMetadataInExportedMarkdown",
             ]
         },
         {

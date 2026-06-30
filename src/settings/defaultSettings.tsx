@@ -91,6 +91,7 @@ export interface EquationCitatorSettings {
     citationColorInPdf: string; // default citation color in PDF rendering
     addImageCaptionsInPdf: boolean; // whether to add image captions in PDF export
     addImageDescInPdf: boolean; // whether to add image description in PDF export
+    injectCitationMetadataInExportedMarkdown: boolean; // whether to inject citation metadata in exported markdown
     
     // other settings  
     enableTypstMode: boolean; // Enable compatibility with Typst syntax
@@ -149,6 +150,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
     addImageCaptionsInPdf: true, // add image captions in PDF export by default
     addImageDescInPdf: true, // add image description in PDF export by default
+    injectCitationMetadataInExportedMarkdown: false, // do not inject export metadata by default
 
     enableCiteWithCodeBlockInCallout: false, // cite with inline code block in quote
 
@@ -579,6 +581,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.addImageDescInPdf(el, plugin);
+        }
+    },
+
+    injectCitationMetadataInExportedMarkdown: {
+        name: "Inject citation metadata in exported markdown",
+        desc: "Include structured citation metadata in markdown generated for PDF export.",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.injectCitationMetadataInExportedMarkdown(el, plugin);
         }
     },
 

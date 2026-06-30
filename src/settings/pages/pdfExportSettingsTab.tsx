@@ -49,6 +49,19 @@ export const PdfExportSettingsTab = {
                 });
         });
     },
+    injectCitationMetadataInExportedMarkdown(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.injectCitationMetadataInExportedMarkdown;
+        const setting = new Setting(containerEl);
+        setting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.injectCitationMetadataInExportedMarkdown);
+                toggle.onChange(async (value) => {
+                    plugin.settings.injectCitationMetadataInExportedMarkdown = value;
+                    await plugin.saveSettings();
+                });
+        });
+    },
 }   
 
 export function addPdfExportSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) { 
@@ -56,4 +69,5 @@ export function addPdfExportSettingsTab(containerEl: HTMLElement, plugin: Equati
     PdfExportSettingsTab.citationColorInPdf(containerEl, plugin);
     PdfExportSettingsTab.addImageCaptionsInPdf(containerEl, plugin);
     PdfExportSettingsTab.addImageDescInPdf(containerEl, plugin);
+    PdfExportSettingsTab.injectCitationMetadataInExportedMarkdown(containerEl, plugin);
 }

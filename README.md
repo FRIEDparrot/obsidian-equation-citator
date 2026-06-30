@@ -14,7 +14,7 @@
 <center><b>English</b> | <a href="README_zh.md" target="_blank"><b>简体中文</b></a></center>
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4></center>
 
-<center><b><i>Thanks for 1.5k downloads!</i></b></center> 
+<center><b><h3>Thanks for 1.5k downloads😄!</h3></b></center> 
 
 ---
 
@@ -22,7 +22,7 @@
 
 ✨ **Complete Features & Updates**: See [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details.
 
-📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars.
+📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars. 
 
 📱 **Platform support**: This plugin has been tested on **Windows, Linux, Mac, and Android**. (It is primarily designed for Windows; Android support was added after v1.3.3, and some features — e.g., drag-and-drop citation and certain previews — may be limited on mobile.)
 

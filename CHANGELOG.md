@@ -398,12 +398,18 @@ Breaking Update Changes :
 ### Version 1.3.5 
 Bug fixes, small refactors and improvements, major support for the webpage notes 
 
+✨ New features : 
+- [x] Added feature [#168](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/168), the available citation type will be auto-completed when the `ref{}` is empty. 
+- [x] Added markdown rendering support for both image caption and description (see [PR #171](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/171))
+- [x] Added full pdf support for markdown rendering result for image caption and description. 
+
 🐛 Fixed Bugs : 
 - [x] fixed [#162](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/162), viewState refresh correctly when switch files 
 - [x] fixed [#169](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/169), the colon is forced to be added in the citation prefix 
 - [x] fixed [#163](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/163), when switch between files, the initial fold state will be stored. 
 - [x] fixed [#164](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/164), code blocks now render correctly in callouts. 
-
+- [x] fixed critical [#173](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/173), the PDF export can work correctly at the case some disturbing dollars are put inline. 
+- [x] fixed [#172](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/172), when export without meta-data, the image width are still kept. 
 
 🏗️ refactors : 
 - [x] refactored and shortened pdf export code part 

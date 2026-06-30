@@ -1,5 +1,5 @@
-import { EquationCitatorSettings } from "@/settings/defaultSettings";
-import { combineContinuousCitationTags, splitFileCitation } from "@/utils/core/citation_utils";
+import type { EquationCitatorSettings } from "@/settings/defaultSettings";
+import { combineContinuousCitationTags, splitContinuousCitationTags, splitFileCitation } from "@/utils/core/citation_utils";
 import { DISABLED_DELIMITER, escapeString, removeInlineCodeBlocks, validateNumber } from "@/utils/string_processing/string_utils";
 import {
     equationBlockBracePattern,
@@ -31,19 +31,27 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
     const fileCiteDelimiter = settings.enableCrossFileCitation ?
         settings.fileCiteDelimiter || '^' : DISABLED_DELIMITER;
     const { citationColorInPdf } = settings;
+    const validDelimiters = settings.continuousDelimiters.split(' ').filter(d => d.trim());
+    const injectExportMetadata = settings.injectCitationMetadataInExportedMarkdown;
 
     // Step 1: Replace equation citations
     let result = replaceCitationsInMarkdownWithSpan(
         md,
         settings.citationPrefix,
         rangeSymbol,
-        settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+        validDelimiters,
         fileCiteDelimiter,
         settings.multiCitationDelimiter || ',',
         settings.citationFormat,
         {
             citationColorInPdf
-        },  // span styles 
+        },  // span styles
+        injectExportMetadata ? {
+            kind: "eq",
+            rangeSymbol,
+            validDelimiters,
+            fileDelimiter: fileCiteDelimiter,
+        } : undefined,
     );
 
     // Step 2: Replace figure citations
@@ -51,13 +59,19 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
         result,
         settings.figCitationPrefix,
         rangeSymbol,
-        settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+        validDelimiters,
         fileCiteDelimiter,
         settings.multiCitationDelimiter || ',',
         settings.figCitationFormat,
         {
             citationColorInPdf
-        }
+        },
+        injectExportMetadata ? {
+            kind: "figure",
+            rangeSymbol,
+            validDelimiters,
+            fileDelimiter: fileCiteDelimiter,
+        } : undefined,
     );
 
     // Step 3: Replace callout citations (table, theorem, definition, etc.)
@@ -66,13 +80,19 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
             result,
             prefixConfig.prefix,
             rangeSymbol,
-            settings.continuousDelimiters.split(' ').filter(d => d.trim()),
+            validDelimiters,
             fileCiteDelimiter,
             settings.multiCitationDelimiter || ',',
             prefixConfig.format,
             {
                 citationColorInPdf
-            }
+            },
+            injectExportMetadata ? {
+                kind: "callout",
+                rangeSymbol,
+                validDelimiters,
+                fileDelimiter: fileCiteDelimiter,
+            } : undefined,
         );
     }
 
@@ -80,6 +100,15 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
     result = addFigureMetadataToMarkdown(result, settings);
 
     return result;
+}
+
+function escapeHtmlAttribute(value: string): string {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("'", "&#39;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
 }
 
 function addFigureMetadataToMarkdownLine(args: {
@@ -107,8 +136,10 @@ function addFigureMetadataToMarkdownLine(args: {
 
     const processedLines: string[] = [];
 
-    const cleanedImageLine = removeImageMetadata(args.line, args.settings.figCitationPrefix, true);
-    processedLines.push(cleanedImageLine);
+    const imageLine = args.settings.injectCitationMetadataInExportedMarkdown ?
+        args.line :
+        removeImageMetadata(args.line, args.settings.figCitationPrefix, true);
+    processedLines.push(imageLine);
 
     if (!args.addCaptions) {
         return {
@@ -135,7 +166,8 @@ function addFigureMetadataToMarkdownLine(args: {
 
 /**
  * Add figure titles and descriptions to markdown for PDF export
- * - Removes metadata from image markdown (title:, desc:, fig: tags)
+ * - Removes metadata from image markdown (title:, desc:, fig: tags) only when export metadata is disabled
+ * - Preserves image metadata when export metadata is enabled, so figures can be indexed from the image line
  * - Adds centered figure number, title, and description below each figure
  */
 function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitatorSettings): string {
@@ -279,6 +311,18 @@ export interface SpanStyles {
     citationColorInPdf: string;
 }
 
+export interface CitationSpanMetadataOptions {
+    kind: "eq" | "figure" | "callout";
+    rangeSymbol: string | null;
+    validDelimiters: string[];
+    fileDelimiter: string;
+}
+
+export interface ExportCitationRef {
+    file: string | null;
+    tag: string;
+}
+
 /**
  * Replaces inline citations in markdown with <span> tags.
  * Ignores multiline code blocks, inline code blocks, and display math blocks.
@@ -291,7 +335,8 @@ export function replaceCitationsInMarkdownWithSpan(
     fileDelimiter: string,
     multiCitationDelimiter = ',',
     citationFormat = '(#)',
-    spanStyles = {} as SpanStyles
+    spanStyles = {} as SpanStyles,
+    metadataOptions?: CitationSpanMetadataOptions
 ): string {
     if (!markdown.trim()) return markdown;
 
@@ -326,7 +371,7 @@ export function replaceCitationsInMarkdownWithSpan(
         }
 
         return processInlineReferences(
-            line, prefix, rangeSymbol, validDelimiters, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles
+            line, prefix, rangeSymbol, validDelimiters, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles, metadataOptions
         );
     });
     return processedLines.join('\n');
@@ -343,7 +388,8 @@ function processInlineReferences(
     fileDelimiter: string,
     multiCitationDelimiter = ',',
     citationFormat = '(#)',
-    spanStyles = {} as SpanStyles
+    spanStyles = {} as SpanStyles,
+    metadataOptions?: CitationSpanMetadataOptions
 ): string {
     const codeBlockRanges: Array<{ start: number, end: number }> = [];
     let i = 0;
@@ -440,7 +486,7 @@ function processInlineReferences(
             );
 
         const replacement = generateCitationSpans(
-            combinedCitations, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles
+            combinedCitations, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles, metadataOptions
         );
         result = result.substring(0, mathStart) + replacement + result.substring(mathEnd);
     });
@@ -458,7 +504,8 @@ export function generateCitationSpans(
     fileDelimiter: string,
     multiCitationDelimiter = ',',
     citationFormat = '(#)',
-    spanStyles = {} as SpanStyles
+    spanStyles = {} as SpanStyles,
+    metadataOptions?: CitationSpanMetadataOptions
 ): string {
     const spans = citations.map((citation) => {
         const { local, crossFile } = splitFileCitation(citation, fileDelimiter);
@@ -473,7 +520,10 @@ export function generateCitationSpans(
             DEFAULT_CITATION_STYLE + ` color: ${citationColorInPdf};`,
             "\""
         );
-        let result = `<span style="${containerStyle}">` + citationFormat.replace('#', `<span style="${citationStyle}">${local}</span>`);
+        const metadataAttributes = metadataOptions ?
+            ` ${buildCitationMetadataAttributes(citation, metadataOptions)}` :
+            '';
+        let result = `<span${metadataAttributes} style="${containerStyle}">` + citationFormat.replace('#', `<span style="${citationStyle}">${local}</span>`);
         result += '</span>';
         if (crossFile) {
             result += `${'[^' + crossFile + ']'}`;
@@ -482,4 +532,43 @@ export function generateCitationSpans(
         return result;
     });
     return spans.join(multiCitationDelimiter + ' ');
+}
+
+function buildCitationMetadataAttributes(
+    citation: string,
+    metadataOptions: CitationSpanMetadataOptions
+): string {
+    const refs = flattenCitationRefs(citation, metadataOptions);
+    const classes = [
+        "equation-citator-citation",
+        `equation-citator-cite-${metadataOptions.kind}`,
+    ].join(" ");
+
+    return [
+        `class="${escapeHtmlAttribute(classes)}"`,
+        `data-ec-kind="${escapeHtmlAttribute(metadataOptions.kind)}"`,
+        `data-ec-refs='${escapeHtmlAttribute(JSON.stringify(refs))}'`,
+    ].join(" ");
+}
+
+export function flattenCitationRefs(
+    citation: string,
+    metadataOptions: CitationSpanMetadataOptions
+): ExportCitationRef[] {
+    const expandedCitations = metadataOptions.rangeSymbol ?
+        splitContinuousCitationTags(
+            [citation],
+            metadataOptions.rangeSymbol,
+            metadataOptions.validDelimiters,
+            metadataOptions.fileDelimiter
+        ) :
+        [citation];
+
+    return expandedCitations.map((expandedCitation) => {
+        const { local, crossFile } = splitFileCitation(expandedCitation, metadataOptions.fileDelimiter);
+        return {
+            file: crossFile || null,
+            tag: local,
+        };
+    });
 }

@@ -1,6 +1,6 @@
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import Debugger from "@/debug/debugger";
-import { CalloutCitationPrefix } from "@/settings/defaultSettings";
+import type { CalloutCitationPrefix } from "@/settings/defaultSettings";
 import { calloutPattern } from "@/utils/string_processing/regexp_utils";
 
 /**
