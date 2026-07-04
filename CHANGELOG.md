@@ -396,12 +396,14 @@ Breaking Update Changes :
 - [x] **Better PDF export configs** : optional captions and descriptions in PDF export for image
 
 ### Version 1.3.5 
-Bug fixes, small refactors and improvements, major support for the webpage notes 
+Bug fixes, improvements on PDF export functio, added major support for the webpage notes. 
 
 ✨ New features : 
 - [x] Added feature [#168](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/168), the available citation type will be auto-completed when the `ref{}` is empty. 
 - [x] Added markdown rendering support for both image caption and description (see [PR #171](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/171))
 - [x] Added full pdf support for markdown rendering result for image caption and description. 
+- [x] Added metadata injection to the pdf, which retains the metadata for the figures. It will also add detailed citation data to the 
+- [x] 
 
 🐛 Fixed Bugs : 
 - [x] fixed [#162](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/162), viewState refresh correctly when switch files 
