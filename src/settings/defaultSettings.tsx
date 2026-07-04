@@ -91,6 +91,7 @@ export interface EquationCitatorSettings {
     citationColorInPdf: string; // default citation color in PDF rendering
     addImageCaptionsInPdf: boolean; // whether to add image captions in PDF export
     addImageDescInPdf: boolean; // whether to add image description in PDF export
+    keepImageSpacingForPdf: boolean; // whether to preserve blank spacing around images in PDF export
     injectCitationMetadataInExportedMarkdown: boolean; // whether to inject citation metadata in exported markdown
     
     // other settings  
@@ -150,6 +151,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
     addImageCaptionsInPdf: true, // add image captions in PDF export by default
     addImageDescInPdf: true, // add image description in PDF export by default
+    keepImageSpacingForPdf: true, // keep images separated from neighboring paragraphs in PDF export
     injectCitationMetadataInExportedMarkdown: false, // do not inject export metadata by default
 
     enableCiteWithCodeBlockInCallout: false, // cite with inline code block in quote
@@ -581,6 +583,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.addImageDescInPdf(el, plugin);
+        }
+    },
+
+    keepImageSpacingForPdf: {
+        name: "Keep image spacing for PDF",
+        desc: "Keep exported image lines separated from neighboring paragraphs to avoid merged paragraphs in some renderers.",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.keepImageSpacingForPdf(el, plugin);
         }
     },
 

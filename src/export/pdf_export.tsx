@@ -114,7 +114,11 @@ function escapeHtmlAttribute(value: string): string {
 function addFigureMetadataToMarkdownLine(args: {
     line: string;
     lineIndex: number;
+    previousLine?: string;
+    nextLine?: string;
+    previousLineIsImage: boolean;
     inMultilineCodeBlock: boolean;
+    imageLines: Set<number>;
     figureByLine: Map<number, { tag?: string; title?: string; desc?: string }>;
     settings: EquationCitatorSettings;
     addCaptions: boolean;
@@ -126,25 +130,33 @@ function addFigureMetadataToMarkdownLine(args: {
         inMultilineCodeBlock = !inMultilineCodeBlock;
     }
 
+    const imageOnLine = args.imageLines.has(args.lineIndex);
     const figureOnLine = args.figureByLine.get(args.lineIndex);
-    if (!figureOnLine || inMultilineCodeBlock) {
+    if (!imageOnLine || inMultilineCodeBlock) {
         return {
             processedLines: [args.line],
-            inMultilineCodeBlock,
+            inMultilineCodeBlock
         };
     }
 
     const processedLines: string[] = [];
+    if (args.settings.keepImageSpacingForPdf && shouldAddBlankBeforeFigure(args.previousLine, args.previousLineIsImage)) {
+        processedLines.push('');
+    }
 
-    const imageLine = args.settings.injectCitationMetadataInExportedMarkdown ?
+    const imageLine = (args.settings.injectCitationMetadataInExportedMarkdown || !figureOnLine) ?
         args.line :
         removeImageMetadata(args.line, args.settings.figCitationPrefix, true);
     processedLines.push(imageLine);
 
-    if (!args.addCaptions) {
+    if (!figureOnLine || !args.addCaptions) {
+        if (args.settings.keepImageSpacingForPdf && shouldAddBlankAfterFigure(args.nextLine)) {
+            processedLines.push('');
+        }
+
         return {
             processedLines,
-            inMultilineCodeBlock,
+            inMultilineCodeBlock
         };
     }
 
@@ -156,12 +168,22 @@ function addFigureMetadataToMarkdownLine(args: {
         processedLines.push(buildFigureDescMarkdown(figureOnLine.desc));
     }
 
-    processedLines.push('');
+    if (args.settings.keepImageSpacingForPdf && shouldAddBlankAfterFigure(args.nextLine)) {
+        processedLines.push('');
+    }
 
     return {
         processedLines,
-        inMultilineCodeBlock,
+        inMultilineCodeBlock
     };
+}
+
+function shouldAddBlankBeforeFigure(previousLine: string | undefined, previousLineIsImage: boolean): boolean {
+    return !previousLineIsImage && previousLine !== undefined && previousLine.trim().length > 0;
+}
+
+function shouldAddBlankAfterFigure(nextLine?: string): boolean {
+    return nextLine !== undefined && nextLine.trim().length > 0;
 }
 
 /**
@@ -177,10 +199,11 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
     const images = parseAllImagesFromMarkdown(markdown, settings.figCitationPrefix);
     const addCaptions = settings.addImageCaptionsInPdf;
     const addDesc = settings.addImageDescInPdf;
+    const imageLines = new Set(images.map(img => img.line));
 
     // Filter to only images with tags (figures)
     const figures = images.filter(img => img.tag);
-    if (figures.length === 0) return markdown; // No figures to process
+    if (imageLines.size === 0) return markdown; // No images to process
 
     const figureByLine = new Map<number, { tag?: string; title?: string; desc?: string }>();
     for (const fig of figures) {
@@ -199,13 +222,16 @@ function addFigureMetadataToMarkdown(markdown: string, settings: EquationCitator
         const { processedLines: lineOutput, inMultilineCodeBlock: nextInCodeBlock } = addFigureMetadataToMarkdownLine({
             line: lines[i],
             lineIndex: i,
+            previousLine: lines[i - 1],
+            nextLine: lines[i + 1],
+            previousLineIsImage: imageLines.has(i - 1),
             inMultilineCodeBlock,
+            imageLines,
             figureByLine,
             settings,
             addCaptions,
             addDesc,
         });
-
         inMultilineCodeBlock = nextInCodeBlock;
         processedLines.push(...lineOutput);
     }
