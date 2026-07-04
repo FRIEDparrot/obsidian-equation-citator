@@ -47,7 +47,8 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
             citationColorInPdf
         },  // span styles
         injectExportMetadata ? {
-            kind: "eq",
+            kind: getCitationDataKind(settings.citationPrefix),
+            citationKind: "equation",
             rangeSymbol,
             validDelimiters,
             fileDelimiter: fileCiteDelimiter,
@@ -67,7 +68,8 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
             citationColorInPdf
         },
         injectExportMetadata ? {
-            kind: "figure",
+            kind: getCitationDataKind(settings.figCitationPrefix),
+            citationKind: "figure",
             rangeSymbol,
             validDelimiters,
             fileDelimiter: fileCiteDelimiter,
@@ -88,7 +90,8 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
                 citationColorInPdf
             },
             injectExportMetadata ? {
-                kind: "callout",
+                kind: getCitationDataKind(prefixConfig.prefix),
+                citationKind: "callout",
                 rangeSymbol,
                 validDelimiters,
                 fileDelimiter: fileCiteDelimiter,
@@ -338,7 +341,8 @@ export interface SpanStyles {
 }
 
 export interface CitationSpanMetadataOptions {
-    kind: "eq" | "figure" | "callout";
+    kind: string;
+    citationKind: "equation" | "figure" | "callout";
     rangeSymbol: string | null;
     validDelimiters: string[];
     fileDelimiter: string;
@@ -567,7 +571,7 @@ function buildCitationMetadataAttributes(
     const refs = flattenCitationRefs(citation, metadataOptions);
     const classes = [
         "equation-citator-citation",
-        `equation-citator-cite-${metadataOptions.kind}`,
+        `equation-citator-cite-${metadataOptions.citationKind}`,
     ].join(" ");
 
     return [
@@ -575,6 +579,10 @@ function buildCitationMetadataAttributes(
         `data-ec-kind="${escapeHtmlAttribute(metadataOptions.kind)}"`,
         `data-ec-refs='${escapeHtmlAttribute(JSON.stringify(refs))}'`,
     ].join(" ");
+}
+
+function getCitationDataKind(prefix: string): string {
+    return prefix.trim().replace(/:+$/, '');
 }
 
 export function flattenCitationRefs(
