@@ -1,5 +1,6 @@
 import type * as FsPromises from "fs/promises";
 import type * as Path from "path";
+import Debugger from "@/debug/debugger";
 
 export interface NodeFileSystemModules {
     fs: typeof FsPromises;
@@ -18,16 +19,8 @@ export function getNodeFileSystemModules(): NodeFileSystemModules | null {
             fs: require("fs/promises") as typeof FsPromises,
             path: require("path") as typeof Path,
         };
-    } catch {
-        return null;
-    }
-}
-
-function getElectronShell(): ElectronShell | null {
-    try {
-        const electron = require("electron") as { shell?: ElectronShell };
-        return electron.shell ?? null;
-    } catch {
+    } catch (error) {
+        Debugger.error("Failed to load Node filesystem modules.", error);
         return null;
     }
 }
@@ -65,32 +58,27 @@ export function resolvePathInsideFolder(parentFolder: string, relativePath: stri
 }
 
 /**
- * Moves an absolute desktop filesystem path to the OS trash through Electron.
+ * Removes an absolute desktop filesystem path produced by website-note export.
  *
  * Edge cases handled:
- * - Supports both `trashItem` and older `moveItemToTrash` Electron APIs.
- * - Returns `false` when Electron is unavailable, which can happen on mobile
- *   or in non-desktop test environments.
- * - Returns `false` on trash failures instead of falling back to hard deletion.
+ * - not try electron shell, since its always failed to remove 
+ * - Tries `fs.rm` because website-note outputs are generated artifacts.
+ * - Logs whether the path was moved to trash or permanently removed.
+ * - Returns `false` only when both trash and permanent removal fail.
  */
-export async function movePathToSystemTrash(filePath: string): Promise<boolean> {
-    const shell = getElectronShell();
-    if (shell?.trashItem) {
-        try {
-            await shell.trashItem(filePath);
-            return true;
-        } catch {
-            return false;
-        }
+export async function removeExternalExportPath(filePath: string): Promise<boolean> {
+    const modules = getNodeFileSystemModules();
+    if (!modules) {
+        Debugger.error("Cannot permanently remove external export path because Node filesystem modules are unavailable:", filePath);
+        return false;
     }
 
-    if (shell?.moveItemToTrash) {
-        try {
-            return shell.moveItemToTrash(filePath);
-        } catch {
-            return false;
-        }
+    try {
+        await modules.fs.rm(filePath, { recursive: true, force: true });
+        Debugger.log("Permanently removed external export path after system trash failed:", filePath);
+        return true;
+    } catch (error) {
+        Debugger.error("Failed to permanently remove external export path after system trash failed:", filePath, error);
+        return false;
     }
-
-    return false;
 }

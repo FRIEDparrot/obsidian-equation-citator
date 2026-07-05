@@ -1,11 +1,12 @@
 import EquationCitator from "@/main";
 import { makeExportedMarkdownForPdf } from "@/func/exportMarkdown";
+import Debugger from "@/debug/debugger";
 import { FileSystemAdapter, Notice, Platform, TFile, normalizePath } from "obsidian";
 import {
     getNodeFileSystemModules,
     isPathInsideOrEqual,
-    movePathToSystemTrash,
     normalizeAbsolutePathForComparison,
+    removeExternalExportPath,
     resolvePathInsideFolder,
 } from "@/utils/misc/desktop_fs_utils";
 import { fileNameMatchesMarkdownPatterns } from "@/utils/misc/file_pattern_utils";
@@ -17,7 +18,7 @@ const EXPORT_INDEX_COMMENT = "this file is created to track the exported files b
 
 /**
  * Shape of the export-index JSON file persisted in the website-notes folder.
- * Used to detect stale files that should be moved to trash on the next sync.
+ * Used to detect stale generated files that should be cleaned on the next sync.
  */
 interface WebsiteExportIndex {
     /** Explanatory comment so anyone inspecting the file knows its purpose. */
@@ -40,8 +41,8 @@ interface SyncStats {
     copiedMarkdownCount: number;
     /** Number of non-markdown asset files copied alongside the exported notes. */
     copiedAssetCount: number;
-    /** Number of previously-exported files moved to trash because they no longer exist. */
-    trashedStaleCount: number;
+    /** Number of previously-exported files cleaned because they no longer exist. */
+    cleanedStaleCount: number;
 }
 
 /**
@@ -105,7 +106,8 @@ async function ensureExportFolderIsReady(exportFolder: string): Promise<boolean>
             new Notice("Website notes export folder is not a folder.");
             return false;
         }
-    } catch {
+    } catch (error) {
+        Debugger.error("Website notes export folder is not accessible:", exportFolder, error);
         new Notice("Website notes export folder does not exist.");
         return false;
     }
@@ -139,7 +141,8 @@ async function readPreviousExportIndex(exportFolder: string): Promise<WebsiteExp
             generatedAt: parsed.generatedAt || "",
             files: parsed.files.filter(file => typeof file === "string"),
         };
-    } catch {
+    } catch (error) {
+        Debugger.log("No readable previous website export index found:", indexPath, error);
         return null;
     }
 }
@@ -220,28 +223,29 @@ async function copyVaultFile(plugin: EquationCitator, exportFolder: string, file
 }
 
 /**
- * Moves previously-exported files that are not present in the current sync to trash.
+ * Removes previously-exported files that are not present in the current sync.
  * Compares the previous export index against the set of files written this run
- * and moves stale files to the system trash. Afterwards, cleans up empty
- * directories that were left behind. It never hard-deletes stale files.
+ * and cleans stale generated files. It tries system trash first, then falls
+ * back to permanent removal because website-note exports are generated output.
+ * Afterwards, it cleans up empty directories that were left behind.
  *
  * Edge cases handled:
  * - Skips previous-index entries whose resolved paths would escape the export folder.
  * - Skips files that were already removed outside the plugin between sync runs.
  * - Skips non-file paths so stale directory entries are not treated as exported files.
- * - Stops the sync if a stale file exists but cannot be moved to system trash,
+ * - Stops the sync if a stale file exists but cannot be trashed or removed,
  *   keeping the previous index from silently forgetting an unmanaged leftover.
  *
- * @returns The number of stale files that were moved to trash.
+ * @returns The number of stale files that were cleaned.
  */
-async function trashStaleExportedFiles(exportFolder: string, previousFiles: string[], currentFiles: Set<string>): Promise<number> {
+async function cleanStaleExportedFiles(exportFolder: string, previousFiles: string[], currentFiles: Set<string>): Promise<number> {
     const modules = getNodeFileSystemModules();
     if (!modules) {
         throw new Error("Node file system APIs are not available.");
     }
     const { fs, path } = modules;
 
-    let trashedCount = 0;
+    let cleanedCount = 0;
     const exportFolderForComparison = normalizeAbsolutePathForComparison(exportFolder);
     const dirsToClean = new Set<string>();
 
@@ -252,51 +256,56 @@ async function trashStaleExportedFiles(exportFolder: string, previousFiles: stri
 
         const targetPath = resolveExportPath(exportFolder, previousFile);
         if (!targetPath) {
+            Debugger.error("Skipped stale export index entry because it resolves outside the export folder:", previousFile);
             continue;
         }
 
         const targetPathForComparison = normalizeAbsolutePathForComparison(targetPath);
         if (!isPathInsideOrEqual(exportFolderForComparison, targetPathForComparison)) {
+            Debugger.error("Skipped stale export path outside export folder:", previousFile, targetPath);
             continue;
         }
 
         let stats: Awaited<ReturnType<typeof fs.stat>>;
         try {
             stats = await fs.stat(targetPath);
-        } catch {
-            // Stale files may already be gone; keep sync moving.
+        } catch (error) {
+            Debugger.log("Stale exported file was already removed from the filesystem:", previousFile, targetPath, error);
             continue;
         }
 
         if (!stats.isFile()) {
+            Debugger.log("Skipped stale export entry because the path is not a file:", previousFile, targetPath);
             continue;
         }
 
-        const movedToTrash = await movePathToSystemTrash(targetPath);
-        if (!movedToTrash) {
-            throw new Error(`Failed to move stale export to system trash: ${previousFile}`);
+        const removed = await removeExternalExportPath(targetPath);
+        if (!removed) {
+            Debugger.error("Failed to clean stale exported file:", previousFile, targetPath);
+            throw new Error(`Failed to clean stale export: ${previousFile}`);
         }
 
+        Debugger.log("Stale exported file cleaned:", previousFile, targetPath);
         dirsToClean.add(path.dirname(targetPath));
-        trashedCount++;
+        cleanedCount++;
     }
 
     await cleanEmptyExportDirectories(exportFolder, dirsToClean);
 
-    return trashedCount;
+    return cleanedCount;
 }
 
 /**
- * Recursively moves empty directories inside the export folder to the system trash, walking
+ * Recursively cleans empty directories inside the export folder, walking
  * upward from each candidate directory until a non-empty ancestor or the
- * export root is reached. Silently skips directories that cannot be trashed
+ * export root is reached. Silently skips directories that cannot be cleaned
  * (e.g. because they still contain files).
  *
  * Edge cases handled:
  * - Never moves the export root itself.
- * - Re-checks each directory before trashing so newly-created files are preserved.
+ * - Re-checks each directory before cleanup so newly-created files are preserved.
  * - Walks deepest directories first so nested empty folders can be cleaned up.
- * - Stops at the first non-empty, missing, outside-root, or untrashable ancestor.
+ * - Stops at the first non-empty, missing, outside-root, or unremovable ancestor.
  */
 async function cleanEmptyExportDirectories(exportFolder: string, dirsToClean: Set<string>): Promise<void> {
     const modules = getNodeFileSystemModules();
@@ -318,14 +327,19 @@ async function cleanEmptyExportDirectories(exportFolder: string, dirsToClean: Se
             try {
                 const remainingEntries = await fs.readdir(currentDir);
                 if (remainingEntries.length > 0) {
+                    Debugger.log("Skipped export directory cleanup because directory is not empty:", currentDir, remainingEntries);
                     break;
                 }
 
-                const movedToTrash = await movePathToSystemTrash(currentDir);
-                if (!movedToTrash) {
+                const removed = await removeExternalExportPath(currentDir);
+                if (!removed) {
+                    Debugger.error("Failed to clean empty export directory:", currentDir);
                     break;
                 }
-            } catch {
+
+                Debugger.log("Empty export directory cleaned:", currentDir);
+            } catch (error) {
+                Debugger.log("Skipped export directory cleanup after filesystem error:", currentDir, error);
                 break;
             }
 
@@ -449,12 +463,12 @@ async function exportReferencedAssets(
  *
  * 1. Validates the export folder exists and is outside the vault.
  * 2. Reads the previous export index so stale files can be cleaned up.
- * 3. Exports every markdown file — files matching the configured ignore
+ * 3. Exports every markdown file; files matching the configured ignore
  *    patterns are binary-copied; all others are processed through
  *    {@link makeExportedMarkdownForPdf}.
  * 4. Copies non-markdown assets (images, PDFs, etc.) referenced by the
  *    exported notes.
- * 5. Moves files from the previous run that are no longer present to trash.
+ * 5. Cleans files from the previous run that are no longer present.
  * 6. Writes a fresh export index for the next run.
  *
  * Only available on desktop (relies on Node.js `fs` APIs). Shows a
@@ -493,8 +507,8 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
             exportedMarkdownPaths,
             exportedFiles
         );
-        const trashedStaleCount = previousIndex ?
-            await trashStaleExportedFiles(exportFolder, previousIndex.files, exportedFiles) :
+        const cleanedStaleCount = previousIndex ?
+            await cleanStaleExportedFiles(exportFolder, previousIndex.files, exportedFiles) :
             0;
 
         await writeExportIndex(exportFolder, exportedFiles);
@@ -503,15 +517,16 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
             exportedMarkdownCount: processedCount,
             copiedMarkdownCount: copiedCount,
             copiedAssetCount,
-            trashedStaleCount,
+            cleanedStaleCount,
         };
         new Notice(
             `Website notes synced: ${stats.exportedMarkdownCount} markdown exported, ` +
             `${stats.copiedMarkdownCount} markdown copied, ${stats.copiedAssetCount} assets copied, ` +
-            `${stats.trashedStaleCount} stale files moved to trash.`
+            `${stats.cleanedStaleCount} stale files cleaned.`
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        Debugger.error("Website notes sync failed:", error);
         new Notice(`Website notes sync failed: ${message}`);
     }
 }
