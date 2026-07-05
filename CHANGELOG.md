@@ -406,6 +406,8 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 - [x] Added better spacing for the image export of PDF, preventing images to become crowd in many cases 
 - [x] Added batch markdown export command `Sync repository to the website notes folder` to sync the entire repository to the target website notes folder.
 - [x] Added `sync files/folders to the website notes folder` options to the file explorer, Added `sync current file to website notes folder` command.
+
+📖 Documetations : 
 - [ ] Migrated the **tutorials**, **Change logs** and the **API documentations** to a **Webpage version**.
 - [ ] Added full Chinese translation for **tutorials** and **Change logs**. 
 
