@@ -25,7 +25,11 @@ import { parseAllImagesFromMarkdown } from "@/utils/parsers/image_parser";
  * This is admittedly a workaround—not elegant, and somewhat crude—
  *  but it is effective and stable in most practical cases.
  */
-export function makePrintMarkdown(md: string, settings: EquationCitatorSettings): string {
+export function makePrintMarkdown(
+    md: string,
+    settings: EquationCitatorSettings,
+    crossFilePathByIndex?: ReadonlyMap<string, string>
+): string {
     const rangeSymbol = settings.enableContinuousCitation ?
         settings.continuousRangeSymbol || '~' : null;
     const fileCiteDelimiter = settings.enableCrossFileCitation ?
@@ -52,6 +56,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
             rangeSymbol,
             validDelimiters,
             fileDelimiter: fileCiteDelimiter,
+            crossFilePathByIndex,
         } : undefined,
     );
 
@@ -73,6 +78,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
             rangeSymbol,
             validDelimiters,
             fileDelimiter: fileCiteDelimiter,
+            crossFilePathByIndex,
         } : undefined,
     );
 
@@ -95,6 +101,7 @@ export function makePrintMarkdown(md: string, settings: EquationCitatorSettings)
                 rangeSymbol,
                 validDelimiters,
                 fileDelimiter: fileCiteDelimiter,
+                crossFilePathByIndex,
             } : undefined,
         );
     }
@@ -346,10 +353,12 @@ export interface CitationSpanMetadataOptions {
     rangeSymbol: string | null;
     validDelimiters: string[];
     fileDelimiter: string;
+    crossFilePathByIndex?: ReadonlyMap<string, string>;
 }
 
 export interface ExportCitationRef {
     file: string | null;
+    crossFile: string | null;
     tag: string;
 }
 
@@ -600,8 +609,10 @@ export function flattenCitationRefs(
 
     return expandedCitations.map((expandedCitation) => {
         const { local, crossFile } = splitFileCitation(expandedCitation, metadataOptions.fileDelimiter);
+        const file = crossFile ? metadataOptions.crossFilePathByIndex?.get(crossFile) ?? null : null;
         return {
-            file: crossFile || null,
+            file,
+            crossFile: crossFile || null,
             tag: local,
         };
     });

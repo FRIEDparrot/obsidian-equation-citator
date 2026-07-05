@@ -10,7 +10,55 @@ export async function makeExportedMarkdownForPdf(plugin: EquationCitator, file: 
         return null;
     }
 
-    return makePrintMarkdown(md, plugin.settings) || null;
+    const crossFilePathByIndex = await resolveCrossFilePathsForExport(plugin, file);
+    return makePrintMarkdown(md, plugin.settings, crossFilePathByIndex) || null;
+}
+
+/**
+ * Resolves cross-file citation footnote indexes to vault-relative markdown paths.
+ * Unresolved footnotes are omitted so exported metadata can keep the index while
+ * setting the machine-readable file path to null.
+ */
+async function resolveCrossFilePathsForExport(
+    plugin: EquationCitator,
+    file: TFile
+): Promise<ReadonlyMap<string, string>> {
+    const sourcePath = normalizePath(file.path);
+    const crossFilePathByIndex = new Map<string, string>();
+
+    if (!plugin.settings.enableCrossFileCitation) {
+        return crossFilePathByIndex;
+    }
+
+    try {
+        const footnotes = await plugin.footnoteCache.getFootNotesFromFile(sourcePath) || [];
+        for (const footnote of footnotes) {
+            if (!footnote.path) continue;
+
+            const resolvedFile = plugin.app.metadataCache.getFirstLinkpathDest(footnote.path, sourcePath);
+            if (!resolvedFile) {
+                Debugger.log(
+                    "Could not resolve export cross-file footnote:",
+                    footnote.num,
+                    footnote.path,
+                    "from",
+                    sourcePath
+                );
+                continue;
+            }
+
+            crossFilePathByIndex.set(footnote.num, resolvedFile.path);
+        }
+    }
+    catch (error) {
+        Debugger.error(
+            "Failed to resolve export cross-file citation footnotes:",
+            sourcePath,
+            error
+        );
+    }
+
+    return crossFilePathByIndex;
 }
 
 export async function exportCurrentMarkdown(plugin: EquationCitator) {
