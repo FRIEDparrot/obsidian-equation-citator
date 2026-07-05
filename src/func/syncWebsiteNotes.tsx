@@ -4,6 +4,7 @@ import { FileSystemAdapter, Notice, Platform, TFile, normalizePath } from "obsid
 import {
     getNodeFileSystemModules,
     isPathInsideOrEqual,
+    movePathToSystemTrash,
     normalizeAbsolutePathForComparison,
     resolvePathInsideFolder,
 } from "@/utils/misc/desktop_fs_utils";
@@ -16,7 +17,7 @@ const EXPORT_INDEX_COMMENT = "this file is created to track the exported files b
 
 /**
  * Shape of the export-index JSON file persisted in the website-notes folder.
- * Used to detect stale files that should be removed on the next sync.
+ * Used to detect stale files that should be moved to trash on the next sync.
  */
 interface WebsiteExportIndex {
     /** Explanatory comment so anyone inspecting the file knows its purpose. */
@@ -39,8 +40,8 @@ interface SyncStats {
     copiedMarkdownCount: number;
     /** Number of non-markdown asset files copied alongside the exported notes. */
     copiedAssetCount: number;
-    /** Number of previously-exported files that were deleted because they no longer exist. */
-    deletedStaleCount: number;
+    /** Number of previously-exported files moved to trash because they no longer exist. */
+    trashedStaleCount: number;
 }
 
 /**
@@ -219,21 +220,28 @@ async function copyVaultFile(plugin: EquationCitator, exportFolder: string, file
 }
 
 /**
- * Removes previously-exported files that are not present in the current sync.
+ * Moves previously-exported files that are not present in the current sync to trash.
  * Compares the previous export index against the set of files written this run
- * and deletes any that are no longer needed. Afterwards, cleans up empty
- * directories that were left behind.
+ * and moves stale files to the system trash. Afterwards, cleans up empty
+ * directories that were left behind. It never hard-deletes stale files.
  *
- * @returns The number of stale files that were deleted.
+ * Edge cases handled:
+ * - Skips previous-index entries whose resolved paths would escape the export folder.
+ * - Skips files that were already removed outside the plugin between sync runs.
+ * - Skips non-file paths so stale directory entries are not treated as exported files.
+ * - Stops the sync if a stale file exists but cannot be moved to system trash,
+ *   keeping the previous index from silently forgetting an unmanaged leftover.
+ *
+ * @returns The number of stale files that were moved to trash.
  */
-async function deleteStaleExportedFiles(exportFolder: string, previousFiles: string[], currentFiles: Set<string>): Promise<number> {
+async function trashStaleExportedFiles(exportFolder: string, previousFiles: string[], currentFiles: Set<string>): Promise<number> {
     const modules = getNodeFileSystemModules();
     if (!modules) {
         throw new Error("Node file system APIs are not available.");
     }
     const { fs, path } = modules;
 
-    let deletedCount = 0;
+    let trashedCount = 0;
     const exportFolderForComparison = normalizeAbsolutePathForComparison(exportFolder);
     const dirsToClean = new Set<string>();
 
@@ -252,25 +260,43 @@ async function deleteStaleExportedFiles(exportFolder: string, previousFiles: str
             continue;
         }
 
+        let stats: Awaited<ReturnType<typeof fs.stat>>;
         try {
-            await fs.rm(targetPath, { force: true });
-            dirsToClean.add(path.dirname(targetPath));
-            deletedCount++;
+            stats = await fs.stat(targetPath);
         } catch {
             // Stale files may already be gone; keep sync moving.
+            continue;
         }
+
+        if (!stats.isFile()) {
+            continue;
+        }
+
+        const movedToTrash = await movePathToSystemTrash(targetPath);
+        if (!movedToTrash) {
+            throw new Error(`Failed to move stale export to system trash: ${previousFile}`);
+        }
+
+        dirsToClean.add(path.dirname(targetPath));
+        trashedCount++;
     }
 
     await cleanEmptyExportDirectories(exportFolder, dirsToClean);
 
-    return deletedCount;
+    return trashedCount;
 }
 
 /**
- * Recursively removes empty directories inside the export folder, walking
+ * Recursively moves empty directories inside the export folder to the system trash, walking
  * upward from each candidate directory until a non-empty ancestor or the
- * export root is reached. Silently skips directories that cannot be removed
+ * export root is reached. Silently skips directories that cannot be trashed
  * (e.g. because they still contain files).
+ *
+ * Edge cases handled:
+ * - Never moves the export root itself.
+ * - Re-checks each directory before trashing so newly-created files are preserved.
+ * - Walks deepest directories first so nested empty folders can be cleaned up.
+ * - Stops at the first non-empty, missing, outside-root, or untrashable ancestor.
  */
 async function cleanEmptyExportDirectories(exportFolder: string, dirsToClean: Set<string>): Promise<void> {
     const modules = getNodeFileSystemModules();
@@ -290,7 +316,15 @@ async function cleanEmptyExportDirectories(exportFolder: string, dirsToClean: Se
             isPathInsideOrEqual(exportFolderForComparison, normalizeAbsolutePathForComparison(currentDir))
         ) {
             try {
-                await fs.rmdir(currentDir);
+                const remainingEntries = await fs.readdir(currentDir);
+                if (remainingEntries.length > 0) {
+                    break;
+                }
+
+                const movedToTrash = await movePathToSystemTrash(currentDir);
+                if (!movedToTrash) {
+                    break;
+                }
             } catch {
                 break;
             }
@@ -420,7 +454,7 @@ async function exportReferencedAssets(
  *    {@link makeExportedMarkdownForPdf}.
  * 4. Copies non-markdown assets (images, PDFs, etc.) referenced by the
  *    exported notes.
- * 5. Deletes any files from the previous run that are no longer present.
+ * 5. Moves files from the previous run that are no longer present to trash.
  * 6. Writes a fresh export index for the next run.
  *
  * Only available on desktop (relies on Node.js `fs` APIs). Shows a
@@ -459,8 +493,8 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
             exportedMarkdownPaths,
             exportedFiles
         );
-        const deletedStaleCount = previousIndex ?
-            await deleteStaleExportedFiles(exportFolder, previousIndex.files, exportedFiles) :
+        const trashedStaleCount = previousIndex ?
+            await trashStaleExportedFiles(exportFolder, previousIndex.files, exportedFiles) :
             0;
 
         await writeExportIndex(exportFolder, exportedFiles);
@@ -469,12 +503,12 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
             exportedMarkdownCount: processedCount,
             copiedMarkdownCount: copiedCount,
             copiedAssetCount,
-            deletedStaleCount,
+            trashedStaleCount,
         };
         new Notice(
             `Website notes synced: ${stats.exportedMarkdownCount} markdown exported, ` +
             `${stats.copiedMarkdownCount} markdown copied, ${stats.copiedAssetCount} assets copied, ` +
-            `${stats.deletedStaleCount} stale files deleted.`
+            `${stats.trashedStaleCount} stale files moved to trash.`
         );
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

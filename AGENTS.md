@@ -36,7 +36,7 @@
 - `src/utils/string_processing/string_utils.tsx`: markdown line environment parsing, quote/code/math environment helpers, validation helpers, brace removal, and safe string escaping.
 - `src/utils/workspace/`: Obsidian workspace/editor helpers for leaf lookup, source-mode checks, view lookup from events/elements, panel invocation, cursor insertion, equation navigation, and drag-drop cursor rendering.
 - `src/utils/misc/array_utils.tsx`: generic array pattern search via KMP.
-- `src/utils/misc/desktop_fs_utils.tsx`: desktop-only Node filesystem/path helpers, including safe runtime `require`, path normalization, containment checks, and resolving child paths inside an export folder.
+- `src/utils/misc/desktop_fs_utils.tsx`: desktop-only Node/Electron filesystem/path helpers, including safe runtime `require`, path normalization, containment checks, resolving child paths inside an export folder, and moving external export artifacts to the system trash.
 - `src/utils/misc/equation_copy.tsx`: equation clipboard formatting/copy helpers.
 - `src/utils/misc/fileLink_utils.tsx`: resolved-link backlink/forward-link helpers for `metadataCache.resolvedLinks`.
 - `src/utils/misc/fileProcessor.tsx`: markdown-file filtering and the `MarkdownFileProcessor` wrapper for safe vault file processing.
@@ -50,3 +50,10 @@
 - Set Basic/Advanced display placement directly in `DEFAULT_SETTINGS.basicSettingsKeys` or `DEFAULT_SETTINGS.advancedSettingsKeys`. Do not add migration or push logic in `src\main.tsx` just to place a setting in the settings UI.
 
 - Consider the mobile compatibility of this plugin. The node may be not available when running in an mobile environment.
+- For website-note sync cleanup outside the vault, do not use hard-delete APIs such as `fs.rm` or `fs.rmdir`. Move stale exported artifacts to the system trash through `src/utils/misc/desktop_fs_utils.tsx`.
+
+
+## Documentation
+
+- Add brief documentation for relatively complex functions to preserve readability and maintainability.
+- For complex logic, document the edge cases the function intentionally handles, such as path traversal, missing files, stale cache/index entries, mobile or desktop API availability, and destructive-operation safety.
