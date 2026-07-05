@@ -23,6 +23,27 @@
 - `src/utils/`: reusable logic grouped by domain: `core/` for citation/auto-number algorithms, `parsers/` for markdown parsers, `workspace/` for Obsidian workspace/editor helpers, `string_processing/` for regex/string helpers, and `misc/` for small shared utilities.
 - `src/views/`: editor/reading-mode rendering, widgets, popovers, and autocomplete suggestions.
 
+## `src/utils/` Guide
+
+- Prefer adding shared helpers under `src/utils/` instead of keeping reusable utilities inside command or UI modules.
+- `src/utils/core/auto_number_core.tsx`: shared auto-numbering state, config types, tag generation, and heading/code-block processing used by equation and figure numbering.
+- `src/utils/core/auto_number_equations.tsx`: equation auto-numbering, cursor-position tag lookup, and illegal nested-equation detection.
+- `src/utils/core/auto_number_figures.tsx`: figure auto-numbering and reconstruction of wiki/markdown image lines with updated figure tags.
+- `src/utils/core/citation_utils.tsx`: citation parsing, cross-file citation formatting/splitting, continuous citation combine/split logic, and autocomplete tag extraction.
+- `src/utils/core/footnote_utils.tsx`: footnote lookup/creation for cross-file references.
+- `src/utils/parsers/`: markdown parsers for equations, images/figures, footnotes, headings, and callouts. Use these instead of ad hoc regex parsing when possible.
+- `src/utils/string_processing/regexp_utils.tsx`: shared regex constants and small constructors/parsers for citations, equation tags, images, callouts, and code-block detection.
+- `src/utils/string_processing/string_utils.tsx`: markdown line environment parsing, quote/code/math environment helpers, validation helpers, brace removal, and safe string escaping.
+- `src/utils/workspace/`: Obsidian workspace/editor helpers for leaf lookup, source-mode checks, view lookup from events/elements, panel invocation, cursor insertion, equation navigation, and drag-drop cursor rendering.
+- `src/utils/misc/array_utils.tsx`: generic array pattern search via KMP.
+- `src/utils/misc/desktop_fs_utils.tsx`: desktop-only Node filesystem/path helpers, including safe runtime `require`, path normalization, containment checks, and resolving child paths inside an export folder.
+- `src/utils/misc/equation_copy.tsx`: equation clipboard formatting/copy helpers.
+- `src/utils/misc/fileLink_utils.tsx`: resolved-link backlink/forward-link helpers for `metadataCache.resolvedLinks`.
+- `src/utils/misc/fileProcessor.tsx`: markdown-file filtering and the `MarkdownFileProcessor` wrapper for safe vault file processing.
+- `src/utils/misc/file_pattern_utils.tsx`: markdown filename-pattern normalization and wildcard matching.
+- `src/utils/misc/hash_utils.tsx`: hashes for strings, parsed equations, and equation panel items.
+- `src/utils/misc/mathjax_utils.tsx`: MathJax re-typesetting helper for refreshed dynamic content.
+
 # Add settings
 
 - This project has 3 settings tab view methods. So when a new setting is added, besides adding to the defaultSettings.tsx, the UI componenet should be defined in `src\settings\pages`, and since we have a list view, you also need to check `src\settings\settingsHelper.tsx` to ensure the settings key is in it.

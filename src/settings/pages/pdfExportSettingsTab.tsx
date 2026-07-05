@@ -1,6 +1,8 @@
 import EquationCitator from "@/main";
 import { FileSystemAdapter, Notice, Platform, Setting } from "obsidian";
 import { SETTINGS_METADATA } from "../defaultSettings";
+import { normalizeMarkdownFilePattern } from "@/utils/misc/file_pattern_utils";
+import { isPathInsideOrEqual } from "@/utils/misc/desktop_fs_utils";
 
 type ElectronDialog = {
     showOpenDialog: (options: {
@@ -9,21 +11,6 @@ type ElectronDialog = {
         properties: string[];
     }) => Promise<{ canceled: boolean; filePaths: string[] }>;
 };
-
-export function normalizeAbsolutePathForComparison(path: string): string {
-    return path
-        .trim()
-        .replace(/\\/g, "/")
-        .replace(/\/+$/, "")
-        .toLowerCase();
-}
-
-export function isPathInsideOrEqual(parentPath: string, targetPath: string): boolean {
-    const parent = normalizeAbsolutePathForComparison(parentPath);
-    const target = normalizeAbsolutePathForComparison(targetPath);
-
-    return target === parent || target.startsWith(`${parent}/`);
-}
 
 function getVaultBasePath(plugin: EquationCitator): string | null {
     const adapter = plugin.app.vault.adapter;
@@ -107,20 +94,6 @@ function getValidWebsiteExportFolderOrBlank(plugin: EquationCitator, folderPath:
     }
 
     return trimmedPath;
-}
-
-export function normalizeWebsiteMarkdownFilePattern(pattern: string): string | null {
-    const trimmedPattern = pattern.trim();
-
-    if (!trimmedPattern || /[\\/]/.test(trimmedPattern)) {
-        return null;
-    }
-
-    if (trimmedPattern.toLowerCase().endsWith(".md")) {
-        return trimmedPattern;
-    }
-
-    return `${trimmedPattern}.md`;
 }
 
 function hasDuplicatePattern(patterns: string[], pattern: string, currentIndex: number | null = null): boolean {
@@ -207,7 +180,7 @@ export const PdfExportSettingsTab = {
             originalPattern: string,
             inputEl: HTMLInputElement
         ) => {
-            const normalizedPattern = normalizeWebsiteMarkdownFilePattern(inputEl.value);
+            const normalizedPattern = normalizeMarkdownFilePattern(inputEl.value);
 
             if (!normalizedPattern) {
                 new Notice("Ignored file pattern must be a filename pattern, not a folder path.");
@@ -259,7 +232,7 @@ export const PdfExportSettingsTab = {
                     button.setButtonText("Add")
                         .setCta()
                         .onClick(async () => {
-                            const normalizedPattern = normalizeWebsiteMarkdownFilePattern(newPatternInput.value);
+                            const normalizedPattern = normalizeMarkdownFilePattern(newPatternInput.value);
 
                             if (!normalizedPattern) {
                                 new Notice("Ignored file pattern must be a filename pattern, not a folder path.");

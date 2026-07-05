@@ -1,12 +1,13 @@
 import EquationCitator from '@/main';
 import { autoNumberCurrentFileEquations, autoNumberCurrentFileFigures, insertAutoNumberTag } from '@/func/autoNumber';
-import { MarkdownView, Notice } from 'obsidian';
+import { MarkdownView, Notice, Platform } from 'obsidian';
 import { exportCurrentMarkdown } from '@/func/exportMarkdown';
 import { insertTextWithCursorOffset } from '@/utils/workspace/insertTextOnCursor';
 import { createCitationString, createEquationTagString } from '@/utils/string_processing/regexp_utils';
 import { invokeView } from '@/utils/workspace/invokePanelView';
 import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel/mainPanel';
 import { boxSelectedEquation } from '@/func/equations_helper';
+import { syncRepositoryToWebsiteNotesFolder } from '@/func/syncWebsiteNotes';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
@@ -74,6 +75,16 @@ export default function registerCommands(plugin: EquationCitator) {
             await exportCurrentMarkdown(plugin);
         }
     })
+
+    if (Platform.isDesktopApp) {
+        plugin.addCommand({
+            id: 'sync-repository-to-website-notes-folder',
+            name: 'Sync repository to the website notes folder',
+            callback: async () => {
+                await syncRepositoryToWebsiteNotesFolder(plugin);
+            }
+        })
+    }
 
     plugin.addCommand({
         id: 'insert-tag-on-cursor-position',

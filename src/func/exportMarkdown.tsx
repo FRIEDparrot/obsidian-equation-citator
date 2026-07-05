@@ -4,6 +4,14 @@ import EquationCitator from "@/main";
 import { ModalOption, OptionsModal } from "@/ui/modals/optionsModal";
 import Debugger from "@/debug/debugger";
 
+export async function makeExportedMarkdownForPdf(plugin: EquationCitator, file: TFile): Promise<string | null> {
+    const md = await plugin.app.vault.read(file);
+    if (!md) {
+        return null;
+    }
+
+    return makePrintMarkdown(md, plugin.settings) || null;
+}
 
 export async function exportCurrentMarkdown(plugin: EquationCitator) {
     const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
@@ -16,14 +24,9 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
         new Notice("Invalid file type");
         return;
     }
-    const md = await plugin.app.vault.read(file);
-    if (!md) {
-        new Notice("File is empty");
-        return;
-    }
-    const md_processed = makePrintMarkdown(md, plugin.settings);
+    const md_processed = await makeExportedMarkdownForPdf(plugin, file);
     if (!md_processed) {
-        new Notice("Nothing to export");
+        new Notice("File is empty");
         return;
     }
 
