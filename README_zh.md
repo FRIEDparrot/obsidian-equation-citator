@@ -5,12 +5,16 @@
 <center><div width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.5-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
-  <img src="https://img.shields.io/github/downloads/FRIEDparrot/obsidian-equation-citator/total?label=Downloads" alt="Downloads">
+  <a href="https://obsidian.md/plugins?id=equation-citator">
+  <img src="https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22equation-citator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json" alt="Downloads">
+</a>
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
   <img src="https://sonarcloud.io/api/project_badges/measure?project=FRIEDparrot_obsidian-equation-citator&metric=alert_status" alt="Quality Gate">
 </span></div></center>
 <center><a href="README.md" target="_blank"><b>English</b></a> | <b>简体中文</b></center>
 <center><h4>强大、便捷且优雅的学术引用工具</h4></center>
+
+<center><b><h3>感谢 1.7k 下载😄!</h3></b></center>  
 
 ---
 
@@ -20,17 +24,13 @@
 
 📹 **视频教程**：如果本插件下载量达到 5000 次或仓库获得 50 个 Star，将会录制视频教程。
 
-📱 **平台支持**：本插件已在 **Windows、Linux、Mac 和 Android** 上完成测试。（主要面向 Windows 平台开发，Android 支持在 v1.3.3 后加入，部分功能——如拖拽引用和某些预览——在移动端可能受限。）
+📱 **平台支持**：本插件已在 **Windows、Linux、Mac 和 Android** 上完成测试（某些功能在移动端可能受限）。
 
 ## 🛠️ 安装方式
 
-> 本插件目前正在等待 Obsidian 社区插件审核，详见 [PR #7298](https://github.com/obsidianmd/obsidian-releases/pull/7298)，暂时无法在社区插件列表中搜索到，请耐心等待。
-
-1. 插件发布后，可通过社区插件安装（`设置` > `第三方插件` > `浏览`，搜索 `equation-citator`）。
+1. 您可通过社区插件安装此插件（`设置` > `第三方插件` > `浏览`，搜索 `equation-citator`）。
 
 2. 或从最新 Release 页面下载 `main.js`、`manifest.json` 和 `style.css`，放置于 Obsidian 仓库的 `.obsidian/plugins/equation-citator` 文件夹中。
-
-3. 也可通过插件 [BRAT](https://obsidian.md/plugins?id=obsidian42-brat) 安装，将本仓库链接粘贴到 BRAT 的选项页中即可。
 
 ## 👋🏻 适用场景
 
@@ -63,13 +63,13 @@
 
 ### 2. 🖼️ 引用公式、图片、表格与定理
 
+<center><img src="img/image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px;" /></center> 
+
 - 使用 `\ref{eq:tag}` 语法引用公式，支持完整的自动补全
 - 在图片语法中添加 `fig:` 字段，并使用 `\ref{fig:tag}` 引用图片
 - 通过 Callout 引用语法引用表格与定理，支持完全自定义的前缀配置
 - 支持 **Excalidraw 图片**与 **Markdown 章节预览**
 - 完整支持**多项引用 & 连续引用 & 跨文件引用**
-
-<center><img src="img/image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px;" /></center>
 
 ### 3. 🖥️ 公式管理面板——浏览、跳转与拖拽引用
 
@@ -83,14 +83,17 @@
 
 <!-- 占位符：面板中切换公式 / 图片 / Callout 视图的 GIF 演示 -->
 
-### 4. 📜 PDF 导出
+### 4. 📜 PDF 导出与网站文档支持
 
-运行命令 `Make markdown copy to export PDF`，生成格式正确、可直接用于 PDF 导出的 Markdown 文件，支持：
-- 全文正确的引用与参考编号
-- 可配置的**引用颜色**
-- 导出内容中可选的**图片标题与描述**
+1. 运行命令 `Make markdown copy to export PDF`，生成格式正确、可直接用于 PDF 导出的 Markdown 文件。
+  - 正确的引用与参考编号，支持可配置的引用颜色
+  - 支持**图片标题/描述中的 Markdown 语法**
 
-<center><img src="img/pdf-export-example.png" alt="pdf-export-example" style="zoom:100%; max-height: 350px;" /></center>
+2. 您可以使用此功能构建**带有实时引用功能的个人网站**。
+  - 指定一个 `网站笔记导出文件夹` 来构建您的文档。
+  - 您可以**同步单个文件、文件夹或整个仓库**到目标文件夹，引用元数据将被保留，以便在网站上渲染预览。
+
+<center><img src="img/webpage-build-example.png" alt="drag-drop-cite" style="zoom: 100%; max-height: 350px;" /></center>
 
 ## 🛒 与其他插件的兼容性
 

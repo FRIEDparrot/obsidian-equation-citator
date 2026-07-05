@@ -14,7 +14,7 @@
 <center><b>English</b> | <a href="README_zh.md" target="_blank"><b>简体中文</b></a></center>
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4></center>
 
-<center><b><h3>Thanks for 1.5k downloads😄!</h3></b></center> 
+<center><b><h3>Thanks for 1.7k downloads😄!</h3></b></center> 
 
 ---
 
@@ -24,7 +24,7 @@
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars. 
 
-📱 **Platform support**: This plugin has been tested on **Windows, Linux, Mac, and Android**. (It is primarily designed for Windows; Android support was added after v1.3.3, and some features — e.g., drag-and-drop citation and certain previews — may be limited on mobile.)
+📱 **Platform support**: This plugin has been tested on **Windows, Linux, Mac, and Android** (certain functions may be limited on mobile).
 
 ## 🛠️ Installation
 
@@ -63,13 +63,13 @@ One-click auto-numbering support for:
 
 ### 2. 🖼️ Cite Equations, Figures, Tables and Theorems
 
+<center><img src="img/image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px;" /></center> 
+
 - Cite equations with `\ref{eq:tag}` syntax, with full autocomplete support
 - Cite figures by adding a `fig:` field to the image and using `\ref{fig:tag}` syntax
-- Cite tables and theorems callout citation with fully configurable prefixes.
+- Cite tables and theorems callout citation with **fully configurable prefixes**.
 - Support for **Excalidraw images** and **markdown section previews**
 - Full support on **multiple citation & continuous citation & cross-file citation**
-
-<center><img src="img/image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px;" /></center>
 
 ### 3. 🖥️ Equation Manage Panel — Browse, Jump and Cite by Drag and Drop
 
@@ -79,19 +79,20 @@ One-click auto-numbering support for:
 - **Right-click to copy** equations directly from the panel or editor popover
 - **Jump to equations**, figures and callouts directly from the popover and Equation Manage Panel
 
-
 <center><img src="img/drag-drop-cite.gif" alt="drag-drop-cite" style="zoom: 50%;" /></center>
 
 <!-- PLACEHOLDER: gif of switching between equation / figure / callout view in the panel -->
 
-### 4. 📜 PDF Export
+### 4. 📜 PDF Export & Web documentation support 
+1. Run the command `Make markdown copy to export PDF` to generate a properly formatted markdown file ready for PDF export. 
+  - Correct citation and reference numbers with configurable citation colors
+  - Support for **markdown grammar inside title/caption for figures** 
 
-Run the command `Make markdown copy to export PDF` to generate a properly formatted markdown file ready for PDF export, with:
-- Correct citation and reference numbers throughout
-- Configurable **citation colors**
-- Optional **figure captions and descriptions** in the exported output
+2. You can build your **own website using with live reference feature** with this support. 
+  - Specify a `Website notes export folder` to build your documentation.  
+  - You can **sync Single file, folders or entire repository** to the desination folder, the citation meta-data can be preserved for rendering the preview on the website.
 
-<center><img src="img/pdf-export-example.png" alt="pdf-export-example" style="zoom:100%; max-height: 350px;" /></center>
+<center><img src="img/webpage-build-example.png" alt="drag-drop-cite" style="zoom: 100%; max-height: 350px;" /></center>
 
 ## 🛒 Compatibility with other plugins
 
