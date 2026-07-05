@@ -404,7 +404,8 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 - [x] Added full pdf support for markdown rendering result for image caption and description. 
 - [x] Added metadata injection to the pdf, which retains the metadata for the figures. It will also add detailed citation data to the 
 - [x] Added better spacing for the image export of PDF, preventing images to become crowd in many cases 
-- [x] Added batch markdown export command `Sync repository to the website notes folder`.
+- [x] Added batch markdown export command `Sync repository to the website notes folder` to sync the entire repository to the target website notes folder.
+- [x] Added `sync files/folders to the website notes folder` options to the file explorer, Added `sync current file to website notes folder` command.
 
 🐛 Fixed Bugs : 
 - [x] fixed [#162](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/162), viewState refresh correctly when switch files 
@@ -421,5 +422,4 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 - [ ] Added **Webpage version of the tutorials** and the **API documentations**.
 
 ### 🚢 If you want following features, you can request it in issue page :  
-1. Auto number for callouts.
-2. Check citations of equations, figures and tables in equation manage panel.
+1. Check citations of equations, figures and tables in equation manage panel.
