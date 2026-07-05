@@ -14,7 +14,6 @@ export const EquationPanelSettingsTab = {
             .addSlider((slider) => {
                 slider.setLimits(1000, 10000, 500);
                 slider.setValue(plugin.settings.equationManagePanelLazyUpdateTime);
-                slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
                     plugin.settings.equationManagePanelLazyUpdateTime = value;
                     await plugin.saveSettings();
@@ -30,7 +29,6 @@ export const EquationPanelSettingsTab = {
             .addSlider((slider) => {
                 slider.setLimits(500, 5000, 100);
                 slider.setValue(plugin.settings.equationManagePanelFileCheckInterval);
-                slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
                     plugin.settings.equationManagePanelFileCheckInterval = value;
                     await plugin.saveSettings();

@@ -4,6 +4,11 @@ import { SETTINGS_METADATA } from "../defaultSettings";
 import { CalloutTableStyleManager } from "../styleManagers/calloutTabManager";
 import { WidgetSizeManager, WidgetSize, WIDGET_SIZE_LABELS } from "../styleManagers/widgetSizeManager";
 
+const WIDGET_SIZE_VALUES: readonly string[] = Object.values(WidgetSize);
+
+function isWidgetSize(value: string): value is WidgetSize {
+    return WIDGET_SIZE_VALUES.includes(value);
+}
 
 export const StyleSettingsTab = {
     citationPopoverSize(containerEl: HTMLElement, plugin: EquationCitator) {
@@ -16,8 +21,12 @@ export const StyleSettingsTab = {
                 });
                 dropdown.setValue(plugin.settings.citationPopoverSize || WidgetSize.Medium);
                 dropdown.onChange(async (value) => {
-                    plugin.settings.citationPopoverSize = value as WidgetSize;
-                    WidgetSizeManager.setSize(value as WidgetSize);
+                    if (!isWidgetSize(value)) {
+                        return;
+                    }
+
+                    plugin.settings.citationPopoverSize = value;
+                    WidgetSizeManager.setSize(value);
                     await plugin.saveSettings();
                 });
             });

@@ -50,20 +50,20 @@ export function createCustomizePanel(
             const basicLabel = checkboxGroup.createEl("label", { cls: "ec-customize-checkbox-label" });
             const basicCheckbox = basicLabel.createEl("input", { type: "checkbox" });
             basicLabel.createSpan({ text: "Basic" });
-            basicCheckbox.checked = plugin.settings.basicSettingsKeys.includes(settingKey as string);
+            basicCheckbox.checked = plugin.settings.basicSettingsKeys.includes(settingKey);
 
             // Advanced checkbox
             const advancedLabel = checkboxGroup.createEl("label", { cls: "ec-customize-checkbox-label" });
             const advancedCheckbox = advancedLabel.createEl("input", { type: "checkbox" });
             advancedLabel.createSpan({ text: "Advanced" });
-            advancedCheckbox.checked = plugin.settings.advancedSettingsKeys.includes(settingKey as string);
+            advancedCheckbox.checked = plugin.settings.advancedSettingsKeys.includes(settingKey);
 
             // Handle checkbox changes - mutually exclusive
             basicCheckbox.addEventListener("change", () => {
                 if (basicCheckbox.checked) {
                     // Add to basic, remove from advanced
-                    if (!plugin.settings.basicSettingsKeys.includes(settingKey as string)) {
-                        plugin.settings.basicSettingsKeys.push(settingKey as string);
+                    if (!plugin.settings.basicSettingsKeys.includes(settingKey)) {
+                        plugin.settings.basicSettingsKeys.push(settingKey);
                     }
                     plugin.settings.advancedSettingsKeys = plugin.settings.advancedSettingsKeys.filter(
                         k => k !== settingKey
@@ -81,8 +81,8 @@ export function createCustomizePanel(
             advancedCheckbox.addEventListener("change", () => {
                 if (advancedCheckbox.checked) {
                     // Add to advanced, remove from basic
-                    if (!plugin.settings.advancedSettingsKeys.includes(settingKey as string)) {
-                        plugin.settings.advancedSettingsKeys.push(settingKey as string);
+                    if (!plugin.settings.advancedSettingsKeys.includes(settingKey)) {
+                        plugin.settings.advancedSettingsKeys.push(settingKey);
                     }
                     plugin.settings.basicSettingsKeys = plugin.settings.basicSettingsKeys.filter(
                         k => k !== settingKey

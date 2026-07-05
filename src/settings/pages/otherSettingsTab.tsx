@@ -76,7 +76,7 @@ export const OtherSettingsTab = {
                     resetStyles(); // reset styles
                     await plugin.saveSettings();
                     // Refresh the display
-                    settingsTab.display();
+                    settingsTab.refreshDisplay();
                     new Notice("Settings have been restored to defaults");
                 });
             });

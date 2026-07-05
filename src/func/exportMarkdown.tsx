@@ -64,7 +64,7 @@ async function resolveCrossFilePathsForExport(
 export async function exportCurrentMarkdown(plugin: EquationCitator) {
     const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view) {
-        new Notice("No active markdown view found");
+        new Notice("No active Markdown view found");
         return;
     }
     const file = view.file;

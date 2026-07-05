@@ -14,7 +14,6 @@ export const CacheSettingsTab = {
             .addSlider((slider) => {
                 slider.setLimits(1000, 10000, 1000);
                 slider.setValue(plugin.settings.cacheUpdateTime || 5000);
-                slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
                     plugin.settings.cacheUpdateTime = value;
                     await plugin.saveSettings();

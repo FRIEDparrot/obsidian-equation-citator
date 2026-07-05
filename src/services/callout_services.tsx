@@ -177,7 +177,7 @@ export class CalloutServices {
             footnoteIndex: crossFile,
             lineStart: callout.lineStart,
             lineEnd: callout.lineEnd
-        }) as RenderedCallout);
+        }));
     }
 
     /**

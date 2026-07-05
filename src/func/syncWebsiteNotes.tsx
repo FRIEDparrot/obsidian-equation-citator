@@ -116,7 +116,7 @@ function getMarkdownFilesInFolder(folder: TFolder): TFile[] {
 async function ensureExportFolderIsReady(exportFolder: string): Promise<boolean> {
     const { fs } = getNodeFileSystemModules() ?? {};
     if (!fs) {
-        new Notice("Node file system APIs are not available in this Obsidian environment.");
+        new Notice("Node file system is not available in this Obsidian environment");
         return false;
     }
 
@@ -311,7 +311,7 @@ async function copyVaultFile(plugin: EquationCitator, exportFolder: string, file
 
     const data = await plugin.app.vault.readBinary(file);
     await fs.mkdir(path.dirname(targetPath), { recursive: true });
-    await fs.writeFile(targetPath, Buffer.from(data));
+    await fs.writeFile(targetPath, new Uint8Array(data));
 }
 
 /**
@@ -650,7 +650,7 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
 export async function syncCurrentFileToWebsiteNotesFolder(plugin: EquationCitator): Promise<void> {
     const activeFile = plugin.app.workspace.getActiveFile();
     if (!activeFile || !isMarkdownFile(activeFile)) {
-        new Notice("No active markdown file to sync.");
+        new Notice("No active Markdown file to sync");
         return;
     }
 
@@ -668,7 +668,7 @@ export async function syncCurrentFileToWebsiteNotesFolder(plugin: EquationCitato
  */
 export async function syncFileToWebsiteNotesFolder(plugin: EquationCitator, file: TFile): Promise<void> {
     if (!isMarkdownFile(file)) {
-        new Notice("Only markdown files can be synced to website notes.");
+        new Notice("Only Markdown files can be synced to website notes");
         return;
     }
 
@@ -714,7 +714,7 @@ export async function syncFolderToWebsiteNotesFolder(plugin: EquationCitator, fo
 
     const markdownFiles = getMarkdownFilesInFolder(folder);
     if (markdownFiles.length === 0) {
-        new Notice("No markdown files found in selected folder.");
+        new Notice("No Markdown files found in selected folder");
         return;
     }
 

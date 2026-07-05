@@ -22,9 +22,9 @@ function getVaultBasePath(plugin: EquationCitator): string | null {
 }
 
 function getElectronDialog(): ElectronDialog | null {
-    const windowWithRequire = window as typeof window & {
+    const windowWithRequire: Window & {
         require?: (moduleName: string) => unknown;
-    };
+    } = window;
 
     const safeRequire = (moduleName: string): unknown => {
         try {

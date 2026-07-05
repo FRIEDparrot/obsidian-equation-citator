@@ -66,6 +66,10 @@ export class SettingsTabView extends PluginSettingTab {
     }
 
     display(): void {
+        this.refreshDisplay();
+    }
+
+    public refreshDisplay(): void {
         const { containerEl } = this;
         containerEl.empty();
 
@@ -86,7 +90,7 @@ export class SettingsTabView extends PluginSettingTab {
                 dd.onChange(async (value) => {
                     this.plugin.settings.settingsDisplayMode = value as SettingsDisplayMode.Concise | SettingsDisplayMode.Categorical;
                     await this.plugin.saveSettings();
-                    this.display();
+                    this.refreshDisplay();
                 });
             });
 
@@ -423,7 +427,7 @@ export class SettingsTabView extends PluginSettingTab {
                         this.plugin.settings = { ...DEFAULT_SETTINGS };
                         resetStyles();
                         await this.plugin.saveSettings();
-                        this.display();
+                        this.refreshDisplay();
                         new Notice("Settings have been restored to defaults");
                     });
                 });
