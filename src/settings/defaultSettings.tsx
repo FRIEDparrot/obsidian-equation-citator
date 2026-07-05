@@ -89,6 +89,7 @@ export interface EquationCitatorSettings {
 
     // pdf rendering settings
     websiteNotesExportFolder: string; // Absolute folder path for website note export
+    websiteNotesExportIgnoredFilePatterns: string[]; // filename patterns skipped during website note export
     citationColorInPdf: string; // default citation color in PDF rendering
     addImageCaptionsInPdf: boolean; // whether to add image captions in PDF export
     addImageDescInPdf: boolean; // whether to add image description in PDF export
@@ -151,6 +152,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
 
     citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
     websiteNotesExportFolder: "", // external folder for website note export
+    websiteNotesExportIgnoredFilePatterns: ["*.excalidraw.md"], // skip Excalidraw markdown files by default
     addImageCaptionsInPdf: true, // add image captions in PDF export by default
     addImageDescInPdf: true, // add image description in PDF export by default
     keepImageSpacingForPdf: true, // keep images separated from neighboring paragraphs in PDF export
@@ -206,6 +208,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "multiCitationDelimiterRender",
         "enableContinuousCitation",
         "websiteNotesExportFolder",
+        "websiteNotesExportIgnoredFilePatterns",
         "calloutCitationPrefixes",
         "autoNumberDelimiter",
         "enableAutoNumberEquationsInQuotes",
@@ -568,6 +571,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "string",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.websiteNotesExportFolder(el, plugin);
+        }
+    },
+
+    websiteNotesExportIgnoredFilePatterns: {
+        name: "Ignored website note file patterns",
+        desc: "Markdown filename patterns skipped when exporting website notes. Patterns are matched against markdown filenames and saved with a .md ending.",
+        type: "array",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.websiteNotesExportIgnoredFilePatterns(el, plugin);
         }
     },
 

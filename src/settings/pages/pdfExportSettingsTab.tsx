@@ -109,6 +109,31 @@ function getValidWebsiteExportFolderOrBlank(plugin: EquationCitator, folderPath:
     return trimmedPath;
 }
 
+export function normalizeWebsiteMarkdownFilePattern(pattern: string): string | null {
+    const trimmedPattern = pattern.trim();
+
+    if (!trimmedPattern || /[\\/]/.test(trimmedPattern)) {
+        return null;
+    }
+
+    if (trimmedPattern.toLowerCase().endsWith(".md")) {
+        return trimmedPattern;
+    }
+
+    return `${trimmedPattern}.md`;
+}
+
+function hasDuplicatePattern(patterns: string[], pattern: string, currentIndex: number | null = null): boolean {
+    const normalizedPattern = pattern.toLowerCase();
+    return patterns.some((existingPattern, index) => {
+        if (currentIndex !== null && index === currentIndex) {
+            return false;
+        }
+
+        return existingPattern.toLowerCase() === normalizedPattern;
+    });
+}
+
 export const PdfExportSettingsTab = {
     websiteNotesExportFolder(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.websiteNotesExportFolder;
@@ -167,6 +192,94 @@ export const PdfExportSettingsTab = {
             });
 
         setting.descEl.appendChild(currentFolderText);
+    },
+
+    websiteNotesExportIgnoredFilePatterns(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.websiteNotesExportIgnoredFilePatterns;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc);
+
+        const patternListContainer = containerEl.createDiv("ec-website-export-ignore-list-container");
+
+        const savePatternAtIndex = async (
+            index: number,
+            originalPattern: string,
+            inputEl: HTMLInputElement
+        ) => {
+            const normalizedPattern = normalizeWebsiteMarkdownFilePattern(inputEl.value);
+
+            if (!normalizedPattern) {
+                new Notice("Ignored file pattern must be a filename pattern, not a folder path.");
+                inputEl.value = originalPattern;
+                return;
+            }
+
+            if (hasDuplicatePattern(plugin.settings.websiteNotesExportIgnoredFilePatterns, normalizedPattern, index)) {
+                new Notice("This ignored file pattern already exists.");
+                inputEl.value = originalPattern;
+                return;
+            }
+
+            plugin.settings.websiteNotesExportIgnoredFilePatterns[index] = normalizedPattern;
+            inputEl.value = normalizedPattern;
+            await plugin.saveSettings();
+        };
+
+        const renderPatternList = () => {
+            patternListContainer.empty();
+
+            plugin.settings.websiteNotesExportIgnoredFilePatterns.forEach((pattern, index) => {
+                new Setting(patternListContainer)
+                    .setClass("ec-website-export-ignore-item")
+                    .addText((text) => {
+                        text.setValue(pattern);
+                        text.setPlaceholder("*.excalidraw");
+                        text.inputEl.onblur = () => savePatternAtIndex(index, pattern, text.inputEl);
+                    })
+                    .addButton((button) => {
+                        button.setButtonText("Remove")
+                            .setClass("mod-warning")
+                            .onClick(async () => {
+                                plugin.settings.websiteNotesExportIgnoredFilePatterns.splice(index, 1);
+                                await plugin.saveSettings();
+                                renderPatternList();
+                            });
+                    });
+            });
+
+            let newPatternInput: HTMLInputElement;
+            new Setting(patternListContainer)
+                .setClass("ec-website-export-ignore-add")
+                .addText((text) => {
+                    text.setPlaceholder("*.excalidraw");
+                    newPatternInput = text.inputEl;
+                })
+                .addButton((button) => {
+                    button.setButtonText("Add")
+                        .setCta()
+                        .onClick(async () => {
+                            const normalizedPattern = normalizeWebsiteMarkdownFilePattern(newPatternInput.value);
+
+                            if (!normalizedPattern) {
+                                new Notice("Ignored file pattern must be a filename pattern, not a folder path.");
+                                return;
+                            }
+
+                            if (hasDuplicatePattern(plugin.settings.websiteNotesExportIgnoredFilePatterns, normalizedPattern)) {
+                                new Notice("This ignored file pattern already exists.");
+                                newPatternInput.value = "";
+                                return;
+                            }
+
+                            plugin.settings.websiteNotesExportIgnoredFilePatterns.push(normalizedPattern);
+                            await plugin.saveSettings();
+                            renderPatternList();
+                        });
+                });
+        };
+
+        renderPatternList();
     },
 
     citationColorInPdf(containerEl: HTMLElement, plugin: EquationCitator) {
@@ -246,6 +359,7 @@ export const PdfExportSettingsTab = {
 export function addPdfExportSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) { 
     PdfExportSettingsTab.pdfExportTip(containerEl, plugin); 
     PdfExportSettingsTab.websiteNotesExportFolder(containerEl, plugin);
+    PdfExportSettingsTab.websiteNotesExportIgnoredFilePatterns(containerEl, plugin);
     PdfExportSettingsTab.citationColorInPdf(containerEl, plugin);
     PdfExportSettingsTab.addImageCaptionsInPdf(containerEl, plugin);
     PdfExportSettingsTab.addImageDescInPdf(containerEl, plugin);

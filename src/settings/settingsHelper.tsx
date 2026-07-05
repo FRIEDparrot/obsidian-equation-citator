@@ -97,6 +97,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: "PDF export",
             settingKeys: [
                 "websiteNotesExportFolder",
+                "websiteNotesExportIgnoredFilePatterns",
                 "citationColorInPdf",
                 "addImageCaptionsInPdf",
                 "addImageDescInPdf",
