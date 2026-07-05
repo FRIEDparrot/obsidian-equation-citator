@@ -50,13 +50,16 @@
 - Set Basic/Advanced display placement directly in `DEFAULT_SETTINGS.basicSettingsKeys` or `DEFAULT_SETTINGS.advancedSettingsKeys`. Do not add migration or push logic in `src\main.tsx` just to place a setting in the settings UI.
 
 - Consider the mobile compatibility of this plugin. The node may be not available when running in an mobile environment.
-- For website-note sync cleanup outside the vault, treat stale files as generated artifacts. Try system trash first when available, then allow `fs.rm` as a logged fallback through `src/utils/misc/desktop_fs_utils.tsx`.
+- For website-note sync cleanup outside the vault, treat stale files as generated artifacts and remove them with logged `fs.rm` helpers in `src/utils/misc/desktop_fs_utils.tsx`; do not add system-trash or command-runner fallbacks.
 
 
 ## Documentation
 
 - Add brief documentation for relatively complex functions to preserve readability and maintainability.
-- For complex logic, document the edge cases the function intentionally handles, such as path traversal, missing files, stale cache/index entries, mobile or desktop API availability, and destructive-operation safety.
+- A good function comment should explain the function contract first: what the function does, what each non-obvious parameter represents, and what the caller can expect from the return value or side effects.
+- Use `@param` only when a parameter is non-obvious or important to the function contract.
+- Document edge cases only when they are important to the function's correctness or safety, such as path traversal, missing files, stale cache/index entries, mobile or desktop API availability, and destructive-operation safety. Do not add edge-case lists to simple functions where the signature and body are already clear.
+- Do not document self-evident parameters such as `plugin`, `file`, or `folder` when the signature and local context already make them clear.
 - When a `catch` handles a non-trivial operation, log detailed context with `Debugger.log` or `Debugger.error` in addition to any user-facing `Notice`; include the operation, relevant file/path, and the original error object when available.
 
 

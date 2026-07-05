@@ -7,11 +7,6 @@ export interface NodeFileSystemModules {
     path: typeof Path;
 }
 
-interface ElectronShell {
-    trashItem?: (path: string) => Promise<void>;
-    moveItemToTrash?: (path: string) => boolean;
-}
-
 export function getNodeFileSystemModules(): NodeFileSystemModules | null {
     try {
         return {
@@ -61,10 +56,10 @@ export function resolvePathInsideFolder(parentFolder: string, relativePath: stri
  * Removes an absolute desktop filesystem path produced by website-note export.
  *
  * Edge cases handled:
- * - not try electron shell, since its always failed to remove 
- * - Tries `fs.rm` because website-note outputs are generated artifacts.
- * - Logs whether the path was moved to trash or permanently removed.
- * - Returns `false` only when both trash and permanent removal fail.
+ * - Uses `fs.rm` because website-note outputs are generated artifacts.
+ * - Does not call shell, PowerShell, or command-runner fallbacks.
+ * - Logs whether the path was permanently removed.
+ * - Returns `false` only when permanent removal fails.
  */
 export async function removeExternalExportPath(filePath: string): Promise<boolean> {
     const modules = getNodeFileSystemModules();
@@ -75,10 +70,10 @@ export async function removeExternalExportPath(filePath: string): Promise<boolea
 
     try {
         await modules.fs.rm(filePath, { recursive: true, force: true });
-        Debugger.log("Permanently removed external export path after system trash failed:", filePath);
+        Debugger.log("Permanently removed external export path:", filePath);
         return true;
     } catch (error) {
-        Debugger.error("Failed to permanently remove external export path after system trash failed:", filePath, error);
+        Debugger.error("Failed to permanently remove external export path:", filePath, error);
         return false;
     }
 }

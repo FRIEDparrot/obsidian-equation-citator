@@ -1,10 +1,15 @@
 import EquationCitator from "@/main"
-import { Menu, App, Editor, MarkdownView, MarkdownFileInfo, MenuItem } from "obsidian"
+import { Menu, App, Editor, MarkdownView, MarkdownFileInfo, MenuItem, TAbstractFile, TFile, TFolder } from "obsidian"
 import { EditorSelectionInfo } from "@/views/widgets/citation_render";
 import { EditorState } from "@codemirror/state";
 import Debugger from "@/debug/debugger";
 import { TagRenameModal } from "@/ui/modals/tagRenameModal";
 import { parseImageLine } from "@/utils/parsers/image_parser";
+import {
+    isWebsiteNotesSyncTargetReady,
+    syncFileToWebsiteNotesFolder,
+    syncFolderToWebsiteNotesFolder,
+} from "@/func/syncWebsiteNotes";
 
 export function registerRightClickHandler(plugin: EquationCitator) {
     const app: App = plugin.app;
@@ -15,6 +20,43 @@ export function registerRightClickHandler(plugin: EquationCitator) {
             if (handleFigureTagRename(plugin, menu, editor, view)) return;
         })
     )
+    plugin.registerEvent(
+        app.workspace.on("file-menu", (menu: Menu, file: TAbstractFile): void => {
+            handleWebsiteNotesExplorerSync(plugin, menu, file);
+        })
+    )
+}
+
+function handleWebsiteNotesExplorerSync(plugin: EquationCitator, menu: Menu, file: TAbstractFile): boolean {
+    if (!isWebsiteNotesSyncTargetReady(plugin)) {
+        return false;
+    }
+
+    if (file instanceof TFile && file.extension === "md") {
+        menu.addSeparator();
+        menu.addItem((item: MenuItem) => {
+            item.setTitle("Sync file to website notes folder");
+            item.setIcon("upload");
+            item.onClick(async () => {
+                await syncFileToWebsiteNotesFolder(plugin, file);
+            });
+        });
+        return true;
+    }
+
+    if (file instanceof TFolder) {
+        menu.addSeparator();
+        menu.addItem((item: MenuItem) => {
+            item.setTitle("Sync folder to website notes folder");
+            item.setIcon("folder-sync");
+            item.onClick(async () => {
+                await syncFolderToWebsiteNotesFolder(plugin, file);
+            });
+        });
+        return true;
+    }
+
+    return false;
 }
 
 /**

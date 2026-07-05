@@ -7,7 +7,7 @@ import { createCitationString, createEquationTagString } from '@/utils/string_pr
 import { invokeView } from '@/utils/workspace/invokePanelView';
 import { EQUATION_MANAGE_PANEL_TYPE } from '@/ui/panels/equationManagePanel/mainPanel';
 import { boxSelectedEquation } from '@/func/equations_helper';
-import { syncRepositoryToWebsiteNotesFolder } from '@/func/syncWebsiteNotes';
+import { syncCurrentFileToWebsiteNotesFolder, syncRepositoryToWebsiteNotesFolder } from '@/func/syncWebsiteNotes';
 
 export default function registerCommands(plugin: EquationCitator) {
     plugin.addCommand({
@@ -82,6 +82,14 @@ export default function registerCommands(plugin: EquationCitator) {
             name: 'Sync repository to the website notes folder',
             callback: async () => {
                 await syncRepositoryToWebsiteNotesFolder(plugin);
+            }
+        })
+
+        plugin.addCommand({
+            id: 'sync-current-file-to-website-notes-folder',
+            name: 'Sync current file to website notes folder',
+            callback: async () => {
+                await syncCurrentFileToWebsiteNotesFolder(plugin);
             }
         })
     }

@@ -1,7 +1,7 @@
 import EquationCitator from "@/main";
 import { makeExportedMarkdownForPdf } from "@/func/exportMarkdown";
 import Debugger from "@/debug/debugger";
-import { FileSystemAdapter, Notice, Platform, TFile, normalizePath } from "obsidian";
+import { FileSystemAdapter, Notice, Platform, TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
 import {
     getNodeFileSystemModules,
     isPathInsideOrEqual,
@@ -83,6 +83,31 @@ function shouldDirectCopyMarkdown(file: TFile, ignoredPatterns: string[]): boole
     return fileNameMatchesMarkdownPatterns(file, ignoredPatterns);
 }
 
+function isMarkdownFile(file: TAbstractFile): file is TFile {
+    return file instanceof TFile && file.extension === "md";
+}
+
+function getFolderScopePredicate(folder: TFolder): (filePath: string) => boolean {
+    const folderPath = normalizePath(folder.path);
+    if (!folderPath || folderPath === "/") {
+        return () => true;
+    }
+
+    const folderPrefix = `${folderPath}/`;
+    return (filePath: string) => normalizePath(filePath).startsWith(folderPrefix);
+}
+
+function getMarkdownFilesInFolder(folder: TFolder): TFile[] {
+    const markdownFiles: TFile[] = [];
+    Vault.recurseChildren(folder, (file: TAbstractFile) => {
+        if (isMarkdownFile(file)) {
+            markdownFiles.push(file);
+        }
+    });
+
+    return markdownFiles;
+}
+
 /**
  * Validates that the export folder exists, is a directory, and that the Node
  * filesystem APIs are available. Shows a {@link Notice} to the user for each
@@ -113,6 +138,43 @@ async function ensureExportFolderIsReady(exportFolder: string): Promise<boolean>
     }
 
     return true;
+}
+
+async function getReadyExportFolderOrNotice(plugin: EquationCitator): Promise<string | null> {
+    if (!Platform.isDesktopApp) {
+        new Notice("Sync to website note repository is only available in the desktop app.");
+        return null;
+    }
+
+    const exportFolder = plugin.settings.websiteNotesExportFolder.trim();
+    if (!await ensureExportFolderIsReady(exportFolder)) {
+        return null;
+    }
+
+    const vaultBasePath = getVaultBasePath(plugin);
+    if (vaultBasePath && isPathInsideOrEqual(vaultBasePath, exportFolder)) {
+        new Notice("Website notes export folder must be outside the current vault/repository.");
+        return null;
+    }
+
+    return exportFolder;
+}
+
+/**
+ * Checks whether website-note sync actions can be shown in the file explorer
+ * without doing filesystem I/O or displaying notices.
+ *
+ * Edge cases handled:
+ * - Hides actions on mobile.
+ * - Hides actions when the export folder setting is blank.
+ * - Leaves full validation to the sync action, which can show a Notice.
+ */
+export function isWebsiteNotesSyncTargetReady(plugin: EquationCitator): boolean {
+    if (!Platform.isDesktopApp) {
+        return false;
+    }
+
+    return Boolean(plugin.settings.websiteNotesExportFolder.trim());
 }
 
 /**
@@ -172,6 +234,38 @@ async function writeExportIndex(exportFolder: string, exportedFiles: Set<string>
 }
 
 /**
+ * Updates the export index after a partial sync without forgetting unrelated
+ * exported files.
+ *
+ * @param removePredicate - Optional predicate for previous-index paths that
+ * should be replaced by this sync. Folder sync uses it to refresh only the
+ * selected folder's subtree; file sync leaves it unset so older paths remain.
+ *
+ * Edge cases handled:
+ * - Missing or malformed previous indexes are treated as empty indexes.
+ */
+async function writeMergedExportIndex(
+    exportFolder: string,
+    previousIndex: WebsiteExportIndex | null,
+    exportedFiles: Set<string>,
+    removePredicate?: (filePath: string) => boolean
+): Promise<void> {
+    const mergedFiles = new Set<string>();
+
+    for (const previousFile of previousIndex?.files ?? []) {
+        if (!removePredicate?.(previousFile)) {
+            mergedFiles.add(previousFile);
+        }
+    }
+
+    for (const exportedFile of exportedFiles) {
+        mergedFiles.add(exportedFile);
+    }
+
+    await writeExportIndex(exportFolder, mergedFiles);
+}
+
+/**
  * Writes an exported markdown file to the export folder. Creates intermediate
  * directories as needed. Throws if the resolved path escapes the export root
  * or if the Node filesystem APIs are unavailable.
@@ -201,9 +295,7 @@ async function writeTextFile(exportFolder: string, relativePath: string, content
  * match) and referenced asset files. Throws if the resolved path escapes the
  * export root.
  *
- * @param plugin - The Equation Citator plugin instance.
  * @param exportFolder - Absolute path to the website-notes export root.
- * @param file - The vault file to copy.
  */
 async function copyVaultFile(plugin: EquationCitator, exportFolder: string, file: TFile): Promise<void> {
     const modules = getNodeFileSystemModules();
@@ -225,20 +317,32 @@ async function copyVaultFile(plugin: EquationCitator, exportFolder: string, file
 /**
  * Removes previously-exported files that are not present in the current sync.
  * Compares the previous export index against the set of files written this run
- * and cleans stale generated files. It tries system trash first, then falls
- * back to permanent removal because website-note exports are generated output.
- * Afterwards, it cleans up empty directories that were left behind.
+ * and permanently removes stale generated files. Afterwards, it cleans up empty
+ * directories that were left behind.
+ *
+ * @param previousFiles - Export-relative paths recorded in the previous export
+ * index.
+ * @param currentFiles - Export-relative paths written or copied during this
+ * sync run.
+ * @param shouldConsiderFile - Optional scope predicate for previous-index paths.
+ * Folder sync uses it to clean only stale files inside the selected folder,
+ * while repository sync accepts the default and considers every indexed path.
  *
  * Edge cases handled:
  * - Skips previous-index entries whose resolved paths would escape the export folder.
  * - Skips files that were already removed outside the plugin between sync runs.
  * - Skips non-file paths so stale directory entries are not treated as exported files.
- * - Stops the sync if a stale file exists but cannot be trashed or removed,
+ * - Stops the sync if a stale file exists but cannot be removed,
  *   keeping the previous index from silently forgetting an unmanaged leftover.
  *
  * @returns The number of stale files that were cleaned.
  */
-async function cleanStaleExportedFiles(exportFolder: string, previousFiles: string[], currentFiles: Set<string>): Promise<number> {
+async function cleanStaleExportedFiles(
+    exportFolder: string,
+    previousFiles: string[],
+    currentFiles: Set<string>,
+    shouldConsiderFile: (filePath: string) => boolean = () => true
+): Promise<number> {
     const modules = getNodeFileSystemModules();
     if (!modules) {
         throw new Error("Node file system APIs are not available.");
@@ -250,6 +354,10 @@ async function cleanStaleExportedFiles(exportFolder: string, previousFiles: stri
     const dirsToClean = new Set<string>();
 
     for (const previousFile of previousFiles) {
+        if (!shouldConsiderFile(previousFile)) {
+            continue;
+        }
+
         if (currentFiles.has(previousFile)) {
             continue;
         }
@@ -376,7 +484,7 @@ function collectReferencedFiles(plugin: EquationCitator, sourceMarkdownFiles: TF
 }
 
 /**
- * Iterates every markdown file in the vault and exports it to the website-notes
+ * Iterates the provided markdown files and exports them to the website-notes
  * folder. Files matching the ignored-pattern list are binary-copied as-is; all
  * others are run through {@link makeExportedMarkdownForPdf} to produce the final
  * output.
@@ -384,12 +492,16 @@ function collectReferencedFiles(plugin: EquationCitator, sourceMarkdownFiles: TF
  * @returns The set of exported vault-relative paths, the count of processed
  *          (pipeline-exported) files, and the count of directly-copied files.
  */
-async function exportMarkdownFiles(plugin: EquationCitator, exportFolder: string, exportedFiles: Set<string>): Promise<{
+async function exportMarkdownFiles(
+    plugin: EquationCitator,
+    exportFolder: string,
+    markdownFiles: TFile[],
+    exportedFiles: Set<string>
+): Promise<{
     exportedMarkdownPaths: Set<string>;
     processedCount: number;
     copiedCount: number;
 }> {
-    const markdownFiles = plugin.app.vault.getMarkdownFiles();
     const exportedMarkdownPaths = new Set<string>();
     let processedCount = 0;
     let copiedCount = 0;
@@ -411,6 +523,33 @@ async function exportMarkdownFiles(plugin: EquationCitator, exportFolder: string
     }
 
     return { exportedMarkdownPaths, processedCount, copiedCount };
+}
+
+async function exportMarkdownFilesAndReferences(
+    plugin: EquationCitator,
+    exportFolder: string,
+    markdownFiles: TFile[],
+    exportedFiles: Set<string>
+): Promise<Omit<SyncStats, "cleanedStaleCount">> {
+    const { exportedMarkdownPaths, processedCount, copiedCount } = await exportMarkdownFiles(
+        plugin,
+        exportFolder,
+        markdownFiles,
+        exportedFiles
+    );
+    const copiedAssetCount = await exportReferencedAssets(
+        plugin,
+        exportFolder,
+        markdownFiles,
+        exportedMarkdownPaths,
+        exportedFiles
+    );
+
+    return {
+        exportedMarkdownCount: processedCount,
+        copiedMarkdownCount: copiedCount,
+        copiedAssetCount,
+    };
 }
 
 /**
@@ -473,24 +612,10 @@ async function exportReferencedAssets(
  *
  * Only available on desktop (relies on Node.js `fs` APIs). Shows a
  * {@link Notice} on success (with counts) or failure (with the error message).
- *
- * @param plugin - The Equation Citator plugin instance, used to access vault
- *                 APIs and user settings.
  */
 export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator): Promise<void> {
-    if (!Platform.isDesktopApp) {
-        new Notice("Sync to website note repository is only available in the desktop app.");
-        return;
-    }
-
-    const exportFolder = plugin.settings.websiteNotesExportFolder.trim();
-    if (!await ensureExportFolderIsReady(exportFolder)) {
-        return;
-    }
-
-    const vaultBasePath = getVaultBasePath(plugin);
-    if (vaultBasePath && isPathInsideOrEqual(vaultBasePath, exportFolder)) {
-        new Notice("Website notes export folder must be outside the current vault/repository.");
+    const exportFolder = await getReadyExportFolderOrNotice(plugin);
+    if (!exportFolder) {
         return;
     }
 
@@ -499,14 +624,7 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
     const markdownFiles = plugin.app.vault.getMarkdownFiles();
 
     try {
-        const { exportedMarkdownPaths, processedCount, copiedCount } = await exportMarkdownFiles(plugin, exportFolder, exportedFiles);
-        const copiedAssetCount = await exportReferencedAssets(
-            plugin,
-            exportFolder,
-            markdownFiles,
-            exportedMarkdownPaths,
-            exportedFiles
-        );
+        const exportStats = await exportMarkdownFilesAndReferences(plugin, exportFolder, markdownFiles, exportedFiles);
         const cleanedStaleCount = previousIndex ?
             await cleanStaleExportedFiles(exportFolder, previousIndex.files, exportedFiles) :
             0;
@@ -514,9 +632,7 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
         await writeExportIndex(exportFolder, exportedFiles);
 
         const stats: SyncStats = {
-            exportedMarkdownCount: processedCount,
-            copiedMarkdownCount: copiedCount,
-            copiedAssetCount,
+            ...exportStats,
             cleanedStaleCount,
         };
         new Notice(
@@ -528,5 +644,100 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
         const message = error instanceof Error ? error.message : String(error);
         Debugger.error("Website notes sync failed:", error);
         new Notice(`Website notes sync failed: ${message}`);
+    }
+}
+
+export async function syncCurrentFileToWebsiteNotesFolder(plugin: EquationCitator): Promise<void> {
+    const activeFile = plugin.app.workspace.getActiveFile();
+    if (!activeFile || !isMarkdownFile(activeFile)) {
+        new Notice("No active markdown file to sync.");
+        return;
+    }
+
+    await syncFileToWebsiteNotesFolder(plugin, activeFile);
+}
+
+/**
+ * Syncs one markdown file and its referenced assets without stale cleanup.
+ *
+ * Edge cases handled:
+ * - Rejects non-markdown files before touching the export folder.
+ * - Merges exported paths into the previous index without removing older paths,
+ *   because single-file sync cannot infer which other exports are stale.
+ * - Uses the same ignored-file direct-copy behavior as repository sync.
+ */
+export async function syncFileToWebsiteNotesFolder(plugin: EquationCitator, file: TFile): Promise<void> {
+    if (!isMarkdownFile(file)) {
+        new Notice("Only markdown files can be synced to website notes.");
+        return;
+    }
+
+    const exportFolder = await getReadyExportFolderOrNotice(plugin);
+    if (!exportFolder) {
+        return;
+    }
+
+    const previousIndex = await readPreviousExportIndex(exportFolder);
+    const exportedFiles = new Set<string>();
+
+    try {
+        const exportStats = await exportMarkdownFilesAndReferences(plugin, exportFolder, [file], exportedFiles);
+        await writeMergedExportIndex(exportFolder, previousIndex, exportedFiles);
+
+        new Notice(
+            `Website note synced: ${exportStats.exportedMarkdownCount} markdown exported, ` +
+            `${exportStats.copiedMarkdownCount} markdown copied, ${exportStats.copiedAssetCount} assets copied.`
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        Debugger.error("Website note file sync failed:", file.path, error);
+        new Notice(`Website note file sync failed: ${message}`);
+    }
+}
+
+/**
+ * Syncs every markdown file in a folder and performs folder-scoped cleanup.
+ *
+ * Edge cases handled:
+ * - Exports nested markdown files recursively through Obsidian's folder tree.
+ * - Removes stale indexed files only when their paths are inside the selected
+ *   folder scope and were not overwritten by this sync.
+ * - Keeps indexed files outside the selected folder intact.
+ * - Merges newly exported referenced assets into the index, even when those
+ *   assets live outside the folder cleanup scope.
+ */
+export async function syncFolderToWebsiteNotesFolder(plugin: EquationCitator, folder: TFolder): Promise<void> {
+    const exportFolder = await getReadyExportFolderOrNotice(plugin);
+    if (!exportFolder) {
+        return;
+    }
+
+    const markdownFiles = getMarkdownFilesInFolder(folder);
+    if (markdownFiles.length === 0) {
+        new Notice("No markdown files found in selected folder.");
+        return;
+    }
+
+    const previousIndex = await readPreviousExportIndex(exportFolder);
+    const exportedFiles = new Set<string>();
+    const folderScopePredicate = getFolderScopePredicate(folder);
+
+    try {
+        const exportStats = await exportMarkdownFilesAndReferences(plugin, exportFolder, markdownFiles, exportedFiles);
+        const cleanedStaleCount = previousIndex ?
+            await cleanStaleExportedFiles(exportFolder, previousIndex.files, exportedFiles, folderScopePredicate) :
+            0;
+
+        await writeMergedExportIndex(exportFolder, previousIndex, exportedFiles, folderScopePredicate);
+
+        new Notice(
+            `Website folder synced: ${exportStats.exportedMarkdownCount} markdown exported, ` +
+            `${exportStats.copiedMarkdownCount} markdown copied, ${exportStats.copiedAssetCount} assets copied, ` +
+            `${cleanedStaleCount} stale files cleaned.`
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        Debugger.error("Website note folder sync failed:", folder.path, error);
+        new Notice(`Website note folder sync failed: ${message}`);
     }
 }
