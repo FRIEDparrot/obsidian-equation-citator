@@ -88,6 +88,7 @@ export interface EquationCitatorSettings {
     cacheCleanTime: number; // Time to automatically clear cache 
 
     // pdf rendering settings
+    websiteNotesExportFolder: string; // Absolute folder path for website note export
     citationColorInPdf: string; // default citation color in PDF rendering
     addImageCaptionsInPdf: boolean; // whether to add image captions in PDF export
     addImageDescInPdf: boolean; // whether to add image description in PDF export
@@ -149,6 +150,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes) 
 
     citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
+    websiteNotesExportFolder: "", // external folder for website note export
     addImageCaptionsInPdf: true, // add image captions in PDF export by default
     addImageDescInPdf: true, // add image description in PDF export by default
     keepImageSpacingForPdf: true, // keep images separated from neighboring paragraphs in PDF export
@@ -203,6 +205,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "multiCitationDelimiter",
         "multiCitationDelimiterRender",
         "enableContinuousCitation",
+        "websiteNotesExportFolder",
         "calloutCitationPrefixes",
         "autoNumberDelimiter",
         "enableAutoNumberEquationsInQuotes",
@@ -556,6 +559,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "boolean",
         renderCallback: (el, plugin) => {
             StyleSettingsTab.enableRenderLocalFileName(el, plugin);
+        }
+    },
+
+    websiteNotesExportFolder: {
+        name: "Website notes export folder",
+        desc: "Folder for exported website markdown files. Exported markdown files do not update links. The web repository folder should be outside this repo.",
+        type: "string",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.websiteNotesExportFolder(el, plugin);
         }
     },
 

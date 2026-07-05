@@ -396,7 +396,7 @@ Breaking Update Changes :
 - [x] **Better PDF export configs** : optional captions and descriptions in PDF export for image
 
 ### Version 1.3.5 
-Bug fixes, improvements on PDF export functio, added major support for the webpage notes. 
+Bug fixes, improvements on PDF export function, added major support for the webpage notes export. 
 
 ✨ New features : 
 - [x] Added feature [#168](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/168), the available citation type will be auto-completed when the `ref{}` is empty. 
