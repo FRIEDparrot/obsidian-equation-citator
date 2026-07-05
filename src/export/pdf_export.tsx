@@ -56,7 +56,6 @@ export function makePrintMarkdown(
             rangeSymbol,
             validDelimiters,
             fileDelimiter: fileCiteDelimiter,
-            citationPrefix: settings.citationPrefix,
             crossFilePathByIndex,
         } : undefined,
     );
@@ -79,7 +78,6 @@ export function makePrintMarkdown(
             rangeSymbol,
             validDelimiters,
             fileDelimiter: fileCiteDelimiter,
-            citationPrefix: settings.figCitationPrefix,
             crossFilePathByIndex,
         } : undefined,
     );
@@ -103,7 +101,6 @@ export function makePrintMarkdown(
                 rangeSymbol,
                 validDelimiters,
                 fileDelimiter: fileCiteDelimiter,
-                citationPrefix: prefixConfig.prefix,
                 crossFilePathByIndex,
             } : undefined,
         );
@@ -356,7 +353,6 @@ export interface CitationSpanMetadataOptions {
     rangeSymbol: string | null;
     validDelimiters: string[];
     fileDelimiter: string;
-    citationPrefix?: string;
     crossFilePathByIndex?: ReadonlyMap<string, string>;
 }
 
@@ -598,23 +594,6 @@ function getCitationDataKind(prefix: string): string {
     return prefix.trim().replace(/:+$/, '');
 }
 
-function normalizeExportCitationTag(
-    tag: string,
-    metadataOptions: CitationSpanMetadataOptions
-): string {
-    const configuredPrefix = metadataOptions.citationPrefix?.trim();
-    if (configuredPrefix && tag.startsWith(configuredPrefix)) {
-        return tag.substring(configuredPrefix.length).trim();
-    }
-
-    const kindPrefix = metadataOptions.kind ? `${metadataOptions.kind}:` : '';
-    if (kindPrefix && tag.startsWith(kindPrefix)) {
-        return tag.substring(kindPrefix.length).trim();
-    }
-
-    return tag;
-}
-
 export function flattenCitationRefs(
     citation: string,
     metadataOptions: CitationSpanMetadataOptions
@@ -634,7 +613,7 @@ export function flattenCitationRefs(
         return {
             file,
             crossFile: crossFile || null,
-            tag: normalizeExportCitationTag(local, metadataOptions),
+            tag: local,
         };
     });
 }
