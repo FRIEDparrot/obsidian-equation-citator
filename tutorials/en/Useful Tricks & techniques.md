@@ -17,7 +17,8 @@ k = \frac{F \Delta l}{l} \tag{1.1}
 $$
 ```
 
-To keep a custom tag:
+To keep a custom tag:  
+> [!note] 
 > $$
 > k = \frac{F \Delta l}{l} \tag{eq:M1}
 > $$

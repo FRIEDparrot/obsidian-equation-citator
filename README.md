@@ -1,5 +1,9 @@
+<center><div>
+  <img src="img/Heading_img.png" style="max-height:100px; max-width:65%" alt="Heading Image">
+</div></center>
+
 <center><div width="100%"><span>
-  <img src="https://img.shields.io/badge/Version-1.3.5-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest-1.3.5-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <a href="https://obsidian.md/plugins?id=equation-citator">
   <img src="https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22equation-citator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json" alt="Downloads">
@@ -7,7 +11,7 @@
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
   <img src="https://sonarcloud.io/api/project_badges/measure?project=FRIEDparrot_obsidian-equation-citator&metric=alert_status" alt="Quality Gate">
 </span></div></center>
-<center><b>English</b> | <a href="README_zh.md" target="_blank"><b>简体中文</b></a></center>
+<center><b>English</b> | <a href="README-zh-CN.md" target="_blank"><b>简体中文</b></a></center>
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4></center>
 
 <center><b><h3>Thanks for 1.7k downloads😄!</h3></b></center> 

@@ -1,0 +1,271 @@
+body.ec-docs-page,
+body.ec-typedoc-page {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.tsd-toolbar-contents.container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.ec-toolbar-spacer {
+  min-width: 0;
+}
+
+.tsd-page-toolbar a.title.ec-site-title,
+.tsd-page-toolbar a.title {
+  grid-column: 2;
+  justify-self: center;
+  text-align: center;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#tsd-toolbar-links {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.ec-toolbar-links {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ec-toolbar-link {
+  color: var(--color-text-aside);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+}
+
+.ec-toolbar-link-active {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.ec-toolbar-link:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.container.container-main {
+  align-items: start;
+}
+
+.ec-docs-article {
+  padding: 2rem;
+}
+
+.ec-docs-article > :first-child {
+  margin-top: 0;
+}
+
+.ec-docs-article img {
+  max-width: 100%;
+  height: auto;
+}
+
+.ec-docs-article table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.ec-docs-article blockquote {
+  margin-left: 0;
+}
+
+.ec-math-display {
+  margin: 1rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.ec-math-display > .katex-display {
+  margin: 0;
+}
+
+.ec-docs-sidebar {
+  display: block;
+}
+
+.ec-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ec-brand-mark {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ec-brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ec-brand-logo-dark {
+  display: none;
+}
+
+html[data-theme="dark"] .ec-brand-logo-light {
+  display: none;
+}
+
+html[data-theme="dark"] .ec-brand-logo-dark {
+  display: block;
+}
+
+html[data-theme="os"] .ec-brand-logo-light {
+  display: block;
+}
+
+html[data-theme="os"] .ec-brand-logo-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="os"] .ec-brand-logo-light {
+    display: none;
+  }
+
+  html[data-theme="os"] .ec-brand-logo-dark {
+    display: block;
+  }
+}
+
+.ec-brand-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.ec-brand-title {
+  font-weight: 700;
+}
+
+.ec-brand-subtitle {
+  color: var(--color-text-aside);
+  font-size: 0.875rem;
+}
+
+.ec-sidebar-meta,
+.ec-sidebar-group {
+  margin-bottom: 1rem;
+}
+
+.ec-sidebar-group-title {
+  margin-bottom: 0.5rem;
+  color: var(--color-text-aside);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ec-language-select {
+  width: 100%;
+  min-height: 2rem;
+}
+
+.ec-nav-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.ec-nav-link:hover,
+.ec-nav-link-active {
+  background: var(--color-background-active);
+}
+
+.ec-section-intro {
+  margin-bottom: 1.5rem;
+}
+
+.ec-lead {
+  color: var(--color-text-aside);
+}
+
+.ec-card-grid,
+.ec-section-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.ec-card,
+.ec-section-card {
+  display: block;
+  padding: 1rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 0.75rem;
+  background: var(--color-background-secondary);
+  color: inherit;
+  text-decoration: none;
+}
+
+.ec-card:hover,
+.ec-section-card:hover {
+  background: var(--color-background-active);
+}
+
+.ec-card h2,
+.ec-section-card h2 {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.ec-card p,
+.ec-section-card p {
+  margin: 0 0 0.75rem;
+  color: var(--color-text-aside);
+}
+
+.ec-section-card-time {
+  display: inline-block;
+  color: var(--color-text-aside);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-menu {
+  display: grid;
+  gap: 1rem;
+}
+
+.page-menu .tsd-page-navigation .tsd-accordion-details a {
+  display: block;
+  padding: 0.35rem 0;
+}
+
+@media (max-width: 960px) {
+  .tsd-toolbar-contents.container {
+    grid-template-columns: 1fr;
+  }
+
+  .tsd-page-toolbar a.title.ec-site-title,
+  .tsd-page-toolbar a.title,
+  #tsd-toolbar-links {
+    grid-column: auto;
+    justify-self: start;
+    white-space: normal;
+    text-align: left;
+  }
+}

@@ -1,5 +1,9 @@
+<center><div>
+  <img src="img/Heading_img.png" style="max-height:100px; max-width:65%" alt="Heading Image">
+</div></center>
+
 <center><div width="100%"><span>
-  <img src="https://img.shields.io/badge/Version-1.3.5-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest-1.3.5-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <a href="https://obsidian.md/plugins?id=equation-citator">
   <img src="https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22equation-citator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json" alt="Downloads">

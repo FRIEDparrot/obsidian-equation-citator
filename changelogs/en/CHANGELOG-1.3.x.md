@@ -258,8 +258,10 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 
 📖 Documetations : 
 
-- [ ] Migrated the **tutorials**, **Change logs** and the **API documentations** to a **Webpage version**.
+- [x] Migrated the **tutorials**, **Change logs** and the **API documentations** to a **Webpage version**.
+- [ ] Support citation preview/jump at the webpage building process. 
 - [ ] Added full Chinese translation for **tutorials** and **Change logs**. 
+
 
 🐛 Fixed Bugs : 
 
