@@ -50,7 +50,10 @@ function getParentFolderPath(path: string | null): string | undefined {
         return undefined;
     }
 
-    const trimmedPath = path.replace(/[\\/]+$/, "");
+    let trimmedPath = path;
+    while (trimmedPath.endsWith("/") || trimmedPath.endsWith("\\")) {
+        trimmedPath = trimmedPath.slice(0, -1);
+    }
     const separatorIndex = Math.max(trimmedPath.lastIndexOf("/"), trimmedPath.lastIndexOf("\\"));
 
     if (separatorIndex <= 0) {

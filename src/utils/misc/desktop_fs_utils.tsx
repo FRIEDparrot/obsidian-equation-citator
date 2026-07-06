@@ -15,6 +15,15 @@ export interface NodeFileSystemModules {
 
 let cachedModules: NodeFileSystemModules | null | undefined; 
 
+function normalizePathSeparators(pathText: string): string {
+    let normalizedPath = pathText.replaceAll('\\', "/");
+    while (normalizedPath.endsWith("/")) {
+        normalizedPath = normalizedPath.slice(0, -1);
+    }
+
+    return normalizedPath;
+}
+
 function safeRequire<T>(moduleName: string): T | null {
     try {
         return ((window as SafeWindow).require?.(moduleName) as T | undefined) ?? null;   
@@ -43,10 +52,10 @@ export function getNodeFileSystemModules() :  NodeFileSystemModules | null {
 export function normalizeAbsolutePathForComparison(filePath: string): string {
     const { path } = getNodeFileSystemModules() ?? {};
     if (!path) {
-        return filePath.replaceAll('\\', "/").replace(/\/+$/, "").toLowerCase();
+        return normalizePathSeparators(filePath).toLowerCase();
     }
 
-    return path.resolve(filePath).replaceAll('\\', "/").replace(/\/+$/, "").toLowerCase();
+    return normalizePathSeparators(path.resolve(filePath)).toLowerCase();
 }
 
 export function isPathInsideOrEqual(parentPath: string, targetPath: string): boolean {
