@@ -17,6 +17,12 @@ import { RenderedFigure } from "@/services/figure_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 
+interface FigureWrapperElements {
+    figureWrapper: HTMLElement;
+    figureContentDiv: HTMLElement;
+    imageContainer: HTMLElement;
+}
+
 /**
  * Figure Citation Popover Class
  * Displays image previews in a popover when hovering over figure citations
@@ -139,130 +145,193 @@ export function renderFigureWrapper(
         return;
     }
 
-    // Create a set of extensions that should use Markdown renderer
+    const elements = createFigureWrapperElements(container, plugin, fig);
     const markdownRendererExtensions = new Set(plugin.settings.extensionsUseMarkdownRenderer);
 
+    renderFigureImage(plugin, fig, elements.imageContainer, targetComponent, markdownRendererExtensions);
+    renderFigureMetadata(plugin, fig, elements.figureContentDiv);
+    addClickEffects(elements.figureWrapper);
+
+    if (addLinkJump && fig.sourcePath) {
+        addClickLinkJump(plugin, elements.figureWrapper, fig, leaf);
+    }
+}
+
+function createFigureWrapperElements(
+    container: HTMLElement,
+    plugin: EquationCitator,
+    fig: RenderedFigure
+): FigureWrapperElements {
     const figureWrapper = container.createDiv();
     figureWrapper.addClass("em-figure-wrapper");
 
-    // Create figure label container
     const figureLabelContainer = figureWrapper.createDiv();
     figureLabelContainer.addClass("em-figure-label-container");
+    renderFigureLabels(figureLabelContainer, plugin, fig);
 
-    // Create figure number/label
-    const figureLabel = figureLabelContainer.createDiv();
-    figureLabel.addClass("em-figure-label", "em-figure-number");
-    const formattedLabel = plugin.settings.figCitationFormat.replace('#', fig.tag || '');
-    figureLabel.textContent = formattedLabel;
-
-    // Create figure filename label (if cross-file)
-    if (fig.filename) {
-        const fileNameLabel = figureLabelContainer.createDiv();
-        fileNameLabel.addClass("em-figure-label", "em-figure-markdown-filename");
-        fileNameLabel.textContent = fig.filename;
-    }
-
-    // Create figure content div
     const figureContentDiv = figureWrapper.createDiv();
     figureContentDiv.addClass("em-figure-content");
 
-    // Render the image
     const imageContainer = figureContentDiv.createDiv();
     imageContainer.addClass("em-figure-image-container");
 
+    return {
+        figureWrapper,
+        figureContentDiv,
+        imageContainer,
+    };
+}
+
+function renderFigureLabels(
+    figureLabelContainer: HTMLElement,
+    plugin: EquationCitator,
+    fig: RenderedFigure
+): void {
+    const figureLabel = figureLabelContainer.createDiv();
+    figureLabel.addClass("em-figure-label", "em-figure-number");
+    figureLabel.textContent = plugin.settings.figCitationFormat.replace('#', fig.tag || '');
+
+    if (!fig.filename) {
+        return;
+    }
+
+    const fileNameLabel = figureLabelContainer.createDiv();
+    fileNameLabel.addClass("em-figure-label", "em-figure-markdown-filename");
+    fileNameLabel.textContent = fig.filename;
+}
+
+function renderFigureImageElement(imageContainer: HTMLElement, src: string, alt: string): void {
+    const img = imageContainer.createEl("img", {
+        attr: {
+            src,
+            alt,
+        }
+    });
+    img.addClass("em-figure-image");
+}
+
+function renderMarkdownFigureImage(
+    plugin: EquationCitator,
+    markdownText: string,
+    imageContainer: HTMLElement,
+    sourcePath: string,
+    targetComponent: Component
+): void {
+    void MarkdownRenderer.render(
+        plugin.app,
+        markdownText,
+        imageContainer,
+        sourcePath,
+        targetComponent
+    );
+    imageContainer.addClass("em-figure-markdown-rendered");
+}
+
+function shouldRenderWithMarkdown(fullPath: string, markdownRendererExtensions: ReadonlySet<string>): boolean {
+    return Array.from(markdownRendererExtensions).some((ext) =>
+        fullPath.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
+    );
+}
+
+function renderMissingFigureImage(imageContainer: HTMLElement, imagePath: string): void {
+    imageContainer.createDiv({
+        text: `Image not found: ${imagePath}`,
+        cls: "em-figure-error"
+    });
+}
+
+/**
+ * Renders an internal vault figure reference, including markdown-rendered assets and markdown section previews.
+ */
+function renderInternalFigureImage(
+    plugin: EquationCitator,
+    fig: RenderedFigure,
+    imageContainer: HTMLElement,
+    targetComponent: Component,
+    markdownRendererExtensions: ReadonlySet<string>
+): void {
+    if (!fig.imagePath || !fig.sourcePath) {
+        return;
+    }
+
+    const normalizedSourcePath = normalizePath(fig.sourcePath);
+    const sourceFile = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
+    if (!(sourceFile instanceof TFile)) {
+        return;
+    }
+
+    const imageFile = plugin.app.metadataCache.getFirstLinkpathDest(fig.imagePath, normalizedSourcePath);
+    if (imageFile instanceof TFile) {
+        const fullPath = imageFile.path;
+        if (shouldRenderWithMarkdown(fullPath, markdownRendererExtensions)) {
+            renderMarkdownFigureImage(plugin, `![[${fullPath}]]`, imageContainer, fig.sourcePath, targetComponent);
+            return;
+        }
+
+        renderFigureImageElement(
+            imageContainer,
+            plugin.app.vault.getResourcePath(imageFile),
+            fig.title || fig.tag || "Figure"
+        );
+        return;
+    }
+
+    if (fig.imagePath.contains("#") && markdownRendererExtensions.has("md")) {
+        renderMarkdownFigureImage(plugin, `![[${fig.imagePath}]]`, imageContainer, fig.sourcePath, targetComponent);
+        return;
+    }
+
+    renderMissingFigureImage(imageContainer, fig.imagePath);
+}
+
+function renderFigureImage(
+    plugin: EquationCitator,
+    fig: RenderedFigure,
+    imageContainer: HTMLElement,
+    targetComponent: Component,
+    markdownRendererExtensions: ReadonlySet<string>
+): void {
+    const alt = fig.title || fig.tag || "Figure";
+
     if (fig.imageLink) {
-        // wikiLink format image rendering - can directly use the link 
-        const img = imageContainer.createEl("img", {
-            attr: {
-                src: fig.imageLink,
-                alt: fig.title || fig.tag || 'Figure'
-            }
-        });
-        img.addClass("em-figure-image");
-    } else if (fig.imagePath && fig.sourcePath) {
-        // Internal image path - need to resolve the vault path
-        const normalizedSourcePath = normalizePath(fig.sourcePath);
-        const sourceFile = plugin.app.vault.getAbstractFileByPath(normalizedSourcePath);
-        if (sourceFile instanceof TFile) {
-            // the imagePath may be file#section, so split by # to get the actual file path
-            const imageFile = plugin.app.metadataCache.getFirstLinkpathDest(fig.imagePath, normalizedSourcePath);
-            if (imageFile instanceof TFile) {
-                // Check if the image extension requires Markdown renderer
-                const fullPath = imageFile.path;
-                const shouldUseMarkdownRenderer = Array.from(markdownRendererExtensions).some(ext => 
-                    fullPath.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
-                );
-
-                if (shouldUseMarkdownRenderer) {
-                    // Use Markdown renderer for special file types (e.g., excalidraw)
-                    const markdownText = `![[${fullPath}]]`;
-                    void MarkdownRenderer.render(
-                        plugin.app,
-                        markdownText,
-                        imageContainer,
-                        fig.sourcePath,
-                        targetComponent
-                    );
-                    imageContainer.addClass("em-figure-markdown-rendered");
-                } else {
-                    // Use standard image element for regular images (default renderer)
-                    const resourcePath = plugin.app.vault.getResourcePath(imageFile);
-                    const img = imageContainer.createEl("img", {
-                        attr: {
-                            src: resourcePath,
-                            alt: fig.title || fig.tag || 'Figure'
-                        }
-                    });
-                    img.addClass("em-figure-image");
-                }
-            } 
-            else if (fig.imagePath.contains("#") && markdownRendererExtensions.has("md")) {
-                // special support for markdown section preview ![[file.md#section]]
-                // just directly render the markdown link without resolving, since Obsidian can handle it in this format
-                const markdownText = `![[${fig.imagePath}]]`;
-                void MarkdownRenderer.render(
-                    plugin.app,
-                    markdownText,
-                    imageContainer,
-                    fig.sourcePath,
-                    targetComponent
-                );
-                imageContainer.addClass("em-figure-markdown-rendered");
-            }
-            else {
-                imageContainer.createDiv({
-                    text: `Image not found: ${fig.imagePath}`,
-                    cls: "em-figure-error"
-                });
-            }
-        }
+        renderFigureImageElement(imageContainer, fig.imageLink, alt);
+        return;
     }
 
-    // Render title and description if available
-    if (plugin.settings.enableRenderFigureInfoInPreview && (fig.title || fig.desc)) {
-        const metadataDiv = figureContentDiv.createDiv();
-        metadataDiv.addClass("em-figure-metadata");
+    renderInternalFigureImage(
+        plugin,
+        fig,
+        imageContainer,
+        targetComponent,
+        markdownRendererExtensions
+    );
+}
 
-        if (fig.title) {
-            const titleDiv = metadataDiv.createDiv();
-            titleDiv.addClass("em-figure-title");
-            titleDiv.textContent = fig.title;
-        }
-
-        if (fig.desc) {
-            const descDiv = metadataDiv.createDiv();
-            descDiv.addClass("em-figure-desc");
-            descDiv.textContent = fig.desc;
-        }
+function renderFigureMetadata(
+    plugin: EquationCitator,
+    fig: RenderedFigure,
+    figureContentDiv: HTMLElement
+): void {
+    if (!plugin.settings.enableRenderFigureInfoInPreview || (!fig.title && !fig.desc)) {
+        return;
     }
 
-    // Add click effects
-    addClickEffects(figureWrapper);
+    const metadataDiv = figureContentDiv.createDiv();
+    metadataDiv.addClass("em-figure-metadata");
 
-    // Add click to jump to figure source
-    if (addLinkJump && fig.sourcePath) {
-        addClickLinkJump(plugin, figureWrapper, fig, leaf);
+    if (fig.title) {
+        const titleDiv = metadataDiv.createDiv();
+        titleDiv.addClass("em-figure-title");
+        titleDiv.textContent = fig.title;
     }
+
+    if (!fig.desc) {
+        return;
+    }
+
+    const descDiv = metadataDiv.createDiv();
+    descDiv.addClass("em-figure-desc");
+    descDiv.textContent = fig.desc;
 }
 
 /**

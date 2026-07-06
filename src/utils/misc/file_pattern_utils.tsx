@@ -15,7 +15,7 @@ export function normalizeMarkdownFilePattern(pattern: string): string | null {
 }
 
 export function wildcardPatternToRegExp(pattern: string): RegExp {
-    const escaped = pattern.replaceAll(/[.+^${}()|[\]\\]/g, "\\$&").replaceAll("*", ".*").replaceAll("?", ".");
+    const escaped = pattern.replaceAll(/[.+^${}()|[\]\\]/g, String.raw`\$&`).replaceAll("*", ".*").replaceAll("?", ".");
     return new RegExp(`^${escaped}$`, "i");
 }
 

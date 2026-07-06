@@ -420,7 +420,9 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 - [x] fixed [#172](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/172), when export without meta-data, the image width are still kept. 
 
 🏗️ refactors : 
-- [x] refactored and shortened pdf export code part 
+- [x] refactored and shortened pdf export code part
+- [x] refactored `getEquationAtCursor` and function in box current equations 
+- [x] refactored figure citation wrapper function 
 
 ### 🚢 If you want following features, you can request it in issue page :  
 1. Check citations of equations, figures and tables in equation manage panel.

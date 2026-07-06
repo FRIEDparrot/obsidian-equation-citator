@@ -16,6 +16,188 @@ interface EquationAtCursor {
     firstLineWasBlank: boolean; // whether the first line of content was blank (for skipFirstlineInBoxedFilter)
 }
 
+interface EquationScanState {
+    inCodeBlock: boolean;
+    inEquationBlock: boolean;
+    eqStartLine: number;
+    quoteDepth: number;
+}
+
+interface ParsedQuoteLine {
+    rawLine: string;
+    content: string;
+    quoteDepth: number;
+}
+
+interface MultiLineEquationExtraction {
+    content: string;
+    contentAfterDollar: string;
+    endLine: number;
+    firstLineWasBlank: boolean;
+}
+
+function parseQuoteLine(rawLine: string): ParsedQuoteLine {
+    const { content, quoteDepth } = processQuoteLine(rawLine);
+    return {
+        rawLine,
+        content,
+        quoteDepth,
+    };
+}
+
+function getInitialEquationScanState(): EquationScanState {
+    return {
+        inCodeBlock: false,
+        inEquationBlock: false,
+        eqStartLine: 0,
+        quoteDepth: 0,
+    };
+}
+
+function updateEquationScanState(
+    state: EquationScanState,
+    parsedLine: ParsedQuoteLine,
+    lineIndex: number
+): void {
+    if (isCodeBlockToggle(parsedLine.content)) {
+        state.inCodeBlock = !state.inCodeBlock;
+        return;
+    }
+
+    if (state.inCodeBlock) {
+        return;
+    }
+
+    if (state.inEquationBlock) {
+        if (equationBlockEndPattern.test(parsedLine.content)) {
+            state.inEquationBlock = false;
+        }
+        return;
+    }
+
+    if (!equationBlockStartPattern.test(parsedLine.content)) {
+        return;
+    }
+
+    const singleLineMatch = new RegExp(singleLineEqBlockPattern).exec(parsedLine.content);
+    if (singleLineMatch) {
+        return;
+    }
+
+    state.inEquationBlock = true;
+    state.eqStartLine = lineIndex;
+    state.quoteDepth = parsedLine.quoteDepth;
+}
+
+function scanEquationState(lines: string[], cursorLine: number): EquationScanState {
+    const state = getInitialEquationScanState();
+
+    for (let i = 0; i < cursorLine; i++) {
+        updateEquationScanState(state, parseQuoteLine(lines[i]), i);
+    }
+
+    return state;
+}
+
+function buildSingleLineEquationResult(
+    parsedLine: ParsedQuoteLine,
+    cursorLine: number
+): EquationAtCursor | null {
+    const singleLineMatch = new RegExp(singleLineEqBlockPattern).exec(parsedLine.content);
+    if (!singleLineMatch) {
+        return null;
+    }
+
+    const rawContent = singleLineMatch[1].trim();
+    const startIndex = parsedLine.rawLine.indexOf('$$') + 2;
+    const endIndex = parsedLine.rawLine.lastIndexOf('$$');
+    return {
+        content: rawContent,
+        startPos: { line: cursorLine, ch: startIndex },
+        endPos: { line: cursorLine, ch: endIndex },
+        isSingleLine: true,
+        quoteDepth: parsedLine.quoteDepth,
+        firstLineWasBlank: false,
+    };
+}
+
+function extractMultiLineEquation(lines: string[], startLine: number): MultiLineEquationExtraction {
+    const tmpEqBuffer: string[] = [];
+    const startLineContent = parseQuoteLine(lines[startLine]).content;
+    const contentAfterDollar = startLineContent.replace(equationBlockStartPattern, '').trim();
+    let endLine = 0;
+
+    if (contentAfterDollar) {
+        tmpEqBuffer.push(contentAfterDollar);
+    }
+
+    for (let j = startLine + 1; j < lines.length; j++) {
+        const eqContent = parseQuoteLine(lines[j]).content;
+        if (equationBlockEndPattern.test(eqContent)) {
+            endLine = j;
+            break;
+        }
+        tmpEqBuffer.push(eqContent);
+    }
+
+    return {
+        content: tmpEqBuffer.join('\n').trim(),
+        contentAfterDollar,
+        endLine,
+        firstLineWasBlank: contentAfterDollar.length === 0
+            && tmpEqBuffer.length > 0
+            && tmpEqBuffer[0].trim() === '',
+    };
+}
+
+function buildEquationBlockStartPosition(
+    lines: string[],
+    startLine: number,
+    quoteDepth: number,
+    contentAfterDollar: string,
+    firstLineWasBlank: boolean
+): EditorPosition {
+    const quotePrefixLength = '>'.repeat(quoteDepth).length + (quoteDepth > 0 ? 1 : 0);
+
+    if (contentAfterDollar.length > 0) {
+        const dollarPos = lines[startLine].indexOf('$$');
+        return { line: startLine, ch: dollarPos + 2 };
+    }
+
+    if (firstLineWasBlank) {
+        return { line: startLine + 2, ch: quotePrefixLength };
+    }
+
+    return { line: startLine + 1, ch: quotePrefixLength };
+}
+
+/**
+ * Extracts a multi-line `$$...$$` block starting from `startLine` and returns the editable content range.
+ */
+function buildMultiLineEquationResult(
+    lines: string[],
+    startLine: number,
+    quoteDepth: number
+): EquationAtCursor {
+    const extraction = extractMultiLineEquation(lines, startLine);
+    const quotePrefixLength = '>'.repeat(quoteDepth).length + (quoteDepth > 0 ? 1 : 0);
+
+    return {
+        content: extraction.content,
+        startPos: buildEquationBlockStartPosition(
+            lines,
+            startLine,
+            quoteDepth,
+            extraction.contentAfterDollar,
+            extraction.firstLineWasBlank
+        ),
+        endPos: { line: extraction.endLine, ch: quotePrefixLength },
+        isSingleLine: false,
+        quoteDepth,
+        firstLineWasBlank: extraction.firstLineWasBlank,
+    };
+}
+
 /**
  * Find the equation at the cursor position and return its content and range
  */
@@ -28,176 +210,26 @@ function getEquationAtCursor(
         return null;
     }
 
-    let inCodeBlock = false;
-    let inEquationBlock = false;
-    let eqStartLine = 0;
-    let quoteDepth = 0;
+    const scanState = scanEquationState(lines, cursorPos.line);
+    const currentLine = parseQuoteLine(lines[cursorPos.line]);
 
-    // First pass: determine state up to cursor line
-    for (let i = 0; i < cursorPos.line; i++) {
-        const rawLine = lines[i];
-        const { content: lineContent, quoteDepth: depth } = processQuoteLine(rawLine);
-
-        if (isCodeBlockToggle(lineContent)) {
-            inCodeBlock = !inCodeBlock;
-            continue;
-        }
-        if (inCodeBlock) continue;
-
-        // Handle multi-line equation blocks
-        if (inEquationBlock) {
-            if (equationBlockEndPattern.test(lineContent)) {
-                inEquationBlock = false;
-            }
-        } else if (equationBlockStartPattern.test(lineContent)) {
-            // Check if it's NOT a single-line equation on this line
-            const singleLineMatch = new RegExp(singleLineEqBlockPattern).exec(lineContent);
-            if (!singleLineMatch) {
-                inEquationBlock = true;
-                eqStartLine = i;
-                quoteDepth = depth;
-            }
-        }
-    }
-    // Now i = cursorPos.line, check the cursor line itself
-    const rawLine = lines[cursorPos.line];
-    const { content: lineContent, quoteDepth: currentQuoteDepth } = processQuoteLine(rawLine);
-
-    // Skip if we're in a code block
-    if (inCodeBlock || isCodeBlockToggle(lineContent)) return null;
-    // Check for single-line equation first
-    const singleLineMatch = new RegExp(singleLineEqBlockPattern).exec(lineContent);
-    if (singleLineMatch) {
-        const rawContent = singleLineMatch[1].trim();
-        const startIndex = rawLine.indexOf('$$') + 2;
-        const endIndex = rawLine.lastIndexOf('$$');
-        return {
-            content: rawContent,
-            startPos: { line: cursorPos.line, ch: startIndex },
-            endPos: { line: cursorPos.line, ch: endIndex },
-            isSingleLine: true,
-            quoteDepth: currentQuoteDepth,
-            firstLineWasBlank: false // Not applicable for single-line
-        };
+    if (scanState.inCodeBlock || isCodeBlockToggle(currentLine.content)) {
+        return null;
     }
 
-    // Check if cursor is in a multi-line equation block
-    if (inEquationBlock) {
-        const tmpEqBuffer: string[] = [];
-        let eqEndLine = 0;
-
-        // Extract content from the start line (after $$)
-        const { content: startLineContent } = processQuoteLine(lines[eqStartLine]);
-        const contentAfterDollar = startLineContent.replace(equationBlockStartPattern, '').trim();
-        if (contentAfterDollar) {
-            tmpEqBuffer.push(contentAfterDollar);
-        }
-
-        // Scan forward from start line to find the end
-        for (let j = eqStartLine + 1; j < lines.length; j++) {
-            const { content: eqContent } = processQuoteLine(lines[j]);
-            if (equationBlockEndPattern.test(eqContent)) {
-                eqEndLine = j;
-                break;
-            }
-            tmpEqBuffer.push(eqContent);
-        }
-
-        const content = tmpEqBuffer.join('\n').trim();
-        
-        // Check if first line was blank:
-        // - If there's content after $$ on opening line, first line is NOT blank
-        // - Otherwise, check if first line in buffer is blank
-        let firstLineWasBlank = false;
-        if (contentAfterDollar.length === 0) {
-            // No content on $$ line, check first collected line
-            firstLineWasBlank = tmpEqBuffer.length > 0 && tmpEqBuffer[0].trim() === '';
-        }
-        
-        // Calculate quote prefix length for position offset
-        const quotePrefix = '>'.repeat(quoteDepth) + (quoteDepth > 0 ? ' ' : '');
-        
-        // Determine startPos: if there's content on the same line as $$, start from there
-        // If first line after $$ is blank, skip it and start from the next line
-        // Otherwise start from the line after $$
-        let startPos: EditorPosition;
-        if (contentAfterDollar.length > 0) {
-            const dollarPos = lines[eqStartLine].indexOf('$$');
-            startPos = { line: eqStartLine, ch: dollarPos + 2 };
-        } else if (firstLineWasBlank) {
-            // Skip blank first line
-            startPos = { line: eqStartLine + 2, ch: quotePrefix.length };
-        } else {
-            startPos = { line: eqStartLine + 1, ch: quotePrefix.length };
-        }
-        
-        return {
-            content,
-            startPos,
-            endPos: { line: eqEndLine, ch: quotePrefix.length },
-            isSingleLine: false,
-            quoteDepth,
-            firstLineWasBlank
-        };
+    const singleLineEquation = buildSingleLineEquationResult(currentLine, cursorPos.line);
+    if (singleLineEquation) {
+        return singleLineEquation;
     }
 
-    // Check if cursor line itself starts a multi-line block
-    if (equationBlockStartPattern.test(lineContent)) {
-        const tmpEqBuffer: string[] = [];
-        let eqEndLine = 0;
-
-        // Extract content from the cursor line (after $$)
-        const contentAfterDollar = lineContent.replace(equationBlockStartPattern, '').trim();
-        if (contentAfterDollar) {
-            tmpEqBuffer.push(contentAfterDollar);
-        }
-
-        for (let j = cursorPos.line + 1; j < lines.length; j++) {
-            const { content: eqContent } = processQuoteLine(lines[j]);
-            if (equationBlockEndPattern.test(eqContent)) {
-                eqEndLine = j;
-                break;
-            }
-            tmpEqBuffer.push(eqContent);
-        }
-
-        const content = tmpEqBuffer.join('\n').trim();
-        
-        // Check if first line was blank:
-        // - If there's content after $$ on opening line, first line is NOT blank
-        // - Otherwise, check if first line in buffer is blank
-        let firstLineWasBlank = false;
-        if (contentAfterDollar.length === 0) {
-            // No content on $$ line, check first collected line
-            firstLineWasBlank = tmpEqBuffer.length > 0 && tmpEqBuffer[0].trim() === '';
-        }
-        
-        // Calculate quote prefix length for position offset
-        const quotePrefix = '>'.repeat(currentQuoteDepth) + (currentQuoteDepth > 0 ? ' ' : '');
-        
-        // Determine startPos: if there's content on the same line as $$, start from there
-        // If first line after $$ is blank, skip it and start from the next line
-        // Otherwise start from the line after $$
-        let startPos: EditorPosition;
-        if (contentAfterDollar.length > 0) {
-            const dollarPos = rawLine.indexOf('$$');
-            startPos = { line: cursorPos.line, ch: dollarPos + 2 };
-        } else if (firstLineWasBlank) {
-            // Skip blank first line
-            startPos = { line: cursorPos.line + 2, ch: quotePrefix.length };
-        } else {
-            startPos = { line: cursorPos.line + 1, ch: quotePrefix.length };
-        }
-        
-        return {
-            content,
-            startPos,
-            endPos: { line: eqEndLine, ch: quotePrefix.length },
-            isSingleLine: false,
-            quoteDepth: currentQuoteDepth,
-            firstLineWasBlank
-        };
+    if (scanState.inEquationBlock) {
+        return buildMultiLineEquationResult(lines, scanState.eqStartLine, scanState.quoteDepth);
     }
+
+    if (equationBlockStartPattern.test(currentLine.content)) {
+        return buildMultiLineEquationResult(lines, cursorPos.line, currentLine.quoteDepth);
+    }
+
     return null;
 }
 

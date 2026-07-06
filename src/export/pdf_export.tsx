@@ -41,68 +41,74 @@ export function makePrintMarkdown(
     // Step 1: Replace equation citations
     let result = replaceCitationsInMarkdownWithSpan(
         md,
-        settings.citationPrefix,
-        rangeSymbol,
-        validDelimiters,
-        fileCiteDelimiter,
-        settings.multiCitationDelimiter || ',',
-        settings.citationFormat,
         {
-            citationColorInPdf
-        },  // span styles
-        injectExportMetadata ? {
-            kind: getCitationDataKind(settings.citationPrefix),
-            citationKind: "equation",
+            prefix: settings.citationPrefix,
             rangeSymbol,
             validDelimiters,
             fileDelimiter: fileCiteDelimiter,
-            crossFilePathByIndex,
-        } : undefined,
+            multiCitationDelimiter: settings.multiCitationDelimiter || ',',
+            citationFormat: settings.citationFormat,
+            spanStyles: {
+                citationColorInPdf
+            },
+            metadataOptions: injectExportMetadata ? {
+                kind: getCitationDataKind(settings.citationPrefix),
+                citationKind: "equation",
+                rangeSymbol,
+                validDelimiters,
+                fileDelimiter: fileCiteDelimiter,
+                crossFilePathByIndex,
+            } : undefined,
+        },
     );
 
     // Step 2: Replace figure citations
     result = replaceCitationsInMarkdownWithSpan(
         result,
-        settings.figCitationPrefix,
-        rangeSymbol,
-        validDelimiters,
-        fileCiteDelimiter,
-        settings.multiCitationDelimiter || ',',
-        settings.figCitationFormat,
         {
-            citationColorInPdf
-        },
-        injectExportMetadata ? {
-            kind: getCitationDataKind(settings.figCitationPrefix),
-            citationKind: "figure",
+            prefix: settings.figCitationPrefix,
             rangeSymbol,
             validDelimiters,
             fileDelimiter: fileCiteDelimiter,
-            crossFilePathByIndex,
-        } : undefined,
+            multiCitationDelimiter: settings.multiCitationDelimiter || ',',
+            citationFormat: settings.figCitationFormat,
+            spanStyles: {
+                citationColorInPdf
+            },
+            metadataOptions: injectExportMetadata ? {
+                kind: getCitationDataKind(settings.figCitationPrefix),
+                citationKind: "figure",
+                rangeSymbol,
+                validDelimiters,
+                fileDelimiter: fileCiteDelimiter,
+                crossFilePathByIndex,
+            } : undefined,
+        },
     );
 
     // Step 3: Replace callout citations (table, theorem, definition, etc.)
     for (const prefixConfig of settings.calloutCitationPrefixes) {
         result = replaceCitationsInMarkdownWithSpan(
             result,
-            prefixConfig.prefix,
-            rangeSymbol,
-            validDelimiters,
-            fileCiteDelimiter,
-            settings.multiCitationDelimiter || ',',
-            prefixConfig.format,
             {
-                citationColorInPdf
-            },
-            injectExportMetadata ? {
-                kind: getCitationDataKind(prefixConfig.prefix),
-                citationKind: "callout",
+                prefix: prefixConfig.prefix,
                 rangeSymbol,
                 validDelimiters,
                 fileDelimiter: fileCiteDelimiter,
-                crossFilePathByIndex,
-            } : undefined,
+                multiCitationDelimiter: settings.multiCitationDelimiter || ',',
+                citationFormat: prefixConfig.format,
+                spanStyles: {
+                    citationColorInPdf
+                },
+                metadataOptions: injectExportMetadata ? {
+                    kind: getCitationDataKind(prefixConfig.prefix),
+                    citationKind: "callout",
+                    rangeSymbol,
+                    validDelimiters,
+                    fileDelimiter: fileCiteDelimiter,
+                    crossFilePathByIndex,
+                } : undefined,
+            },
         );
     }
 
@@ -174,8 +180,7 @@ function addFigureMetadataToMarkdownLine(args: {
     processedLines.push(buildFigureTitleMarkdown(figNumber, figureOnLine.title));
 
     if (figureOnLine.desc && args.addDesc) {
-        processedLines.push(''); // add another line for separate the paragraph 
-        processedLines.push(buildFigureDescMarkdown(figureOnLine.desc));
+        processedLines.push('', buildFigureDescMarkdown(figureOnLine.desc));
     }
 
     if (args.settings.keepImageSpacingForPdf && shouldAddBlankAfterFigure(args.nextLine)) {
@@ -344,7 +349,7 @@ function buildFigureDescMarkdown(desc: string): string {
 ////////////////////  Citation span replacement for PDF export  ///////////////////////// 
 
 export interface SpanStyles {
-    citationColorInPdf: string;
+    citationColorInPdf?: string;
 }
 
 export interface CitationSpanMetadataOptions {
@@ -362,24 +367,213 @@ export interface ExportCitationRef {
     tag: string;
 }
 
+interface TextRange {
+    start: number;
+    end: number;
+}
+
+interface DollarPosition {
+    pos: number;
+    type: "single" | "double";
+}
+
+interface InlineReferenceMatch {
+    mathStart: number;
+    mathEnd: number;
+    citations: string[];
+}
+
+interface CitationRenderOptions {
+    fileDelimiter: string;
+    multiCitationDelimiter?: string;
+    citationFormat?: string;
+    spanStyles?: SpanStyles;
+    metadataOptions?: CitationSpanMetadataOptions;
+}
+
+export interface ReplaceCitationsInMarkdownOptions extends CitationRenderOptions {
+    prefix: string;
+    rangeSymbol: string | null;
+    validDelimiters: string[];
+}
+
+interface NormalizedReplaceCitationsInMarkdownOptions {
+    prefix: string;
+    rangeSymbol: string | null;
+    validDelimiters: string[];
+    fileDelimiter: string;
+    multiCitationDelimiter: string;
+    citationFormat: string;
+    spanStyles: SpanStyles;
+    metadataOptions?: CitationSpanMetadataOptions;
+}
+
+function normalizeReplaceCitationsOptions(
+    options: ReplaceCitationsInMarkdownOptions
+): NormalizedReplaceCitationsInMarkdownOptions {
+    return {
+        ...options,
+        multiCitationDelimiter: options.multiCitationDelimiter ?? ',',
+        citationFormat: options.citationFormat ?? '(#)',
+        spanStyles: options.spanStyles ?? {},
+    };
+}
+
+function findInlineCodeRanges(line: string): TextRange[] {
+    const codeBlockRanges: TextRange[] = [];
+    let i = 0;
+
+    while (i < line.length) {
+        if (line[i] === '`' && (i === 0 || line[i - 1] !== '\\')) {
+            const start = i;
+            i++;
+            while (i < line.length) {
+                if (line[i] === '`' && line[i - 1] !== '\\') {
+                    codeBlockRanges.push({ start, end: i });
+                    break;
+                }
+                i++;
+            }
+        }
+        i++;
+    }
+
+    return codeBlockRanges;
+}
+
+function isPositionInRanges(position: number, ranges: readonly TextRange[]): boolean {
+    return ranges.some((range) => position >= range.start && position <= range.end);
+}
+
+function findDollarPositions(line: string): DollarPosition[] {
+    const dollarPositions: DollarPosition[] = [];
+    let i = 0;
+    let backslashRun = 0;
+
+    while (i < line.length) {
+        const ch = line[i];
+        if (ch === '\\') {
+            backslashRun++;
+            i++;
+            continue;
+        }
+
+        if (ch === '$' && backslashRun % 2 === 0) {
+            const type: DollarPosition["type"] = i + 1 < line.length && line[i + 1] === '$' ? "double" : "single";
+            dollarPositions.push({ pos: i, type });
+            i += type === "double" ? 2 : 1;
+            backslashRun = 0;
+            continue;
+        }
+
+        backslashRun = 0;
+        i++;
+    }
+
+    return dollarPositions;
+}
+
+function findInlineMathRanges(line: string, codeBlockRanges: readonly TextRange[]): TextRange[] {
+    const dollarPositions = findDollarPositions(line);
+    const inlineMathRanges: TextRange[] = [];
+
+    for (let i = 0; i < dollarPositions.length - 1; i++) {
+        const current = dollarPositions[i];
+        const next = dollarPositions[i + 1];
+
+        if (current.type !== "single" || next.type !== "single") {
+            continue;
+        }
+
+        if (isPositionInRanges(current.pos, codeBlockRanges) || isPositionInRanges(next.pos, codeBlockRanges)) {
+            continue;
+        }
+
+        const content = line.substring(current.pos, next.pos + 1);
+        if (new RegExp(inlineMathPattern).exec(content)) {
+            inlineMathRanges.push({ start: current.pos, end: next.pos });
+            i++;
+        }
+    }
+
+    return inlineMathRanges;
+}
+
+function splitInlineCitationLabels(label: string, multiCitationDelimiter: string): string[] {
+    return label
+        .split(multiCitationDelimiter)
+        .map((citation) => citation.trim())
+        .filter((citation) => citation.length > 0);
+}
+
+function findInlineReferenceMatches(
+    line: string,
+    prefix: string,
+    multiCitationDelimiter: string,
+    inlineMathRanges: readonly TextRange[]
+): InlineReferenceMatch[] {
+    const matches: InlineReferenceMatch[] = [];
+
+    for (const mathRange of inlineMathRanges) {
+        const mathContent = line.substring(mathRange.start + 1, mathRange.end);
+        const match = matchNestedCitation(mathContent, prefix);
+
+        if (!match) {
+            continue;
+        }
+
+        matches.push({
+            mathStart: mathRange.start,
+            mathEnd: mathRange.end + 1,
+            citations: splitInlineCitationLabels(match.label, multiCitationDelimiter),
+        });
+    }
+
+    return matches;
+}
+
+function combineInlineReferenceCitations(
+    citations: string[],
+    options: NormalizedReplaceCitationsInMarkdownOptions
+): string[] {
+    if (options.rangeSymbol === null) {
+        return citations;
+    }
+
+    return combineContinuousCitationTags(
+        citations,
+        options.rangeSymbol,
+        options.validDelimiters,
+        options.fileDelimiter
+    );
+}
+
+function generateInlineReferenceReplacement(
+    citations: string[],
+    options: NormalizedReplaceCitationsInMarkdownOptions
+): string {
+    return generateCitationSpans(
+        combineInlineReferenceCitations(citations, options),
+        options.fileDelimiter,
+        options.multiCitationDelimiter,
+        options.citationFormat,
+        options.spanStyles,
+        options.metadataOptions
+    );
+}
+
 /**
  * Replaces inline citations in markdown with <span> tags.
  * Ignores multiline code blocks, inline code blocks, and display math blocks.
  */
 export function replaceCitationsInMarkdownWithSpan(
     markdown: string,
-    prefix: string,
-    rangeSymbol: string | null,
-    validDelimiters: string[],
-    fileDelimiter: string,
-    multiCitationDelimiter = ',',
-    citationFormat = '(#)',
-    spanStyles = {} as SpanStyles,
-    metadataOptions?: CitationSpanMetadataOptions
+    options: ReplaceCitationsInMarkdownOptions
 ): string {
     if (!markdown.trim()) return markdown;
 
     const lines = markdown.split('\n');
+    const normalizedOptions = normalizeReplaceCitationsOptions(options);
     let inMultilineCodeBlock = false;
     let inDisplayMath = false;
 
@@ -409,9 +603,7 @@ export function replaceCitationsInMarkdownWithSpan(
             return line;
         }
 
-        return processInlineReferences(
-            line, prefix, rangeSymbol, validDelimiters, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles, metadataOptions
-        );
+        return processInlineReferences(line, normalizedOptions);
     });
     return processedLines.join('\n');
 }
@@ -421,112 +613,20 @@ export function replaceCitationsInMarkdownWithSpan(
  */
 function processInlineReferences(
     line: string,
-    prefix: string,
-    rangeSymbol: string | null,
-    validDelimiters: string[],
-    fileDelimiter: string,
-    multiCitationDelimiter = ',',
-    citationFormat = '(#)',
-    spanStyles = {} as SpanStyles,
-    metadataOptions?: CitationSpanMetadataOptions
+    options: NormalizedReplaceCitationsInMarkdownOptions
 ): string {
-    const codeBlockRanges: Array<{ start: number, end: number }> = [];
-    let i = 0;
-
-    while (i < line.length) {
-        if (line[i] === '`' && (i === 0 || line[i - 1] !== '\\')) {
-            const start = i;
-            i++;
-            while (i < line.length) {
-                if (line[i] === '`' && line[i - 1] !== '\\') {
-                    codeBlockRanges.push({ start, end: i });
-                    break;
-                }
-                i++;
-            }
-        }
-        i++;
-    }
-
-    const isInCodeBlock = (pos: number): boolean => {
-        return codeBlockRanges.some(range => pos >= range.start && pos <= range.end);
-    };
-
-    const dollarPositions: Array<{ pos: number, type: 'single' | 'double' }> = [];
-    i = 0;
-    let backslashRun = 0;
-    while (i < line.length) {
-        const ch = line[i];
-        if (ch === '\\') {
-            backslashRun++;
-            i++;
-            continue;
-        }
-        if (ch === '$') {
-            const isEscaped = (backslashRun % 2 === 1);
-            if (!isEscaped) {
-                if (i + 1 < line.length && line[i + 1] === '$') {
-                    dollarPositions.push({ pos: i, type: 'double' });
-                    i += 2;
-                } else {
-                    dollarPositions.push({ pos: i, type: 'single' });
-                    i += 1;
-                }
-                backslashRun = 0;
-                continue;
-            }
-        }
-        backslashRun = 0;
-        i++;
-    }
-
-    const inlineMathRanges: Array<{ start: number, end: number }> = [];
-    for (let j = 0; j < dollarPositions.length - 1; j++) {
-        const current = dollarPositions[j];
-        const next = dollarPositions[j + 1];
-        if (current.type === 'single' && next.type === 'single') {
-            if (isInCodeBlock(current.pos) || isInCodeBlock(next.pos)) continue;
-            const content = line.substring(current.pos, next.pos + 1);
-            if (new RegExp(inlineMathPattern).exec(content)) {
-                inlineMathRanges.push({ start: current.pos, end: next.pos });
-                j++;
-            }
-        }
-    }
-
-    const matches: Array<{
-        mathStart: number,
-        mathEnd: number,
-        citations: string[]
-    }> = [];
-    for (const mathRange of inlineMathRanges) {
-        const mathContent = line.substring(mathRange.start + 1, mathRange.end);
-        const match = matchNestedCitation(mathContent, prefix);
-
-        if (match) {
-            const citations = match.label.split(multiCitationDelimiter).map(c => c.trim()).filter(c => c.length > 0);
-            matches.push({
-                mathStart: mathRange.start,
-                mathEnd: mathRange.end + 1,
-                citations
-            });
-        }
-    }
+    const codeBlockRanges = findInlineCodeRanges(line);
+    const inlineMathRanges = findInlineMathRanges(line, codeBlockRanges);
+    const matches = findInlineReferenceMatches(
+        line,
+        options.prefix,
+        options.multiCitationDelimiter,
+        inlineMathRanges
+    );
 
     let result = line;
     matches.toReversed().forEach(({ mathStart, mathEnd, citations }) => {
-        const combinedCitations = (rangeSymbol === null) ?
-            citations :
-            combineContinuousCitationTags(
-                citations,
-                rangeSymbol,
-                validDelimiters,
-                fileDelimiter
-            );
-
-        const replacement = generateCitationSpans(
-            combinedCitations, fileDelimiter, multiCitationDelimiter, citationFormat, spanStyles, metadataOptions
-        );
+        const replacement = generateInlineReferenceReplacement(citations, options);
         result = result.substring(0, mathStart) + replacement + result.substring(mathEnd);
     });
     return result;
@@ -591,7 +691,14 @@ function buildCitationMetadataAttributes(
 }
 
 function getCitationDataKind(prefix: string): string {
-    return prefix.trim().replace(/:+$/, '');
+    const trimmedPrefix = prefix.trim();
+    const delimiterIndex = trimmedPrefix.indexOf(":");
+
+    if (delimiterIndex === -1) {
+        return trimmedPrefix;
+    }
+
+    return trimmedPrefix.slice(0, delimiterIndex);
 }
 
 export function flattenCitationRefs(
