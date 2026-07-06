@@ -335,7 +335,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
     multiCitationDelimiterRender: {
         name: "Multiple citation rendered delimiter",
-        desc: String.raw`Delimiter shown between citations when rendered (purely visual)`,
+        desc: `Delimiter shown between citations when rendered (purely visual)`,
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.multiCitationDelimiterRender(el, plugin);

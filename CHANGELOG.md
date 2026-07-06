@@ -423,6 +423,8 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 - [x] refactored and shortened pdf export code part
 - [x] refactored `getEquationAtCursor` and function in box current equations 
 - [x] refactored figure citation wrapper function 
+- [ ] resolved sonar issues to make sure that the code quality gate is passed. 
+
 
 ### 🚢 If you want following features, you can request it in issue page :  
 1. Check citations of equations, figures and tables in equation manage panel.

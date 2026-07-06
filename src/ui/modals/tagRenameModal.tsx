@@ -6,7 +6,7 @@ import { assemblyCitationUpdateMessage } from "@/func/autoNumber";
 
 
 export class TagRenameModal extends Modal {
-    private newTag: string;
+    private newTag!: string;
     private editor?: Editor;
     private isFigureTag = false;
     

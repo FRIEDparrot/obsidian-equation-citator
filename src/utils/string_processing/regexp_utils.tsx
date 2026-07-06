@@ -11,7 +11,7 @@ export function escapeRegExp(string: string): string {
 /**
  * This file Manages the regular expressions used in the plugin. 
  */
-export const codeBlockStartRegex = /^\s*(?:>+\s*)*```/
+export const codeBlockStartRegex = /^[ \t]*(?:>[ \t]*)*```/
 
 // 1 : num , 2: text  
 export const footnoteRegex = /^\[(\^[^\]]+)\]: (.*)/;

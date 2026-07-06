@@ -9,9 +9,9 @@ export type ModalOption = {
 export class OptionsModal extends Modal {
     constructor(
         app: App,
-        private title: string,
-        private question: string,
-        private options: ModalOption[]) {
+        private readonly title: string,
+        private readonly question: string,
+        private readonly options: ModalOption[]) {
         super(app);
     }
     onOpen() {
@@ -44,9 +44,9 @@ export class PromiseOptionsModal extends Modal {
     private resolver!: (value: string | null) => void;
 
     constructor(app: App,
-        private title: string,
-        private question: string,
-        private options: ModalOption[]) {
+        private readonly title: string,
+        private readonly question: string,
+        private readonly options: ModalOption[]) {
         super(app);
     }
     
