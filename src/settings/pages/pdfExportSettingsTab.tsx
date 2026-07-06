@@ -107,6 +107,157 @@ function hasDuplicatePattern(patterns: string[], pattern: string, currentIndex: 
     });
 }
 
+type IgnoredPatternValidationResult = {
+    normalizedPattern: string | null;
+    isDuplicate: boolean;
+};
+
+function getValidatedIgnoredPattern(
+    patterns: string[],
+    rawPattern: string,
+    currentIndex: number | null = null
+): IgnoredPatternValidationResult {
+    const normalizedPattern = normalizeMarkdownFilePattern(rawPattern);
+
+    if (!normalizedPattern) {
+        new Notice("Ignored file pattern must be a filename pattern, not a folder path.");
+        return {
+            normalizedPattern: null,
+            isDuplicate: false,
+        };
+    }
+
+    if (hasDuplicatePattern(patterns, normalizedPattern, currentIndex)) {
+        new Notice("This ignored file pattern already exists.");
+        return {
+            normalizedPattern: null,
+            isDuplicate: true,
+        };
+    }
+
+    return {
+        normalizedPattern,
+        isDuplicate: false,
+    };
+}
+
+/**
+ * Persists an edited ignore pattern after validation and restores the previous value on failure.
+ */
+async function saveIgnoredPatternAtIndex(
+    plugin: EquationCitator,
+    index: number,
+    originalPattern: string,
+    inputEl: HTMLInputElement
+): Promise<void> {
+    const { normalizedPattern } = getValidatedIgnoredPattern(
+        plugin.settings.websiteNotesExportIgnoredFilePatterns,
+        inputEl.value,
+        index
+    );
+
+    if (!normalizedPattern) {
+        inputEl.value = originalPattern;
+        return;
+    }
+
+    plugin.settings.websiteNotesExportIgnoredFilePatterns[index] = normalizedPattern;
+    inputEl.value = normalizedPattern;
+    await plugin.saveSettings();
+}
+
+async function addIgnoredPattern(
+    plugin: EquationCitator,
+    inputEl: HTMLInputElement,
+    rerender: () => void
+): Promise<void> {
+    const { normalizedPattern, isDuplicate } = getValidatedIgnoredPattern(
+        plugin.settings.websiteNotesExportIgnoredFilePatterns,
+        inputEl.value
+    );
+
+    if (!normalizedPattern) {
+        if (isDuplicate) {
+            inputEl.value = "";
+        }
+        return;
+    }
+
+    plugin.settings.websiteNotesExportIgnoredFilePatterns.push(normalizedPattern);
+    await plugin.saveSettings();
+    rerender();
+}
+
+async function removeIgnoredPattern(
+    plugin: EquationCitator,
+    index: number,
+    rerender: () => void
+): Promise<void> {
+    plugin.settings.websiteNotesExportIgnoredFilePatterns.splice(index, 1);
+    await plugin.saveSettings();
+    rerender();
+}
+
+/**
+ * Add a row with an editable ignore pattern and a remove button to the settings tab. 
+ */
+function addIgnoredPatternSettingRow(
+    containerEl: HTMLElement,
+    plugin: EquationCitator,
+    pattern: string,
+    index: number,
+    rerender: () => void
+): void {
+    new Setting(containerEl)
+        .setClass("ec-website-export-ignore-item")
+        .addText((text) => {
+            text.setValue(pattern);
+            text.setPlaceholder("*.excalidraw");
+            text.inputEl.onblur = () => void saveIgnoredPatternAtIndex(plugin, index, pattern, text.inputEl);
+        })
+        .addButton((button) => {
+            button.setButtonText("Remove")
+                .setClass("mod-warning")
+                .onClick(async () => removeIgnoredPattern(plugin, index, rerender));
+        });
+}
+
+/**
+ * Add a row with an editable ignore pattern and an add button to the settings tab.
+ */
+function addNewIgnoredPatternSettingRow(
+    containerEl: HTMLElement,
+    plugin: EquationCitator,
+    rerender: () => void
+): void {
+    let newPatternInput: HTMLInputElement;
+
+    new Setting(containerEl)
+        .setClass("ec-website-export-ignore-add")
+        .addText((text) => {
+            text.setPlaceholder("*.excalidraw");
+            newPatternInput = text.inputEl;
+        })
+        .addButton((button) => {
+            button.setButtonText("Add")
+                .setCta()
+                .onClick(async () => addIgnoredPattern(plugin, newPatternInput, rerender));
+        });
+}
+
+/**
+ * Rebuilds the editable ignore-pattern rows so callbacks always bind to current array indices.
+ */
+function renderIgnoredPatternList(containerEl: HTMLElement, plugin: EquationCitator): void {
+    containerEl.empty();
+
+    const rerender = () => renderIgnoredPatternList(containerEl, plugin);
+    plugin.settings.websiteNotesExportIgnoredFilePatterns.forEach((pattern, index) => {
+        addIgnoredPatternSettingRow(containerEl, plugin, pattern, index, rerender);
+    });
+    addNewIgnoredPatternSettingRow(containerEl, plugin, rerender);
+}
+
 export const PdfExportSettingsTab = {
     websiteNotesExportFolder(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.websiteNotesExportFolder;
@@ -174,85 +325,7 @@ export const PdfExportSettingsTab = {
             .setDesc(desc);
 
         const patternListContainer = containerEl.createDiv("ec-website-export-ignore-list-container");
-
-        const savePatternAtIndex = async (
-            index: number,
-            originalPattern: string,
-            inputEl: HTMLInputElement
-        ) => {
-            const normalizedPattern = normalizeMarkdownFilePattern(inputEl.value);
-
-            if (!normalizedPattern) {
-                new Notice("Ignored file pattern must be a filename pattern, not a folder path.");
-                inputEl.value = originalPattern;
-                return;
-            }
-
-            if (hasDuplicatePattern(plugin.settings.websiteNotesExportIgnoredFilePatterns, normalizedPattern, index)) {
-                new Notice("This ignored file pattern already exists.");
-                inputEl.value = originalPattern;
-                return;
-            }
-
-            plugin.settings.websiteNotesExportIgnoredFilePatterns[index] = normalizedPattern;
-            inputEl.value = normalizedPattern;
-            await plugin.saveSettings();
-        };
-
-        const renderPatternList = () => {
-            patternListContainer.empty();
-
-            plugin.settings.websiteNotesExportIgnoredFilePatterns.forEach((pattern, index) => {
-                new Setting(patternListContainer)
-                    .setClass("ec-website-export-ignore-item")
-                    .addText((text) => {
-                        text.setValue(pattern);
-                        text.setPlaceholder("*.excalidraw");
-                        text.inputEl.onblur = () => savePatternAtIndex(index, pattern, text.inputEl);
-                    })
-                    .addButton((button) => {
-                        button.setButtonText("Remove")
-                            .setClass("mod-warning")
-                            .onClick(async () => {
-                                plugin.settings.websiteNotesExportIgnoredFilePatterns.splice(index, 1);
-                                await plugin.saveSettings();
-                                renderPatternList();
-                            });
-                    });
-            });
-
-            let newPatternInput: HTMLInputElement;
-            new Setting(patternListContainer)
-                .setClass("ec-website-export-ignore-add")
-                .addText((text) => {
-                    text.setPlaceholder("*.excalidraw");
-                    newPatternInput = text.inputEl;
-                })
-                .addButton((button) => {
-                    button.setButtonText("Add")
-                        .setCta()
-                        .onClick(async () => {
-                            const normalizedPattern = normalizeMarkdownFilePattern(newPatternInput.value);
-
-                            if (!normalizedPattern) {
-                                new Notice("Ignored file pattern must be a filename pattern, not a folder path.");
-                                return;
-                            }
-
-                            if (hasDuplicatePattern(plugin.settings.websiteNotesExportIgnoredFilePatterns, normalizedPattern)) {
-                                new Notice("This ignored file pattern already exists.");
-                                newPatternInput.value = "";
-                                return;
-                            }
-
-                            plugin.settings.websiteNotesExportIgnoredFilePatterns.push(normalizedPattern);
-                            await plugin.saveSettings();
-                            renderPatternList();
-                        });
-                });
-        };
-
-        renderPatternList();
+        renderIgnoredPatternList(patternListContainer, plugin);
     },
 
     citationColorInPdf(containerEl: HTMLElement, plugin: EquationCitator) {
