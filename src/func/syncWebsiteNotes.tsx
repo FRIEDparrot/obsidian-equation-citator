@@ -2,6 +2,7 @@ import EquationCitator from "@/main";
 import { makeExportedMarkdownForPdf } from "@/func/exportMarkdown";
 import Debugger from "@/debug/debugger";
 import { FileSystemAdapter, Notice, Platform, TAbstractFile, TFile, TFolder, Vault, normalizePath } from "obsidian";
+import { fileNameMatchesMarkdownPatterns } from "@/utils/misc/file_pattern_utils";
 import {
     getNodeFileSystemModules,
     isPathInsideOrEqual,
@@ -9,7 +10,6 @@ import {
     removeExternalExportPath,
     resolvePathInsideFolder,
 } from "@/utils/misc/desktop_fs_utils";
-import { fileNameMatchesMarkdownPatterns } from "@/utils/misc/file_pattern_utils";
 
 /** Name of the JSON file used to track which files were exported in the previous sync run. */
 const EXPORT_INDEX_FILE_NAME = ".equation-citator-export-index.json";
@@ -223,7 +223,7 @@ async function writeExportIndex(exportFolder: string, exportedFiles: Set<string>
         _comment: EXPORT_INDEX_COMMENT,
         version: 1,
         generatedAt: new Date().toISOString(),
-        files: Array.from(exportedFiles).sort(),
+        files: Array.from(exportedFiles).sort((a, b) => a.localeCompare(b)),
     };
 
     await fs.writeFile(
@@ -354,13 +354,7 @@ async function cleanStaleExportedFiles(
     const dirsToClean = new Set<string>();
 
     for (const previousFile of previousFiles) {
-        if (!shouldConsiderFile(previousFile)) {
-            continue;
-        }
-
-        if (currentFiles.has(previousFile)) {
-            continue;
-        }
+        if (!shouldConsiderFile(previousFile) || currentFiles.has(previousFile)) continue;
 
         const targetPath = resolveExportPath(exportFolder, previousFile);
         if (!targetPath) {
@@ -382,10 +376,7 @@ async function cleanStaleExportedFiles(
             continue;
         }
 
-        if (!stats.isFile()) {
-            Debugger.log("Skipped stale export entry because the path is not a file:", previousFile, targetPath);
-            continue;
-        }
+        if (!stats.isFile()) continue;
 
         const removed = await removeExternalExportPath(targetPath);
         if (!removed) {

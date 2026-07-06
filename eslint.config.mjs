@@ -21,6 +21,7 @@ export default defineConfig([
             parserOptions: { project: "./tsconfig.json" },
             globals: {
                 ...globals.browser,
+                ...globals.node,
                 activeWindow: "readonly",
                 activeDocument: "readonly",
             },
@@ -44,17 +45,17 @@ export default defineConfig([
                 },
             ],
         },
-    },
-    {
-        files: ["src/utils/misc/desktop_fs_utils.tsx"],
-        languageOptions: {
-            globals: {
-                require: "readonly",
-            },
-        },
-        rules: {
-            "import/no-nodejs-modules": "off",
-            "@typescript-eslint/no-require-imports": "off",
-        },
-    },
+    }
+    // {
+    //     files: ["src/utils/misc/desktop_fs_utils.tsx"],
+    //     languageOptions: {
+    //         globals: {
+    //             require: "readonly",
+    //         },
+    //     },
+    //     rules: {
+    //         "import/no-nodejs-modules": "off",
+    //         "@typescript-eslint/no-require-imports": "off",
+    //     },
+    // },
 ]);

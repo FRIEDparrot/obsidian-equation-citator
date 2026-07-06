@@ -1,32 +1,50 @@
-import type * as FsPromises from "fs/promises";
-import type * as Path from "path";
+import type * as FsPromises from "node:fs/promises";
+import type * as Path from "node:path";
 import Debugger from "@/debug/debugger";
+
+type SafeWindow  = Window &  {
+    require?: (moduleName: string) => unknown;
+}
 
 export interface NodeFileSystemModules {
     fs: typeof FsPromises;
     path: typeof Path;
 }
 
-export function getNodeFileSystemModules(): NodeFileSystemModules | null {
+let cachedModules: NodeFileSystemModules | null | undefined; 
+
+function safeRequire<T>(moduleName: string): T | null {
     try {
-        return {
-            // Node APIs are only available in the desktop app.
-            fs: require("fs/promises") as typeof FsPromises,
-            path: require("path") as typeof Path,
-        };
-    } catch (error) {
-        Debugger.error("Failed to load Node filesystem modules.", error);
+        return ((window as SafeWindow).require?.(moduleName) as T | undefined) ?? null;
+    } catch {
+        Debugger.error(`Failed to require Node module: ${moduleName}`);
         return null;
     }
+}
+
+export function getNodeFileSystemModules() :  NodeFileSystemModules | null {
+    if (cachedModules !== undefined) {
+        return cachedModules;
+    }
+
+    const fs =
+        safeRequire<typeof FsPromises>("node:fs/promises") ??
+        safeRequire<typeof FsPromises>("fs/promises");
+    const path =
+        safeRequire<typeof Path>("node:path") ??
+        safeRequire<typeof Path>("path");
+
+    cachedModules = fs && path ? { fs, path } : null;
+    return cachedModules;
 }
 
 export function normalizeAbsolutePathForComparison(filePath: string): string {
     const { path } = getNodeFileSystemModules() ?? {};
     if (!path) {
-        return filePath.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+        return filePath.replaceAll('\\', "/").replace(/\/+$/, "").toLowerCase();
     }
 
-    return path.resolve(filePath).replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+    return path.resolve(filePath).replaceAll('\\', "/").replace(/\/+$/, "").toLowerCase();
 }
 
 export function isPathInsideOrEqual(parentPath: string, targetPath: string): boolean {
