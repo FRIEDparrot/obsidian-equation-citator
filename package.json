@@ -15,7 +15,8 @@
 		"check": "eslint .",
 		"type-check": "tsc --noEmit --skipLibCheck",
 		"check:case": "case-police",
-		"docs": "typedoc"
+		"docs": "node scripts/build-docs.mjs",
+		"docs:zh": "node scripts/build-docs.mjs --locale=zh-CN"
 	},
 	"keywords": [],
 	"author": "FRIEDparrot",

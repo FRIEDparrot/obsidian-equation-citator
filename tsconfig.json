@@ -7,7 +7,7 @@
     "module": "ESNext",
     "target": "ES6",
     "skipLibCheck": true,
-    "allowJs": true,
+    "allowJs": false,
     "noImplicitAny": true,
     "moduleResolution": "bundler",
     "importHelpers": true,

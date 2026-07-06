@@ -1,7 +1,3 @@
-<center><div>
-  <img src="img/Heading_img.png" style="max-height:100px; max-width:65%" alt="Stars">
-</div></center>
-
 <center><div width="100%"><span>
   <img src="https://img.shields.io/badge/Version-1.3.5-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">

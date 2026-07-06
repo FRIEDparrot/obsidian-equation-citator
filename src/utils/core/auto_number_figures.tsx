@@ -23,7 +23,6 @@ export interface FigAutoNumberConfigs extends AutoNumberConfigs {
  * @remarks process for quotes is handled inside parseMarkdownLine function
  * 
  * @param content - the markdown content to process 
- * @param figCitationPrefix - the prefix for figure citations (e.g., "fig:")
  * @param configs - the auto-numbering related configurations, including type, depth, delimiter, etc.
  */
 export function autoNumberFigures(

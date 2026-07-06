@@ -165,7 +165,7 @@ export interface CodeAndHeadingLineProcessResult {
  * - Returns early if currently in a code block
  * - Processes headings and **updates numbering state counters**
  * 
- * @access call it in every loop in auto-number functions after calling `parseMarkdownLine` function
+ * call it in every loop in auto-number functions after calling `parseMarkdownLine` function
  * 
  * @param parseResult - The parsed markdown line from `parseMarkdownLine` function
  * @param inCodeBlock - Current code block state
