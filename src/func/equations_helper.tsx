@@ -201,6 +201,14 @@ function getEquationAtCursor(
     return null;
 }
 
+function buildBoxedEquationContent(plugin: EquationCitator, content: string): string {
+    const {typstBoxSymbol, enableTypstMode}  = plugin.settings;
+    const boxedSymbol = enableTypstMode ? typstBoxSymbol : 'boxed';
+    const boxedPrefix = enableTypstMode ? `${boxedSymbol}(` : `\\${boxedSymbol}{`;
+    const boxedSuffix = enableTypstMode ? ')' : '}';
+    return boxedPrefix + content + boxedSuffix;
+}
+
 /**
  * Add `\boxed` to the equation at cursor position. 
  * Uses cursor position to find the correct equation.
@@ -211,12 +219,8 @@ export function boxSelectedEquation(
     const editor = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
     if (!editor) return;
 
-    const {
-        skipFirstlineInBoxedFilter,
-        enableTypstMode,
-        typstBoxSymbol,
-    } = plugin.settings;
-
+    // Prepare the boxed symbol based on mode
+    const { skipFirstlineInBoxedFilter } = plugin.settings;
     const cursorPos = editor.getCursor();
     const equationInfo = getEquationAtCursor(editor, cursorPos);
     if (!equationInfo) {
@@ -224,31 +228,20 @@ export function boxSelectedEquation(
         return;
     }
     const { content, startPos, endPos, isSingleLine, quoteDepth, firstLineWasBlank } = equationInfo;
-
-    // Prepare the boxed symbol based on mode
-    const boxedSymbol = enableTypstMode ? typstBoxSymbol : 'boxed';
-    const boxedPrefix = enableTypstMode ? `${boxedSymbol}(` : `\\${boxedSymbol}{`;
-    const boxedSuffix = enableTypstMode ? ')' : '}';
-
+    
     // Get the content to wrap (includes any existing tags)
     let contentToWrap = content
     const lines = contentToWrap.split('\n');
 
     // Handle skipFirstlineInBoxedFilter for multi-line equations
     // Only skip first line if it's NOT blank
-    if (!isSingleLine && skipFirstlineInBoxedFilter) {
-        if (!firstLineWasBlank && lines.length > 1) {
-            // Wrap only from the second line onwards (skip first line)
-            const firstLine = lines[0];
-            const remainingLines = lines.slice(1).join('\n');
-            contentToWrap = firstLine + '\n' + boxedPrefix + remainingLines + boxedSuffix;
-        } else {
-            // First line is blank or single line content in multi-line equation block
-            contentToWrap = boxedPrefix + contentToWrap + boxedSuffix;
-        }
-    } else {
-        // Wrap entire content (no skipFilter)
-        contentToWrap = boxedPrefix + contentToWrap + boxedSuffix;
+    if (!isSingleLine && skipFirstlineInBoxedFilter && !firstLineWasBlank) {
+        const firstLine = lines[0];
+        const remainingLines = lines.slice(1).join('\n');
+        contentToWrap = firstLine + '\n' + buildBoxedEquationContent(plugin, remainingLines);
+    }
+    else {
+        contentToWrap = buildBoxedEquationContent(plugin, contentToWrap);
     }
     
     // Add quote symbol for each line if in quote 
