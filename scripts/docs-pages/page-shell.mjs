@@ -138,6 +138,14 @@ export function buildDocsPageHtml({
     docsAssetsHref,
 }) {
     const headingHtml = showPageHeading ? `<div class="tsd-page-title"><h1>${escapeHtml(pageHeading)}</h1></div>` : "";
+    const previewPathMappings = [
+        { urlPattern: "/en/tutorials/", baseUrl: "/en/tutorials" },
+        { urlPattern: "/zh-CN/tutorials/", baseUrl: "/zh-CN/tutorials" },
+        { urlPattern: "/en/changelogs/", baseUrl: "/en/changelogs" },
+        { urlPattern: "/zh-CN/changelogs/", baseUrl: "/zh-CN/changelogs" },
+        { urlPattern: "/tutorials/", baseUrl: "/tutorials" },
+        { urlPattern: "/changelogs/", baseUrl: "/changelogs" },
+    ];
 
     return `<!DOCTYPE html>
 <html class="default" lang="${escapeHtml(htmlLang)}" data-base="${escapeHtml(typedocBaseHref)}">
@@ -151,6 +159,10 @@ export function buildDocsPageHtml({
   <link rel="stylesheet" href="${escapeHtml(typedocAssetsHref)}/highlight.css">
   <script defer src="${escapeHtml(typedocAssetsHref)}/main.js"></script>
   <script async src="${escapeHtml(typedocAssetsHref)}/icons.js" id="tsd-icons-script"></script>
+  <script type="module">
+    import { install } from "${escapeHtml(docsAssetsHref)}/equation-citator/runtime.js";
+    install({ pathMappings: ${JSON.stringify(previewPathMappings)} });
+  </script>
   <link rel="stylesheet" href="${escapeHtml(docsAssetsHref)}/katex/katex.min.css">
   <link rel="stylesheet" href="${escapeHtml(typedocAssetsHref)}/typedoc-github-style.css">
   <link rel="stylesheet" href="${escapeHtml(docsAssetsHref)}/docs-site.css">

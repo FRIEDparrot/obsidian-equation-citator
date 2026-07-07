@@ -16,6 +16,7 @@
 		"type-check": "tsc --noEmit --skipLibCheck",
 		"check:case": "case-police",
 		"docs": "node scripts/build-docs.mjs",
+		"docs:build": "node scripts/build-docs.mjs",
 		"docs:clean": "if exist docs rmdir /s /q docs"
 	},
 	"keywords": [],
@@ -28,6 +29,7 @@
 		"@codemirror/view": "^6.38.1",
 		"@eslint/config-array": "^0.21.0",
 		"@eslint/js": "^9.39.1",
+		"@friedparrot/equation-citator": "file:../FriedParrot.github.io-src/packages/equation-citator",
 		"@lezer/markdown": "^1.4.3",
 		"@types/jest": "^30.0.0",
 		"@types/markdown-it": "^14.1.2",

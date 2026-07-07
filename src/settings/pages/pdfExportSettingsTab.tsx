@@ -3,6 +3,7 @@ import { FileSystemAdapter, Notice, Platform, Setting } from "obsidian";
 import { SETTINGS_METADATA } from "../defaultSettings";
 import { normalizeMarkdownFilePattern } from "@/utils/misc/file_pattern_utils";
 import { isPathInsideOrEqual } from "@/utils/misc/desktop_fs_utils";
+import Debugger from "@/debug/debugger";
 
 type ElectronDialog = {
     showOpenDialog: (options: {
@@ -10,6 +11,26 @@ type ElectronDialog = {
         defaultPath?: string;
         properties: string[];
     }) => Promise<{ canceled: boolean; filePaths: string[] }>;
+};
+
+type ElectronShell = {
+    openPath: (path: string) => Promise<string>;
+};
+
+type ElectronModule = {
+    dialog?: ElectronDialog;
+    shell?: ElectronShell;
+    remote?: {
+        dialog?: ElectronDialog;
+        shell?: ElectronShell;
+        require?: (moduleName: string) => unknown;
+    };
+};
+
+type RemoteModule = {
+    dialog?: ElectronDialog;
+    shell?: ElectronShell;
+    require?: (moduleName: string) => unknown;
 };
 
 function getVaultBasePath(plugin: EquationCitator): string | null {
@@ -21,28 +42,31 @@ function getVaultBasePath(plugin: EquationCitator): string | null {
     return null;
 }
 
-function getElectronDialog(): ElectronDialog | null {
+function safeRequire(moduleName: string): unknown {
     const windowWithRequire: Window & {
         require?: (moduleName: string) => unknown;
     } = window;
 
-    const safeRequire = (moduleName: string): unknown => {
-        try {
-            return windowWithRequire.require?.(moduleName);
-        } catch {
-            return undefined;
-        }
-    };
+    try {
+        return windowWithRequire.require?.(moduleName);
+    } catch {
+        return undefined;
+    }
+}
 
-    const electron = safeRequire("electron") as {
-        dialog?: ElectronDialog;
-        remote?: { dialog?: ElectronDialog };
-    } | undefined;
-    const remote = safeRequire("@electron/remote") as {
-        dialog?: ElectronDialog;
-    } | undefined;
+function getElectronDialog(): ElectronDialog | null {
+    const electron = safeRequire("electron") as ElectronModule | undefined;
+    const remote = safeRequire("@electron/remote") as RemoteModule | undefined;
 
     return electron?.remote?.dialog ?? electron?.dialog ?? remote?.dialog ?? null;
+}
+
+function getElectronShell(): ElectronShell | null {
+    const electron = safeRequire("electron") as ElectronModule | undefined;
+    const remote = safeRequire("@electron/remote") as RemoteModule | undefined;
+    const remoteElectron = remote?.require?.("electron") as ElectronModule | undefined;
+
+    return electron?.remote?.shell ?? electron?.shell ?? remote?.shell ?? remoteElectron?.shell ?? null;
 }
 
 function getParentFolderPath(path: string | null): string | undefined {
@@ -86,6 +110,39 @@ async function chooseWebsiteExportFolder(currentPath: string, vaultBasePath: str
     }
 
     return result.filePaths[0];
+}
+
+/**
+ * Opens the configured website-notes export folder in the desktop file manager.
+ */
+async function openWebsiteExportFolder(folderPath: string): Promise<void> {
+    const trimmedPath = folderPath.trim();
+
+    if (!trimmedPath) {
+        return;
+    }
+
+    if (!Platform.isDesktopApp) {
+        new Notice("Opening the export folder is only available in the desktop app.");
+        return;
+    }
+
+    const shell = getElectronShell();
+    if (!shell) {
+        new Notice("Unable to open the export folder in this Obsidian environment.");
+        return;
+    }
+
+    try {
+        const errorMessage = await shell.openPath(trimmedPath);
+        if (errorMessage) {
+            Debugger.error("Failed to open website notes export folder:", trimmedPath, errorMessage);
+            new Notice("Unable to open website notes export folder.");
+        }
+    } catch (error) {
+        Debugger.error("Failed to open website notes export folder:", trimmedPath, error);
+        new Notice("Unable to open website notes export folder.");
+    }
 }
 
 function getValidWebsiteExportFolderOrBlank(plugin: EquationCitator, folderPath: string): string {
@@ -267,13 +324,17 @@ export const PdfExportSettingsTab = {
         const setting = new Setting(containerEl);
         const currentFolderText = document.createElement("div");
         currentFolderText.addClass("setting-item-description");
+        let openButtonEl: HTMLButtonElement | null = null;
 
         const updateCurrentFolderText = () => {
-            currentFolderText.setText(plugin.settings.websiteNotesExportFolder
+            const hasExportFolder = plugin.settings.websiteNotesExportFolder.trim().length > 0;
+            currentFolderText.setText(hasExportFolder
                 ? plugin.settings.websiteNotesExportFolder
                 : "Not set");
+            if (openButtonEl) {
+                openButtonEl.style.display = hasExportFolder ? "" : "none";
+            }
         };
-        updateCurrentFolderText();
 
         setting.setName(name)
             .setDesc(desc)
@@ -306,6 +367,12 @@ export const PdfExportSettingsTab = {
                     });
             })
             .addButton((button) => {
+                openButtonEl = button.buttonEl;
+                button.setButtonText("Open")
+                    .setTooltip("Open website notes export folder")
+                    .onClick(async () => openWebsiteExportFolder(plugin.settings.websiteNotesExportFolder));
+            })
+            .addButton((button) => {
                 button.setButtonText("Clear")
                     .onClick(async () => {
                         if (!plugin.settings.websiteNotesExportFolder) {
@@ -319,6 +386,7 @@ export const PdfExportSettingsTab = {
             });
 
         setting.descEl.appendChild(currentFolderText);
+        updateCurrentFolderText();
     },
 
     websiteNotesExportIgnoredFilePatterns(containerEl: HTMLElement, plugin: EquationCitator) {

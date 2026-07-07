@@ -90,6 +90,83 @@ body.ec-typedoc-page {
   margin: 0;
 }
 
+.equation-citator-preview {
+  position: fixed;
+  z-index: 1000;
+  width: min(560px, calc(100vw - 24px));
+  height: min(420px, calc(100vh - 24px));
+  border: 1px solid var(--color-accent);
+  border-radius: 0.75rem;
+  background: var(--color-background);
+  box-shadow: 0 20px 48px rgb(0 0 0 / 20%);
+  overflow: hidden;
+}
+
+.equation-citator-preview[hidden] {
+  display: none;
+}
+
+.ec-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-accent);
+  background: var(--color-background-secondary);
+}
+
+.ec-preview-title-row,
+.ec-preview-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ec-preview-title {
+  font-weight: 700;
+}
+
+.ec-preview-counter {
+  color: var(--color-text-aside);
+  font-size: 0.8rem;
+}
+
+.ec-preview-arrow,
+.ec-preview-jump {
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 0.4rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.ec-preview-body {
+  position: relative;
+  height: calc(100% - 2.85rem);
+}
+
+.equation-citator-preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--color-background);
+}
+
+.ec-preview-jump {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+}
+
+.equation-citator-preview.is-empty,
+.equation-citator-preview.is-loading {
+  height: auto;
+  padding: 0.75rem;
+}
+
 .ec-docs-sidebar {
   display: block;
 }

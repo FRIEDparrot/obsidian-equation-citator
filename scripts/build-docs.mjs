@@ -14,6 +14,7 @@ import {
 const require = createRequire(import.meta.url);
 const MarkdownIt = require("markdown-it");
 const katex = require("katex");
+const { default: equationCitatorMarkdownIt } = await import("@friedparrot/equation-citator/markdown-it");
 
 const DEFAULT_LOCALE = "en";
 const SUPPORTED_LOCALES = ["en", "zh-CN"];
@@ -128,6 +129,11 @@ async function writeSharedAssets() {
         path.join(path.dirname(require.resolve("katex/dist/katex.min.css")), "fonts"),
         path.join(docsAssetsRoot, "katex", "fonts"),
         { recursive: true }
+    );
+    await fs.mkdir(path.join(docsAssetsRoot, "equation-citator"), { recursive: true });
+    await fs.copyFile(
+        require.resolve("@friedparrot/equation-citator/runtime"),
+        path.join(docsAssetsRoot, "equation-citator", "runtime.js")
     );
 }
 
@@ -262,7 +268,7 @@ async function buildSectionIntroHtml(section) {
 }
 
 async function transformMarkdownForSection(markdown, context) {
-    let transformedMarkdown = markdown.replaceAll('\r\n', "\n");
+    let transformedMarkdown = stripFrontmatter(markdown).replaceAll('\r\n', "\n");
     if (context.isTutorial) {
         transformedMarkdown = transformObsidianCallouts(transformedMarkdown);
     }
@@ -355,7 +361,7 @@ async function transformMarkdownTextSegment(segment, context) {
 
     output = await replaceAsync(
         output,
-        /\[\[([^[\]]+)\]\]/g,
+        /(?<!!)\[\[([^[\]]+)\]\]/g,
         async (_match, targetText) => renderWikiLink(targetText, context)
     );
 
@@ -401,17 +407,15 @@ function renderWikiLink(targetText, context) {
 async function renderWikiEmbed(targetText, context) {
     const parts = targetText.split("|");
     const target = parts[0].trim();
-    const width = parts.find(part => /^\d+$/.test(part.trim()))?.trim();
+    const metadataParts = parts.slice(1).map(part => part.trim()).filter(Boolean);
+    const metadataSuffix = metadataParts.length > 0 ? `|${metadataParts.join("|")}` : "";
 
     if (target.startsWith("#")) {
-        const sectionTarget = target.slice(1).trim();
-        return `[Section preview: ${sectionTarget}](#${slugifyPathSegment(sectionTarget)})`;
+        return `![[${target}${metadataSuffix}]]`;
     }
 
     const assetHref = await resolveAssetHref(target, context, { fallbackImgDirectory: true });
-    const altText = path.basename(target, path.extname(target));
-    const widthAttribute = width ? ` width="${escapeHtml(width)}"` : "";
-    return `<img src="${assetHref}" alt="${escapeHtml(altText)}"${widthAttribute}>`;
+    return `![[${assetHref}${metadataSuffix}]]`;
 }
 
 async function renderMarkdownImage(altText, href, context) {
@@ -420,8 +424,7 @@ async function renderMarkdownImage(altText, href, context) {
     }
 
     const assetHref = await resolveAssetHref(href, context, { fallbackImgDirectory: context.isTutorial });
-    const normalizedAltText = extractImageAltText(altText, href);
-    return `![${escapeMarkdownLinkText(normalizedAltText)}](${formatMarkdownHref(assetHref)})`;
+    return `![${altText}](${formatMarkdownHref(assetHref)})`;
 }
 
 async function renderMarkdownLink(label, href, context) {
@@ -555,6 +558,9 @@ function renderMarkdownDocument(markdown, fallbackTitle) {
         typographer: true,
     });
     markdownIt.use(markdownItKatexBlockPlugin);
+    markdownIt.use(equationCitatorMarkdownIt, {
+        enableObsidianCallouts: true,
+    });
 
     markdownIt.renderer.rules.heading_open = (tokens, index) => {
         const inlineToken = tokens[index + 1];
@@ -621,7 +627,7 @@ function markdownItKatexBlockPlugin(markdownIt) {
             }
         }
 
-        const token = state.push("katex_block", "", 0);
+        const token = state.push("math_block", "math", 0);
         token.block = true;
         token.content = mathLines.join("\n");
         token.map = [startLine, nextLine];
@@ -629,7 +635,7 @@ function markdownItKatexBlockPlugin(markdownIt) {
         return true;
     });
 
-    markdownIt.renderer.rules.katex_block = (tokens, index) => renderDisplayMath(tokens[index].content);
+    markdownIt.renderer.rules.math_block = (tokens, index) => renderDisplayMath(tokens[index].content);
 }
 
 async function buildTypeDocApi() {
@@ -1191,21 +1197,6 @@ function stripHtmlTags(text) {
 
 function stripLeadingHeading(contentHtml) {
     return contentHtml.replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>/, "").trim();
-}
-
-function extractImageAltText(rawAltText, href) {
-    const parts = rawAltText
-        .split("|")
-        .map(part => part.trim())
-        .filter(Boolean)
-        .filter(part => !/^(fig|title|desc):/i.test(part))
-        .filter(part => !/^\d+$/.test(part));
-
-    if (parts.length > 0) {
-        return parts[0];
-    }
-
-    return path.basename(href, path.extname(href));
 }
 
 function getHtmlLang(locale) {
