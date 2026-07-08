@@ -112,6 +112,7 @@ async function collectLocalizedSectionContent(locale, sectionKey) {
     if (!await pathExists(sourceRoot)) {
         throw new Error(`Missing documentation source directory: ${sourceRoot}`);
     }
+    await copySectionStaticAssets(sourceRoot, outputRoot);
 
     return collectSectionContent({
         locale,
@@ -150,6 +151,28 @@ async function writeSharedAssets() {
         require.resolve("@friedparrot/equation-citator/runtime"),
         path.join(docsAssetsRoot, "equation-citator", "runtime.js")
     );
+}
+
+/**
+ * Copies non-Markdown files colocated with a localized docs section into the
+ * matching generated docs folder. This keeps Obsidian embeds rendered by the
+ * Equation Citator markdown-it plugin backed by real files, even when those
+ * embeds are resolved later from `env.markdownPath` instead of by our markdown
+ * line transform.
+ */
+async function copySectionStaticAssets(sourceRoot, outputRoot) {
+    const assetFiles = await collectFiles(sourceRoot, {
+        includeFile(filePath) {
+            return path.extname(filePath).toLowerCase() !== ".md";
+        },
+    });
+
+    for (const sourceFilePath of assetFiles) {
+        const relativeAssetPath = normalizePath(path.relative(sourceRoot, sourceFilePath));
+        const outputFilePath = path.join(outputRoot, relativeAssetPath);
+        await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
+        await fs.copyFile(sourceFilePath, outputFilePath);
+    }
 }
 
 /**
@@ -419,8 +442,8 @@ async function transformMarkdownReference(match, context) {
             return `![[${target}${metadataSuffix}]]`;
         }
 
-        const assetHref = await resolveAssetHref(target, context, { fallbackImgDirectory: true });
-        return `![[${assetHref}${metadataSuffix}]]`;
+        const assetTarget = await resolveWikiEmbedAssetTarget(target, context, { fallbackImgDirectory: true });
+        return `![[${assetTarget}${metadataSuffix}]]`;
     }
 
     if (wikiLinkTarget !== undefined) {
@@ -495,6 +518,21 @@ async function resolveAssetHref(assetTarget, context, { fallbackImgDirectory }) 
     return normalizePath(path.relative(path.dirname(context.pageInfo.outputPath), outputAssetPath));
 }
 
+/**
+ * Copies a wiki-embed asset while keeping the embed target relative to the
+ * section source root. The Equation Citator markdown-it plugin uses that
+ * source-root-relative target with `pathMapping` to build the final web URL.
+ */
+async function resolveWikiEmbedAssetTarget(assetTarget, context, { fallbackImgDirectory }) {
+    const sourceAssetPath = await findSourceAssetPath(assetTarget, context, { fallbackImgDirectory });
+    if (!sourceAssetPath) {
+        return assetTarget;
+    }
+
+    await ensureAssetCopied(sourceAssetPath, context);
+    return getSectionRelativeSourcePath(sourceAssetPath, context) ?? assetTarget;
+}
+
 async function findSourceAssetPath(assetTarget, context, { fallbackImgDirectory }) {
     const normalizedTarget = decodePathTarget(assetTarget.replaceAll("\\", "/"));
     const candidatePaths = [];
@@ -510,6 +548,14 @@ async function findSourceAssetPath(assetTarget, context, { fallbackImgDirectory 
         candidatePaths.push(path.resolve(sectionSourceRoot, normalizedTarget));
         if (fallbackImgDirectory) {
             candidatePaths.push(path.resolve(sectionSourceRoot, "img", normalizedTarget));
+        }
+    }
+
+    const sourceSectionRoot = getSourceSectionRoot(context.pageInfo.sectionKey);
+    if (sourceSectionRoot) {
+        candidatePaths.push(path.resolve(sourceSectionRoot, normalizedTarget));
+        if (fallbackImgDirectory) {
+            candidatePaths.push(path.resolve(sourceSectionRoot, "img", normalizedTarget));
         }
     }
 
@@ -554,6 +600,15 @@ function getAssetOutputRelativePath(sourceAssetPath, context) {
     }
 
     return normalizePath(path.basename(sourceAssetPath));
+}
+
+function getSectionRelativeSourcePath(sourceAssetPath, context) {
+    const sourceSectionRoot = getSourceSectionRoot(context.pageInfo.sectionKey);
+    if (sourceSectionRoot && (isPathInside(sourceAssetPath, sourceSectionRoot) || normalizePath(sourceAssetPath) === normalizePath(sourceSectionRoot))) {
+        return normalizePath(path.relative(sourceSectionRoot, sourceAssetPath));
+    }
+
+    return null;
 }
 
 /**
@@ -1150,6 +1205,11 @@ function sectionPathFromRoot(sectionRoot) {
 function getSectionSourceRoot(sectionKey, locale) {
     const sectionRoot = sourceSectionRoots.get(sectionKey);
     return sectionRoot ? path.join(repositoryRoot, sectionPathFromRoot(sectionRoot), locale) : null;
+}
+
+function getSourceSectionRoot(sectionKey) {
+    const sectionRoot = sourceSectionRoots.get(sectionKey);
+    return sectionRoot ? path.join(repositoryRoot, sectionPathFromRoot(sectionRoot)) : null;
 }
 
 function sourcePathForMarkdownEnv(sourcePath) {
