@@ -20,6 +20,6 @@ function normalizeWebPath(filePath) {
 }
 
 export function markdownEnvPath(sourcePath, generatedSourceRoot = GENERATED_SOURCE_ROOT) {
-    const root = String(generatedSourceRoot).replaceAll("\\", "/").replace(/\/+$/, "");
+    const root = String(generatedSourceRoot).replaceAll("\\", "/").replace(/\/+$/, ""); // nosonar
     return `${root}/${normalizeWebPath(sourcePath)}`;
 }

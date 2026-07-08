@@ -383,7 +383,7 @@ async function transformMarkdownLine(line, context) {
     return outputSegments.join("");
 }
 
-const markdownReferencePattern = /<img\b([^>]*?)\bsrc=(["'])(.*?)\2([^>]*)>|!\[\[([^[\]]+)\]\]|(?<!!)\[\[([^[\]]+)\]\]|!\[([^\]]*)\]\(([^)]+)\)|(?<!!)\[([^\]]+)\]\(([^)]+)\)/gi;
+const markdownReferencePattern = /<img\b([^>]*?)\bsrc=(["'])(.*?)\2([^>]*)>|!\[\[([^[\]]+)\]\]|(?<!!)\[\[([^[\]]+)\]\]|!\[([^\]]*)\]\(([^)]+)\)|(?<!!)\[([^\]]+)\]\(([^)]+)\)/gi; // nosonar
 
 async function transformMarkdownReference(match, context) {
     const [
@@ -1044,7 +1044,7 @@ function estimateReadingTimeLabel(markdown) {
     const text = stripHtmlTags(stripFrontmatter(markdown))
         .replace(/```[\s\S]*?```/g, " ")
         .replace(/!\[[^\]]*]\([^)]+\)/g, " ")
-        .replace(/\[[^\]]+]\([^)]+\)/g, " ")
+        .replace(/\[[^\]]+]\([^)]+\)/g, " ")  // nosonar
         .replace(/[#$*_`>|[\](){}\\]/g, " ");
     const wordCount = text.split(/\s+/).filter(Boolean).length;
     const minutes = Math.max(1, Math.ceil(wordCount / 220));

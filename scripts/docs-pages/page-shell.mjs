@@ -101,9 +101,9 @@ export function buildOnPageTocHtml(tocItems) {
 }
 
 export function buildSectionIndexContentHtml({ title, description, introHtml, cards }) {
-    const introBlock = introHtml ?
-        `<div class="ec-section-intro">${introHtml}</div>` :
-        description ? `<p class="ec-lead">${escapeHtml(description)}</p>` : "";
+   
+    const descriptionHtml = description ? `<p class="ec-lead">${escapeHtml(description)}</p>` : "";
+    const introBlock = introHtml ? `<div class="ec-section-intro">${introHtml}</div>` : descriptionHtml;
 
     const cardsHtml = cards.length === 0 ?
         '<div class="tsd-alert tsd-alert-note"><div class="tsd-alert-title">No pages</div><div class="tsd-alert-body">No pages are available in this section for the current locale yet.</div></div>' :
