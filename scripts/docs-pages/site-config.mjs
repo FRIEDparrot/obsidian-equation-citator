@@ -20,6 +20,15 @@ function normalizeWebPath(filePath) {
 }
 
 export function markdownEnvPath(sourcePath, generatedSourceRoot = GENERATED_SOURCE_ROOT) {
-    const root = String(generatedSourceRoot).replaceAll("\\", "/").replace(/\/+$/, ""); // nosonar
+    const root = trimTrailingSlashes(String(generatedSourceRoot).replaceAll("\\", "/"));
     return `${root}/${normalizeWebPath(sourcePath)}`;
+}
+
+function trimTrailingSlashes(filePath) {
+    let endIndex = filePath.length;
+    while (endIndex > 0 && filePath[endIndex - 1] === "/") {
+        endIndex--;
+    }
+
+    return filePath.slice(0, endIndex);
 }
