@@ -55,14 +55,17 @@
 
 ## Documentation
 
-- Add brief documentation for relatively complex functions to preserve readability and maintainability.
+- Add brief documentation for relatively complex functions to preserve readability and maintainability. 
+- Also, Especially, key functions (like exported interface functions and the functions )
 - A good function comment should explain the function contract first: what the function does, what each non-obvious parameter represents, and what the caller can expect from the return value or side effects.
 - Use `@param` only when a parameter is non-obvious or important to the function contract.
 - Document edge cases only when they are important to the function's correctness or safety, such as path traversal, missing files, stale cache/index entries, mobile or desktop API availability, and destructive-operation safety. Do not add edge-case lists to simple functions where the signature and body are already clear.
 - Do not document self-evident parameters such as `plugin`, `file`, or `folder` when the signature and local context already make them clear.
 - When a `catch` handles a non-trivial operation, log detailed context with `Debugger.log` or `Debugger.error` in addition to any user-facing `Notice`; include the operation, relevant file/path, and the original error object when available.
 
-
+## Maintainability 
+- Always prevent redunant, unused functions and unnecessary nesting. Keep the code as short and clean as possible. 
+- If not necessary, prevent alias for multiple alias  (like ` Embedlink > MarkdownLink`), for this case, keep only one for clarity (Use naming as clear as possible, prefer short, clear name; or the long name is accepted if clear enough)
 
 ## Safety
 

@@ -10,6 +10,15 @@ import {
     buildSidebarHtml,
     buildToolbarLinksHtml,
 } from "./docs-pages/page-shell.mjs";
+import {
+    GENERATED_SOURCE_ROOT,
+    SITE_BASE_URL,
+    TYPE_DOC_SOURCE_LINK_TEMPLATE,
+    CHANGELOGS_ROOT,
+    TUTORIALS_ROOT,
+    equationCitatorPathMapping,
+    markdownEnvPath,
+} from "./docs-pages/site-config.mjs";
 
 const require = createRequire(import.meta.url);
 const MarkdownIt = require("markdown-it");
@@ -32,8 +41,12 @@ const docsApiRoot = path.join(docsRoot, "api");
 const docsAssetsRoot = path.join(docsRoot, "assets");
 const imageRoot = path.join(repositoryRoot, "img");
 
-const defaultTutorialLocaleRoot = path.join(repositoryRoot, "tutorials", DEFAULT_LOCALE);
-const legacyTutorialRoot = path.join(repositoryRoot, "tutorials");
+const tutorialsSectionKey = sectionPathFromRoot(TUTORIALS_ROOT);
+const changelogsSectionKey = sectionPathFromRoot(CHANGELOGS_ROOT);
+const sourceSectionRoots = new Map([
+    [tutorialsSectionKey, TUTORIALS_ROOT],
+    [changelogsSectionKey, CHANGELOGS_ROOT],
+]);
 const assetCopyCache = new Map();
 const packageMetadata = JSON.parse(await fs.readFile(path.join(repositoryRoot, "package.json"), "utf8"));
 const siteTitle = `Equation Citator v${packageMetadata.version} Documentation`;
@@ -58,34 +71,20 @@ async function main() {
     await writeApiLandingPage(localeNavigations.get(DEFAULT_LOCALE));
 }
 
+/**
+ * Builds all non-API pages for one locale and returns the navigation model
+ * that TypeDoc/API pages reuse for the shared shell.
+ */
 async function buildLocaleDocs(locale) {
     const localeDocsRoot = path.join(docsRoot, locale);
-    const localeTutorialsRoot = path.join(localeDocsRoot, "tutorials");
-    const localeChangelogsRoot = path.join(localeDocsRoot, "changelogs");
-    const tutorialLocaleRoot = path.join(repositoryRoot, "tutorials", locale);
-    const changelogLocaleRoot = path.join(repositoryRoot, "changelogs", locale);
-
-    await assertDirectoryExists(tutorialLocaleRoot);
-    await assertDirectoryExists(changelogLocaleRoot);
-
-    const tutorialSection = await collectSectionContent({
-        locale,
-        sectionKey: "tutorials",
-        sourceRoot: tutorialLocaleRoot,
-        outputRoot: localeTutorialsRoot,
-    });
-    const changelogSection = await collectSectionContent({
-        locale,
-        sectionKey: "changelogs",
-        sourceRoot: changelogLocaleRoot,
-        outputRoot: localeChangelogsRoot,
-    });
+    const tutorialSection = await collectLocalizedSectionContent(locale, TUTORIALS_ROOT);
+    const changelogSection = await collectLocalizedSectionContent(locale, CHANGELOGS_ROOT);
 
     const navigation = {
         locale,
         localeDocsRoot,
-        localeTutorialsRoot,
-        localeChangelogsRoot,
+        tutorialSection,
+        changelogSection,
         tutorials: tutorialSection.pages,
         changelogs: changelogSection.pages,
     };
@@ -99,11 +98,27 @@ async function buildLocaleDocs(locale) {
     return navigation;
 }
 
-async function assertDirectoryExists(directoryPath) {
-    if (await pathExists(directoryPath)) {
-        return;
+/**
+ * Collects source and output metadata for a localized docs section.
+ * Source and generated paths intentionally share `section/locale`, for example
+ * `tutorials/en` -> `docs/tutorials/en`.
+ */
+async function collectLocalizedSectionContent(locale, sectionKey) {
+    const sectionRoot = sectionPathFromRoot(sectionKey);
+    const localizedSectionRoot = path.join(sectionRoot, locale);
+    const sourceRoot = path.join(repositoryRoot, localizedSectionRoot);
+    const outputRoot = path.join(docsRoot, localizedSectionRoot);
+
+    if (!await pathExists(sourceRoot)) {
+        throw new Error(`Missing documentation source directory: ${sourceRoot}`);
     }
-    throw new Error(`Missing documentation source directory: ${directoryPath}`);
+
+    return collectSectionContent({
+        locale,
+        sectionKey: sectionRoot,
+        sourceRoot,
+        outputRoot,
+    });
 }
 
 async function cleanDocsOutput() {
@@ -137,16 +152,28 @@ async function writeSharedAssets() {
     );
 }
 
+/**
+ * Collects Markdown files for one section and treats README.md as optional
+ * section intro content. Other Markdown files become navigable pages.
+ */
 async function collectSectionContent({ locale, sectionKey, sourceRoot, outputRoot }) {
-    const markdownFiles = await collectMarkdownFiles(sourceRoot);
+    const markdownFiles = await collectFiles(sourceRoot, {
+        includeFile(filePath) {
+            return path.extname(filePath).toLowerCase() === ".md";
+        },
+    });
     const introSourcePath = markdownFiles.find(filePath => normalizePath(path.relative(sourceRoot, filePath)).toLowerCase() === "readme.md");
     const pageFiles = markdownFiles.filter(filePath => filePath !== introSourcePath);
-    const pages = await buildPageInfos({
-        sectionKey,
-        sourceBasePath: sourceRoot,
-        outputBasePath: outputRoot,
-        pageFiles,
-    });
+    const pages = [];
+    for (const sourceFilePath of pageFiles) {
+        pages.push(await buildPageInfo({
+            sectionKey,
+            sourceBasePath: sourceRoot,
+            outputBasePath: outputRoot,
+            sourceFilePath,
+        }));
+    }
+    pages.sort((leftPage, rightPage) => comparePages(leftPage, rightPage));
 
     let introPageInfo = null;
     if (introSourcePath) {
@@ -163,21 +190,11 @@ async function collectSectionContent({ locale, sectionKey, sourceRoot, outputRoo
     return { locale, sectionKey, sourceRoot, outputRoot, introPageInfo, pages, pageLookup };
 }
 
-async function buildPageInfos({ sectionKey, sourceBasePath, outputBasePath, pageFiles }) {
-    const pageInfos = [];
-
-    for (const sourceFilePath of pageFiles) {
-        pageInfos.push(await buildPageInfo({
-            sectionKey,
-            sourceBasePath,
-            outputBasePath,
-            sourceFilePath,
-        }));
-    }
-
-    return pageInfos.sort((leftPage, rightPage) => comparePages(leftPage, rightPage));
-}
-
+/**
+ * Builds output path and navigation metadata for one Markdown source file.
+ * Display titles intentionally come from filenames, while frontmatter only
+ * supplies card metadata such as description and reading time.
+ */
 async function buildPageInfo({
     sectionKey,
     sourceBasePath,
@@ -187,11 +204,11 @@ async function buildPageInfo({
 }) {
     const relativeSourcePath = normalizePath(path.relative(sourceBasePath, sourceFilePath));
     const sourceMarkdown = await fs.readFile(sourceFilePath, "utf8");
-    const title = extractDocumentTitle(sourceMarkdown, sourceFilePath);
+    const title = getMarkdownFileTitle(sourceFilePath);
     const description = extractDocumentDescription(sourceMarkdown);
     const readingTimeLabel = estimateReadingTimeLabel(sourceMarkdown);
     const urlFromSectionRoot = forceIndex ? "index.html" : buildSectionOutputPath(sectionKey, relativeSourcePath);
-    const urlFromLocaleRoot = normalizePath(path.join(sectionKey, urlFromSectionRoot));
+    const outputPath = path.join(outputBasePath, urlFromSectionRoot);
 
     return {
         sectionKey,
@@ -200,8 +217,8 @@ async function buildPageInfo({
         title,
         description,
         readingTimeLabel,
-        urlFromLocaleRoot,
-        outputPath: path.join(outputBasePath, urlFromSectionRoot),
+        siteHref: getDocsRelativeHref(outputPath),
+        outputPath,
         isIntro: forceIndex,
     };
 }
@@ -222,6 +239,10 @@ function buildPageLookup(pageInfos) {
     return { pagesBySourcePath, pagesByBaseName };
 }
 
+/**
+ * Renders every navigable page in a collected section. Section intro README
+ * content is rendered separately by writeSectionIndex.
+ */
 async function renderSectionPages(section, navigation) {
     for (const pageInfo of section.pages) {
         const sourceMarkdown = await fs.readFile(pageInfo.sourcePath, "utf8");
@@ -231,15 +252,17 @@ async function renderSectionPages(section, navigation) {
             sourceRoot: section.sourceRoot,
             outputRoot: section.outputRoot,
             locale: navigation.locale,
-            isTutorial: pageInfo.sectionKey === "tutorials",
+            isTutorial: pageInfo.sectionKey === tutorialsSectionKey,
         });
-        const renderedPage = renderMarkdownDocument(transformedMarkdown, pageInfo.title);
+        const renderedPage = renderMarkdownDocument(transformedMarkdown, getMarkdownFileTitle(pageInfo.sourcePath), {
+            markdownPath: markdownEnvPath(sourcePathForMarkdownEnv(pageInfo.sourcePath), GENERATED_SOURCE_ROOT),
+        });
         const pageHtml = buildStandardDocsPage({
-            pageTitle: pageInfo.title,
+            pageTitle: renderedPage.pageHeading,
             pageHeading: renderedPage.pageHeading,
             pageContentHtml: stripLeadingHeading(renderedPage.contentHtml),
             currentSection: pageInfo.sectionKey,
-            currentPageHref: pageInfo.urlFromLocaleRoot,
+            currentPageHref: pageInfo.siteHref,
             navigation,
             tocItems: renderedPage.tocItems,
             outputFilePath: pageInfo.outputPath,
@@ -261,12 +284,19 @@ async function buildSectionIntroHtml(section) {
         sourceRoot: section.sourceRoot,
         outputRoot: section.outputRoot,
         locale: section.locale,
-        isTutorial: section.sectionKey === "tutorials",
+        isTutorial: section.sectionKey === tutorialsSectionKey,
     });
-    const renderedPage = renderMarkdownDocument(transformedMarkdown, section.introPageInfo.title);
+    const renderedPage = renderMarkdownDocument(transformedMarkdown, getMarkdownFileTitle(section.introPageInfo.sourcePath), {
+        markdownPath: markdownEnvPath(sourcePathForMarkdownEnv(section.introPageInfo.sourcePath), GENERATED_SOURCE_ROOT),
+    });
     return stripLeadingHeading(renderedPage.contentHtml);
 }
 
+/**
+ * Converts repository Markdown into site-ready Markdown before markdown-it
+ * renders HTML. The transform resolves local links/assets and skips fenced
+ * code blocks so examples remain unchanged.
+ */
 async function transformMarkdownForSection(markdown, context) {
     let transformedMarkdown = stripFrontmatter(markdown).replaceAll('\r\n', "\n");
     if (context.isTutorial) {
@@ -338,110 +368,99 @@ async function transformMarkdownLine(line, context) {
             continue;
         }
 
-        outputSegments.push(await transformMarkdownTextSegment(segment, context));
+        let transformedSegment = "";
+        let lastIndex = 0;
+        for (const match of segment.matchAll(markdownReferencePattern)) {
+            const startIndex = match.index ?? 0;
+            transformedSegment += segment.slice(lastIndex, startIndex);
+            transformedSegment += await transformMarkdownReference(match, context);
+            lastIndex = startIndex + match[0].length;
+        }
+        transformedSegment += segment.slice(lastIndex);
+        outputSegments.push(transformedSegment);
     }
 
     return outputSegments.join("");
 }
 
-async function transformMarkdownTextSegment(segment, context) {
-    let output = segment;
+const markdownReferencePattern = /<img\b([^>]*?)\bsrc=(["'])(.*?)\2([^>]*)>|!\[\[([^[\]]+)\]\]|(?<!!)\[\[([^[\]]+)\]\]|!\[([^\]]*)\]\(([^)]+)\)|(?<!!)\[([^\]]+)\]\(([^)]+)\)/gi;
 
-    output = await replaceAsync(
-        output,
-        /<img\b([^>]*?)\bsrc=(["'])(.*?)\2([^>]*)>/gi,
-        async (_match, beforeSrc, quote, src, afterSrc) => renderHtmlImage(beforeSrc, quote, src, afterSrc, context)
-    );
+async function transformMarkdownReference(match, context) {
+    const [
+        fullMatch,
+        htmlBeforeSrc,
+        htmlQuote,
+        htmlSrc,
+        htmlAfterSrc,
+        wikiEmbedTarget,
+        wikiLinkTarget,
+        markdownImageAlt,
+        markdownImageHref,
+        markdownLinkLabel,
+        markdownLinkHref,
+    ] = match;
 
-    output = await replaceAsync(
-        output,
-        /!\[\[([^[\]]+)\]\]/g,
-        async (_match, targetText) => renderWikiEmbed(targetText, context)
-    );
+    if (htmlSrc !== undefined) {
+        if (isExternalHref(htmlSrc) || htmlSrc.startsWith("data:") || htmlSrc.startsWith("#")) {
+            return fullMatch;
+        }
 
-    output = await replaceAsync(
-        output,
-        /(?<!!)\[\[([^[\]]+)\]\]/g,
-        async (_match, targetText) => renderWikiLink(targetText, context)
-    );
-
-    output = await replaceAsync(
-        output,
-        /!\[([^\]]*)\]\(([^)]+)\)/g,
-        async (_match, altText, href) => renderMarkdownImage(altText, href, context)
-    );
-
-    output = await replaceAsync(
-        output,
-        /(?<!!)\[([^\]]+)\]\(([^)]+)\)/g,
-        async (_match, label, href) => renderMarkdownLink(label, href, context)
-    );
-
-    return output;
-}
-
-async function renderHtmlImage(beforeSrc, quote, src, afterSrc, context) {
-    if (isExternalHref(src) || src.startsWith("data:") || src.startsWith("#")) {
-        return `<img${beforeSrc}src=${quote}${src}${quote}${afterSrc}>`;
+        const assetHref = await resolveAssetHref(htmlSrc, context, { fallbackImgDirectory: context.isTutorial });
+        return `<img${htmlBeforeSrc}src=${htmlQuote}${assetHref}${htmlQuote}${htmlAfterSrc}>`;
     }
 
-    const assetHref = await resolveAssetHref(src, context, { fallbackImgDirectory: context.isTutorial });
-    return `<img${beforeSrc}src=${quote}${assetHref}${quote}${afterSrc}>`;
-}
+    if (wikiEmbedTarget !== undefined) {
+        const parts = wikiEmbedTarget.split("|");
+        const target = parts[0].trim();
+        const metadataParts = parts.slice(1).map(part => part.trim()).filter(Boolean);
+        const metadataSuffix = metadataParts.length > 0 ? `|${metadataParts.join("|")}` : "";
 
-function renderWikiLink(targetText, context) {
-    const [rawTarget, rawAlias] = targetText.split("|");
-    const target = rawTarget.trim();
-    const label = rawAlias?.trim() ?? target;
+        if (target.startsWith("#")) {
+            return `![[${target}${metadataSuffix}]]`;
+        }
 
-    if (target.startsWith("#")) {
-        const sectionTarget = target.slice(1).trim();
-        return `[${escapeMarkdownLinkText(label)}](#${slugifyPathSegment(sectionTarget)})`;
+        const assetHref = await resolveAssetHref(target, context, { fallbackImgDirectory: true });
+        return `![[${assetHref}${metadataSuffix}]]`;
     }
 
-    const [documentTarget, sectionTarget = ""] = splitHashTarget(target);
-    const href = resolvePageHref(documentTarget, sectionTarget, context, { allowBaseNameLookup: true });
-    return `[${escapeMarkdownLinkText(label)}](${formatMarkdownHref(href)})`;
-}
+    if (wikiLinkTarget !== undefined) {
+        const [rawTarget, rawAlias] = wikiLinkTarget.split("|");
+        const target = rawTarget.trim();
+        const label = rawAlias?.trim() ?? target;
 
-async function renderWikiEmbed(targetText, context) {
-    const parts = targetText.split("|");
-    const target = parts[0].trim();
-    const metadataParts = parts.slice(1).map(part => part.trim()).filter(Boolean);
-    const metadataSuffix = metadataParts.length > 0 ? `|${metadataParts.join("|")}` : "";
+        if (target.startsWith("#")) {
+            const sectionTarget = target.slice(1).trim();
+            return `[${escapeMarkdownLinkText(label)}](#${slugifyPathSegment(sectionTarget)})`;
+        }
 
-    if (target.startsWith("#")) {
-        return `![[${target}${metadataSuffix}]]`;
+        const [documentTarget, sectionTarget = ""] = splitHashTarget(target);
+        const href = resolvePageHref(documentTarget, sectionTarget, context, { allowBaseNameLookup: true });
+        return `[${escapeMarkdownLinkText(label)}](${formatMarkdownHref(href)})`;
     }
 
-    const assetHref = await resolveAssetHref(target, context, { fallbackImgDirectory: true });
-    return `![[${assetHref}${metadataSuffix}]]`;
-}
+    if (markdownImageHref !== undefined) {
+        if (isExternalHref(markdownImageHref)) {
+            return fullMatch;
+        }
 
-async function renderMarkdownImage(altText, href, context) {
-    if (isExternalHref(href)) {
-        return `![${altText}](${href})`;
+        const assetHref = await resolveAssetHref(markdownImageHref, context, { fallbackImgDirectory: context.isTutorial });
+        return `![${markdownImageAlt}](${formatMarkdownHref(assetHref)})`;
     }
 
-    const assetHref = await resolveAssetHref(href, context, { fallbackImgDirectory: context.isTutorial });
-    return `![${altText}](${formatMarkdownHref(assetHref)})`;
-}
-
-async function renderMarkdownLink(label, href, context) {
-    if (isExternalHref(href) || href.startsWith("#")) {
-        return `[${escapeMarkdownLinkText(label)}](${href})`;
+    if (isExternalHref(markdownLinkHref) || markdownLinkHref.startsWith("#")) {
+        return fullMatch;
     }
 
-    const [documentTarget, sectionTarget = ""] = splitHashTarget(href);
+    const [documentTarget, sectionTarget = ""] = splitHashTarget(markdownLinkHref);
     const extension = path.extname(documentTarget).toLowerCase();
     if (extension === ".md") {
         const resolvedHref = resolvePageHref(documentTarget, sectionTarget, context, { allowBaseNameLookup: false });
-        return `[${escapeMarkdownLinkText(label)}](${formatMarkdownHref(resolvedHref)})`;
+        return `[${escapeMarkdownLinkText(markdownLinkLabel)}](${formatMarkdownHref(resolvedHref)})`;
     }
 
     const resolvedHref = await resolveAssetHref(documentTarget, context, { fallbackImgDirectory: context.isTutorial });
     const hashSuffix = sectionTarget ? `#${sectionTarget}` : "";
-    return `[${escapeMarkdownLinkText(label)}](${formatMarkdownHref(`${resolvedHref}${hashSuffix}`)})`;
+    return `[${escapeMarkdownLinkText(markdownLinkLabel)}](${formatMarkdownHref(`${resolvedHref}${hashSuffix}`)})`;
 }
 
 function resolvePageHref(documentTarget, sectionTarget, context, { allowBaseNameLookup }) {
@@ -486,14 +505,15 @@ async function findSourceAssetPath(assetTarget, context, { fallbackImgDirectory 
         candidatePaths.push(path.resolve(pageDirectory, "img", normalizedTarget));
     }
 
-    if (context.pageInfo.sectionKey === "tutorials") {
-        for (const tutorialRoot of getTutorialAssetRoots(context.locale)) {
-            candidatePaths.push(path.resolve(tutorialRoot, normalizedTarget));
-            if (fallbackImgDirectory) {
-                candidatePaths.push(path.resolve(tutorialRoot, "img", normalizedTarget));
-            }
+    const sectionSourceRoot = getSectionSourceRoot(context.pageInfo.sectionKey, context.locale);
+    if (sectionSourceRoot) {
+        candidatePaths.push(path.resolve(sectionSourceRoot, normalizedTarget));
+        if (fallbackImgDirectory) {
+            candidatePaths.push(path.resolve(sectionSourceRoot, "img", normalizedTarget));
         }
-    } else {
+    }
+
+    if (!sectionSourceRoot || normalizePath(sectionSourceRoot) !== normalizePath(context.sourceRoot)) {
         candidatePaths.push(path.resolve(context.sourceRoot, normalizedTarget));
     }
 
@@ -504,16 +524,6 @@ async function findSourceAssetPath(assetTarget, context, { fallbackImgDirectory 
     }
 
     return null;
-}
-
-function getTutorialAssetRoots(locale) {
-    const roots = [
-        path.join(repositoryRoot, "tutorials", locale),
-        defaultTutorialLocaleRoot,
-        legacyTutorialRoot,
-    ];
-
-    return Array.from(new Set(roots.map(rootPath => normalizePath(rootPath)))).map(rootPath => rootPath.replaceAll("/", path.sep));
 }
 
 async function ensureAssetCopied(sourceAssetPath, context) {
@@ -534,12 +544,9 @@ async function ensureAssetCopied(sourceAssetPath, context) {
 }
 
 function getAssetOutputRelativePath(sourceAssetPath, context) {
-    if (context.pageInfo.sectionKey === "tutorials") {
-        for (const tutorialRoot of getTutorialAssetRoots(context.locale)) {
-            if (isPathInside(sourceAssetPath, tutorialRoot) || normalizePath(sourceAssetPath) === normalizePath(tutorialRoot)) {
-                return normalizePath(path.relative(tutorialRoot, sourceAssetPath));
-            }
-        }
+    const sectionSourceRoot = getSectionSourceRoot(context.pageInfo.sectionKey, context.locale);
+    if (sectionSourceRoot && (isPathInside(sourceAssetPath, sectionSourceRoot) || normalizePath(sourceAssetPath) === normalizePath(sectionSourceRoot))) {
+        return normalizePath(path.relative(sectionSourceRoot, sourceAssetPath));
     }
 
     if (isPathInside(sourceAssetPath, context.sourceRoot) || normalizePath(sourceAssetPath) === normalizePath(context.sourceRoot)) {
@@ -549,7 +556,12 @@ function getAssetOutputRelativePath(sourceAssetPath, context) {
     return normalizePath(path.basename(sourceAssetPath));
 }
 
-function renderMarkdownDocument(markdown, fallbackTitle) {
+/**
+ * Renders Markdown into HTML and collects heading anchors for the on-page TOC.
+ * The visible docs page heading is supplied by the caller, normally from the
+ * source filename, rather than inferred from the Markdown H1.
+ */
+function renderMarkdownDocument(markdown, pageHeading, env = {}) {
     const headingIds = new Map();
     const tocItems = [];
     const markdownIt = new MarkdownIt({
@@ -560,12 +572,14 @@ function renderMarkdownDocument(markdown, fallbackTitle) {
     markdownIt.use(markdownItKatexBlockPlugin);
     markdownIt.use(equationCitatorMarkdownIt, {
         enableObsidianCallouts: true,
+        enableObsidianLinks: true,
+        pathMapping: equationCitatorPathMapping,
     });
 
     markdownIt.renderer.rules.heading_open = (tokens, index) => {
         const inlineToken = tokens[index + 1];
         const headingText = inlineToken?.content ?? "";
-        const baseSlug = slugifyPathSegment(headingText) || slugifyPathSegment(fallbackTitle);
+        const baseSlug = slugifyPathSegment(headingText) || slugifyPathSegment(pageHeading);
         const headingId = uniquifySlug(baseSlug, headingIds);
         tokens[index].attrSet("id", headingId);
 
@@ -574,8 +588,7 @@ function renderMarkdownDocument(markdown, fallbackTitle) {
         return markdownIt.renderer.renderToken(tokens, index, markdownIt.options);
     };
 
-    const contentHtml = markdownIt.render(markdown);
-    const pageHeading = tocItems.find(item => item.level === 1)?.text ?? fallbackTitle;
+    const contentHtml = markdownIt.render(markdown, env);
     return { contentHtml, tocItems, pageHeading };
 }
 
@@ -642,6 +655,9 @@ async function buildTypeDocApi() {
     const app = await Application.bootstrapWithPlugins({
         options: normalizePath(path.join(repositoryRoot, "typedoc.json")),
         plugin: ["typedoc-github-theme"],
+        hostedBaseUrl: SITE_BASE_URL,
+        sourceLinkTemplate: TYPE_DOC_SOURCE_LINK_TEMPLATE,
+        sourceLinkExternal: true,
     });
     const project = await app.convert();
     if (!project) {
@@ -704,7 +720,7 @@ async function writeApiLandingPage(navigation) {
         pageTitle: "API Documentation",
         pageHeading: "API Documentation",
         pageContentHtml: [
-            `<p class="ec-lead">${escapeHtml(getApiIntroCopy())}</p>`,
+            '<p class="ec-lead">The API reference is generated from the source code and shares the same documentation shell as the tutorials and changelogs.</p>',
             '<div class="ec-card-grid">',
             '  <a class="ec-card" href="modules.html"><h2>Module Index</h2><p>Browse the generated API modules and symbols.</p></a>',
             '  <a class="ec-card" href="hierarchy.html"><h2>Type Hierarchy</h2><p>Inspect the generated class and interface hierarchy.</p></a>',
@@ -722,19 +738,25 @@ async function writeApiLandingPage(navigation) {
 
 async function writeSectionIndex(section, navigation) {
     const outputFilePath = path.join(section.outputRoot, "index.html");
-    const title = getSectionIndexTitle(section);
+    const title = prettyTitleFromName(section.sectionKey);
     const introHtml = await buildSectionIntroHtml(section);
     const pageHtml = buildStandardDocsPage({
         pageTitle: title,
         pageHeading: title,
+        showPageHeading: false,
         pageContentHtml: buildSectionIndexContentHtml({
             title,
             description: "",
             introHtml,
-            cards: buildSectionCards(section.pages, outputFilePath),
+            cards: section.pages.map(page => ({
+                href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
+                title: page.title,
+                description: page.description,
+                readingTimeLabel: page.readingTimeLabel,
+            })),
         }),
         currentSection: section.sectionKey,
-        currentPageHref: `${section.sectionKey}/index.html`,
+        currentPageHref: getDocsRelativeHref(outputFilePath),
         navigation,
         tocItems: [],
         outputFilePath,
@@ -743,14 +765,11 @@ async function writeSectionIndex(section, navigation) {
     await writeFile(outputFilePath, pageHtml);
 }
 
-function getSectionIndexTitle(section) {
-    return section.introPageInfo?.title ?? prettyTitleFromName(section.sectionKey);
-}
-
 async function writeDocsLandingPage(navigation) {
     const outputFilePath = path.join(navigation.localeDocsRoot, "index.html");
     const sourceFilePath = navigation.locale === DEFAULT_LOCALE ? readmePath : readmeZhPath;
-    const sourceMarkdown = sanitizeLandingReadmeMarkdown(await fs.readFile(sourceFilePath, "utf8"));
+    const sourceMarkdown = (await fs.readFile(sourceFilePath, "utf8"))
+        .replace(/^<center>.*README(?:-zh-CN|_zh)?\.md.*<\/center>\s*$/m, "");
     const transformedMarkdown = await transformMarkdownForSection(sourceMarkdown, {
         pageInfo: {
             sectionKey: "home",
@@ -763,14 +782,16 @@ async function writeDocsLandingPage(navigation) {
         locale: navigation.locale,
         isTutorial: false,
     });
-    const renderedPage = renderMarkdownDocument(transformedMarkdown, siteTitle);
+    const renderedPage = renderMarkdownDocument(transformedMarkdown, getMarkdownFileTitle(sourceFilePath), {
+        markdownPath: markdownEnvPath(sourcePathForMarkdownEnv(sourceFilePath), GENERATED_SOURCE_ROOT),
+    });
     const pageHtml = buildStandardDocsPage({
         pageTitle: siteTitle,
         pageHeading: siteTitle,
         showPageHeading: false,
         pageContentHtml: renderedPage.contentHtml,
         currentSection: "home",
-        currentPageHref: "index.html",
+        currentPageHref: getDocsRelativeHref(outputFilePath),
         navigation,
         tocItems: renderedPage.tocItems,
         outputFilePath,
@@ -804,7 +825,7 @@ function buildStandardDocsPage({
     });
 
     return buildDocsPageHtml({
-        htmlLang: getHtmlLang(navigation.locale),
+        htmlLang: navigation.locale === "zh-CN" ? "zh-CN" : "en",
         typedocBaseHref: shellModel.typedocBaseHref,
         documentTitle: pageTitle === siteTitle ? siteTitle : `${pageTitle} | ${siteTitle}`,
         siteTitle,
@@ -820,15 +841,6 @@ function buildStandardDocsPage({
     });
 }
 
-function buildSectionCards(pages, outputFilePath) {
-    return pages.map(page => ({
-        href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
-        title: page.title,
-        description: page.description,
-        readingTimeLabel: page.readingTimeLabel,
-    }));
-}
-
 function buildLanguageOptions({ currentLocale, currentPageHref, outputFilePath }) {
     return SUPPORTED_LOCALES.map(locale => {
         const targetPath = getLocaleSwitchTargetPath(locale, currentPageHref);
@@ -840,31 +852,35 @@ function buildLanguageOptions({ currentLocale, currentPageHref, outputFilePath }
     });
 }
 
+/**
+ * Maps the current docs-root-relative href to the equivalent page for another
+ * locale. Home pages use `locale/index.html`; localized sections use the
+ * `section/locale/...` layout.
+ */
 function getLocaleSwitchTargetPath(locale, currentPageHref) {
     const normalizedHref = normalizePath(currentPageHref);
-    if (normalizedHref === "index.html") {
-        return path.join(docsRoot, locale, "index.html");
+    const parts = normalizedHref.split("/");
+
+    if (SUPPORTED_LOCALES.includes(parts[0])) {
+        return path.join(docsRoot, locale, ...parts.slice(1));
     }
 
-    if (normalizedHref.startsWith("tutorials/")) {
-        return path.join(docsRoot, locale, normalizedHref);
-    }
-
-    if (normalizedHref === "changelogs/index.html") {
-        return path.join(docsRoot, locale, normalizedHref);
-    }
-
-    if (normalizedHref.startsWith("changelogs/")) {
-        return path.join(docsRoot, locale, "changelogs", "index.html");
+    if ((parts[0] === tutorialsSectionKey || parts[0] === changelogsSectionKey) && SUPPORTED_LOCALES.includes(parts[1])) {
+        return path.join(docsRoot, parts[0], locale, ...parts.slice(2));
     }
 
     return path.join(docsRoot, locale, "index.html");
 }
 
+/**
+ * Builds all shell links relative to the current output file. Active-state
+ * checks use docs-root-relative hrefs, then each href is converted for the
+ * generated page location.
+ */
 function buildShellModel({ currentSection, currentPageHref, outputFilePath, navigation, extraSidebarHtml = "" }) {
     const homeHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(navigation.localeDocsRoot, "index.html")));
-    const tutorialsIndexHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(navigation.localeTutorialsRoot, "index.html")));
-    const changelogsIndexHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(navigation.localeChangelogsRoot, "index.html")));
+    const tutorialsIndexHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(navigation.tutorialSection.outputRoot, "index.html")));
+    const changelogsIndexHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(navigation.changelogSection.outputRoot, "index.html")));
     const apiIndexHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(docsApiRoot, "index.html")));
     const modulesHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(docsApiRoot, "modules.html")));
     const hierarchyHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(docsApiRoot, "hierarchy.html")));
@@ -877,24 +893,24 @@ function buildShellModel({ currentSection, currentPageHref, outputFilePath, navi
         {
             href: tutorialsIndexHref,
             label: "Tutorials overview",
-            isActive: normalizedCurrentHref === "tutorials/index.html",
+            isActive: normalizedCurrentHref === getDocsRelativeHref(path.join(navigation.tutorialSection.outputRoot, "index.html")),
         },
         ...navigation.tutorials.map(page => ({
             href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
             label: page.title,
-            isActive: normalizedCurrentHref === normalizePath(page.urlFromLocaleRoot),
+            isActive: normalizedCurrentHref === normalizePath(page.siteHref),
         })),
     ];
     const changelogLinks = [
         {
             href: changelogsIndexHref,
             label: "ChangeLogs overview",
-            isActive: normalizedCurrentHref === "changelogs/index.html",
+            isActive: normalizedCurrentHref === getDocsRelativeHref(path.join(navigation.changelogSection.outputRoot, "index.html")),
         },
         ...navigation.changelogs.map(page => ({
             href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
             label: page.title,
-            isActive: normalizedCurrentHref === normalizePath(page.urlFromLocaleRoot),
+            isActive: normalizedCurrentHref === normalizePath(page.siteHref),
         })),
     ];
     const apiLinks = [
@@ -916,19 +932,19 @@ function buildShellModel({ currentSection, currentPageHref, outputFilePath, navi
     ];
 
     const toolbarLinks = [
-        { href: tutorialsIndexHref, label: "Tutorials", isActive: currentSection === "tutorials" },
+        { href: tutorialsIndexHref, label: "Tutorials", isActive: currentSection === tutorialsSectionKey },
         { href: apiIndexHref, label: "API", isActive: currentSection === "api" },
     ];
     if (changelogLinks.length > 0) {
-        toolbarLinks.splice(1, 0, { href: changelogsIndexHref, label: "ChangeLogs", isActive: currentSection === "changelogs" });
+        toolbarLinks.splice(1, 0, { href: changelogsIndexHref, label: "ChangeLogs", isActive: currentSection === changelogsSectionKey });
     }
 
     const sidebarSections = [
-        { title: "Tutorials", isActive: currentSection === "tutorials", links: tutorialLinks },
+        { title: "Tutorials", isActive: currentSection === tutorialsSectionKey, links: tutorialLinks },
         { title: "API Documentation", isActive: normalizedCurrentHref.startsWith("api/"), links: apiLinks },
     ];
     if (changelogLinks.length > 0) {
-        sidebarSections.splice(1, 0, { title: "ChangeLogs", isActive: currentSection === "changelogs", links: changelogLinks });
+        sidebarSections.splice(1, 0, { title: "ChangeLogs", isActive: currentSection === changelogsSectionKey, links: changelogLinks });
     }
 
     return {
@@ -950,10 +966,6 @@ function buildShellModel({ currentSection, currentPageHref, outputFilePath, navi
             extraHtml: extraSidebarHtml,
         },
     };
-}
-
-function sanitizeLandingReadmeMarkdown(markdown) {
-    return markdown.replace(/^<center>.*README(?:-zh-CN|_zh)?\.md.*<\/center>\s*$/m, "");
 }
 
 function buildApiReferenceSectionHtml({ currentPageHref, currentPageLabel }) {
@@ -979,7 +991,7 @@ function comparePages(leftPage, rightPage) {
 
 function getPageOrderRank(pageInfo) {
     const relativePath = normalizePath(pageInfo.relativeSourcePath);
-    if (pageInfo.sectionKey === "tutorials") {
+    if (pageInfo.sectionKey === tutorialsSectionKey) {
         const tutorialOrder = new Map([
             ["Quick Start.md", 0],
             ["Useful Tricks & techniques.md", 1],
@@ -999,13 +1011,13 @@ function getPageOrderRank(pageInfo) {
 
 function buildSectionOutputPath(sectionKey, relativeSourcePath) {
     const normalizedPath = normalizePath(relativeSourcePath);
-    if (sectionKey === "tutorials") {
+    if (sectionKey === tutorialsSectionKey) {
         if (normalizedPath === "Quick Start.md") return "quick-start.html";
         if (normalizedPath === "Useful Tricks & techniques.md") return "useful-tricks-techniques.html";
         if (normalizedPath === "useful css snippets/README.md") return "useful-css-snippets/index.html";
     }
 
-    if (sectionKey === "changelogs") {
+    if (sectionKey === changelogsSectionKey) {
         if (normalizedPath === "CHANGELOG-1.3.x.md") return "series-1-3-x.html";
         if (normalizedPath === "CHANGELOG-1.2.x.md") return "series-1-2-x.html";
         if (normalizedPath === "CHANGELOG-1.0-1.1.md" || normalizedPath === "CHANGELOG-1.1.x.md") return "series-1-0-1-1.html";
@@ -1017,30 +1029,6 @@ function buildSectionOutputPath(sectionKey, relativeSourcePath) {
         "index.html" :
         `${slugifyPathSegment(parsedPath.name)}.html`;
     return directory ? normalizePath(path.join(directory, fileName)) : fileName;
-}
-
-function extractDocumentTitle(markdown, sourceFilePath) {
-    let inFence = false;
-    for (const line of markdown.replaceAll('\r\n', "\n").split("\n")) {
-        if (/^\s*```/.test(line)) {
-            inFence = !inFence;
-            continue;
-        }
-
-        if (inFence) {
-            continue;
-        }
-
-        const headingMatch = line.match(/^#\s+(.+)$/);
-        if (headingMatch) {
-            return headingMatch[1].trim();
-        }
-    }
-
-    const baseName = path.basename(sourceFilePath, ".md");
-    return baseName.toLowerCase() === "readme" ?
-        prettyTitleFromName(path.basename(path.dirname(sourceFilePath))) :
-        prettyTitleFromName(baseName);
 }
 
 function extractDocumentDescription(markdown) {
@@ -1155,6 +1143,30 @@ function normalizePath(filePath) {
     return filePath.replaceAll("\\", "/");
 }
 
+function sectionPathFromRoot(sectionRoot) {
+    return normalizePath(sectionRoot).replace(/^\/+/, "");
+}
+
+function getSectionSourceRoot(sectionKey, locale) {
+    const sectionRoot = sourceSectionRoots.get(sectionKey);
+    return sectionRoot ? path.join(repositoryRoot, sectionPathFromRoot(sectionRoot), locale) : null;
+}
+
+function sourcePathForMarkdownEnv(sourcePath) {
+    return normalizePath(path.relative(repositoryRoot, sourcePath));
+}
+
+function getDocsRelativeHref(filePath) {
+    return normalizePath(path.relative(docsRoot, filePath));
+}
+
+function getMarkdownFileTitle(filePath) {
+    const baseName = path.basename(filePath, ".md");
+    return baseName.toLowerCase() === "readme" ?
+        prettyTitleFromName(path.basename(path.dirname(filePath))) :
+        prettyTitleFromName(baseName);
+}
+
 function ensureTrailingSlash(filePath) {
     if (!filePath || filePath.endsWith("/")) {
         return filePath;
@@ -1199,14 +1211,6 @@ function stripLeadingHeading(contentHtml) {
     return contentHtml.replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>/, "").trim();
 }
 
-function getHtmlLang(locale) {
-    return locale === "zh-CN" ? "zh-CN" : "en";
-}
-
-function getApiIntroCopy() {
-    return "The API reference is generated from the source code and shares the same documentation shell as the tutorials and changelogs.";
-}
-
 function isPathInside(targetPath, rootPath) {
     const relativePath = path.relative(rootPath, targetPath);
     return !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
@@ -1226,14 +1230,6 @@ async function pathExists(targetPath) {
     }
 }
 
-async function collectMarkdownFiles(rootDirectoryPath) {
-    return collectFiles(rootDirectoryPath, {
-        includeFile(filePath) {
-            return path.extname(filePath).toLowerCase() === ".md";
-        },
-    });
-}
-
 async function collectFiles(rootDirectoryPath, { includeFile }) {
     const files = [];
     const entries = await fs.readdir(rootDirectoryPath, { withFileTypes: true });
@@ -1251,25 +1247,6 @@ async function collectFiles(rootDirectoryPath, { includeFile }) {
     }
 
     return files;
-}
-
-async function replaceAsync(text, pattern, replacer) {
-    const matches = Array.from(text.matchAll(pattern));
-    if (matches.length === 0) {
-        return text;
-    }
-
-    let output = "";
-    let lastIndex = 0;
-    for (const match of matches) {
-        const startIndex = match.index ?? 0;
-        output += text.slice(lastIndex, startIndex);
-        output += await replacer(...match);
-        lastIndex = startIndex + match[0].length;
-    }
-
-    output += text.slice(lastIndex);
-    return output;
 }
 
 await main();

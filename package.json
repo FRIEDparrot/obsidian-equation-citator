@@ -1,7 +1,7 @@
 {
 	"name": "equation-citator",
 	"version": "1.3.5",
-	"description": "An Equation Citator Allows you to cite equations in your Obsidian notes.",
+	"description": "A Powerful, Convenient and Elegant Academic Tool for Citation",
 	"main": "main.js",
 	"scripts": {
 		"build:css": "sass src/styles/styles.scss:styles.css",
@@ -16,8 +16,8 @@
 		"type-check": "tsc --noEmit --skipLibCheck",
 		"check:case": "case-police",
 		"docs": "node scripts/build-docs.mjs",
-		"docs:build": "node scripts/build-docs.mjs",
-		"docs:clean": "if exist docs rmdir /s /q docs"
+		"docs:clean": "if exist docs rmdir /s /q docs",
+		"docs:server": "npx http-server docs -p 4173"
 	},
 	"keywords": [],
 	"author": "FRIEDparrot",
