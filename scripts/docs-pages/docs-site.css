@@ -107,11 +107,11 @@ body.ec-typedoc-page {
 }
 
 .ec-preview-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.6rem 0.75rem 0.55rem;
   border-bottom: 1px solid var(--color-accent);
   background: var(--color-background-secondary);
 }
@@ -123,13 +123,33 @@ body.ec-typedoc-page {
   gap: 0.5rem;
 }
 
+.ec-preview-title-row {
+  grid-column: 2;
+  justify-self: center;
+  max-width: 100%;
+  min-width: 0;
+  text-align: center;
+}
+
 .ec-preview-title {
+  min-width: 0;
   font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .ec-preview-counter {
   color: var(--color-text-aside);
   font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.ec-preview-actions,
+.ec-preview-arrows {
+  grid-column: 3;
+  justify-self: end;
+  align-self: start;
+  margin-top: 0.2rem;
 }
 
 .ec-preview-arrow,
@@ -143,9 +163,23 @@ body.ec-typedoc-page {
   cursor: pointer;
 }
 
+.ec-preview-arrow:hover,
+.ec-preview-jump:hover {
+  background: var(--color-background-active);
+}
+
+.ec-preview-arrow[hidden] {
+  display: none;
+}
+
+.ec-preview-jump:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
 .ec-preview-body {
   position: relative;
-  height: calc(100% - 2.85rem);
+  height: calc(100% - 3.1rem);
 }
 
 .equation-citator-preview-iframe {
