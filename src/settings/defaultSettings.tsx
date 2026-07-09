@@ -294,7 +294,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     enableRichAutoComplete: {
-        name: "Show full preview in autocomplete",
+        name: "Full image and callout preview in autocomplete",
         desc: "Displays the full figure or callout content directly inside each autocomplete suggestion. Disable to use compact mode with hover preview instead.",
         type: "boolean",
         renderCallback: (el, plugin) => {
