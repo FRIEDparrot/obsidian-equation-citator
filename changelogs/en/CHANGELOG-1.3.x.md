@@ -244,7 +244,9 @@ Breaking Update Changes :
 
 ### Version 1.3.5
 
-Bug fixes, improvements on PDF export function, added major support for the webpage notes export. 
+Bug fixes, improvements on PDF export function, added : 
+1. Major support for the webpage notes export. (NPM package + batch export with metadata)
+2. Major Chinese UI translation supports. (Including settings, commands, and tooltips)
 
 ✨ New features : 
 
@@ -282,8 +284,8 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 - [x] refactored and shortened pdf export code part
 - [x] refactored `getEquationAtCursor` and function in box current equations 
 - [x] refactored figure citation wrapper function 
-- [ ] refactored the figure caption creation extension part for better mainability 
-- [ ] resolved sonar issues to make sure that the code quality gate is passed. 
+- [x] refactored the figure caption extension part for better mainability 
+- [ ] resolved sonar issues to make sure that the code quality gate is passed after pushing to main branch. 
 
 ### 🚢 If you want following features, you can request it in issue page :
 

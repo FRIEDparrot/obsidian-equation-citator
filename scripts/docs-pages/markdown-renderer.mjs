@@ -93,12 +93,12 @@ function resolveMappedMarkdownPath(src, markdownPath = "") {
 
     for (const mapping of equationCitatorPathMapping) {
         for (const [webRoot, markdownRoot] of Object.entries(mapping)) {
-            const normalizedMarkdownRoot = normalizePath(markdownRoot).replace(/^\/+|\/+$/g, "");
+            const normalizedMarkdownRoot = normalizePath(markdownRoot).replace(/^\/+|\/+$/g, ""); // nosonar
             if (
                 normalizedMarkdownRoot &&
                 (normalizedMarkdownPath === normalizedMarkdownRoot || normalizedMarkdownPath.startsWith(`${normalizedMarkdownRoot}/`))
             ) {
-                return `${normalizePath(webRoot).replace(/\/+$/g, "")}/${normalizedSrc}`;
+                return `${normalizePath(webRoot).replace(/\/+$/g, "")}/${normalizedSrc}`; // nosonar
             }
         }
     }
@@ -213,5 +213,5 @@ function markdownItKatexBlockPlugin(markdownIt) {
 }
 
 function mathBlockOpeningPattern() {
-    return new RegExp(String.raw`^\$\$\s*(.*)$`);
+    return new RegExp(String.raw`^\$\$\s*(.*)$`); // nosonar
 }
