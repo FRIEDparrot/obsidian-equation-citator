@@ -6,13 +6,14 @@ export const SOURCE_REPOSITORY_URL = `https://github.com/${SOURCE_REPOSITORY}`;
 export const TYPE_DOC_SOURCE_LINK_TEMPLATE = `${SOURCE_REPOSITORY_URL}/blob/master/{path}#L{line}`;
 
 export const GENERATED_SOURCE_ROOT = "/";
+export const BASE_ROOT = "" // "/projects/obsidian-equation-citator/";
 export const TUTORIALS_ROOT = "/tutorials";
 export const CHANGELOGS_ROOT = "/changelogs";
 
 
 export const equationCitatorPathMapping =  [
-    {  [TUTORIALS_ROOT]:  TUTORIALS_ROOT },
-    {  [CHANGELOGS_ROOT]:  CHANGELOGS_ROOT },
+    {  [ BASE_ROOT + TUTORIALS_ROOT]:  TUTORIALS_ROOT },
+    {  [ BASE_ROOT + CHANGELOGS_ROOT]:  CHANGELOGS_ROOT },
 ];
 
 function normalizeWebPath(filePath) {

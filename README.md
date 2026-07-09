@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/License-Apache%202.0-red" alt="License">
   <img src="https://sonarcloud.io/api/project_badges/measure?project=FRIEDparrot_obsidian-equation-citator&metric=alert_status" alt="Quality Gate">
 </span></div></center>
-<center><b>English</b> | <a href="README-zh-CN.md" target="_blank"><b>简体中文</b></a></center>
+
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4></center>
 
 <center><b><h3>Thanks for 1.7k downloads😄!</h3></b></center> 

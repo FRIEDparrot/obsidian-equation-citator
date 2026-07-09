@@ -44,6 +44,7 @@ export function renderMarkdownDocument(markdown, pageHeading, env = {}) {
     markdownIt.use(equationCitatorMarkdownIt, {
         enableObsidianCallouts: true,
         enableObsidianLinks: true,
+        logEmbedLinkRemapping: true,
         pathMapping: equationCitatorPathMapping,
     });
     markdownIt.renderer.rules.image = renderMappedMarkdownImage;
