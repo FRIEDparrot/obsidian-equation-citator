@@ -12,10 +12,12 @@ import {
     createMathCitationExtension,
     mathCitationPostProcessor,
     calloutCitationPostProcessor,
-    createImageCaptionExtension,
-    imageCaptionPostProcessor,
     EditorSelectionInfo,
 } from '@/views/widgets/citation_render';
+import {
+    createImageCaptionExtension,
+    imageCaptionPostProcessor,
+} from '@/views/widgets/image_caption_extension';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
 import { FootNoteCache } from '@/cache/footnoteCache';
