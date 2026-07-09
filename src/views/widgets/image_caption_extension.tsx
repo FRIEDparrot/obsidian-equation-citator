@@ -57,6 +57,11 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
          * Extension to render the image caption 
          */
         renderImageCaptions(view: EditorView) {
+            if (!settings.renderImageCaptionsAndDescriptions) {
+                this.removeAllCaptions(view.dom);
+                return;
+            }
+
             const currentFile = view.state.field(editorInfoField).file;
             if (!(currentFile instanceof TFile)) {
                 return;
@@ -84,9 +89,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 // Not typing on an image line, use cache (will be handled asynchronously)
                 void plugin.imageCache.getImagesForFile(currentFile.path).then(cachedImages => { // nosonar
                     if (!cachedImages || cachedImages.length === 0) {
-                        // No images in cache, remove all captions
-                        const allCaptions = view.dom.querySelectorAll('.em-image-caption');
-                        allCaptions.forEach(cap => cap.remove());
+                        this.removeAllCaptions(view.dom);
                         return;
                     }
                     this.processAndRenderImages(cachedImages, view);
@@ -99,14 +102,17 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         }
 
         processAndRenderImages(images: ImageMatch[], view: EditorView) {
+            if (!settings.renderImageCaptionsAndDescriptions) {
+                this.removeAllCaptions(view.dom);
+                return;
+            }
+
             // Only process images that have metadata to display
             const imagesWithMetadata = images.filter(img =>
                 img.tag !== undefined && (img.tag || img.title || img.desc)
             );
             if (imagesWithMetadata.length === 0) {
-                // No images with metadata, remove all captions
-                const allCaptions = view.dom.querySelectorAll('.em-image-caption');
-                allCaptions.forEach(cap => cap.remove());
+                this.removeAllCaptions(view.dom);
                 return;
             }
             // Find all image elements in the editor
@@ -140,6 +146,10 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
                 // Remove if not attached (shouldn't happen with internal embeds only)
                 if (!isAttached) caption.remove();
             });
+        }
+
+        removeAllCaptions(root: ParentNode) {
+            root.querySelectorAll('.em-image-caption').forEach(cap => cap.remove());
         }
 
         /**
@@ -392,6 +402,11 @@ export async function imageCaptionPostProcessor(
     el: HTMLElement,
     ctx: MarkdownPostProcessorContext,
 ): Promise<void> {
+    if (!plugin.settings.renderImageCaptionsAndDescriptions) {
+        el.querySelectorAll('.em-image-caption').forEach(cap => cap.remove());
+        return;
+    }
+
     const { figCitationFormat, figCitationPrefix } = plugin.settings;
 
     // Get the source file content

@@ -41,6 +41,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "enableRichAutoComplete",
                 "enableRichAutoCompleteHoverPreview",
                 "richAutoCompletePreviewDelayTime",
+                "renderImageCaptionsAndDescriptions",
                 "calloutCitationPrefixes",
             ]
         },

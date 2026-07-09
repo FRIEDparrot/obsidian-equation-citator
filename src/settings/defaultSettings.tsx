@@ -41,6 +41,7 @@ export interface EquationCitatorSettings {
     enableRichAutoComplete: boolean; // Enable rich auto-complete suggestion for figures and callouts
     enableRichAutoCompleteHoverPreview: boolean; // Enable concise auto-complete preview for figures and callouts
     richAutoCompletePreviewDelayTime: number; // Delay time for concise auto-complete rendering (ms)
+    renderImageCaptionsAndDescriptions: boolean; // Render image captions and descriptions in preview and reading mode
 
     calloutCitationPrefixes: CalloutCitationPrefix[];  // Citation prefixes and formats for callouts  
 
@@ -134,6 +135,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     ],
     enableRichAutoCompleteHoverPreview: true, // enable concise auto-complete preview by default
     richAutoCompletePreviewDelayTime: 1500, // 1500ms delay for concise auto-complete rendering
+    renderImageCaptionsAndDescriptions: true, // render image captions and descriptions by default
 
     enableRenderFigureInfoInPreview: true, // enable rendering figure title and description in figure preview widget
     enableCenterTableInCallout: true,  // enable centering tables in callout for butiful rendering 
@@ -204,6 +206,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "figCitationFormat",
         "enableCrossFileCitation",
         "enableRenderLocalFileName",
+        "renderImageCaptionsAndDescriptions",
         "multiCitationDelimiter",
         "multiCitationDelimiterRender",
         "enableContinuousCitation",
@@ -315,6 +318,14 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "number",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.richAutoCompletePreviewDelayTime(el, plugin);
+        }
+    },
+    renderImageCaptionsAndDescriptions: {
+        name: "Render image captions and descriptions",
+        desc: "Render image captions and descriptions in live preview and reading mode.",
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.renderImageCaptionsAndDescriptions(el, plugin);
         }
     },
     calloutCitationPrefixes: {
