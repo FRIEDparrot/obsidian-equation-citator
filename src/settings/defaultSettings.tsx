@@ -325,7 +325,7 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         desc: "Render image captions and descriptions in live preview and reading mode.",
         type: "boolean",
         renderCallback: (el, plugin) => {
-            CitationSettingsTab.renderImageCaptionsAndDescriptions(el, plugin);
+            StyleSettingsTab.renderImageCaptionsAndDescriptions(el, plugin);
         }
     },
     calloutCitationPrefixes: {
@@ -559,8 +559,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     enableRenderFigureInfoInPreview: {
-        name: "Render figure info in preview",
-        desc: "If disabled, figure title and description will not be rendered in preview.",
+        name: "Render figure info in preview widget",
+        desc: "If disabled, figure title and description will not be rendered in preview widget.",
         type: "boolean",
         renderCallback: (el, plugin) => {
             StyleSettingsTab.enableRenderFigureInfoInPreview(el, plugin);

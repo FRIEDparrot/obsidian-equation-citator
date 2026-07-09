@@ -60,6 +60,19 @@ export const StyleSettingsTab = {
                 });
             });
     },
+    renderImageCaptionsAndDescriptions(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.renderImageCaptionsAndDescriptions;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.renderImageCaptionsAndDescriptions);
+                toggle.onChange(async (value) => {
+                    plugin.settings.renderImageCaptionsAndDescriptions = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
     enableRenderFigureInfoInPreview(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.enableRenderFigureInfoInPreview;
         const setting = new Setting(containerEl);
@@ -92,5 +105,6 @@ export function addStyleSettingsTab(containerEl: HTMLElement, plugin: EquationCi
     StyleSettingsTab.citationPopoverSize(containerEl, plugin);
     StyleSettingsTab.enableRenderLocalFileName(containerEl, plugin);
     StyleSettingsTab.enableCenterTableInCallout(containerEl, plugin);
+    StyleSettingsTab.renderImageCaptionsAndDescriptions(containerEl, plugin);
     StyleSettingsTab.enableRenderFigureInfoInPreview(containerEl, plugin);
 }

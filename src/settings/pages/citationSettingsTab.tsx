@@ -67,19 +67,6 @@ export const CitationSettingsTab = {
                 });
             });
     },
-    renderImageCaptionsAndDescriptions(containerEl: HTMLElement, plugin: EquationCitator) {
-        const { name, desc } = SETTINGS_METADATA.renderImageCaptionsAndDescriptions;
-        new Setting(containerEl)
-            .setName(name)
-            .setDesc(desc)
-            .addToggle((toggle) => {
-                toggle.setValue(plugin.settings.renderImageCaptionsAndDescriptions);
-                toggle.onChange(async (value) => {
-                    plugin.settings.renderImageCaptionsAndDescriptions = value;
-                    await plugin.saveSettings();
-                });
-            });
-    },
     citationPrefix(containerEl: HTMLElement, plugin: EquationCitator) {
         const citePrefixSetting = new Setting(containerEl);
         citePrefixSetting.setName(SETTINGS_METADATA.citationPrefix.name)
@@ -469,7 +456,6 @@ export function addCitationSettingsTab(containerEl: HTMLElement, plugin: Equatio
     CitationSettingsTab.enableCitationInSourceMode(containerEl, plugin);
     CitationSettingsTab.enableRichAutoComplete(containerEl, plugin);
     CitationSettingsTab.enableRichAutoCompleteHoverPreview(containerEl, plugin, true);
-    CitationSettingsTab.renderImageCaptionsAndDescriptions(containerEl, plugin);
     CitationSettingsTab.citationPrefix(containerEl, plugin);
     CitationSettingsTab.citationFormat(containerEl, plugin);
     CitationSettingsTab.figCitationPrefix(containerEl, plugin);

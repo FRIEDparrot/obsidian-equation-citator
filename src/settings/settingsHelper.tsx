@@ -41,7 +41,6 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "enableRichAutoComplete",
                 "enableRichAutoCompleteHoverPreview",
                 "richAutoCompletePreviewDelayTime",
-                "renderImageCaptionsAndDescriptions",
                 "calloutCitationPrefixes",
             ]
         },
@@ -90,6 +89,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
                 "enableRenderLocalFileName",
                 "enableRenderFigureInfoInPreview",
                 "enableCenterTableInCallout",
+                "renderImageCaptionsAndDescriptions",
                 "citationPopoverSize",
             ]
         },
