@@ -255,14 +255,15 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 - [x] Added better spacing for the image export of PDF, preventing images to become crowd in many cases 
 - [x] Added batch markdown export command `Sync repository to the website notes folder` to sync the entire repository to the target website notes folder.
 - [x] Added `sync files/folders to the website notes folder` options to the file explorer, Added `sync current file to website notes folder` command.
+- [ ] **Added support for Chinese translation of the SettingsTab Options and Commands** 
 
 📖 Documetations : 
 
 - [x] Migrated the **tutorials**, **Change logs** and the **API documentations** to a **Webpage version**.
 - [x] Support citation preview/jump at the webpage building process. 
-- [ ] Build the npm package for easy web note integration (https://www.npmjs.com/package/@friedparrot/equation-citator)
+- [x] Build the npm package for easy web note integration (https://www.npmjs.com/package/@friedparrot/equation-citator)
 - [ ] Refine the documentation, split tutorials/changelogs into several parts, and added some other useful techniques. 
-- [ ] Added full Chinese translation for **tutorials** and **Change logs**. 
+- [ ] Added **full Chinese translation** for **tutorials** and **Change logs**. 
 
 🐛 Fixed Bugs : 
 
@@ -272,6 +273,7 @@ Bug fixes, improvements on PDF export function, added major support for the webp
 - [x] fixed [#164](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/164), code blocks now render correctly in callouts. 
 - [x] fixed critical [#173](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/173), the PDF export can work correctly at the case some disturbing dollars are put inline. 
 - [x] fixed [#172](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/172), when export without meta-data, the image width are still kept. 
+- [ ] fixed [#175](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/175)
 
 🏗️ refactors : 
 
