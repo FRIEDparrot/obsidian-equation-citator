@@ -127,37 +127,19 @@ export function createDocsPageBuilder({
         const typedocAssetsHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(docsApiRoot, "assets")));
         const typedocBaseHref = ensureTrailingSlash(normalizePath(path.relative(path.dirname(outputFilePath), docsApiRoot))) || "./";
         const normalizedCurrentHref = normalizePath(currentPageHref);
+        const hasChangelogSection = Boolean(navigation.changelogSection);
 
-        const tutorialLinks = [
-            {
-                href: tutorialsIndexHref,
-                label: "Tutorials overview",
-                isActive: normalizedCurrentHref === getDocsRelativeHref(path.join(navigation.tutorialSection.outputRoot, "index.html")),
-            },
-            ...navigation.tutorials.map(page => ({
+        const tutorialLinks = navigation.tutorials.map(page => ({
                 href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
                 label: page.title,
                 isActive: normalizedCurrentHref === normalizePath(page.siteHref),
-            })),
-        ];
-        const changelogLinks = [
-            {
-                href: changelogsIndexHref,
-                label: "ChangeLogs overview",
-                isActive: normalizedCurrentHref === getDocsRelativeHref(path.join(navigation.changelogSection.outputRoot, "index.html")),
-            },
-            ...navigation.changelogs.map(page => ({
+            }));
+        const changelogLinks = navigation.changelogs.map(page => ({
                 href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
                 label: page.title,
                 isActive: normalizedCurrentHref === normalizePath(page.siteHref),
-            })),
-        ];
+            }));
         const apiLinks = [
-            {
-                href: apiIndexHref,
-                label: "API overview",
-                isActive: normalizedCurrentHref === "api/index.html",
-            },
             {
                 href: modulesHref,
                 label: "Module index",
@@ -173,17 +155,18 @@ export function createDocsPageBuilder({
         const toolbarLinks = [
             { href: tutorialsIndexHref, label: "Tutorials", isActive: currentSection === tutorialsSectionKey },
             { href: apiIndexHref, label: "API", isActive: currentSection === "api" },
+            { href: "https://friedparrot.github.io/", label: "My Website", isActive: false, isExternal: true },
         ];
-        if (changelogLinks.length > 0) {
+        if (hasChangelogSection) {
             toolbarLinks.splice(1, 0, { href: changelogsIndexHref, label: "ChangeLogs", isActive: currentSection === changelogsSectionKey });
         }
 
         const sidebarSections = [
-            { title: "Tutorials", isActive: currentSection === tutorialsSectionKey, links: tutorialLinks },
-            { title: "API Documentation", isActive: normalizedCurrentHref.startsWith("api/"), links: apiLinks },
+            { title: "Tutorials", href: tutorialsIndexHref, isActive: currentSection === tutorialsSectionKey, links: tutorialLinks },
+            { title: "API Documentation", href: apiIndexHref, isActive: normalizedCurrentHref.startsWith("api/"), links: apiLinks },
         ];
-        if (changelogLinks.length > 0) {
-            sidebarSections.splice(1, 0, { title: "ChangeLogs", isActive: currentSection === changelogsSectionKey, links: changelogLinks });
+        if (hasChangelogSection) {
+            sidebarSections.splice(1, 0, { title: "ChangeLogs", href: changelogsIndexHref, isActive: currentSection === changelogsSectionKey, links: changelogLinks });
         }
 
         return {

@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import {
+    normalizePath,
     slugifyPathSegment,
     stripFrontmatter,
     uniquifySlug,
@@ -8,6 +9,8 @@ import { equationCitatorPathMapping } from "./site-config.mjs";
 
 const require = createRequire(import.meta.url);
 const MarkdownIt = require("markdown-it");
+const markdownItFootnote = require("markdown-it-footnote");
+const markdownItTaskLists = require("markdown-it-task-lists");
 const katex = require("katex");
 const { default: equationCitatorMarkdownIt } = await import("@friedparrot/equation-citator/markdown-it");
 
@@ -36,11 +39,14 @@ export function renderMarkdownDocument(markdown, pageHeading, env = {}) {
         typographer: true,
     });
     markdownIt.use(markdownItKatexBlockPlugin);
+    markdownIt.use(markdownItFootnote);
+    markdownIt.use(markdownItTaskLists, { enabled: true });
     markdownIt.use(equationCitatorMarkdownIt, {
         enableObsidianCallouts: true,
         enableObsidianLinks: true,
         pathMapping: equationCitatorPathMapping,
     });
+    markdownIt.renderer.rules.image = renderMappedMarkdownImage;
 
     markdownIt.renderer.rules.heading_open = (tokens, index) => {
         const inlineToken = tokens[index + 1];
@@ -56,6 +62,58 @@ export function renderMarkdownDocument(markdown, pageHeading, env = {}) {
 
     const contentHtml = markdownIt.render(markdown, env);
     return { contentHtml, tocItems, pageHeading };
+}
+
+/**
+ * Renders normal Markdown image URLs with the docs section path mapping.
+ * The Equation Citator plugin resolves Obsidian embeds, but markdown-it keeps
+ * standard `![alt](path)` URLs relative to the generated HTML page. These docs
+ * use repository-style image targets such as `en/img/example.png`, so local
+ * Markdown image paths need the same section-root remapping before rendering.
+ */
+function renderMappedMarkdownImage(tokens, index, options, env, self) {
+    const token = tokens[index];
+    const src = token.attrGet("src");
+
+    if (src && shouldMapMarkdownImageSource(src)) {
+        token.attrSet("src", encodeMappedDocsPath(resolveMappedMarkdownPath(src, env.markdownPath)));
+    }
+    token.attrSet("alt", self.renderInlineAsText(token.children, options, env));
+
+    return self.renderToken(tokens, index, options);
+}
+
+function shouldMapMarkdownImageSource(src) {
+    return !/^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|#)/i.test(src);
+}
+
+function resolveMappedMarkdownPath(src, markdownPath = "") {
+    const normalizedMarkdownPath = normalizePath(markdownPath).replace(/^\/+/, "");
+    const normalizedSrc = normalizePath(src).replace(/^\/+/, "");
+
+    for (const mapping of equationCitatorPathMapping) {
+        for (const [webRoot, markdownRoot] of Object.entries(mapping)) {
+            const normalizedMarkdownRoot = normalizePath(markdownRoot).replace(/^\/+|\/+$/g, "");
+            if (
+                normalizedMarkdownRoot &&
+                (normalizedMarkdownPath === normalizedMarkdownRoot || normalizedMarkdownPath.startsWith(`${normalizedMarkdownRoot}/`))
+            ) {
+                return `${normalizePath(webRoot).replace(/\/+$/g, "")}/${normalizedSrc}`;
+            }
+        }
+    }
+
+    return normalizedSrc;
+}
+
+function encodeMappedDocsPath(src) {
+    const [pathPart, hashPart] = src.split("#", 2);
+    const encodedPath = pathPart
+        .split("/")
+        .map((segment, index) => index === 0 && segment === "" ? "" : encodeURIComponent(segment))
+        .join("/");
+
+    return hashPart === undefined ? encodedPath : `${encodedPath}#${encodeURIComponent(hashPart)}`;
 }
 
 function normalizeMarkdownMathBlockSpacing(markdown) {

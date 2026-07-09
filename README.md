@@ -89,8 +89,10 @@ One-click auto-numbering support for:
   - Support for **markdown grammar inside title/caption for figures** 
 
 2. You can build your **own website using with live reference feature** with this support. 
+  - To ensure links are correctly resolved, use `Path to vault folder`.
   - Specify a `Website notes export folder` to build your documentation.  
   - You can **sync Single file, folders or entire repository** to the desination folder, the citation meta-data can be preserved for rendering the preview on the website.
+  - We also an [npm package](https://www.npmjs.com/package/@friedparrot/equation-citator) to help you to make the elements citable in the website to make your notes to be easily deployed to a website. This can be installed by `npm i @friedparrot/equation-citator --save-dev`. 
 
 <center><img src="img/webpage-build-example.png" alt="drag-drop-cite" style="zoom: 100%; max-height: 350px;" /></center>
 

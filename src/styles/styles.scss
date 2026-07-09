@@ -77,6 +77,56 @@ when generating markdown for print pdf,
 .internal-embed.image-embed.is-loaded {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+}
+
+.internal-embed.image-embed.is-loaded img {
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.equation-citator-figure {
+    display: block;
+    width: 100%;
+    margin: 1em 0;
+    text-align: center;
+}
+
+.equation-citator-figure img,
+.equation-citator-figure picture,
+.equation-citator-figure svg,
+.equation-citator-figure canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.equation-citator-figure .figure-title,
+.equation-citator-figure .figure-desc {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.equation-citator-figure .figure-title {
+    margin-top: 0.45em;
+    color: var(--text-normal);
+    font-size: 0.95em;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.equation-citator-figure .figure-desc {
+    margin-top: 0.15em;
+    color: var(--text-muted);
+    font-size: 0.86em;
+    line-height: 1.4;
+    opacity: 0.82;
 }
 
 /* Exported markdown figure caption hooks for PDF export */

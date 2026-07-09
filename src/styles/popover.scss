@@ -641,7 +641,10 @@
 
 /* Center the internal embed when it has a caption */
 .internal-embed:has(.em-image-caption) {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
     text-align: center;
     margin-left: auto;
     margin-right: auto;
@@ -649,45 +652,47 @@
 
 /* Center the image itself when it has a caption */
 .internal-embed:has(.em-image-caption) img {
-    display: inline-block;
+    display: block;
     margin-left: auto;
     margin-right: auto;
 }
 
-/* Image caption container - title and description flow together as one piece of text,
-   so a long description wraps word-by-word after the title instead of dropping
-   to its own line below it. */
+/* Image caption container - title and description render as separate centered lines. */
 .em-image-caption {
     margin-top: 6px;
     padding: 0;
     background: transparent;
-    font-size: 12px;
     line-height: 1.4;
+    text-align: center;
+    width: 100%;
+}
+
+/* Image caption title (Fig. X.X title) */
+.em-image-caption-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95em;
+    color: var(--em-text-normal);
+    line-height: 1.45;
+    margin: 0 0 2px;
     text-align: center;
 }
 
-/* Image caption title (Fig. X.X title) - inline so the description can flow right after it */
-.em-image-caption-title {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--em-text-normal);
-    margin-bottom: 3px;
-    margin-right: 0.4em;
-}
-
-/* Image caption description - inline, continues the same text flow as the title and
-   wraps normally (word by word) when it's too long to fit on one line */
+/* Image caption description */
 .em-image-caption-desc {
+    display: block;
     color: var(--em-text-muted);
-    opacity: 0.7;
+    opacity: 0.75;
     font-style: normal;
-    font-size: 12px;
+    font-size: 0.86em;
+    line-height: 1.4;
+    text-align: center;
 }
 
 /* Math rendered inside the caption shouldn't add its own block margins */
 .em-image-caption-title p,
 .em-image-caption-desc p {
-    display: inline;
+    display: block;
     margin: 0;
 }
 

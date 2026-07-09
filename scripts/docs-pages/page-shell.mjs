@@ -14,7 +14,8 @@ export function buildToolbarLinksHtml(links) {
     const linkHtml = links
         .map(link => {
             const activeClass = link.isActive ? " ec-toolbar-link-active" : "";
-            return `<a class="ec-toolbar-link${activeClass}" href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`;
+            const externalAttrs = link.isExternal ? ' target="_blank" rel="noopener noreferrer"' : "";
+            return `<a class="ec-toolbar-link${activeClass}" href="${escapeHtml(link.href)}"${externalAttrs}>${escapeHtml(link.label)}</a>`;
         })
         .join("");
 
@@ -25,6 +26,9 @@ export function buildSidebarHtml({ homeHref, logoLightHref, logoDarkHref, langua
     const sectionHtml = sections
         .map(section => {
             const activeClass = section.isActive ? " ec-sidebar-group-active" : "";
+            const titleHtml = section.href ?
+                `<a class="ec-sidebar-group-title ec-sidebar-group-title-link" href="${escapeHtml(section.href)}">${escapeHtml(section.title)}</a>` :
+                `<div class="ec-sidebar-group-title">${escapeHtml(section.title)}</div>`;
             const linksHtml = section.links
                 .map(link => {
                     const linkActiveClass = link.isActive ? " ec-nav-link-active" : "";
@@ -34,7 +38,7 @@ export function buildSidebarHtml({ homeHref, logoLightHref, logoDarkHref, langua
 
             return [
                 `<section class="ec-sidebar-group${activeClass}">`,
-                `  <div class="ec-sidebar-group-title">${escapeHtml(section.title)}</div>`,
+                `  ${titleHtml}`,
                 `  ${linksHtml}`,
                 "</section>",
             ].join("");

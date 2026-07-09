@@ -70,6 +70,42 @@ body.ec-typedoc-page {
   height: auto;
 }
 
+.ec-docs-article figure.equation-citator-figure-wrapper {
+  display: block;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100% !important;
+  max-width: 100%;
+  height: auto;
+}
+
+.ec-docs-article .figure-caption {
+  display: block;
+  margin-top: 0.45rem;
+  text-align: center;
+}
+
+.ec-docs-article .figure-caption .figure-title,
+.ec-docs-article .figure-caption .figure-desc {
+  display: block;
+  width: 100%;
+}
+
+.ec-docs-article .figure-caption .figure-title {
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.ec-docs-article .figure-caption .figure-desc {
+  margin-top: 0.15rem;
+  color: var(--color-text-aside);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .ec-docs-article table {
   display: block;
   max-width: 100%;
@@ -284,6 +320,18 @@ html[data-theme="os"] .ec-brand-logo-dark {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.ec-sidebar-group-title-link {
+  display: block;
+  color: var(--color-text);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ec-sidebar-group-title-link:hover,
+.ec-sidebar-group-active .ec-sidebar-group-title-link {
+  color: var(--color-accent);
 }
 
 .ec-language-select {
