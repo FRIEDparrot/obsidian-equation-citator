@@ -140,6 +140,32 @@ body.ec-typedoc-page {
   margin-left: 0;
 }
 
+.ec-docs-article p:has(> .equation-citator-section-reference:only-child) {
+  margin: 1rem 0;
+}
+
+.ec-docs-article .equation-citator-section-reference {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 0.5rem;
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+  font-weight: 700;
+  line-height: 1.45;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.ec-docs-article .equation-citator-section-reference:hover,
+.ec-docs-article .equation-citator-section-reference:focus-visible {
+  background: var(--color-background-active);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
 .ec-math-display {
   margin: 1rem 0;
   overflow-x: auto;
@@ -431,6 +457,16 @@ html[data-theme="os"] .ec-brand-logo-dark {
 .page-menu {
   display: grid;
   gap: 1rem;
+}
+
+.page-menu .tsd-theme-toggle {
+  margin-right: 0.5rem;
+}
+
+.page-menu .tsd-theme-toggle select#tsd-theme {
+  min-width: 7.5rem;
+  min-height: 2.25rem;
+  padding-right: 2.25rem;
 }
 
 .page-menu .tsd-page-navigation .tsd-accordion-details a {
