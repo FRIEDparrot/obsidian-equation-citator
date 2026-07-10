@@ -42,6 +42,7 @@ export const AutoNumberSettingsTab = {
             .addSlider((slider) => {
                 slider.setLimits(1, 6, 1);
                 slider.setValue(plugin.settings.autoNumberDepth || 1);
+                slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
                     plugin.settings.autoNumberDepth = value;
                     await plugin.saveSettings();
@@ -167,6 +168,7 @@ export const AutoNumberSettingsTab = {
             .addSlider((slider) => {
                 slider.setLimits(1, 6, 1);
                 slider.setValue(plugin.settings.figAutoNumberDepth || 1);
+                slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
                     plugin.settings.figAutoNumberDepth = value;
                     await plugin.saveSettings();

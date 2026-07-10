@@ -49,6 +49,7 @@ export const CitationSettingsTab = {
             .addSlider((slider) => {
                 slider.setLimits(500, 3000, 100);
                 slider.setValue(plugin.settings.richAutoCompletePreviewDelayTime);
+                slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
                     plugin.settings.richAutoCompletePreviewDelayTime = value;
                     await plugin.saveSettings();
