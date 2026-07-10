@@ -10,6 +10,7 @@ import {
     syncFileToWebsiteNotesFolder,
     syncFolderToWebsiteNotesFolder,
 } from "@/func/syncWebsiteNotes";
+import { t } from "@/i18n/getLocale";
 
 export function registerRightClickHandler(plugin: EquationCitator) {
     const app: App = plugin.app;
@@ -35,7 +36,7 @@ function handleWebsiteNotesExplorerSync(plugin: EquationCitator, menu: Menu, fil
     if (file instanceof TFile && file.extension === "md") {
         menu.addSeparator();
         menu.addItem((item: MenuItem) => {
-            item.setTitle("Sync file to website notes folder");
+            item.setTitle(t("context.syncFileToWebsiteNotesFolder"));
             item.setIcon("upload");
             item.onClick(async () => {
                 await syncFileToWebsiteNotesFolder(plugin, file);
@@ -47,7 +48,7 @@ function handleWebsiteNotesExplorerSync(plugin: EquationCitator, menu: Menu, fil
     if (file instanceof TFolder) {
         menu.addSeparator();
         menu.addItem((item: MenuItem) => {
-            item.setTitle("Sync folder to website notes folder");
+            item.setTitle(t("context.syncFolderToWebsiteNotesFolder"));
             item.setIcon("folder-sync");
             item.onClick(async () => {
                 await syncFolderToWebsiteNotesFolder(plugin, file);
@@ -77,7 +78,7 @@ function handleEquationTagRename(plugin: EquationCitator, menu: Menu, editor: Ed
     if (!tagInfo.range || !tagInfo.tagSelected) return false;
     menu.addSeparator();
     menu.addItem((item: MenuItem) => {
-        item.setTitle("Rename equation tag")
+        item.setTitle(t("context.renameEquationTag"))
         item.setIcon("pencil")
         item.onClick(() => {
             if (!tagInfo.tagContent) {
@@ -126,7 +127,7 @@ function handleFigureTagRename(plugin: EquationCitator, menu: Menu, editor: Edit
     if (!isValidFigure) return false;
     menu.addSeparator();
     menu.addItem((item: MenuItem) => {
-        item.setTitle("Rename tag for this picture")
+        item.setTitle(t("context.renameFigureTag"))
         item.setIcon("image")
         item.onClick(() => {
             const imageMatch = parseImageLine(selectedText, 0, imagePrefix);
@@ -140,7 +141,7 @@ function handleFigureTagRename(plugin: EquationCitator, menu: Menu, editor: Edit
                 Debugger.log("No active file to rename figure tag");
                 return;
             }
-            const modal = new TagRenameModal(plugin, imageMatch.tag, filePath, "Rename figure tag to:");
+            const modal = new TagRenameModal(plugin, imageMatch.tag, filePath, t("modal.tagRename.figureHeading"));
             modal.setEditor(editor);
             modal.setIsFigureTag(true); // Mark this as a figure tag rename
             modal.onSubmit = (newName: string) => {

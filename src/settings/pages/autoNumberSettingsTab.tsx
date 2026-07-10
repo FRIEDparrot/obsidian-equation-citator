@@ -4,6 +4,7 @@ import { AutoNumberingType } from "@/utils/core/auto_number_core";
 import EquationCitator from "@/main";
 import { addSubPanelToggle } from "../extensions/subPanelToggle";
 import { validateDelimiter, validateLetterPrefix } from "@/utils/string_processing/string_utils";
+import { t } from "@/i18n/getLocale";
 
 /**
  * All render functions for each setting in the auto numbering settings tab.
@@ -16,7 +17,7 @@ export const AutoNumberSettingsTab = {
             .setDesc(desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("Default: .");
+                text.setPlaceholder(t("settings.input.defaultDot"));
                 text.setValue(plugin.settings.autoNumberDelimiter);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
@@ -25,7 +26,7 @@ export const AutoNumberSettingsTab = {
                             plugin.settings.autoNumberDelimiter = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters (not brace) are allowed, change not saved");
+                            new Notice(t("settings.validation.onlySpecialCharacters"));
                             text.setValue(plugin.settings.autoNumberDelimiter);
                         }
                     }
@@ -54,8 +55,8 @@ export const AutoNumberSettingsTab = {
         autoNumberMethodSetting.setName(name)
             .setDesc(desc)
             .addDropdown((dropdown) => {
-                dropdown.addOption("Relative", "Relative");
-                dropdown.addOption("Absolute", "Absolute");
+                dropdown.addOption("Relative", t("settings.option.relative"));
+                dropdown.addOption("Absolute", t("settings.option.absolute"));
                 dropdown.setValue(plugin.settings.autoNumberType);
                 dropdown.onChange(async (value) => {
                     plugin.settings.autoNumberType = value as AutoNumberingType;
@@ -80,7 +81,7 @@ export const AutoNumberSettingsTab = {
                             plugin.settings.autoNumberNoHeadingPrefix = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only letters are allowed, change not saved");
+                            new Notice(t("settings.validation.onlyLetters"));
                             text.setValue(plugin.settings.autoNumberNoHeadingPrefix);
                         }
                     }
@@ -141,7 +142,7 @@ export const AutoNumberSettingsTab = {
             .setDesc(desc)
             .addText((text) => {
                 text.inputEl.classList.add("ec-delimiter-input");
-                text.setPlaceholder("Default: .");
+                text.setPlaceholder(t("settings.input.defaultDot"));
                 text.setValue(plugin.settings.figAutoNumberDelimiter);
                 text.inputEl.onblur = async () => {
                     const newValue = text.getValue();
@@ -150,7 +151,7 @@ export const AutoNumberSettingsTab = {
                             plugin.settings.figAutoNumberDelimiter = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only special characters (not brace) are allowed, change not saved");
+                            new Notice(t("settings.validation.onlySpecialCharacters"));
                             text.setValue(plugin.settings.figAutoNumberDelimiter);
                         }
                     }
@@ -189,7 +190,7 @@ export const AutoNumberSettingsTab = {
                             plugin.settings.figAutoNumberNoHeadingPrefix = newValue;
                             await plugin.saveSettings();
                         } else {
-                            new Notice("Only letters are allowed, change not saved");
+                            new Notice(t("settings.validation.onlyLetters"));
                             text.setValue(plugin.settings.figAutoNumberNoHeadingPrefix);
                         }
                     }
@@ -269,7 +270,7 @@ export const AutoNumberSettingsTab = {
             .setName(name)
             .setDesc(desc)
             .addToggle((toggle) => {
-                toggle.setTooltip("If two tags are assigned the same number during auto numbering, the original citation will be automatically deleted.");
+                toggle.setTooltip(t("settings.deleteRepeatTagsInAutoNumber.tooltip"));
                 toggle.setValue(plugin.settings.deleteRepeatTagsInAutoNumber);
                 toggle.onChange(async (value) => {
                     plugin.settings.deleteRepeatTagsInAutoNumber = value;
@@ -284,7 +285,7 @@ export const AutoNumberSettingsTab = {
             .setDesc(desc)
             .addToggle((toggle) => {
                 toggle.setValue(plugin.settings.deleteUnusedTagsInAutoNumber);
-                toggle.setTooltip("Deletes citations that don't match any equation included in auto-numbering.");
+                toggle.setTooltip(t("settings.deleteUnusedTagsInAutoNumber.tooltip"));
                 toggle.onChange(async (value) => {
                     plugin.settings.deleteUnusedTagsInAutoNumber = value;
                     await plugin.saveSettings();
@@ -299,11 +300,11 @@ export const AutoNumberSettingsTab = {
  * @param plugin 
  */
 export function addAutoNumberSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
-    new Setting(containerEl).setName("Shared").setHeading();
+    new Setting(containerEl).setName(t("settings.category.shared")).setHeading();
     AutoNumberSettingsTab.autoNumberType(containerEl, plugin);
     AutoNumberSettingsTab.enableUpdateTagsInAutoNumber(containerEl, plugin, true);
 
-    new Setting(containerEl).setName("For equations").setHeading();
+    new Setting(containerEl).setName(t("settings.category.forEquations")).setHeading();
     AutoNumberSettingsTab.autoNumberDelimiter(containerEl, plugin);
     AutoNumberSettingsTab.autoNumberDepth(containerEl, plugin);
     AutoNumberSettingsTab.autoNumberNoHeadingPrefix(containerEl, plugin);
@@ -311,7 +312,7 @@ export function addAutoNumberSettingsTab(containerEl: HTMLElement, plugin: Equat
     AutoNumberSettingsTab.enableAutoNumberEquationsInQuotes(containerEl, plugin);
     AutoNumberSettingsTab.enableAutoNumberTaggedEquationsOnly(containerEl, plugin);
     
-    new Setting(containerEl).setName("For figures").setHeading();
+    new Setting(containerEl).setName(t("settings.category.forFigures")).setHeading();
     AutoNumberSettingsTab.figAutoNumberDelimiter(containerEl, plugin);
     AutoNumberSettingsTab.figAutoNumberDepth(containerEl, plugin);
     AutoNumberSettingsTab.figAutoNumberNoHeadingPrefix(containerEl, plugin);

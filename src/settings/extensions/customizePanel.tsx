@@ -2,6 +2,7 @@ import { Setting, Notice, setIcon } from "obsidian";
 import EquationCitator from "@/main";
 import { getAllSettingsByCategory, getSettingDisplayName, type SettingsCategory } from "../settingsHelper";
 import type { EquationCitatorSettings } from "../defaultSettings";
+import { t } from "@/i18n/getLocale";
 
 interface CategoryHeaderElements {
     categoryHeader: HTMLElement;
@@ -25,7 +26,7 @@ async function saveCustomizePanelSettings(plugin: EquationCitator, onUpdate: () 
         await plugin.saveSettings();
         onUpdate();
     } catch {
-        new Notice("Error saving settings");
+        new Notice(t("settings.customize.saveError"));
     }
 }
 
@@ -111,12 +112,12 @@ function createSettingRow(
     const checkboxGroup = settingRow.createDiv({ cls: "ec-customize-checkbox-group" });
     const basicLabel = checkboxGroup.createEl("label", { cls: "ec-customize-checkbox-label" });
     const basicCheckbox = basicLabel.createEl("input", { type: "checkbox" });
-    basicLabel.createSpan({ text: "Basic" });
+    basicLabel.createSpan({ text: t("settings.section.basic") });
     basicCheckbox.checked = plugin.settings.basicSettingsKeys.includes(settingKey);
 
     const advancedLabel = checkboxGroup.createEl("label", { cls: "ec-customize-checkbox-label" });
     const advancedCheckbox = advancedLabel.createEl("input", { type: "checkbox" });
-    advancedLabel.createSpan({ text: "Advanced" });
+    advancedLabel.createSpan({ text: t("settings.section.advanced") });
     advancedCheckbox.checked = plugin.settings.advancedSettingsKeys.includes(settingKey);
 
     bindDisplaySectionCheckboxes(plugin, settingKey, basicCheckbox, advancedCheckbox, onUpdate);
@@ -146,17 +147,17 @@ function createResetButton(
     onUpdate: () => void
 ): void {
     new Setting(customizeContainer)
-        .setName("Reset to defaults")
-        .setDesc("Reset basic and advanced settings to their default values")
+        .setName(t("settings.customize.reset.name"))
+        .setDesc(t("settings.customize.reset.desc"))
         .addButton((btn) => {
-            btn.setButtonText("Reset");
+            btn.setButtonText(t("settings.customize.reset.button"));
             btn.setIcon("reset");
             btn.onClick(async () => {
                 const { DEFAULT_SETTINGS } = await import("../defaultSettings");
                 plugin.settings.basicSettingsKeys = [...DEFAULT_SETTINGS.basicSettingsKeys];
                 plugin.settings.advancedSettingsKeys = [...DEFAULT_SETTINGS.advancedSettingsKeys];
                 await plugin.saveSettings();
-                new Notice("Settings display reset to defaults");
+                new Notice(t("settings.customize.reset.notice"));
                 onUpdate();
             });
         });
@@ -175,9 +176,9 @@ export function createCustomizePanel(
 
     // Header with description
     const header = customizeContainer.createDiv({ cls: "ec-customize-header" });
-    new Setting(header).setName("Customize settings display").setHeading();
+    new Setting(header).setName(t("settings.customize.name")).setHeading();
     header.createEl("p", {
-        text: "Choose which settings to show in basic or advanced sections. Settings can only appear in one section at a time.",
+        text: t("settings.customize.desc"),
         cls: "ec-customize-desc"
     });
 

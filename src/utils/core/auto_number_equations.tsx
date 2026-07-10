@@ -15,6 +15,7 @@ import { parseHeadingsInMarkdown } from "@/utils/parsers/heading_parser";
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
 import { createEquationTagString, equationBlockBracePattern,  } from "@/utils/string_processing/regexp_utils";
+import t from "@/i18n/getLocale";
 
 
 /**
@@ -276,7 +277,7 @@ export function autoNumberEquations(
         const illegal = detectIllegalEquation(eqStr);
         if (illegal >= 0) {
             const lineNumOfIllegal = lineNum + illegal;
-            new Notice(`Illegal $$ in equation block at line ${lineNumOfIllegal + 1}. Please fix it first.`);
+            new Notice(t("autoNumber.illegalEquationBlock", { line: lineNumOfIllegal + 1 }));
             throw new Error(`Markdown parsing error: Illegal nested $$ in equation block around line ${lineNumOfIllegal + 1}. This could lead to serious auto number error, so stop parsing.`);
         }
     }
@@ -322,7 +323,7 @@ export function autoNumberEquations(
 
             // detect illegal equation buffer
             if (equationBlockBracePattern.test(parseResult.singleLineEquationMatch[1])) {
-                new Notice(`Detected illegal nested $$ in single-line equation at line ${i + 1}. Please fix the equation first.`);
+                new Notice(t("autoNumber.illegalSingleLineEquation", { line: i + 1 }));
                 throw new Error(`Markdown parsing error: Illegal nested $$ in single-line equation at line ${i + 1}. This could lead to serious auto number error, so stop parsing.`);
             }
 

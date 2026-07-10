@@ -3,6 +3,7 @@ import { TagRenamePair } from "@/services/tag_service";
 import { PromiseOptionsModal, ModalOption } from "@/ui/modals/optionsModal";
 import EquationCitator from "@/main";
 import { assemblyCitationUpdateMessage } from "@/func/autoNumber";
+import { t } from "@/i18n/getLocale";
 
 
 export class TagRenameModal extends Modal {
@@ -13,7 +14,7 @@ export class TagRenameModal extends Modal {
     constructor(
         private readonly plugin: EquationCitator,
         private readonly oldTag: string, sourceFile: string,
-        private readonly heading = "Rename this tag to:"
+        private readonly heading = t("modal.tagRename.heading")
     ) {
         super(plugin.app);
     }
@@ -27,7 +28,7 @@ export class TagRenameModal extends Modal {
     }
 
     onOpen(): void {
-        this.titleEl.setText("Rename tag");
+        this.titleEl.setText(t("modal.tagRename.title"));
         this.contentEl.addClass("ec-tag-rename-modal");
         this.newTag = this.oldTag;
         // helper to perform rename (shared by button & Enter key)
@@ -41,7 +42,7 @@ export class TagRenameModal extends Modal {
         new Setting(this.contentEl)
             .setName(this.heading)
             .addText((text) => {
-                text.setPlaceholder("New tag name");
+                text.setPlaceholder(t("modal.tagRename.placeholder"));
                 text.setValue(this.oldTag);
                 text.inputEl.focus();
                 text.inputEl.select();
@@ -59,7 +60,7 @@ export class TagRenameModal extends Modal {
 
         new Setting(this.contentEl)
             .addButton((button) => {
-                button.setButtonText("Confirm");
+                button.setButtonText(t("modal.confirm"));
                 button.setCta();
                 button.onClick(triggerRename);
                 // Allow Enter when button focused (some Obsidian themes may swallow it)
@@ -71,7 +72,7 @@ export class TagRenameModal extends Modal {
                 });
             })
             .addButton((button) => {
-                button.setButtonText("Cancel");
+                button.setButtonText(t("modal.cancel"));
                 button.onClick(() => this.close());
             });
     }
@@ -111,25 +112,25 @@ export class TagRenameModal extends Modal {
         
         if (haveRepetedTags) {
             const deleteOption: ModalOption = {
-                label: "Delete",
+                label: t("modal.delete"),
                 cta: true,
                 action: ()=> callRenameTagService(true, false)
             }
             const keepOption: ModalOption = {
-                label: "Keep",
+                label: t("modal.keep"),
                 cta: false,
                 action: ()=> callRenameTagService(false, false)
             }
             const cancelOption: ModalOption = {
-                label: "Cancel",
+                label: t("modal.cancel"),
                 cta: false,
                 action: async() => {
                     return new Promise(resolve => resolve());
                 } // do nothing when cancel button is clicked
             }
             const modal = new PromiseOptionsModal(this.app,
-                "Citation conflict",
-                "There are citations with this name already, delete them or keep them?",
+                t("modal.citationConflict.title"),
+                t("modal.citationConflict.question"),
                 [deleteOption, keepOption, cancelOption])
             await modal.openWithPromise();
         }
@@ -154,25 +155,25 @@ export class TagRenameModal extends Modal {
 
         if (haveRepetedTags) {
             const deleteOption: ModalOption = {
-                label: "Delete",
+                label: t("modal.delete"),
                 cta: true,
                 action: ()=> callRenameFigureService(true, false)
             }
             const keepOption: ModalOption = {
-                label: "Keep",
+                label: t("modal.keep"),
                 cta: false,
                 action: ()=> callRenameFigureService(false, false)
             }
             const cancelOption: ModalOption = {
-                label: "Cancel",
+                label: t("modal.cancel"),
                 cta: false,
                 action: async() => {
                     return new Promise(resolve => resolve());
                 } // do nothing when cancel button is clicked
             }
             const modal = new PromiseOptionsModal(this.app,
-                "Citation conflict",
-                "There are citations with this name already, delete them or keep them?",
+                t("modal.citationConflict.title"),
+                t("modal.citationConflict.question"),
                 [deleteOption, keepOption, cancelOption])
             await modal.openWithPromise();
         }

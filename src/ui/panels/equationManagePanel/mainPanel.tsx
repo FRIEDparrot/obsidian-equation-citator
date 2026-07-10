@@ -19,6 +19,7 @@ import { EquationPanelDragDropHandler } from "./drag_drop_handler";
 import { EquationPanelOutlineViewRenderer } from "./outline_view_renderer";
 import { boxedEquationFilter } from "./box_filters";
 import { PanelItem, getItemLine, getItemTag, getItemSearchableContent, ViewMode, SortType } from "./panelItemTypes";
+import { t } from "@/i18n/getLocale";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -114,7 +115,7 @@ export class EquationArrangePanel extends ItemView {
     }
 
     getDisplayText(): string {
-        return "Equations arrange panel";
+        return t("panel.equationManage.displayText");
     }
 
     getIcon(): string {
@@ -280,14 +281,14 @@ export class EquationArrangePanel extends ItemView {
     public renderEmptyPanelView(): void {
         if (this.viewPanel) {
             const objectTypeLabels = {
-                equation: "equation",
-                figure: "figure",
-                callout: "callout"
+                equation: t("panel.equationManage.object.equation"),
+                figure: t("panel.equationManage.object.figure"),
+                callout: t("panel.equationManage.object.callout")
             };
             const objectLabel = objectTypeLabels[this.previewObjectType];
             const message = this.searchQuery
-                ? `No ${objectLabel} match your search`
-                : `No ${objectLabel} found in current file`;
+                ? t("panel.equationManage.empty.noSearchMatch", { object: objectLabel })
+                : t("panel.equationManage.empty.noFound", { object: objectLabel });
 
             this.viewPanel.createDiv({
                 text: message,
@@ -334,7 +335,7 @@ export class EquationArrangePanel extends ItemView {
         if (!activeFilePath) {
             if (this.viewPanel) {
                 this.viewPanel.empty();
-                this.viewPanel.createDiv({ text: "No active file", cls: "ec-empty-message" });
+                this.viewPanel.createDiv({ text: t("panel.equationManage.noActiveFile"), cls: "ec-empty-message" });
             }
             this.currentEquationHash = hashPanelItems([]);
             return;
@@ -346,7 +347,7 @@ export class EquationArrangePanel extends ItemView {
         if (!(currentFile instanceof TFile)) {
             if (this.viewPanel) {
                 this.viewPanel.empty();
-                this.viewPanel.createDiv({ text: "File not found", cls: "ec-empty-message" });
+                this.viewPanel.createDiv({ text: t("panel.equationManage.fileNotFound"), cls: "ec-empty-message" });
             }
             this.currentEquationHash = hashPanelItems([]);
             return;
@@ -558,7 +559,7 @@ export class EquationArrangePanel extends ItemView {
             const menu = new Menu();
 
             menu.addItem((item) => {
-                item.setTitle("Copy");
+                item.setTitle(t("context.copy"));
                 item.setIcon("copy");
                 item.onClick(() => {
                     this.handleEquationCopy(equation);

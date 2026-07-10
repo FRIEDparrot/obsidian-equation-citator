@@ -1,6 +1,7 @@
 import { Setting } from "obsidian";
 import EquationCitator from "@/main";
 import { SETTINGS_METADATA } from "../defaultSettings";
+import { t } from "@/i18n/getLocale";
 
 /**
  * All render functions for each setting in the equation panel settings tab.
@@ -42,8 +43,8 @@ export const EquationPanelSettingsTab = {
             .setName(name)
             .setDesc(desc)
             .addDropdown((dropdown) => {
-                dropdown.addOption("outline", "Outline view");
-                dropdown.addOption("list", "List view");
+                dropdown.addOption("outline", t("settings.option.outlineView"));
+                dropdown.addOption("list", t("settings.option.listView"));
                 dropdown.setValue(plugin.settings.equationManagePanelDefaultViewType);
                 dropdown.onChange(async (value) => {
                     plugin.settings.equationManagePanelDefaultViewType = value as "outline" | "list";
@@ -58,9 +59,9 @@ export const EquationPanelSettingsTab = {
             .setName(name)
             .setDesc(desc)
             .addDropdown((dropdown) => {
-                dropdown.addOption("equation", "Equations");
-                dropdown.addOption("figure", "Figures");
-                dropdown.addOption("callout", "Callouts");
+                dropdown.addOption("equation", t("toolbar.preview.equations"));
+                dropdown.addOption("figure", t("toolbar.preview.figures"));
+                dropdown.addOption("callout", t("toolbar.preview.callouts"));
                 dropdown.setValue(plugin.settings.equationManagePanelPreviewObjectType);
                 dropdown.onChange(async (value) => {
                     plugin.settings.equationManagePanelPreviewObjectType = value as "equation" | "figure" | "callout";
@@ -127,9 +128,9 @@ export const EquationPanelSettingsTab = {
             .setName(name)
             .setDesc(desc)
             .addDropdown((dropdown) => {
-                dropdown.addOption("full", "Full equation");
-                dropdown.addOption("noTag", "Without tags");
-                dropdown.addOption("eq", "Without tags and braces");
+                dropdown.addOption("full", t("settings.option.fullEquation"));
+                dropdown.addOption("noTag", t("settings.option.withoutTags"));
+                dropdown.addOption("eq", t("settings.option.withoutTagsAndBraces"));
                 dropdown.setValue(plugin.settings.equationWidgetRightClickCopyType);
                 dropdown.onChange(async (value) => {
                     plugin.settings.equationWidgetRightClickCopyType = value as "full" | "noTag" | "eq";

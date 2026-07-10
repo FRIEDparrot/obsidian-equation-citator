@@ -8,6 +8,7 @@ import { autoNumberEquations, EquationAutoNumberConfigs, getEqAutoNumberInCursor
 import { autoNumberFigures, FigAutoNumberConfigs } from "@/utils/core/auto_number_figures";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
 import { AutoNumberProceedResult } from "@/utils/core/auto_number_core";
+import t from "@/i18n/getLocale";
 
 /**
  * Restore cursor position with fallback strategies
@@ -85,7 +86,7 @@ export async function autoNumberCurrentFileEquations(plugin: EquationCitator) {
             deleteRepeatTags,
             deleteUnusedTags
         ),
-        enableTaggedOnly ? "Finished auto numbering tagged equations." : "Finished auto numbering all equations."
+        enableTaggedOnly ? t("autoNumber.doneTaggedEquations") : t("autoNumber.doneAllEquations")
     );
 }
 
@@ -121,7 +122,7 @@ export async function autoNumberCurrentFileFigures(plugin: EquationCitator) {
             deleteRepeatTags,
             deleteUnusedTags
         ),
-        enableTaggedOnly ? "Finished auto numbering tagged figures." : "Finished auto numbering all figures."
+        enableTaggedOnly ? t("autoNumber.doneTaggedFigures") : t("autoNumber.doneAllFigures")
     );
 }
 
@@ -137,7 +138,7 @@ async function executeAutoNumber(
     plugin: EquationCitator,
     processorContentCallback: (content: string) => AutoNumberProceedResult,
     updateCitationsCallback: (sourceFile: string, renamePairs: TagRenamePair[]) => Promise<TagRenameResult | undefined>,
-    doneMessage: string = "Auto numbering finished."
+    doneMessage: string = t("autoNumber.done")
 ): Promise<TagRenameResult | undefined> {
     const {
         enableUpdateTagsInAutoNumber: enableUpdateTags,
@@ -145,7 +146,7 @@ async function executeAutoNumber(
     const editor = plugin.app.workspace.activeEditor?.editor;
     const sourceFile = plugin.app.workspace.activeEditor?.file?.path;
     if (!sourceFile || !editor) {
-        new Notice("Auto number is not supported in reading mode");
+        new Notice(t("autoNumber.readingModeUnsupported"));
         return undefined;
     }
     let citationUpdateResult: TagRenameResult | undefined;
@@ -166,7 +167,7 @@ async function executeAutoNumber(
     );
     const succeed = await processor.execute();  // process current file content
     if (!succeed) {
-        new Notice("Some error occurred during auto numbering. Turn on debug mode for details.");
+        new Notice(t("autoNumber.genericError"));
         return undefined;
     }
 
@@ -224,7 +225,7 @@ export function insertAutoNumberTag(plugin: EquationCitator): void {
         }
     );
     if (!autoNumberTag) {
-        new Notice("Cursor is not in a valid equation block");
+        new Notice(t("autoNumber.cursorNotInEquation"));
         return;
     }
     const insertText = enableTypstMode ? `#label("${autoNumberTag}")` : String.raw`\tag{${autoNumberTag}}`;
@@ -235,9 +236,12 @@ export function assemblyCitationUpdateMessage(result: TagRenameResult): string {
     if (result && result.totalFilesChanged > 0) {
         const fileChanged = result.totalFilesChanged;
         const citationsChanged = result.totalCitationsChanged;
-        const msg = `Updated ${citationsChanged} citation${citationsChanged > 1 ? "s" : ""}`
-            + ` in ${fileChanged} file${fileChanged > 1 ? "s" : ""}.`;
-        return msg;
+        return t("autoNumber.updatedCitations", {
+            citations: citationsChanged,
+            citationLabel: t(citationsChanged > 1 ? "autoNumber.citation.many" : "autoNumber.citation.one"),
+            files: fileChanged,
+            fileLabel: t(fileChanged > 1 ? "autoNumber.file.many" : "autoNumber.file.one"),
+        });
     }
     else {
         return ""
