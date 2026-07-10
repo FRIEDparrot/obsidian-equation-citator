@@ -205,7 +205,7 @@ const en = {
     "settings.figAutoNumberNoHeadingPrefix.name": "Figure auto number no heading prefix",
     "settings.figAutoNumberNoHeadingPrefix.desc": "Prefix for figures without any heading level (e.g., 'F1', 'F2', etc.)",
     "settings.figAutoNumberGlobalPrefix.name": "Figure auto number global prefix",
-    "settings.figAutoNumberGlobalPrefix.desc": "Global prefix for figure auto numbering for figures without any heading level",
+    "settings.figAutoNumberGlobalPrefix.desc": "Global prefix for figure auto numbering for figures for purpose like chapter",
     "settings.enableAutoNumberFigsInQuotes.name": "Auto number figures in callouts",
     "settings.enableAutoNumberFigsInQuotes.desc": "Enable auto numbering for figures in callouts",
     "settings.enableAutoNumberTaggedFigsOnly.name": "Auto number tagged figures only",

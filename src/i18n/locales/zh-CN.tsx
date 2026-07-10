@@ -205,7 +205,7 @@ const zh = {
     "settings.figAutoNumberNoHeadingPrefix.name": "无标题时图表自动编号前缀",
     "settings.figAutoNumberNoHeadingPrefix.desc": "无任何标题级别时图表的前缀（例如 'F1'、'F2' 等）",
     "settings.figAutoNumberGlobalPrefix.name": "图表自动编号全局前缀",
-    "settings.figAutoNumberGlobalPrefix.desc": "无标题级别时图表自动编号的全局前缀",
+    "settings.figAutoNumberGlobalPrefix.desc": "设置图表自动编号的全局前缀， 用于章节等场景",
     "settings.enableAutoNumberFigsInQuotes.name": "标注内图表自动编号",
     "settings.enableAutoNumberFigsInQuotes.desc": "启用标注内图表的自动编号",
     "settings.enableAutoNumberTaggedFigsOnly.name": "仅自动编号带标签的图表",
