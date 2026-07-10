@@ -5,6 +5,7 @@ import { Application } from "typedoc";
 import process from "node:process";
 import {
     collectFiles,
+    encodeHrefPath,
     normalizePath,
     pathExists,
     prettyTitleFromName,
@@ -29,6 +30,8 @@ import {
     CHANGELOGS_ROOT,
     TUTORIALS_ROOT,
     markdownEnvPath,
+    withBaseRoot,
+    BASE_ROOT,
 } from "./docs-pages/site-config.mjs";
 
 const require = createRequire(import.meta.url);
@@ -44,7 +47,9 @@ const repositoryRoot = process.cwd();
 const docsPagesRoot = path.join(repositoryRoot, "scripts", "docs-pages");
 const readmePath = path.join(repositoryRoot, "README.md");
 const readmeZhPath = path.join(repositoryRoot, "README-zh-CN.md");
-const docsRoot = path.join(repositoryRoot, "docs");
+
+// This is to set the docs Root folder  
+const docsRoot = path.join(repositoryRoot, "docs" + BASE_ROOT);
 const docsApiRoot = path.join(docsRoot, "api");
 const docsAssetsRoot = path.join(docsRoot, "assets");
 const imageRoot = path.join(repositoryRoot, "img");
@@ -167,10 +172,15 @@ async function writeSharedAssets() {
         path.join(docsAssetsRoot, "katex", "fonts"),
         { recursive: true }
     );
+    const equationCitatorRuntimePath = require.resolve("@friedparrot/equation-citator/runtime");
     await fs.mkdir(path.join(docsAssetsRoot, "equation-citator"), { recursive: true });
     await fs.copyFile(
-        require.resolve("@friedparrot/equation-citator/runtime"),
+        equationCitatorRuntimePath,
         path.join(docsAssetsRoot, "equation-citator", "runtime.js")
+    );
+    await fs.copyFile(
+        `${equationCitatorRuntimePath}.map`,
+        path.join(docsAssetsRoot, "equation-citator", "runtime.js.map")
     );
 }
 
@@ -207,10 +217,11 @@ async function renderSectionPages(section, navigation) {
         const renderedPage = renderMarkdownDocument(transformedMarkdown, getMarkdownFileTitle(pageInfo.sourcePath), {
             markdownPath: markdownEnvPath(sourcePathForMarkdownEnv(pageInfo.sourcePath), GENERATED_SOURCE_ROOT),
         });
+        const pageContentHtml = normalizeGeneratedPageRouteLinks(stripLeadingHeading(renderedPage.contentHtml), navigation);
         const pageHtml = buildStandardDocsPage({
             pageTitle: renderedPage.pageHeading,
             pageHeading: renderedPage.pageHeading,
-            pageContentHtml: stripLeadingHeading(renderedPage.contentHtml),
+            pageContentHtml,
             currentSection: pageInfo.sectionKey,
             currentPageHref: pageInfo.siteHref,
             navigation,
@@ -222,7 +233,7 @@ async function renderSectionPages(section, navigation) {
     }
 }
 
-async function buildSectionIntroHtml(section) {
+async function buildSectionIntroHtml(section, navigation) {
     if (!section.introPageInfo) {
         return "";
     }
@@ -232,7 +243,7 @@ async function buildSectionIntroHtml(section) {
     const renderedPage = renderMarkdownDocument(transformedMarkdown, getMarkdownFileTitle(section.introPageInfo.sourcePath), {
         markdownPath: markdownEnvPath(sourcePathForMarkdownEnv(section.introPageInfo.sourcePath), GENERATED_SOURCE_ROOT),
     });
-    return stripLeadingHeading(renderedPage.contentHtml);
+    return normalizeGeneratedPageRouteLinks(stripLeadingHeading(renderedPage.contentHtml), navigation);
 }
 
 async function buildTypeDocApi() {
@@ -322,7 +333,7 @@ async function writeApiLandingPage(navigation) {
 async function writeSectionIndex(section, navigation) {
     const outputFilePath = path.join(section.outputRoot, "index.html");
     const title = prettyTitleFromName(section.sectionKey);
-    const introHtml = await buildSectionIntroHtml(section);
+    const introHtml = await buildSectionIntroHtml(section, navigation);
     const pageHtml = buildStandardDocsPage({
         pageTitle: title,
         pageHeading: title,
@@ -332,7 +343,7 @@ async function writeSectionIndex(section, navigation) {
             description: "",
             introHtml,
             cards: section.pages.map(page => ({
-                href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
+                href: withBaseRoot(page.siteHref),
                 title: page.title,
                 description: page.description,
                 readingTimeLabel: page.readingTimeLabel,
@@ -385,7 +396,8 @@ async function copyDocsLandingPageAssets(localeDocsRoot) {
 
 async function writeRootRedirect() {
     const outputFilePath = path.join(docsRoot, "index.html");
-    const pageHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=en/index.html"><link rel="canonical" href="en/index.html"><title>Equation Citator Documentation</title></head><body><p><a href="en/index.html">Open Equation Citator documentation</a></p></body></html>';
+    const defaultLocaleHref = withBaseRoot("en/index.html");
+    const pageHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=${defaultLocaleHref}"><link rel="canonical" href="${defaultLocaleHref}"><title>Equation Citator Documentation</title></head><body><p><a href="${defaultLocaleHref}">Open Equation Citator documentation</a></p></body></html>`;
     await writeFile(outputFilePath, pageHtml);
 }
 
@@ -399,6 +411,51 @@ function sourcePathForMarkdownEnv(sourcePath) {
 
 function getDocsRelativeHref(filePath) {
     return normalizePath(path.relative(docsRoot, filePath));
+}
+
+function normalizeGeneratedPageRouteLinks(contentHtml, navigation) {
+    let normalizedHtml = contentHtml;
+    for (const { shortHref, fullHref } of buildGeneratedPageRouteReplacements(navigation)) {
+        const routeBoundaryPattern = new RegExp(`${escapeRegExp(shortHref)}(?=$|[#"'<&\\s])`, "g");
+        normalizedHtml = normalizedHtml.replace(routeBoundaryPattern, fullHref);
+    }
+
+    return normalizedHtml.replace(docsPageRoutePattern(), (match, routePath, hashOrBoundary = "") => {
+        if (routePath.endsWith("/index.html") || hasStaticAssetExtension(routePath)) {
+            return match;
+        }
+
+        return `${routePath}/index.html${hashOrBoundary}`;
+    });
+}
+
+function buildGeneratedPageRouteReplacements(navigation) {
+    const pages = [
+        ...navigation.tutorials,
+        ...navigation.changelogs,
+    ];
+    return pages
+        .map(page => encodeHrefPath(withBaseRoot(page.siteHref)))
+        .filter(href => /\/index\.html$/i.test(href))
+        .map(fullHref => ({
+            fullHref,
+            shortHref: fullHref.replace(/\/index\.html$/i, ""),
+        }))
+        .filter(({ shortHref, fullHref }) => shortHref !== fullHref);
+}
+
+function escapeRegExp(text) {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function docsPageRoutePattern() {
+    const baseRoot = escapeRegExp(withBaseRoot(""));
+    return new RegExp(`(${baseRoot}(?:tutorials|changelogs)/[^#"'<&\\s]+?)(#|(?=$|["'<&\\s]))`, "g");
+}
+
+function hasStaticAssetExtension(routePath) {
+    const lastSegment = routePath.split("/").at(-1) ?? "";
+    return /\.(?:apng|avif|bmp|css|gif|ico|jpeg|jpg|js|json|map|md|mjs|pdf|png|svg|webp|woff2?|xml)$/i.test(lastSegment);
 }
 
 await main();

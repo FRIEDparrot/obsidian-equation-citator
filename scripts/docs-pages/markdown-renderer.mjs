@@ -1,9 +1,7 @@
 import { createRequire } from "node:module";
 import {
     normalizePath,
-    slugifyPathSegment,
     stripFrontmatter,
-    uniquifySlug,
 } from "./docs-utils.mjs";
 import { equationCitatorPathMapping } from "./site-config.mjs";
 
@@ -31,7 +29,6 @@ export function transformMarkdownForSection(markdown) {
  * source filename, rather than inferred from the Markdown H1.
  */
 export function renderMarkdownDocument(markdown, pageHeading, env = {}) {
-    const headingIds = new Map();
     const tocItems = [];
     const markdownIt = new MarkdownIt({
         html: true,
@@ -46,18 +43,19 @@ export function renderMarkdownDocument(markdown, pageHeading, env = {}) {
         enableObsidianLinks: true,
         logEmbedLinkRemapping: true,
         pathMapping: equationCitatorPathMapping,
+        useHeadingIdSlug: true,
     });
     markdownIt.renderer.rules.image = renderMappedMarkdownImage;
 
     markdownIt.renderer.rules.heading_open = (tokens, index) => {
         const inlineToken = tokens[index + 1];
         const headingText = inlineToken?.content ?? "";
-        const baseSlug = slugifyPathSegment(headingText) || slugifyPathSegment(pageHeading);
-        const headingId = uniquifySlug(baseSlug, headingIds);
-        tokens[index].attrSet("id", headingId);
+        const headingId = tokens[index].attrGet("id");
 
         const headingLevel = Number(tokens[index].tag.slice(1));
-        tocItems.push({ level: headingLevel, text: headingText, id: headingId });
+        if (headingId) {
+            tocItems.push({ level: headingLevel, text: headingText, id: headingId });
+        }
         return markdownIt.renderer.renderToken(tokens, index, markdownIt.options);
     };
 

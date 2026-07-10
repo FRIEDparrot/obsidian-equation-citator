@@ -4,7 +4,6 @@ import {
     collectFiles,
     normalizePath,
     prettyTitleFromName,
-    slugifyPathSegment,
     stripFrontmatter,
     stripHtmlTags,
 } from "./docs-utils.mjs";
@@ -103,7 +102,7 @@ async function buildPageInfo({
     const title = getMarkdownFileTitle(sourceFilePath);
     const description = extractDocumentDescription(sourceMarkdown);
     const readingTimeLabel = estimateReadingTimeLabel(sourceMarkdown);
-    const urlFromSectionRoot = forceIndex ? "index.html" : buildSectionOutputPath(sectionKey, relativeSourcePath, pageContext);
+    const urlFromSectionRoot = forceIndex ? "index.html" : buildSectionOutputPath(relativeSourcePath);
     const outputPath = path.join(outputBasePath, urlFromSectionRoot);
     const siteHref = normalizePath(path.relative(docsRoot, outputPath));
 
@@ -144,25 +143,13 @@ function getPageOrderRank(pageInfo, { tutorialsSectionKey }) {
     return 100;
 }
 
-function buildSectionOutputPath(sectionKey, relativeSourcePath, { tutorialsSectionKey, changelogsSectionKey }) {
+function buildSectionOutputPath(relativeSourcePath) {
     const normalizedPath = normalizePath(relativeSourcePath);
-    if (sectionKey === tutorialsSectionKey) {
-        if (normalizedPath === "Quick Start.md") return "quick-start.html";
-        if (normalizedPath === "Useful Tricks & techniques.md") return "useful-tricks-techniques.html";
-        if (normalizedPath === "useful css snippets/README.md") return "useful-css-snippets/index.html";
-    }
-
-    if (sectionKey === changelogsSectionKey) {
-        if (normalizedPath === "CHANGELOG-1.3.x.md") return "series-1-3-x.html";
-        if (normalizedPath === "CHANGELOG-1.2.x.md") return "series-1-2-x.html";
-        if (normalizedPath === "CHANGELOG-1.0-1.1.md" || normalizedPath === "CHANGELOG-1.1.x.md") return "series-1-0-1-1.html";
-    }
-
     const parsedPath = path.parse(normalizedPath);
     const directory = normalizePath(parsedPath.dir);
     const fileName = parsedPath.name.toLowerCase() === "readme" ?
         "index.html" :
-        `${slugifyPathSegment(parsedPath.name)}.html`;
+        path.join(parsedPath.name, "index.html");
     return directory ? normalizePath(path.join(directory, fileName)) : fileName;
 }
 

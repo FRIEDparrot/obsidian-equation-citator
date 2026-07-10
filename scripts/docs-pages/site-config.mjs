@@ -6,18 +6,29 @@ export const SOURCE_REPOSITORY_URL = `https://github.com/${SOURCE_REPOSITORY}`;
 export const TYPE_DOC_SOURCE_LINK_TEMPLATE = `${SOURCE_REPOSITORY_URL}/blob/master/{path}#L{line}`;
 
 export const GENERATED_SOURCE_ROOT = "/";
-export const BASE_ROOT = "" // "/projects/obsidian-equation-citator/";
+export const BASE_ROOT = "/projects/obsidian-equation-citator/";
 export const TUTORIALS_ROOT = "/tutorials";
 export const CHANGELOGS_ROOT = "/changelogs";
 
 
 export const equationCitatorPathMapping =  [
-    {  [ BASE_ROOT + TUTORIALS_ROOT]:  TUTORIALS_ROOT },
-    {  [ BASE_ROOT + CHANGELOGS_ROOT]:  CHANGELOGS_ROOT },
+    {  [ withBaseRoot(TUTORIALS_ROOT)]:  TUTORIALS_ROOT },
+    {  [ withBaseRoot(CHANGELOGS_ROOT)]:  CHANGELOGS_ROOT },
 ];
 
 function normalizeWebPath(filePath) {
     return String(filePath).replaceAll("\\", "/").replace(/^\/+/, "");
+}
+
+export function withBaseRoot(filePath) {
+    const normalizedBaseRoot = trimTrailingSlashes(String(BASE_ROOT || "").replaceAll("\\", "/"));
+    const normalizedPath = normalizeWebPath(filePath);
+
+    if (!normalizedBaseRoot || normalizedBaseRoot === "/") {
+        return normalizedPath ? `/${normalizedPath}` : "/";
+    }
+
+    return normalizedPath ? `${normalizedBaseRoot}/${normalizedPath}` : `${normalizedBaseRoot}/`;
 }
 
 export function markdownEnvPath(sourcePath, generatedSourceRoot = GENERATED_SOURCE_ROOT) {

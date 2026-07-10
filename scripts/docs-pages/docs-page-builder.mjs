@@ -10,6 +10,7 @@ import {
     buildSidebarHtml,
     buildToolbarLinksHtml,
 } from "./page-shell.mjs";
+import { withBaseRoot } from "./site-config.mjs";
 
 function buildApiReferenceSectionHtml({ currentPageHref, currentPageLabel }) {
     const currentPageFileHref = normalizePath(path.basename(currentPageHref));
@@ -90,39 +91,39 @@ export function createDocsPageBuilder({
     }
 
 
-    function buildLanguageOptions({ currentLocale, currentPageHref, outputFilePath }) {
+    function buildLanguageOptions({ currentLocale, currentPageHref }) {
         return supportedLocales.map(locale => {
-            const targetPath = getLocaleSwitchTargetPath(locale, currentPageHref);
+            const targetHref = getLocaleSwitchTargetHref(locale, currentPageHref);
             return {
-                href: normalizePath(path.relative(path.dirname(outputFilePath), targetPath)),
+                href: relativeSiteHref(currentPageHref, targetHref),
                 label: localeLabels.get(locale) ?? locale,
                 isActive: locale === currentLocale,
             };
         });
     }
 
-    function getLocaleSwitchTargetPath(locale, currentPageHref) {
+    function getLocaleSwitchTargetHref(locale, currentPageHref) {
         const normalizedHref = normalizePath(currentPageHref);
         const parts = normalizedHref.split("/");
 
         if (supportedLocales.includes(parts[0])) {
-            return path.join(docsRoot, locale, ...parts.slice(1));
+            return normalizePath(path.join(locale, ...parts.slice(1)));
         }
 
         if ((parts[0] === tutorialsSectionKey || parts[0] === changelogsSectionKey) && supportedLocales.includes(parts[1])) {
-            return path.join(docsRoot, parts[0], locale, ...parts.slice(2));
+            return normalizePath(path.join(parts[0], locale, ...parts.slice(2)));
         }
 
-        return path.join(docsRoot, locale, "index.html");
+        return normalizePath(path.join(locale, "index.html"));
     }
 
     function buildShellModel({ currentSection, currentPageHref, outputFilePath, navigation, extraSidebarHtml = "" }) {
-        const homeHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(navigation.localeDocsRoot, "index.html")));
-        const tutorialsIndexHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(navigation.tutorialSection.outputRoot, "index.html")));
-        const changelogsIndexHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(navigation.changelogSection.outputRoot, "index.html")));
-        const apiIndexHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(docsApiRoot, "index.html")));
-        const modulesHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(docsApiRoot, "modules.html")));
-        const hierarchyHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(docsApiRoot, "hierarchy.html")));
+        const homeHref = relativeSiteHref(currentPageHref, getDocsRelativeHref(path.join(navigation.localeDocsRoot, "index.html")));
+        const tutorialsIndexHref = relativeSiteHref(currentPageHref, getDocsRelativeHref(path.join(navigation.tutorialSection.outputRoot, "index.html")));
+        const changelogsIndexHref = relativeSiteHref(currentPageHref, getDocsRelativeHref(path.join(navigation.changelogSection.outputRoot, "index.html")));
+        const apiIndexHref = relativeSiteHref(currentPageHref, "api/index.html");
+        const modulesHref = relativeSiteHref(currentPageHref, "api/modules.html");
+        const hierarchyHref = relativeSiteHref(currentPageHref, "api/hierarchy.html");
         const docsAssetsHref = normalizePath(path.relative(path.dirname(outputFilePath), docsAssetsRoot));
         const typedocAssetsHref = normalizePath(path.relative(path.dirname(outputFilePath), path.join(docsApiRoot, "assets")));
         const typedocBaseHref = ensureTrailingSlash(normalizePath(path.relative(path.dirname(outputFilePath), docsApiRoot))) || "./";
@@ -130,12 +131,12 @@ export function createDocsPageBuilder({
         const hasChangelogSection = Boolean(navigation.changelogSection);
 
         const tutorialLinks = navigation.tutorials.map(page => ({
-                href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
+                href: relativeSiteHref(currentPageHref, page.siteHref),
                 label: page.title,
                 isActive: normalizedCurrentHref === normalizePath(page.siteHref),
             }));
         const changelogLinks = navigation.changelogs.map(page => ({
-                href: normalizePath(path.relative(path.dirname(outputFilePath), page.outputPath)),
+                href: relativeSiteHref(currentPageHref, page.siteHref),
                 label: page.title,
                 isActive: normalizedCurrentHref === normalizePath(page.siteHref),
             }));
@@ -182,7 +183,6 @@ export function createDocsPageBuilder({
                 languageOptions: buildLanguageOptions({
                     currentLocale: navigation.locale,
                     currentPageHref: normalizedCurrentHref,
-                    outputFilePath,
                 }),
                 sections: sidebarSections,
                 extraHtml: extraSidebarHtml,
@@ -192,6 +192,11 @@ export function createDocsPageBuilder({
 
     function getDocsRelativeHref(filePath) {
         return normalizePath(path.relative(docsRoot, filePath));
+    }
+
+    function relativeSiteHref(currentPageHref, targetPageHref) {
+        void currentPageHref;
+        return withBaseRoot(targetPageHref);
     }
 
     return {

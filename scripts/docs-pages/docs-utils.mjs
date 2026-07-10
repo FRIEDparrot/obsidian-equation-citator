@@ -30,6 +30,23 @@ export function escapeHtml(text) {
         .replaceAll("\"", "&quot;");
 }
 
+export function encodeHrefPath(href) {
+    if (!href || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(href)) {
+        return href;
+    }
+
+    const [pathAndQuery, hashPart] = href.split("#", 2);
+    const [pathPart, queryPart] = pathAndQuery.split("?", 2);
+    const encodedPath = pathPart
+        .split("/")
+        .map(segment => segment === "." || segment === ".." ? segment : encodeURIComponent(segment))
+        .join("/");
+    const querySuffix = queryPart === undefined ? "" : `?${queryPart}`;
+    const hashSuffix = hashPart === undefined ? "" : `#${encodeURIComponent(hashPart)}`;
+
+    return `${encodedPath}${querySuffix}${hashSuffix}`;
+}
+
 export function stripHtmlTags(text) {
     return text.replace(/<[^>]+>/g, "").trim();
 }
@@ -50,21 +67,6 @@ export function stripFrontmatter(markdown) {
     }
 
     return normalizedMarkdown.slice(endIndex + "\n---".length);
-}
-
-export function uniquifySlug(baseSlug, slugCounts) {
-    const currentCount = slugCounts.get(baseSlug) ?? 0;
-    slugCounts.set(baseSlug, currentCount + 1);
-    return currentCount === 0 ? baseSlug : `${baseSlug}-${currentCount + 1}`;
-}
-
-export function slugifyPathSegment(text) {
-    return text
-        .normalize("NFKD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
-        .replace(/^-+|-+$/g, "");
 }
 
 export async function writeFile(filePath, content) {

@@ -1,9 +1,15 @@
+import { encodeHrefPath } from "./docs-utils.mjs";
+
 function escapeHtml(text) {
     return String(text)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll("\"", "&quot;");
+}
+
+function escapeHref(href) {
+    return escapeHtml(encodeHrefPath(href));
 }
 
 export function buildToolbarLinksHtml(links) {
@@ -15,7 +21,7 @@ export function buildToolbarLinksHtml(links) {
         .map(link => {
             const activeClass = link.isActive ? " ec-toolbar-link-active" : "";
             const externalAttrs = link.isExternal ? ' target="_blank" rel="noopener noreferrer"' : "";
-            return `<a class="ec-toolbar-link${activeClass}" href="${escapeHtml(link.href)}"${externalAttrs}>${escapeHtml(link.label)}</a>`;
+            return `<a class="ec-toolbar-link${activeClass}" href="${escapeHref(link.href)}"${externalAttrs}>${escapeHtml(link.label)}</a>`;
         })
         .join("");
 
@@ -27,12 +33,12 @@ export function buildSidebarHtml({ homeHref, logoLightHref, logoDarkHref, langua
         .map(section => {
             const activeClass = section.isActive ? " ec-sidebar-group-active" : "";
             const titleHtml = section.href ?
-                `<a class="ec-sidebar-group-title ec-sidebar-group-title-link" href="${escapeHtml(section.href)}">${escapeHtml(section.title)}</a>` :
+                `<a class="ec-sidebar-group-title ec-sidebar-group-title-link" href="${escapeHref(section.href)}">${escapeHtml(section.title)}</a>` :
                 `<div class="ec-sidebar-group-title">${escapeHtml(section.title)}</div>`;
             const linksHtml = section.links
                 .map(link => {
                     const linkActiveClass = link.isActive ? " ec-nav-link-active" : "";
-                    return `<a class="ec-nav-link${linkActiveClass}" href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`;
+                    return `<a class="ec-nav-link${linkActiveClass}" href="${escapeHref(link.href)}">${escapeHtml(link.label)}</a>`;
                 })
                 .join("");
 
@@ -47,13 +53,13 @@ export function buildSidebarHtml({ homeHref, logoLightHref, logoDarkHref, langua
     const languageOptionsHtml = languageOptions
         .map(option => {
             const selectedAttribute = option.isActive ? " selected" : "";
-            return `<option value="${escapeHtml(option.href)}"${selectedAttribute}>${escapeHtml(option.label)}</option>`;
+            return `<option value="${escapeHref(option.href)}"${selectedAttribute}>${escapeHtml(option.label)}</option>`;
         })
         .join("");
 
     return [
         '<nav class="tsd-navigation ec-docs-sidebar">',
-        `  <a class="ec-brand" href="${escapeHtml(homeHref)}">`,
+        `  <a class="ec-brand" href="${escapeHref(homeHref)}">`,
         '    <span class="ec-brand-mark">',
         `      <img class="ec-brand-logo ec-brand-logo-light" src="${escapeHtml(logoLightHref)}" alt="Equation Citator logo">`,
         `      <img class="ec-brand-logo ec-brand-logo-dark" src="${escapeHtml(logoDarkHref)}" alt="Equation Citator logo">`,
@@ -83,6 +89,21 @@ export function buildThemeToggleHtml() {
     ].join("");
 }
 
+export function buildSearchControlsHtml({ typedocAssetsHref }) {
+    const iconsHref = `${escapeHtml(typedocAssetsHref)}/icons.svg`;
+
+    return [
+        '<button id="tsd-search-trigger" class="tsd-widget" aria-label="Search">',
+        `  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="${iconsHref}#icon-search"></use></svg>`,
+        '</button>',
+        '<dialog id="tsd-search" aria-label="Search">',
+        '  <input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100">',
+        '  <ul role="listbox" id="tsd-search-results"></ul>',
+        '  <div id="tsd-search-status" aria-live="polite" aria-atomic="true"><div>Preparing search index...</div></div>',
+        '</dialog>',
+    ].join("");
+}
+
 export function buildOnPageTocHtml(tocItems) {
     const filteredItems = tocItems.filter(item => item.level === 2 || item.level === 3);
     if (filteredItems.length === 0) {
@@ -90,7 +111,7 @@ export function buildOnPageTocHtml(tocItems) {
     }
 
     const linksHtml = filteredItems
-        .map(item => `<a href="#${escapeHtml(item.id)}"><span>${escapeHtml(item.text)}</span></a>`)
+        .map(item => `<a href="#${escapeHtml(encodeURIComponent(item.id))}"><span>${escapeHtml(item.text)}</span></a>`)
         .join("");
 
     return [
@@ -114,7 +135,7 @@ export function buildSectionIndexContentHtml({ title, description, introHtml, ca
         [
             `<div class="ec-section-card-grid" aria-label="${escapeHtml(title)} pages">`,
             ...cards.map(card => [
-                `  <a class="ec-section-card" href="${escapeHtml(card.href)}">`,
+                `  <a class="ec-section-card" href="${escapeHref(card.href)}">`,
                 `    <h2>${escapeHtml(card.title)}</h2>`,
                 card.description ? `    <p>${escapeHtml(card.description)}</p>` : "",
                 `    <span class="ec-section-card-time">${escapeHtml(card.readingTimeLabel)}</span>`,
@@ -155,6 +176,7 @@ export function buildDocsPageHtml({
   <link rel="stylesheet" href="${escapeHtml(typedocAssetsHref)}/highlight.css">
   <script defer src="${escapeHtml(typedocAssetsHref)}/main.js"></script>
   <script async src="${escapeHtml(typedocAssetsHref)}/icons.js" id="tsd-icons-script"></script>
+  <script async src="${escapeHtml(typedocAssetsHref)}/search.js" id="tsd-search-script"></script>
   <script type="module">
     import { install } from "${escapeHtml(docsAssetsHref)}/equation-citator/runtime.js";
     install();
@@ -168,8 +190,9 @@ export function buildDocsPageHtml({
   <header class="tsd-page-toolbar">
     <div class="tsd-toolbar-contents container">
       <div class="ec-toolbar-spacer" aria-hidden="true"></div>
-      <a href="${escapeHtml(titleHref)}" class="title ec-site-title">${escapeHtml(siteTitle)}</a>
+      <a href="${escapeHref(titleHref)}" class="title ec-site-title">${escapeHtml(siteTitle)}</a>
       <div id="tsd-toolbar-links">${toolbarLinksHtml}</div>
+      ${buildSearchControlsHtml({ typedocAssetsHref })}
     </div>
   </header>
   <div class="container container-main">

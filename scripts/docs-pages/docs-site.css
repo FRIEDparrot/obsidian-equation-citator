@@ -5,42 +5,66 @@ body.ec-typedoc-page {
 }
 
 .tsd-toolbar-contents.container {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto auto;
+  display: flex;
   gap: 0.75rem;
   align-items: center;
 }
 
 .ec-toolbar-spacer {
-  min-width: 0;
+  display: none;
 }
 
 .tsd-page-toolbar a.title.ec-site-title,
 .tsd-page-toolbar a.title {
-  grid-column: 2;
-  justify-self: center;
-  text-align: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(28rem, 46vw);
+  margin-right: auto;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 #tsd-toolbar-links {
-  grid-column: 3;
-  justify-self: end;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+  margin-right: 0;
+  overflow: hidden;
 }
 
 .ec-toolbar-links {
-  display: inline-flex;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1rem;
+  overflow: hidden;
 }
 
 .ec-toolbar-link {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 9rem;
   color: var(--color-text-aside);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-decoration: none;
   text-underline-offset: 0.2em;
+}
+
+.ec-toolbar-link[href^="http"] {
+  max-width: 6.75rem;
+}
+
+#tsd-search-trigger,
+#tsd-toolbar-menu-trigger {
+  flex: 0 0 2.5rem;
 }
 
 .ec-toolbar-link-active {
@@ -414,17 +438,19 @@ html[data-theme="os"] .ec-brand-logo-dark {
   padding: 0.35rem 0;
 }
 
-@media (max-width: 960px) {
-  .tsd-toolbar-contents.container {
-    grid-template-columns: 1fr;
+@media (max-width: 900px) {
+  .ec-toolbar-link[href^="http"] {
+    display: none;
+  }
+}
+
+@media (max-width: 769px) {
+  #tsd-toolbar-links {
+    display: none;
   }
 
   .tsd-page-toolbar a.title.ec-site-title,
-  .tsd-page-toolbar a.title,
-  #tsd-toolbar-links {
-    grid-column: auto;
-    justify-self: start;
-    white-space: normal;
-    text-align: left;
+  .tsd-page-toolbar a.title {
+    max-width: calc(100vw - 7rem);
   }
 }
