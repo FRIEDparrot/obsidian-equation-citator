@@ -258,7 +258,7 @@ Bug fixes, improvements on PDF export function, added :
 - [x] Added batch markdown export command `Sync repository to the website notes folder` to sync the entire repository to the target website notes folder.
 - [x] Added `sync files/folders to the website notes folder` options to the file explorer, Added `sync current file to website notes folder` command.
 - [x] Added Option `Render image captions and descriptions` in settingsTab for the rendering of image captions/descriptions 
-- [ ] **Added support for Chinese translation of the SettingsTab Options and Commands** 
+- [x] **Added support for Chinese translation for all the UI of the SettingsTab options, Tooltips and Commands**
 
 📖 Documetations : 
 
@@ -277,7 +277,7 @@ Bug fixes, improvements on PDF export function, added :
 - [x] fixed critical [#173](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/173), the PDF export can work correctly at the case some disturbing dollars are put inline. 
 - [x] fixed [#172](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/172), when export without meta-data, the image width are still kept. 
 - [x] fixed [#175](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/175), add recognition for native svg element of excalidraw when adding the caption and description for figures
-
+- [x] fixed [#177](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/177), the caption and description is rendered by markdown grammar in options part. 
 
 🏗️ refactors : 
 

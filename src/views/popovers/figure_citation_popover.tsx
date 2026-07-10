@@ -152,7 +152,7 @@ export function renderFigureWrapper(
     const markdownRendererExtensions = new Set(plugin.settings.extensionsUseMarkdownRenderer);
 
     renderFigureImage(plugin, fig, elements.imageContainer, targetComponent, markdownRendererExtensions);
-    renderFigureMetadata(plugin, fig, elements.figureContentDiv);
+    renderFigureMetadata(plugin, fig, elements.figureContentDiv, targetComponent);
     addClickEffects(elements.figureWrapper);
 
     if (addLinkJump && fig.sourcePath) {
@@ -313,7 +313,8 @@ function renderFigureImage(
 function renderFigureMetadata(
     plugin: EquationCitator,
     fig: RenderedFigure,
-    figureContentDiv: HTMLElement
+    figureContentDiv: HTMLElement,
+    targetComponent: Component
 ): void {
     if (!plugin.settings.enableRenderFigureInfoInPreview || (!fig.title && !fig.desc)) {
         return;
@@ -325,7 +326,7 @@ function renderFigureMetadata(
     if (fig.title) {
         const titleDiv = metadataDiv.createDiv();
         titleDiv.addClass("em-figure-title");
-        titleDiv.textContent = fig.title;
+        renderFigureMetadataMarkdown(plugin, titleDiv, fig.title, fig.sourcePath, targetComponent);
     }
 
     if (!fig.desc) {
@@ -334,7 +335,17 @@ function renderFigureMetadata(
 
     const descDiv = metadataDiv.createDiv();
     descDiv.addClass("em-figure-desc");
-    descDiv.textContent = fig.desc;
+    renderFigureMetadataMarkdown(plugin, descDiv, fig.desc, fig.sourcePath, targetComponent);
+}
+
+function renderFigureMetadataMarkdown(
+    plugin: EquationCitator,
+    container: HTMLElement,
+    markdownText: string,
+    sourcePath: string | null,
+    targetComponent: Component
+): void {
+    void MarkdownRenderer.render(plugin.app, markdownText, container, sourcePath ?? '', targetComponent);
 }
 
 /**

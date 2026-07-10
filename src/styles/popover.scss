@@ -612,6 +612,12 @@
     text-align: center;
 }
 
+.em-figure-title p,
+.em-figure-desc p {
+    display: block;
+    margin: 0;
+}
+
 /* Figure error message */
 .em-figure-error {
     color: var(--em-text-error);
