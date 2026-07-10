@@ -62,7 +62,7 @@ export default class EquationCitator extends Plugin {
     async loadSettings() {
         this.settings = { ...DEFAULT_SETTINGS, ...await this.loadData() };
         Debugger.debugMode = this.settings.debugMode;  // set debug mode from settings 
-        loadStyles();
+        loadStyles(this.settings);
         this.upDateEditorExtensions();
     }
 
@@ -181,6 +181,7 @@ export default class EquationCitator extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+        loadStyles(this.settings);
         this.upDateEditorExtensions();
     }
 

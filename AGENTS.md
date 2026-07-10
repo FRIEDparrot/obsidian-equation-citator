@@ -75,3 +75,8 @@
 ## Translation 
 
 Don't change zh-CN.tsx unless I explicitly specify that.  Since there would be some encoding issues. 
+
+
+## Obsidian Plugin rules  
+
+1. Never insert any .style = xxx code into the script, use scss file instead. 

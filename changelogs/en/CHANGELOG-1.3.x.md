@@ -258,7 +258,7 @@ Bug fixes, improvements on PDF export function, added :
 - [x] Added batch markdown export command `Sync repository to the website notes folder` to sync the entire repository to the target website notes folder.
 - [x] Added `sync files/folders to the website notes folder` options to the file explorer, Added `sync current file to website notes folder` command.
 - [x] Added Option `Render image captions and descriptions` in settingsTab for the rendering of image captions/descriptions 
-- [x] **Added support for Chinese translation for all the UI of the SettingsTab options, Tooltips and Commands**
+- [x] **Added support for Chinese translation for all the UI of the SettingsTab options, Tooltips and Commands** (Check [PR #176](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/176))
 
 Improvements :
 - [x] Adjusted the style of figure preview widget for better width limit, now checking the figure preview widget does not need horizontal scrolling. 

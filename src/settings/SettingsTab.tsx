@@ -1,6 +1,6 @@
 import EquationCitator from "@/main";
 import { PluginSettingTab, App, Setting, Notice, setIcon } from "obsidian";
-import { DEFAULT_SETTINGS } from "./defaultSettings";
+import { DEFAULT_SETTINGS, EquationCitatorSettings } from "./defaultSettings";
 import { WidgetSizeManager } from "./styleManagers/widgetSizeManager";
 
 import { addPdfExportSettingsTab } from "@/settings/pages/pdfExportSettingsTab";
@@ -24,9 +24,9 @@ export interface UserSettingGroupConfig {
 }
 
 //#region Style Settings Utilities
-export function loadStyles(): void {
-    WidgetSizeManager.updateFromSettings(DEFAULT_SETTINGS);
-    CalloutTableStyleManager.update(DEFAULT_SETTINGS);
+export function loadStyles(settings: EquationCitatorSettings): void {
+    WidgetSizeManager.updateFromSettings(settings);
+    CalloutTableStyleManager.update(settings);
 }
 
 export function resetStyles(): void {

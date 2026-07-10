@@ -16,6 +16,12 @@ export const WIDGET_SIZE_LABELS: Record<WidgetSize, string> = {
     [WidgetSize.ExtraLarge]: 'Extra Large (800x600)'
 };
 
+const WIDGET_SIZE_VALUES = new Set<string>(Object.values(WidgetSize));
+
+function isWidgetSize(size: string): size is WidgetSize {
+    return WIDGET_SIZE_VALUES.has(size);
+}
+
 export class WidgetSizeManager {
     private static currentSize: WidgetSize = WidgetSize.Medium;
 
@@ -52,7 +58,7 @@ export class WidgetSizeManager {
      */
     static updateFromSettings(settings: EquationCitatorSettings): void {
         const sizeStr = settings.citationPopoverSize || 'md';
-        this.currentSize = sizeStr as WidgetSize;
+        this.currentSize = isWidgetSize(sizeStr) ? sizeStr : WidgetSize.Medium;
     }
 
     /**
