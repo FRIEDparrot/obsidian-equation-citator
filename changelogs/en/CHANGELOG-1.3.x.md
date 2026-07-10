@@ -9,7 +9,7 @@ Version 1.3.0 - New features, Refactors, Main improvements and User friendly imp
 ⭐ New Features :
 
 - [x] **Brand New Settings Tab** with grouped settings and sub-panels, which make setting more convenient than before. **No more annoying scrolling**.   
-- [x] **Citation for figures** (from [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7) by Akucecomma) are now supported, titles, numbers and descriptions. 
+- [x] **Citation for figures** (from [feature #7](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/7) by Alicecomma) are now supported, titles, numbers and descriptions. 
 - [x] **Citations for Callout**, We can add tables to callout to make a citation to it. This feature also gives you flexibility to cite tables, text pieces and even theorems (quote all tables in callout to cite it). 
 - [x] Add PDF export support for figures and callouts. 
 - [x] **Add Equations Manage Panels**, Allowing you to retrieve all citations of specific equations, and also jump to their locations 
@@ -208,7 +208,7 @@ Breaking Update Changes :
 
 ✈️ Full-Cross-Platform Support :
 
-- [x] Test this plugin on Linux and Mac platform (thanks to my friend @Tiddlefox)
+- [x] Test this plugin on Linux and Mac platform (thanks to my friend [@Tiddlefox](https://github.com/tiddlefox))
 
 ⭐ New Features :
 
@@ -247,6 +247,7 @@ Breaking Update Changes :
 Bug fixes, improvements on PDF export function, added : 
 1. Major support for the webpage notes export. (NPM package + batch export with metadata)
 2. Major Chinese UI translation supports. (Including settings, commands, and tooltips)
+3. Website-hosted documentation for all tutorials, changelogs and API documentations.
 
 ✨ New features : 
 
@@ -264,7 +265,6 @@ Improvements :
 - [x] Adjusted the style of figure preview widget for better width limit, now checking the figure preview widget does not need horizontal scrolling. 
 
 📖 Documetations : 
-
 - [x] Migrated the **tutorials**, **Change logs** and the **API documentations** to a **Webpage version**.
 - [x] Support citation preview/jump at the webpage building process. 
 - [x] Build the npm package for easy web note integration (https://www.npmjs.com/package/@friedparrot/equation-citator)
@@ -281,6 +281,7 @@ Improvements :
 - [x] fixed [#172](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/172), when export without meta-data, the image width are still kept. 
 - [x] fixed [#175](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/175), add recognition for native svg element of excalidraw when adding the caption and description for figures
 - [x] fixed [#177](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/177), the caption and description is rendered by markdown grammar in options part. 
+- [x] fixed [#178](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/178), widget size will be preserved after the obsidian is reloaded or restarted. 
 
 🏗️ refactors : 
 
