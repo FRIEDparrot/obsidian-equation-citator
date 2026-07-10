@@ -1,5 +1,6 @@
 import { Notice } from "obsidian";
 import Debugger from "@/debug/debugger";
+import t from "@/i18n/getLocale";
 
 /**
  * Copy equation to clipboard based on the copy type setting
@@ -34,13 +35,13 @@ export function copyEquationToClipboard(
         if (!cb?.writeText) throw new Error("navigator.clipboard.writeText unavailable");
 
         cb.writeText(textToCopy)
-            .then(() => new Notice("Equation copied to clipboard"))
+            .then(() => new Notice(t("clipboard.equationCopied")))
             .catch((err) => {
                 Debugger.error("Failed to copy equation:", err);
-                new Notice("Failed to copy equation");
+                new Notice(t("clipboard.equationCopyFailed"));
             });
     } catch (err) {
         Debugger.error("Failed to copy equation (sync):", err);
-        new Notice("Failed to copy equation");
+        new Notice(t("clipboard.equationCopyFailed"));
     }
 }

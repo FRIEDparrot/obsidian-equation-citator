@@ -6,6 +6,7 @@ import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
 import { checkFootnoteExists } from "@/utils/core/footnote_utils";
 import Debugger from "@/debug/debugger";
+import t from "@/i18n/getLocale";
 
 import { EquationArrangePanel } from "./mainPanel";
 
@@ -211,7 +212,7 @@ export class EquationPanelDragDropHandler {
         let tag = figureData.tag;
         // If no tag, show notice
         if (!tag) {
-            new Notice("This figure has no tag. Please manually add a tag to the figure first.");
+            new Notice(t("panel.dragDrop.figureNoTag"));
             return;
         }
 
@@ -275,7 +276,7 @@ export class EquationPanelDragDropHandler {
         
         // If no tag, show notice that callout needs a tag
         if (!tag) {
-            new Notice("This callout has no tag. Please manually add a tag to the callout first.");
+            new Notice(t("panel.dragDrop.calloutNoTag"));
             return;
         }
 

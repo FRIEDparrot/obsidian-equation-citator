@@ -2,6 +2,7 @@ import { Notice, TFile, normalizePath } from 'obsidian';
 import EquationCitator from '@/main';
 import { isMarkdownFilePath } from '@/utils/misc/fileProcessor';
 import Debugger from '@/debug/debugger';
+import t from '@/i18n/getLocale';
 
 /**
  * @internal
@@ -194,7 +195,7 @@ export abstract class BaseCache<T> extends BaseCacheSimple<T> {
         }
         catch (error) {
             this.cache.delete(key);
-            new Notice(`Failed to update ${this.getCacheTypeName()} cache, turn on debug mode for details`);
+            new Notice(t("cache.updateFailed", { cacheType: this.getCacheTypeName() }));
             Debugger.error(error instanceof Error ? error.message : String(error));
         }
     }

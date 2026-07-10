@@ -25,6 +25,7 @@ import { isSourceMode } from "@/utils/workspace/workspace_utils";
 
 import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
 import { CitationType } from "../auto_complete_suggest";
+import t from "@/i18n/getLocale";
 
 //////////////////////////////////////// LIVE PREVIEW EXTENSION ////////////////////// 
 
@@ -428,14 +429,14 @@ export async function mathCitationPostProcessor(
         const lineIndex = find_array(sectionHashes, lineHash.map(l => l.hash));
         Debugger.log("Block rendering - find hash index at line:", lineIndex);
         if (lineIndex === -1) {
-            new Notice("Can't locate the line hash for this section, skip rendering");
+            new Notice(t("widget.lineHashNotFound"));
             return;
         }
         const lineStart = lineIndex;
         const lineEnd = lineStart + (sectionInfo.lineEnd - sectionInfo.lineStart);
         const newCitations = allCitations.filter(eq => eq.line >= lineStart && eq.line <= lineEnd);
         if (newCitations.length !== citeSpans.length) {
-            new Notice("Citation block not fully matched, skip rendering (open debug mode for more information)");
+            new Notice(t("widget.citationBlockNotMatched"));
             Debugger.warning(`Citation span number is: ${citeSpans.length},
         But recognized citation count is : ${newCitations.length}, between line ${lineStart} and ${lineEnd}
         Which is not match. this can cause rendering issue. skip rendering`);

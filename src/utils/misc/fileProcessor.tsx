@@ -1,6 +1,7 @@
 import { Notice, TFile, normalizePath } from "obsidian";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
+import t from "@/i18n/getLocale";
 
 const PROHIBIT_SUFFIXES = [
     ".excalidraw.md",
@@ -35,7 +36,7 @@ export class MarkdownFileProcessor {
         const normalizedPath = normalizePath(this.sourcePath);
         const file = this.plugin.app.vault.getAbstractFileByPath(normalizedPath);
         if (!(file instanceof TFile)) {
-            new Notice(`File ${normalizedPath} not found.`);
+            new Notice(t("fileProcessor.fileNotFound", { path: normalizedPath }));
             return true;
         }
         

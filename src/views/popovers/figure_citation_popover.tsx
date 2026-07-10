@@ -16,6 +16,7 @@ import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedFigure } from "@/services/figure_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
+import t from "@/i18n/getLocale";
 
 interface FigureWrapperElements {
     figureWrapper: HTMLElement;
@@ -79,14 +80,14 @@ export class FigureCitationPopover extends HoverPopover {
         const header = container.createDiv();
         header.addClass("em-citation-header");
 
-        header.createEl("h3", { text: "Referenced figures", cls: "em-citation-title" });
+        header.createEl("h3", { text: t("popover.referencedFigures"), cls: "em-citation-title" });
         const footerSpan = header.createEl("div", {
             cls: "em-citation-title-note",
         });
 
         footerSpan.createDiv(); // placeholder
         footerSpan.createDiv({
-            text: "double-click to jump | ctrl+double-click to open in split",
+            text: t("popover.doubleClickJumpHint"),
             cls: "em-citation-title-note-text",
         });
 
@@ -120,7 +121,9 @@ export class FigureCitationPopover extends HoverPopover {
         const footer = container.createDiv();
         const totalFigures = this.figuresToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${totalFigures} figure${totalFigures === 1 ? '' : 's'}`;
+        footer.textContent = t(totalFigures === 1 ? "popover.figureCount.one" : "popover.figureCount.many", {
+            count: totalFigures,
+        });
     }
 }
 
@@ -235,7 +238,7 @@ function shouldRenderWithMarkdown(fullPath: string, markdownRendererExtensions: 
 
 function renderMissingFigureImage(imageContainer: HTMLElement, imagePath: string): void {
     imageContainer.createDiv({
-        text: `Image not found: ${imagePath}`,
+        text: t("popover.imageNotFound", { path: imagePath }),
         cls: "em-figure-error"
     });
 }
@@ -271,7 +274,7 @@ function renderInternalFigureImage(
         renderFigureImageElement(
             imageContainer,
             plugin.app.vault.getResourcePath(imageFile),
-            fig.title || fig.tag || "Figure"
+            fig.title || fig.tag || t("popover.figureAlt")
         );
         return;
     }
@@ -291,7 +294,7 @@ function renderFigureImage(
     targetComponent: Component,
     markdownRendererExtensions: ReadonlySet<string>
 ): void {
-    const alt = fig.title || fig.tag || "Figure";
+    const alt = fig.title || fig.tag || t("popover.figureAlt");
 
     if (fig.imageLink) {
         renderFigureImageElement(imageContainer, fig.imageLink, alt);
@@ -377,7 +380,7 @@ function addClickLinkJump(
 
         const isReadingMode = view.getMode() === "preview";
         if (isReadingMode) {
-            new Notice("Link jump is not supported in reading mode. Use live preview instead.");
+            new Notice(t("popover.linkJumpReadingModeNotice"));
             return;
         }
 
@@ -416,7 +419,7 @@ async function openFileAndScrollToFigure(
 
     if (!targetImage) {
         Debugger.log("Cannot find image with tag:", tag);
-        new Notice(`Figure ${tag} not found in ${file.name}`);
+        new Notice(t("popover.figureNotFound", { tag, file: file.name }));
         return;
     }
 

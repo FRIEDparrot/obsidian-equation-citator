@@ -16,6 +16,7 @@ import { TargetElComponent } from "@/views/popovers/citation_popover";
 import { RenderedCallout } from "@/services/callout_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
+import t from "@/i18n/getLocale";
 
 /**
  * Callout Citation Popover Class
@@ -76,7 +77,7 @@ export class CalloutCitationPopover extends HoverPopover {
 
         // Find the matching prefix configuration to get the proper display name
         const prefixConfig = this.plugin.settings.calloutCitationPrefixes.find(p => p.prefix === this.prefix);
-        let displayName = "Items"; // Default fallback
+        let displayName = t("popover.defaultCalloutDisplayName"); // Default fallback
 
         if (prefixConfig) {
             // Extract the display name from the format (e.g., "Table. #" -> "Table", "Theorem #" -> "Theorem")
@@ -85,14 +86,14 @@ export class CalloutCitationPopover extends HoverPopover {
             displayName = formatWithoutTag.replace(/[.:;,\-_]+$/, '').trim();
         }
 
-        header.createEl("h3", { text: `Referenced ${displayName}s`, cls: "em-citation-title" });
+        header.createEl("h3", { text: t("popover.referencedCallouts", { displayName }), cls: "em-citation-title" });
         const footerSpan = header.createEl("div", {
             cls: "em-citation-title-note",
         });
 
         footerSpan.createDiv(); // placeholder
         footerSpan.createDiv({
-            text: "double-click to jump | ctrl+double-click to open in split",
+            text: t("popover.doubleClickJumpHint"),
             cls: "em-citation-title-note-text",
         });
 
@@ -126,7 +127,10 @@ export class CalloutCitationPopover extends HoverPopover {
         const footer = container.createDiv();
         const totalCallouts = this.calloutsToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${totalCallouts} ${displayName.toLowerCase()}${totalCallouts === 1 ? '' : 's'}`;
+        footer.textContent = t(totalCallouts === 1 ? "popover.calloutCount.one" : "popover.calloutCount.many", {
+            count: totalCallouts,
+            displayName: displayName.toLowerCase(),
+        });
     }
 }
 
@@ -196,7 +200,7 @@ export async function renderCalloutWrapper(
         }
     } else {
         contentContainer.createDiv({
-            text: `No content found for ${callout.type} ${callout.tag}`,
+            text: t("popover.noCalloutContent", { type: callout.type, tag: callout.tag ?? "" }),
             cls: "em-callout-error"
         });
     }
@@ -253,7 +257,7 @@ function addClickLinkJump(
 
         const isReadingMode = view.getMode() === "preview";
         if (isReadingMode) {
-            new Notice("Link jump is not supported in reading mode. Use live preview instead.");
+            new Notice(t("popover.linkJumpReadingModeNotice"));
             return;
         }
 
@@ -295,7 +299,7 @@ async function openFileAndScrollToCallout(
 
     if (targetCallout?.prefix !== prefix) {
         Debugger.log("Cannot find callout with tag:", tag);
-        new Notice(`${prefix}${tag} not found in ${file.name}`);
+        new Notice(t("popover.calloutNotFound", { prefix, tag, file: file.name }));
         return;
     }
 

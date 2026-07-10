@@ -1,6 +1,7 @@
 import EquationCitator from "@/main";
 import { Setting, Notice } from "obsidian";
 import { SETTINGS_METADATA } from "../defaultSettings";
+import { t } from "@/i18n/getLocale";
 
 /**
  * All render functions for each setting in the cache settings tab.
@@ -14,6 +15,7 @@ export const CacheSettingsTab = {
             .addSlider((slider) => {
                 slider.setLimits(1000, 10000, 1000);
                 slider.setValue(plugin.settings.cacheUpdateTime || 5000);
+                slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
                     plugin.settings.cacheUpdateTime = value;
                     await plugin.saveSettings();
@@ -28,10 +30,10 @@ export const CacheSettingsTab = {
         cacheCleanTimeSetting.setName(name)
             .setDesc(desc)
             .addDropdown((dropdown) => {
-                dropdown.addOption("300000", "5 minutes");
-                dropdown.addOption("600000", "10 minutes");
-                dropdown.addOption("900000", "15 minutes");
-                dropdown.addOption("1200000", "20 minutes");
+                dropdown.addOption("300000", t("settings.option.fiveMinutes"));
+                dropdown.addOption("600000", t("settings.option.tenMinutes"));
+                dropdown.addOption("900000", t("settings.option.fifteenMinutes"));
+                dropdown.addOption("1200000", t("settings.option.twentyMinutes"));
 
                 dropdown.setValue(plugin.settings.cacheCleanTime.toString());
                 dropdown.onChange(async (value) => {
@@ -43,14 +45,14 @@ export const CacheSettingsTab = {
 
     clearCache(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
-            .setName("Clear cache")
-            .setDesc("Manually clear the cache, useful if you suspect the cache is out of date")
+            .setName(t("settings.clearCache.name"))
+            .setDesc(t("settings.clearCache.desc"))
             .addButton((button) => {
                 button.setIcon("trash");
-                button.setTooltip("Clear cache");
+                button.setTooltip(t("settings.clearCache.tooltip"));
                 button.onClick(() => {
                     plugin.clearCaches();
-                    new Notice("All caches cleared");
+                    new Notice(t("settings.clearCache.notice"));
                 });
             });
     }

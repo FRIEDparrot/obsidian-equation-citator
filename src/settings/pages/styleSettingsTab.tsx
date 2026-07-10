@@ -2,9 +2,17 @@ import EquationCitator from "@/main";
 import { Setting } from "obsidian";
 import { SETTINGS_METADATA } from "../defaultSettings";
 import { CalloutTableStyleManager } from "../styleManagers/calloutTabManager";
-import { WidgetSizeManager, WidgetSize, WIDGET_SIZE_LABELS } from "../styleManagers/widgetSizeManager";
+import { WidgetSizeManager, WidgetSize } from "../styleManagers/widgetSizeManager";
+import { LocaleKey, t } from "@/i18n/getLocale";
 
 const WIDGET_SIZE_VALUES: readonly string[] = Object.values(WidgetSize);
+const WIDGET_SIZE_LABEL_KEYS: Record<WidgetSize, LocaleKey> = {
+    [WidgetSize.ExtraSmall]: "settings.widgetSize.extraSmall",
+    [WidgetSize.Small]: "settings.widgetSize.small",
+    [WidgetSize.Medium]: "settings.widgetSize.medium",
+    [WidgetSize.Large]: "settings.widgetSize.large",
+    [WidgetSize.ExtraLarge]: "settings.widgetSize.extraLarge",
+};
 
 function isWidgetSize(value: string): value is WidgetSize {
     return WIDGET_SIZE_VALUES.includes(value);
@@ -13,11 +21,11 @@ function isWidgetSize(value: string): value is WidgetSize {
 export const StyleSettingsTab = {
     citationPopoverSize(containerEl: HTMLElement, plugin: EquationCitator) {
         const setting = new Setting(containerEl);
-        setting.setName("Preview widget size")
-            .setDesc("Select the size for citation preview widgets. Sizes apply to all popovers (equations, figures, callouts).")
+        setting.setName(t("settings.citationPopoverSize.name"))
+            .setDesc(t("settings.citationPopoverSize.desc"))
             .addDropdown((dropdown) => {
-                Object.entries(WIDGET_SIZE_LABELS).forEach(([size, label]) => {
-                    dropdown.addOption(size, label);
+                Object.values(WidgetSize).forEach((size) => {
+                    dropdown.addOption(size, t(WIDGET_SIZE_LABEL_KEYS[size]));
                 });
                 dropdown.setValue(plugin.settings.citationPopoverSize || WidgetSize.Medium);
                 dropdown.onChange(async (value) => {

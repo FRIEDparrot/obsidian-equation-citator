@@ -10,6 +10,7 @@ import {
     removeExternalExportPath,
     resolvePathInsideFolder,
 } from "@/utils/misc/desktop_fs_utils";
+import { t } from "@/i18n/getLocale";
 
 /** Name of the JSON file used to track which files were exported in the previous sync run. */
 const EXPORT_INDEX_FILE_NAME = ".equation-citator-export-index.json";
@@ -116,24 +117,24 @@ function getMarkdownFilesInFolder(folder: TFolder): TFile[] {
 async function ensureExportFolderIsReady(exportFolder: string): Promise<boolean> {
     const { fs } = getNodeFileSystemModules() ?? {};
     if (!fs) {
-        new Notice("Node file system is not available in this Obsidian environment");
+        new Notice(t("sync.nodeFsUnavailable"));
         return false;
     }
 
     if (!exportFolder.trim()) {
-        new Notice("Website notes export folder is not set.");
+        new Notice(t("sync.exportFolderNotSet"));
         return false;
     }
 
     try {
         const stats = await fs.stat(exportFolder);
         if (!stats.isDirectory()) {
-            new Notice("Website notes export folder is not a folder.");
+            new Notice(t("sync.exportFolderNotFolder"));
             return false;
         }
     } catch (error) {
         Debugger.error("Website notes export folder is not accessible:", exportFolder, error);
-        new Notice("Website notes export folder does not exist.");
+        new Notice(t("sync.exportFolderMissing"));
         return false;
     }
 
@@ -142,7 +143,7 @@ async function ensureExportFolderIsReady(exportFolder: string): Promise<boolean>
 
 async function getReadyExportFolderOrNotice(plugin: EquationCitator): Promise<string | null> {
     if (!Platform.isDesktopApp) {
-        new Notice("Sync to website note repository is only available in the desktop app.");
+        new Notice(t("sync.desktopOnly"));
         return null;
     }
 
@@ -153,7 +154,7 @@ async function getReadyExportFolderOrNotice(plugin: EquationCitator): Promise<st
 
     const vaultBasePath = getVaultBasePath(plugin);
     if (vaultBasePath && isPathInsideOrEqual(vaultBasePath, exportFolder)) {
-        new Notice("Website notes export folder must be outside the current vault/repository.");
+        new Notice(t("sync.exportFolderMustBeOutsideVault"));
         return null;
     }
 
@@ -626,22 +627,23 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
             ...exportStats,
             cleanedStaleCount,
         };
-        new Notice(
-            `Website notes synced: ${stats.exportedMarkdownCount} markdown exported, ` +
-            `${stats.copiedMarkdownCount} markdown copied, ${stats.copiedAssetCount} assets copied, ` +
-            `${stats.cleanedStaleCount} stale files cleaned.`
-        );
+        new Notice(t("sync.repositorySynced", {
+            exported: stats.exportedMarkdownCount,
+            copied: stats.copiedMarkdownCount,
+            assets: stats.copiedAssetCount,
+            cleaned: stats.cleanedStaleCount,
+        }));
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         Debugger.error("Website notes sync failed:", error);
-        new Notice(`Website notes sync failed: ${message}`);
+        new Notice(t("sync.repositoryFailed", { message }));
     }
 }
 
 export async function syncCurrentFileToWebsiteNotesFolder(plugin: EquationCitator): Promise<void> {
     const activeFile = plugin.app.workspace.getActiveFile();
     if (!activeFile || !isMarkdownFile(activeFile)) {
-        new Notice("No active Markdown file to sync");
+        new Notice(t("sync.noActiveMarkdownFile"));
         return;
     }
 
@@ -659,7 +661,7 @@ export async function syncCurrentFileToWebsiteNotesFolder(plugin: EquationCitato
  */
 export async function syncFileToWebsiteNotesFolder(plugin: EquationCitator, file: TFile): Promise<void> {
     if (!isMarkdownFile(file)) {
-        new Notice("Only Markdown files can be synced to website notes");
+        new Notice(t("sync.onlyMarkdownFiles"));
         return;
     }
 
@@ -675,14 +677,15 @@ export async function syncFileToWebsiteNotesFolder(plugin: EquationCitator, file
         const exportStats = await exportMarkdownFilesAndReferences(plugin, exportFolder, [file], exportedFiles);
         await writeMergedExportIndex(exportFolder, previousIndex, exportedFiles);
 
-        new Notice(
-            `Website note synced: ${exportStats.exportedMarkdownCount} markdown exported, ` +
-            `${exportStats.copiedMarkdownCount} markdown copied, ${exportStats.copiedAssetCount} assets copied.`
-        );
+        new Notice(t("sync.fileSynced", {
+            exported: exportStats.exportedMarkdownCount,
+            copied: exportStats.copiedMarkdownCount,
+            assets: exportStats.copiedAssetCount,
+        }));
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         Debugger.error("Website note file sync failed:", file.path, error);
-        new Notice(`Website note file sync failed: ${message}`);
+        new Notice(t("sync.fileFailed", { message }));
     }
 }
 
@@ -705,7 +708,7 @@ export async function syncFolderToWebsiteNotesFolder(plugin: EquationCitator, fo
 
     const markdownFiles = getMarkdownFilesInFolder(folder);
     if (markdownFiles.length === 0) {
-        new Notice("No Markdown files found in selected folder");
+        new Notice(t("sync.noMarkdownInFolder"));
         return;
     }
 
@@ -721,14 +724,15 @@ export async function syncFolderToWebsiteNotesFolder(plugin: EquationCitator, fo
 
         await writeMergedExportIndex(exportFolder, previousIndex, exportedFiles, folderScopePredicate);
 
-        new Notice(
-            `Website folder synced: ${exportStats.exportedMarkdownCount} markdown exported, ` +
-            `${exportStats.copiedMarkdownCount} markdown copied, ${exportStats.copiedAssetCount} assets copied, ` +
-            `${cleanedStaleCount} stale files cleaned.`
-        );
+        new Notice(t("sync.folderSynced", {
+            exported: exportStats.exportedMarkdownCount,
+            copied: exportStats.copiedMarkdownCount,
+            assets: exportStats.copiedAssetCount,
+            cleaned: cleanedStaleCount,
+        }));
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         Debugger.error("Website note folder sync failed:", folder.path, error);
-        new Notice(`Website note folder sync failed: ${message}`);
+        new Notice(t("sync.folderFailed", { message }));
     }
 }

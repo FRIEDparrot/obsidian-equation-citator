@@ -1,5 +1,6 @@
 import EquationCitator from "@/main";
 import { Notice, requestUrl } from "obsidian";
+import t from "@/i18n/getLocale";
 const versionUrl = "https://raw.githubusercontent.com/FRIEDparrot/obsidian-equation-citator/refs/heads/master/manifest.json"
 
 
@@ -14,7 +15,7 @@ export async function isUpdateAvailable(plugin: EquationCitator, use_notice=true
         const response = await requestUrl(versionUrl);
         if (response.status !== 200) {
             console.error(`HTTP error! status: ${response.status}`);
-            new Notice("Network error");
+            new Notice(t("update.networkError"));
             return false;
         }
         const data = response.json;
@@ -24,17 +25,17 @@ export async function isUpdateAvailable(plugin: EquationCitator, use_notice=true
         const updateAvailable = latestVersion !== currentVersion;
         if (use_notice) {
             if (updateAvailable) {
-                new Notice(`New version v${latestVersion} is available`);
+                new Notice(t("update.newVersionAvailable", { version: latestVersion }));
             }
             else {
-                new Notice("You are already using the latest version");
+                new Notice(t("update.latestVersion"));
             }
         }
         return updateAvailable;
     }
     catch (error) {
         console.error("Error checking for updates:", error);
-        new Notice("Error checking for updates, check console for details.");
+        new Notice(t("update.checkFailed"));
         return false;
     }
 }

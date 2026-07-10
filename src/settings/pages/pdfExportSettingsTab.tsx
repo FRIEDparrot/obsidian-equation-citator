@@ -4,6 +4,7 @@ import { SETTINGS_METADATA } from "../defaultSettings";
 import { normalizeMarkdownFilePattern } from "@/utils/misc/file_pattern_utils";
 import { isPathInsideOrEqual } from "@/utils/misc/desktop_fs_utils";
 import Debugger from "@/debug/debugger";
+import { t } from "@/i18n/getLocale";
 
 type ElectronDialog = {
     showOpenDialog: (options: {
@@ -89,18 +90,18 @@ function getParentFolderPath(path: string | null): string | undefined {
 
 async function chooseWebsiteExportFolder(currentPath: string, vaultBasePath: string | null): Promise<string | null> {
     if (!Platform.isDesktopApp) {
-        new Notice("Folder selection is only available in the desktop app.");
+        new Notice(t("settings.websiteNotesExportFolder.desktopOnlyNotice"));
         return null;
     }
 
     const dialog = getElectronDialog();
     if (!dialog) {
-        new Notice("Unable to open folder selector in this Obsidian environment.");
+        new Notice(t("settings.websiteNotesExportFolder.selectorUnavailableNotice"));
         return null;
     }
 
     const result = await dialog.showOpenDialog({
-        title: "Choose website notes export folder",
+        title: t("settings.websiteNotesExportFolder.chooseDialogTitle"),
         defaultPath: currentPath || getParentFolderPath(vaultBasePath),
         properties: ["openDirectory", "createDirectory"],
     });
@@ -123,13 +124,13 @@ async function openWebsiteExportFolder(folderPath: string): Promise<void> {
     }
 
     if (!Platform.isDesktopApp) {
-        new Notice("Opening the export folder is only available in the desktop app.");
+        new Notice(t("settings.websiteNotesExportFolder.openDesktopOnlyNotice"));
         return;
     }
 
     const shell = getElectronShell();
     if (!shell) {
-        new Notice("Unable to open the export folder in this Obsidian environment.");
+        new Notice(t("settings.websiteNotesExportFolder.openUnavailableNotice"));
         return;
     }
 
@@ -137,11 +138,11 @@ async function openWebsiteExportFolder(folderPath: string): Promise<void> {
         const errorMessage = await shell.openPath(trimmedPath);
         if (errorMessage) {
             Debugger.error("Failed to open website notes export folder:", trimmedPath, errorMessage);
-            new Notice("Unable to open website notes export folder.");
+            new Notice(t("settings.websiteNotesExportFolder.openFailedNotice"));
         }
     } catch (error) {
         Debugger.error("Failed to open website notes export folder:", trimmedPath, error);
-        new Notice("Unable to open website notes export folder.");
+        new Notice(t("settings.websiteNotesExportFolder.openFailedNotice"));
     }
 }
 
@@ -180,7 +181,7 @@ function getValidatedIgnoredPattern(
     const normalizedPattern = normalizeMarkdownFilePattern(rawPattern);
 
     if (!normalizedPattern) {
-        new Notice("Ignored file pattern must be a filename pattern, not a folder path.");
+        new Notice(t("settings.websiteNotesExportIgnoredFilePatterns.invalidNotice"));
         return {
             normalizedPattern: null,
             isDuplicate: false,
@@ -188,7 +189,7 @@ function getValidatedIgnoredPattern(
     }
 
     if (hasDuplicatePattern(patterns, normalizedPattern, currentIndex)) {
-        new Notice("This ignored file pattern already exists.");
+        new Notice(t("settings.websiteNotesExportIgnoredFilePatterns.duplicateNotice"));
         return {
             normalizedPattern: null,
             isDuplicate: true,
@@ -272,11 +273,11 @@ function addIgnoredPatternSettingRow(
         .setClass("ec-website-export-ignore-item")
         .addText((text) => {
             text.setValue(pattern);
-            text.setPlaceholder("*.excalidraw");
+            text.setPlaceholder(t("settings.websiteNotesExportIgnoredFilePatterns.placeholder"));
             text.inputEl.onblur = () => void saveIgnoredPatternAtIndex(plugin, index, pattern, text.inputEl);
         })
         .addButton((button) => {
-            button.setButtonText("Remove")
+            button.setButtonText(t("settings.websiteNotesExportIgnoredFilePatterns.remove"))
                 .setClass("mod-warning")
                 .onClick(async () => removeIgnoredPattern(plugin, index, rerender));
         });
@@ -295,11 +296,11 @@ function addNewIgnoredPatternSettingRow(
     new Setting(containerEl)
         .setClass("ec-website-export-ignore-add")
         .addText((text) => {
-            text.setPlaceholder("*.excalidraw");
+            text.setPlaceholder(t("settings.websiteNotesExportIgnoredFilePatterns.placeholder"));
             newPatternInput = text.inputEl;
         })
         .addButton((button) => {
-            button.setButtonText("Add")
+            button.setButtonText(t("settings.websiteNotesExportIgnoredFilePatterns.add"))
                 .setCta()
                 .onClick(async () => addIgnoredPattern(plugin, newPatternInput, rerender));
         });
@@ -330,7 +331,7 @@ export const PdfExportSettingsTab = {
             const hasExportFolder = plugin.settings.websiteNotesExportFolder.trim().length > 0;
             currentFolderText.setText(hasExportFolder
                 ? plugin.settings.websiteNotesExportFolder
-                : "Not set");
+                : t("settings.websiteNotesExportFolder.notSet"));
             if (openButtonEl) {
                 openButtonEl.style.display = hasExportFolder ? "" : "none";
             }
@@ -339,7 +340,7 @@ export const PdfExportSettingsTab = {
         setting.setName(name)
             .setDesc(desc)
             .addButton((button) => {
-                button.setButtonText("Choose")
+                button.setButtonText(t("settings.websiteNotesExportFolder.choose"))
                     .setCta()
                     .onClick(async () => {
                         const previousFolder = getValidWebsiteExportFolderOrBlank(
@@ -357,7 +358,7 @@ export const PdfExportSettingsTab = {
                             plugin.settings.websiteNotesExportFolder = previousFolder;
                             await plugin.saveSettings();
                             updateCurrentFolderText();
-                            new Notice("Website notes export folder must be outside the current vault/repository. Reset to the last valid folder or blank.");
+                            new Notice(t("settings.websiteNotesExportFolder.outsideVaultNotice"));
                             return;
                         }
 
@@ -368,12 +369,12 @@ export const PdfExportSettingsTab = {
             })
             .addButton((button) => {
                 openButtonEl = button.buttonEl;
-                button.setButtonText("Open")
-                    .setTooltip("Open website notes export folder")
+                button.setButtonText(t("settings.websiteNotesExportFolder.open"))
+                    .setTooltip(t("settings.websiteNotesExportFolder.openTooltip"))
                     .onClick(async () => openWebsiteExportFolder(plugin.settings.websiteNotesExportFolder));
             })
             .addButton((button) => {
-                button.setButtonText("Clear")
+                button.setButtonText(t("settings.websiteNotesExportFolder.clear"))
                     .onClick(async () => {
                         if (!plugin.settings.websiteNotesExportFolder) {
                             return;
@@ -415,7 +416,7 @@ export const PdfExportSettingsTab = {
     },
     pdfExportTip(containerEl: HTMLElement, plugin: EquationCitator) {
         containerEl.createEl("p", {
-            text: "💡tip: original pdf export would failed to render citations, please use plugin command `Make markdown copy to export PDF`, this will make a correctly-rendered markdown from current note to export pdf.(superscripts will also be converted to normal superscript grammar)",
+            text: t("settings.pdfExport.tip"),
             cls: "ec-settings-tip"
         });
     },

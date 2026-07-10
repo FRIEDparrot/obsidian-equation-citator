@@ -1,4 +1,5 @@
 import { App, Modal, Setting } from "obsidian";
+import { t } from "@/i18n/getLocale";
 
 export type ModalOption = {
     label: string;
@@ -60,7 +61,7 @@ export class PromiseOptionsModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        new Setting(this.containerEl).setName("Beta features").setHeading();
+        new Setting(this.containerEl).setName(t("settings.category.betaFeatures")).setHeading();
         contentEl.createEl("p", { text: this.question });
         const setting = new Setting(this.contentEl);
         this.options.forEach(opt => {

@@ -3,6 +3,7 @@ import { makePrintMarkdown } from "@/export/pdf_export";
 import EquationCitator from "@/main";
 import { ModalOption, OptionsModal } from "@/ui/modals/optionsModal";
 import Debugger from "@/debug/debugger";
+import { t } from "@/i18n/getLocale";
 
 export async function makeExportedMarkdownForPdf(plugin: EquationCitator, file: TFile): Promise<string | null> {
     const md = await plugin.app.vault.read(file);
@@ -64,17 +65,17 @@ async function resolveCrossFilePathsForExport(
 export async function exportCurrentMarkdown(plugin: EquationCitator) {
     const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view) {
-        new Notice("No active Markdown view found");
+        new Notice(t("export.noActiveMarkdownView"));
         return;
     }
     const file = view.file;
     if (!file || !(file instanceof TFile) || file.extension !== 'md') {
-        new Notice("Invalid file type");
+        new Notice(t("export.invalidFileType"));
         return;
     }
     const md_processed = await makeExportedMarkdownForPdf(plugin, file);
     if (!md_processed) {
-        new Notice("File is empty");
+        new Notice(t("export.emptyFile"));
         return;
     }
 
@@ -87,7 +88,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
 
     // finish the export process of pdf
     const finishExport = async (newFilePath: string) => {
-        new Notice(`Exported to ${newFilePath}`);
+        new Notice(t("export.exportedTo", { path: newFilePath }));
         const newLeaf = plugin.app.workspace.getLeaf(true);
         plugin.app.workspace.setActiveLeaf(newLeaf, { focus: true });
         await plugin.app.workspace.openLinkText("", newFilePath, false);
@@ -96,7 +97,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
 
     if (existingFile instanceof TFile) {
         const confirmOption: ModalOption = {
-            label: "Confirm",
+            label: t("modal.confirm"),
             cta: true,
             action : async():Promise<void> => {
                 try {
@@ -105,20 +106,20 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
                     await finishExport(newFilePath);
                 }
                 catch (error) {
-                    new Notice(`Export failed: ${getErrorMessage(error)}`);
+                    new Notice(t("export.failed", { message: getErrorMessage(error) }));
                 }
             }
         }
         const cancelOption: ModalOption = {
-            label: "Cancel",
+            label: t("modal.cancel"),
             cta: false,
             action : () : Promise<void> => {
-                new Notice("Export cancelled");
+                new Notice(t("export.cancelled"));
                 return Promise.resolve();
             }
         }
-        new OptionsModal(plugin.app, "File already exists",
-            `${newFilePath} already exists. Do you want to overwrite it?`,
+        new OptionsModal(plugin.app, t("export.fileExists.title"),
+            t("export.fileExists.question", { path: newFilePath }),
             [confirmOption, cancelOption]
         ).open();
     }
@@ -128,7 +129,7 @@ export async function exportCurrentMarkdown(plugin: EquationCitator) {
             await finishExport(newFilePath);
         }
         catch (error) {
-            new Notice(`Error while exporting to ${newFilePath}: ${getErrorMessage(error)}`);
+            new Notice(t("export.errorToPath", { path: newFilePath, message: getErrorMessage(error) }));
             Debugger.error(getErrorMessage(error));
         }
     }
