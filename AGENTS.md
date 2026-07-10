@@ -70,3 +70,8 @@
 ## Safety
 
 - Do not add Windows command execution through shell, PowerShell, `cmd`, `child_process`, or similar command runners unless explicitly requested; these paths are fragile and can look like command injection.
+
+
+## Translation 
+
+Don't change zh-CN.tsx unless I explicitly specify that.  Since there would be some encoding issues. 

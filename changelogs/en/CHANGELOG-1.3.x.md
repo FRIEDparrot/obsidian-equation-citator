@@ -260,6 +260,9 @@ Bug fixes, improvements on PDF export function, added :
 - [x] Added Option `Render image captions and descriptions` in settingsTab for the rendering of image captions/descriptions 
 - [x] **Added support for Chinese translation for all the UI of the SettingsTab options, Tooltips and Commands**
 
+Improvements :
+- [x] Adjusted the style of figure preview widget for better width limit, now checking the figure preview widget does not need horizontal scrolling. 
+
 📖 Documetations : 
 
 - [x] Migrated the **tutorials**, **Change logs** and the **API documentations** to a **Webpage version**.
