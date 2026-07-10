@@ -605,8 +605,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     addImageCaptionsInPdf : {
-        name: "Add image captions in PDF",
-        desc: "Whether to add image captions in PDF export",
+        name: t("settings.addImageCaptionsInPdf.name"),
+        desc: t("settings.addImageCaptionsInPdf.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.addImageCaptionsInPdf(el, plugin);
@@ -614,8 +614,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     addImageDescInPdf : {
-        name: "Add image description in PDF",
-        desc: "Whether to add image description in PDF export (only works when image captions are rendered)",
+        name: t("settings.addImageDescInPdf.name"),
+        desc: t("settings.addImageDescInPdf.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.addImageDescInPdf(el, plugin);
