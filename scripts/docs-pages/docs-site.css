@@ -140,6 +140,59 @@ body.ec-typedoc-page {
   margin-left: 0;
 }
 
+.ec-docs-article blockquote.callout {
+  position: relative;
+  margin: 1.1rem 0;
+  padding: 0.85rem 1rem 0.85rem 1.15rem;
+  border: 1px solid var(--color-accent);
+  border-left-width: 0.35rem;
+  border-radius: 0.65rem;
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+  overflow: hidden;
+}
+
+.ec-docs-article blockquote.callout > :first-child {
+  margin-top: 0;
+}
+
+.ec-docs-article blockquote.callout > :last-child {
+  margin-bottom: 0;
+}
+
+.ec-docs-article blockquote.callout p,
+.ec-docs-article blockquote.callout ul,
+.ec-docs-article blockquote.callout ol {
+  margin: 0.55rem 0;
+}
+
+.ec-docs-article blockquote.callout ul,
+.ec-docs-article blockquote.callout ol {
+  padding-left: 1.35rem;
+}
+
+.ec-docs-article blockquote.callout li {
+  margin: 0.35rem 0;
+}
+
+.ec-docs-article blockquote.callout strong:first-child {
+  color: var(--color-text);
+}
+
+.ec-docs-article blockquote.callout[data-callout-has-title=""] > p:first-child,
+.ec-docs-article blockquote.callout .callout-title {
+  margin-bottom: 0.65rem;
+  font-weight: 700;
+}
+
+.ec-docs-article blockquote.callout .callout-content > :first-child {
+  margin-top: 0;
+}
+
+.ec-docs-article blockquote.callout .callout-content > :last-child {
+  margin-bottom: 0;
+}
+
 .ec-docs-article p:has(> .equation-citator-section-reference:only-child) {
   margin: 1rem 0;
 }

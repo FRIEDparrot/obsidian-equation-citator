@@ -20,9 +20,9 @@
 
 ---
 
-🚀 **Quick Start**: See [Quick Start](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/tutorials) for basic rules, syntax, and most important operations. It only takes < 5 mins but will make everything go smoothly.
+🚀 **Get Started**: We have **step-by-step** [web-docs tutorial](https://friedparrot.github.io/projects/obsidian-equation-citator/tutorials/en/index.html) to go through all the features for you (please check this before using the plugin!).
 
-✨ **Complete Features & Updates**: See [Changelog](https://github.com/FRIEDparrot/obsidian-equation-citator/blob/master/CHANGELOG.md) for details.
+✨ **Complete Features & Updates**: See [Changelog](https://friedparrot.github.io/projects/obsidian-equation-citator/changelogs/en/index.html) for details.
 
 📹 **Video Tutorial**: Coming soon if this plugin has 5000 downloads or this repo gets 50 stars. 
  
@@ -67,11 +67,11 @@ One-click auto-numbering support for:
 
 <center><img src="img/image_cite_case.png" alt="img-cite-case" style="zoom:100%; max-height: 350px;" /></center> 
 
-- Cite equations with `\ref{eq:tag}` syntax, with full autocomplete support
-- Cite figures by adding a `fig:` field to the image and using `\ref{fig:tag}` syntax
+- Cite equations with `\ref{eq:tag}` syntax, with full autocomplete support when typing. 
+- Cite figures by adding a `fig:` field to the image and using `\ref{fig:tag}` syntax.
 - Cite tables and theorems callout citation with **fully configurable prefixes**.
-- Support for **Excalidraw images** and **markdown section previews**
-- Full support on **multiple citation & continuous citation & cross-file citation**
+- Support for **Excalidraw images** and **markdown section previews**.
+- Full support on **multiple citation & continuous citation & cross-file citation**.
 
 ### 3. 🖥️ Equation Manage Panel — Browse, Jump and Cite by Drag and Drop
 
@@ -81,7 +81,7 @@ One-click auto-numbering support for:
 - **Right-click to copy** equations directly from the panel or editor popover
 - **Jump to equations**, figures and callouts directly from the popover and Equation Manage Panel
 
-<center><img src="img/drag-drop-cite.gif" alt="drag-drop-cite" style="zoom: 50%;" /></center>
+<center><img src="img/drag-drop-cite.gif" alt="drag-drop-cite" style="width:600px" /></center>
 
 <!-- PLACEHOLDER: gif of switching between equation / figure / callout view in the panel -->
 
@@ -90,13 +90,13 @@ One-click auto-numbering support for:
   - Correct citation and reference numbers with configurable citation colors
   - Support for **markdown grammar inside title/caption for figures** 
 
+<center><img src="img/pdf-export-example.png" alt="drag-drop-cite" style="zoom: 100%; max-height: 350px;" /></center>
+
 2. You can build your **own website using with live reference feature** with this support. 
   - To ensure links are correctly resolved, use `Path to vault folder`.
   - Specify a `Website notes export folder` to build your documentation.  
   - You can **sync Single file, folders or entire repository** to the desination folder, the citation meta-data can be preserved for rendering the preview on the website.
   - We also an [npm package](https://www.npmjs.com/package/@friedparrot/equation-citator) to help you to make the elements citable in the website to make your notes to be easily deployed to a website. This can be installed by `npm i @friedparrot/equation-citator --save-dev`. 
-
-<center><img src="img/webpage-build-example.png" alt="drag-drop-cite" style="zoom: 100%; max-height: 350px;" /></center>
 
 ## 🛒 Compatibility with other plugins
 
@@ -132,24 +132,21 @@ If you have suggestions or questions for this plugin, feel free to leave them on
 > [!TIP]
 > Since this plugin has a cache mechanism for better performance, a normal delay or a non-immediate update is expected cache-related behavior. Wait a few seconds, or re-open the file or restart Obsidian to confirm your issue is not just a cache delay.
 
-## 💖 Support and Collaboration
+## 💖 Collaboration and Support
 
-I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use.
+I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. Since I'm busy during school term, this plugin is often updated every several months. But the problems are actively checked and this plugin is stay actively maintained. 
 
-- 💖 I would be very glad if anyone can help maintain this plugin (since I'm busy during school time).
-
-> [!NOTE]
->
+> [!NOTE] 
 > **Contributors and maintainers are always welcome**:
 > You can contribute by forking this repo and submitting a PR:
-> 1. **Please test your code carefully before submitting a PR!**
-> 2. Add what you have done to `CHANGELOG.md`. (Use the next patch version number if a new minor version is not planned.)
-> 3. We have CI checks before merging — please make sure your code passes all checks.
->
-> For submitting a PR, please commit to the `dev-latest` branch. This is the latest development branch, and I will always sync my dev branch to it to prevent potential merge conflicts.
+> 1. **Please commit to the `dev-latest` branch if you make a PR**. This is the latest development branch.
+> 2. **Please test your code carefully before submitting a PR!**
+> 3. Add what you have done to `CHANGELOG.md`. (Use the next patch version number if a new minor version is not planned.)
+> 4. We have CI checks before merging — please make sure your code passes all checks.
+> 
 
 Thanks to [@azyarashi](https://github.com/azyarashi) for collaboration and substantial improvements to the plugin. I also appreciate all the users who suggested useful new features and enhancements.
 
-Finally, if you find this plugin helpful, consider buying me a cup of ☕️:
+This plugin has reached 16k lines of source code, which increases the complexity for issue resolution and  maintenance. So, if this plugin is really helpful to you, just consider buying me a cup of ☕️:
 
 <center><a href='https://ko-fi.com/Z8Z81N7CMO' target='_blank'><img src="./img/friedparrot-kofi.jpg" width="350px" style="border-radius:15px"></img></a></center>
