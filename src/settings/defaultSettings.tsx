@@ -14,6 +14,11 @@ export interface CalloutCitationPrefix {
     format: string;   // e.g., "Table. #", "Theorem #", "Definition #"
 }
 
+export interface WebsiteNotesExcludedFolder {
+    path: string; // Vault-relative folder path excluded from repository/folder sync entry points
+    completelyIgnore: boolean; // Whether linked files under this folder should also be skipped
+}
+
 export interface SettingsMetadata {
     name: string;
     desc: string; // description
@@ -91,7 +96,8 @@ export interface EquationCitatorSettings {
 
     // pdf rendering settings
     websiteNotesExportFolder: string; // Absolute folder path for website note export
-    websiteNotesExportIgnoredFilePatterns: string[]; // filename patterns skipped during website note export
+    websiteNotesExportIgnoredFilePatterns: string[]; // Markdown filename patterns copied directly during website note export
+    websiteNotesExcludedFolders: WebsiteNotesExcludedFolder[]; // folder rules excluded from website note export entry points
     citationColorInPdf: string; // default citation color in PDF rendering
     addImageCaptionsInPdf: boolean; // whether to add image captions in PDF export
     addImageDescInPdf: boolean; // whether to add image description in PDF export
@@ -155,7 +161,8 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
 
     citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
     websiteNotesExportFolder: "", // external folder for website note export
-    websiteNotesExportIgnoredFilePatterns: ["*.excalidraw.md"], // skip Excalidraw markdown files by default
+    websiteNotesExportIgnoredFilePatterns: ["*.excalidraw.md"], // direct-copy Excalidraw markdown files by default
+    websiteNotesExcludedFolders: [], // folders excluded from website note export entry points
     addImageCaptionsInPdf: true, // add image captions in PDF export by default
     addImageDescInPdf: true, // add image description in PDF export by default
     keepImageSpacingForPdf: true, // keep images separated from neighboring paragraphs in PDF export
@@ -213,6 +220,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "enableContinuousCitation",
         "websiteNotesExportFolder",
         "websiteNotesExportIgnoredFilePatterns",
+        "websiteNotesExcludedFolders",
         "calloutCitationPrefixes",
         "autoNumberDelimiter",
         "enableAutoNumberEquationsInQuotes",
@@ -592,6 +600,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         type: "array",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.websiteNotesExportIgnoredFilePatterns(el, plugin);
+        }
+    },
+
+    websiteNotesExcludedFolders: {
+        name: t("settings.websiteNotesExcludedFolders.name"),
+        desc: t("settings.websiteNotesExcludedFolders.desc"),
+        type: "array",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.websiteNotesExcludedFolders(el, plugin);
         }
     },
 

@@ -48,7 +48,6 @@
 > **This plugin is NOT designed for**:
 > - Citing equations or content within PDF files (PDFs are not recognized or processed by the plugin)
 > - Managing bibliographic references or literature citations (use a dedicated citation management plugin instead)
-> - Real-time collaborative editing with automatic sync of equation numbers across users
 > - Processing equations in image files or scanned documents
 
 ## ✨ What this plugin does
@@ -58,7 +57,7 @@
 One-click auto-numbering support for:
 - All equations / tagged equations only
 - All figures / tagged figures only
-- Full support for **auto-updating citation numbers** after auto-numbering — add or delete equations and figures anywhere without worrying about broken numbering or citations
+- Full support for **auto-updating citation numbers** — add or delete equations and figures anywhere without worrying about broken numbering or citations
 - **Right-click to rename tags** for equations and figures, with all citations updated automatically
 
 <center><img src="img/auto_number_vid.gif" alt="auto-number" style="zoom: 50%;" /></center>
@@ -90,7 +89,7 @@ One-click auto-numbering support for:
   - Correct citation and reference numbers with configurable citation colors
   - Support for **markdown grammar inside title/caption for figures** 
 
-<center><img src="img/pdf-export-example.png" alt="drag-drop-cite" style="zoom: 100%; max-height: 350px;" /></center>
+<center><img src="img/pdf-export-example.png" alt="drag-drop-cite" style="zoom: 100%; max-height: 450px;" /></center>
 
 2. You can build your **own website using with live reference feature** with this support. 
   - To ensure links are correctly resolved, use `Path to vault folder`.

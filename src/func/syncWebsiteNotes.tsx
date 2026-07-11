@@ -11,6 +11,7 @@ import {
     resolvePathInsideFolder,
 } from "@/utils/misc/desktop_fs_utils";
 import { t } from "@/i18n/getLocale";
+import type { WebsiteNotesExcludedFolder } from "@/settings/defaultSettings";
 
 /** Name of the JSON file used to track which files were exported in the previous sync run. */
 const EXPORT_INDEX_FILE_NAME = ".equation-citator-export-index.json";
@@ -88,6 +89,45 @@ function isMarkdownFile(file: TAbstractFile): file is TFile {
     return file instanceof TFile && file.extension === "md";
 }
 
+/**
+ * Tests whether a vault-relative file path is inside a configured excluded folder.
+ * Folder rules are vault-relative and match both the folder path itself and nested children.
+ */
+function pathIsInsideFolder(filePath: string, folderPath: string): boolean {
+    const normalizedFilePath = normalizePath(filePath);
+    const normalizedFolderPath = normalizePath(folderPath).replace(/^\/+|\/+$/g, "");
+
+    return normalizedFilePath === normalizedFolderPath || normalizedFilePath.startsWith(`${normalizedFolderPath}/`);
+}
+
+function isPathInExcludedWebsiteNotesFolder(
+    filePath: string,
+    excludedFolders: WebsiteNotesExcludedFolder[]
+): boolean {
+    return excludedFolders.some(folder => pathIsInsideFolder(filePath, folder.path));
+}
+
+function isPathInCompletelyIgnoredWebsiteNotesFolder(
+    filePath: string,
+    excludedFolders: WebsiteNotesExcludedFolder[]
+): boolean {
+    return excludedFolders.some(folder => folder.completelyIgnore && pathIsInsideFolder(filePath, folder.path));
+}
+
+/**
+ * Filters markdown files selected by repository/folder sync before export starts.
+ * Excluded folders are only entry-point filters; linked files under those folders
+ * can still be exported unless their folder rule is marked as completely ignored.
+ */
+function getWebsiteNotesEntryMarkdownFiles(plugin: EquationCitator, markdownFiles: TFile[]): TFile[] {
+    const excludedFolders = plugin.settings.websiteNotesExcludedFolders ?? [];
+    if (excludedFolders.length === 0) {
+        return markdownFiles;
+    }
+
+    return markdownFiles.filter(file => !isPathInExcludedWebsiteNotesFolder(file.path, excludedFolders));
+}
+
 function getFolderScopePredicate(folder: TFolder): (filePath: string) => boolean {
     const folderPath = normalizePath(folder.path);
     if (!folderPath || folderPath === "/") {
@@ -107,6 +147,13 @@ function getMarkdownFilesInFolder(folder: TFolder): TFile[] {
     });
 
     return markdownFiles;
+}
+
+/**
+ * Returns markdown files from a folder sync after applying website-note folder exclusions.
+ */
+function getWebsiteNotesMarkdownFilesInFolder(plugin: EquationCitator, folder: TFolder): TFile[] {
+    return getWebsiteNotesEntryMarkdownFiles(plugin, getMarkdownFilesInFolder(folder));
 }
 
 /**
@@ -465,6 +512,13 @@ function collectReferencedFiles(plugin: EquationCitator, sourceMarkdownFiles: TF
         }
 
         for (const linkedPath of Object.keys(links)) {
+            if (isPathInCompletelyIgnoredWebsiteNotesFolder(
+                linkedPath,
+                plugin.settings.websiteNotesExcludedFolders ?? []
+            )) {
+                continue;
+            }
+
             const linkedFile = plugin.app.vault.getAbstractFileByPath(linkedPath);
             if (linkedFile instanceof TFile) {
                 referencedFiles.set(linkedFile.path, linkedFile);
@@ -613,7 +667,7 @@ export async function syncRepositoryToWebsiteNotesFolder(plugin: EquationCitator
 
     const previousIndex = await readPreviousExportIndex(exportFolder);
     const exportedFiles = new Set<string>();
-    const markdownFiles = plugin.app.vault.getMarkdownFiles();
+    const markdownFiles = getWebsiteNotesEntryMarkdownFiles(plugin, plugin.app.vault.getMarkdownFiles());
 
     try {
         const exportStats = await exportMarkdownFilesAndReferences(plugin, exportFolder, markdownFiles, exportedFiles);
@@ -706,7 +760,7 @@ export async function syncFolderToWebsiteNotesFolder(plugin: EquationCitator, fo
         return;
     }
 
-    const markdownFiles = getMarkdownFilesInFolder(folder);
+    const markdownFiles = getWebsiteNotesMarkdownFilesInFolder(plugin, folder);
     if (markdownFiles.length === 0) {
         new Notice(t("sync.noMarkdownInFolder"));
         return;

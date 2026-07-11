@@ -1,6 +1,7 @@
 import EquationCitator from "@/main";
-import { FileSystemAdapter, Notice, Platform, Setting } from "obsidian";
+import { AbstractInputSuggest, FileSystemAdapter, Notice, Platform, Setting, TFolder } from "obsidian";
 import { SETTINGS_METADATA } from "../defaultSettings";
+import type { WebsiteNotesExcludedFolder } from "../defaultSettings";
 import { normalizeMarkdownFilePattern } from "@/utils/misc/file_pattern_utils";
 import { isPathInsideOrEqual } from "@/utils/misc/desktop_fs_utils";
 import Debugger from "@/debug/debugger";
@@ -173,6 +174,42 @@ type IgnoredPatternValidationResult = {
     isDuplicate: boolean;
 };
 
+type ExcludedFolderValidationResult = {
+    normalizedPath: string | null;
+    isDuplicate: boolean;
+};
+
+class WebsiteNotesExcludedFolderSuggest extends AbstractInputSuggest<string> {
+    constructor(plugin: EquationCitator, inputEl: HTMLInputElement) {
+        super(plugin.app, inputEl);
+        this.limit = 50;
+    }
+
+    protected getSuggestions(query: string): string[] {
+        const normalizedQuery = query.trim().replaceAll("\\", "/").toLowerCase();
+        const folders = this.app.vault
+            .getAllLoadedFiles()
+            .filter((file): file is TFolder => file instanceof TFolder && file.path !== "/")
+            .map(folder => folder.path)
+            .sort((a, b) => a.localeCompare(b));
+
+        if (!normalizedQuery) {
+            return folders;
+        }
+
+        return folders.filter(path => path.toLowerCase().includes(normalizedQuery));
+    }
+
+    renderSuggestion(value: string, el: HTMLElement): void {
+        el.setText(value);
+    }
+
+    selectSuggestion(value: string): void {
+        this.setValue(value);
+        this.close();
+    }
+}
+
 function getValidatedIgnoredPattern(
     patterns: string[],
     rawPattern: string,
@@ -198,6 +235,61 @@ function getValidatedIgnoredPattern(
 
     return {
         normalizedPattern,
+        isDuplicate: false,
+    };
+}
+
+function normalizeWebsiteNotesExcludedFolderPath(rawPath: string): string | null {
+    const normalizedPath = rawPath.trim().replaceAll("\\", "/").replace(/^\/+|\/+$/g, "");
+    const pathSegments = normalizedPath.split("/");
+
+    if (!normalizedPath || pathSegments.some(segment => !segment || segment === "." || segment === "..")) {
+        return null;
+    }
+
+    return normalizedPath;
+}
+
+function hasDuplicateExcludedFolder(
+    folders: WebsiteNotesExcludedFolder[],
+    folderPath: string,
+    currentIndex: number | null = null
+): boolean {
+    const normalizedFolderPath = folderPath.toLowerCase();
+    return folders.some((folder, index) => {
+        if (currentIndex !== null && index === currentIndex) {
+            return false;
+        }
+
+        return folder.path.toLowerCase() === normalizedFolderPath;
+    });
+}
+
+function getValidatedExcludedFolder(
+    folders: WebsiteNotesExcludedFolder[],
+    rawPath: string,
+    currentIndex: number | null = null
+): ExcludedFolderValidationResult {
+    const normalizedPath = normalizeWebsiteNotesExcludedFolderPath(rawPath);
+
+    if (!normalizedPath) {
+        new Notice(t("settings.websiteNotesExcludedFolders.invalidNotice"));
+        return {
+            normalizedPath: null,
+            isDuplicate: false,
+        };
+    }
+
+    if (hasDuplicateExcludedFolder(folders, normalizedPath, currentIndex)) {
+        new Notice(t("settings.websiteNotesExcludedFolders.duplicateNotice"));
+        return {
+            normalizedPath: null,
+            isDuplicate: true,
+        };
+    }
+
+    return {
+        normalizedPath,
         isDuplicate: false,
     };
 }
@@ -319,6 +411,143 @@ function renderIgnoredPatternList(containerEl: HTMLElement, plugin: EquationCita
     addNewIgnoredPatternSettingRow(containerEl, plugin, rerender);
 }
 
+async function saveExcludedFolderPathAtIndex(
+    plugin: EquationCitator,
+    index: number,
+    originalFolder: WebsiteNotesExcludedFolder,
+    inputEl: HTMLInputElement
+): Promise<void> {
+    const { normalizedPath } = getValidatedExcludedFolder(
+        plugin.settings.websiteNotesExcludedFolders ?? [],
+        inputEl.value,
+        index
+    );
+
+    if (!normalizedPath) {
+        inputEl.value = originalFolder.path;
+        return;
+    }
+
+    plugin.settings.websiteNotesExcludedFolders[index] = {
+        ...originalFolder,
+        path: normalizedPath,
+    };
+    inputEl.value = normalizedPath;
+    await plugin.saveSettings();
+}
+
+async function setExcludedFolderCompleteIgnore(
+    plugin: EquationCitator,
+    index: number,
+    value: boolean
+): Promise<void> {
+    const folder = plugin.settings.websiteNotesExcludedFolders[index];
+    if (!folder) {
+        return;
+    }
+
+    plugin.settings.websiteNotesExcludedFolders[index] = {
+        ...folder,
+        completelyIgnore: value,
+    };
+    await plugin.saveSettings();
+}
+
+async function addExcludedFolder(
+    plugin: EquationCitator,
+    inputEl: HTMLInputElement,
+    rerender: () => void
+): Promise<void> {
+    const { normalizedPath, isDuplicate } = getValidatedExcludedFolder(
+        plugin.settings.websiteNotesExcludedFolders ?? [],
+        inputEl.value
+    );
+
+    if (!normalizedPath) {
+        if (isDuplicate) {
+            inputEl.value = "";
+        }
+        return;
+    }
+
+    plugin.settings.websiteNotesExcludedFolders.push({
+        path: normalizedPath,
+        completelyIgnore: false,
+    });
+    await plugin.saveSettings();
+    rerender();
+}
+
+async function removeExcludedFolder(
+    plugin: EquationCitator,
+    index: number,
+    rerender: () => void
+): Promise<void> {
+    plugin.settings.websiteNotesExcludedFolders.splice(index, 1);
+    await plugin.saveSettings();
+    rerender();
+}
+
+function addExcludedFolderSettingRow(
+    containerEl: HTMLElement,
+    plugin: EquationCitator,
+    folder: WebsiteNotesExcludedFolder,
+    index: number,
+    rerender: () => void
+): void {
+    new Setting(containerEl)
+        .setClass("ec-website-export-folder-exclude-item")
+        .setDesc(t("settings.websiteNotesExcludedFolders.completeIgnore"))
+        .addText((text) => {
+            text.setValue(folder.path);
+            text.setPlaceholder(t("settings.websiteNotesExcludedFolders.pathPlaceholder"));
+            new WebsiteNotesExcludedFolderSuggest(plugin, text.inputEl);
+            text.inputEl.onblur = () => void saveExcludedFolderPathAtIndex(plugin, index, folder, text.inputEl);
+        })
+        .addToggle((toggle) => {
+            toggle.setTooltip(t("settings.websiteNotesExcludedFolders.completeIgnore"));
+            toggle.setValue(folder.completelyIgnore);
+            toggle.onChange(async (value) => setExcludedFolderCompleteIgnore(plugin, index, value));
+        })
+        .addButton((button) => {
+            button.setButtonText(t("settings.websiteNotesExcludedFolders.remove"))
+                .setClass("mod-warning")
+                .onClick(async () => removeExcludedFolder(plugin, index, rerender));
+        });
+}
+
+function addNewExcludedFolderSettingRow(
+    containerEl: HTMLElement,
+    plugin: EquationCitator,
+    rerender: () => void
+): void {
+    let newFolderInput: HTMLInputElement;
+
+    new Setting(containerEl)
+        .setClass("ec-website-export-folder-exclude-add")
+        .addText((text) => {
+            text.setPlaceholder(t("settings.websiteNotesExcludedFolders.pathPlaceholder"));
+            newFolderInput = text.inputEl;
+            new WebsiteNotesExcludedFolderSuggest(plugin, text.inputEl);
+        })
+        .addButton((button) => {
+            button.setButtonText(t("settings.websiteNotesExcludedFolders.add"))
+                .setCta()
+                .onClick(async () => addExcludedFolder(plugin, newFolderInput, rerender));
+        });
+}
+
+function renderExcludedFolderList(containerEl: HTMLElement, plugin: EquationCitator): void {
+    containerEl.empty();
+
+    const rerender = () => renderExcludedFolderList(containerEl, plugin);
+    plugin.settings.websiteNotesExcludedFolders ??= [];
+    plugin.settings.websiteNotesExcludedFolders.forEach((folder, index) => {
+        addExcludedFolderSettingRow(containerEl, plugin, folder, index, rerender);
+    });
+    addNewExcludedFolderSettingRow(containerEl, plugin, rerender);
+}
+
 export const PdfExportSettingsTab = {
     websiteNotesExportFolder(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.websiteNotesExportFolder;
@@ -400,6 +629,16 @@ export const PdfExportSettingsTab = {
         renderIgnoredPatternList(patternListContainer, plugin);
     },
 
+    websiteNotesExcludedFolders(containerEl: HTMLElement, plugin: EquationCitator) {
+        const { name, desc } = SETTINGS_METADATA.websiteNotesExcludedFolders;
+        new Setting(containerEl)
+            .setName(name)
+            .setDesc(desc);
+
+        const folderListContainer = containerEl.createDiv("ec-website-export-folder-exclude-list-container");
+        renderExcludedFolderList(folderListContainer, plugin);
+    },
+
     citationColorInPdf(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.citationColorInPdf;
         const pdfExportColorSetting = new Setting(containerEl);
@@ -475,9 +714,10 @@ export const PdfExportSettingsTab = {
 }   
 
 export function addPdfExportSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) { 
-    PdfExportSettingsTab.pdfExportTip(containerEl, plugin); 
+    PdfExportSettingsTab.pdfExportTip(containerEl, plugin);
     PdfExportSettingsTab.websiteNotesExportFolder(containerEl, plugin);
     PdfExportSettingsTab.websiteNotesExportIgnoredFilePatterns(containerEl, plugin);
+    PdfExportSettingsTab.websiteNotesExcludedFolders(containerEl, plugin);
     PdfExportSettingsTab.citationColorInPdf(containerEl, plugin);
     PdfExportSettingsTab.addImageCaptionsInPdf(containerEl, plugin);
     PdfExportSettingsTab.addImageDescInPdf(containerEl, plugin);
