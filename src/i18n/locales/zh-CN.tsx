@@ -356,6 +356,11 @@ const zh = {
     "panel.equationManage.fileNotFound": "文件未找到",
     "panel.dragDrop.figureNoTag": "此图表没有标签。请先手动为图表添加标签。",
     "panel.dragDrop.calloutNoTag": "此标注没有标签。请先手动为标注添加标签。",
+    "panel.dragDrop.sourceLineChanged": "源行内容已更改或移动，无法自动添加标签。请手动检查。",
+    "panel.dragDrop.sourceEditorUnavailable": "从面板添加标签前，请先在编辑器中打开源文件。",
+    "panel.dragDrop.equationClosingMarkerMissing": "无法找到公式闭合标记，无法自动添加标签。请手动检查公式。",
+    "panel.dragDrop.figureTagAddFailed": "无法自动添加图表标签。请手动检查图表。",
+    "panel.dragDrop.figureLineInvalid": "源行不再与图表匹配，无法自动添加标签。请手动检查。",
 
     "context.copy": "复制",
     "context.syncFileToWebsiteNotesFolder": "同步文件到网站笔记文件夹",
@@ -376,6 +381,9 @@ const zh = {
     "modal.tagInput.title": "输入公式标签",
     "modal.tagInput.description": "此公式没有标签。请输入标签以引用：",
     "modal.tagInput.placeholder": "例如：1.2.3",
+    "modal.figureTagInput.title": "输入图表标签",
+    "modal.figureTagInput.description": "此图表没有标签。请输入标签以引用：",
+    "modal.figureTagInput.placeholder": "例如：1.2",
     "modal.tagInput.submit": "提交",
 
     "popover.referencedEquations": "引用的公式",

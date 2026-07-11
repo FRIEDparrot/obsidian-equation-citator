@@ -572,7 +572,7 @@ export class EquationArrangePanel extends ItemView {
 
     public async renderFigureItem(container: HTMLElement, figure: ImageMatch): Promise<void> {
         const figDiv = container.createDiv("ec-figure-item");
-        const currentFile = this.app.workspace.getActiveFile();
+        const sourcePath = this.getCurrentActiveFile() || "";
 
         // Make figure draggable
         figDiv.draggable = true;
@@ -589,7 +589,7 @@ export class EquationArrangePanel extends ItemView {
         const contentDiv = figDiv.createDiv("ec-figure-content");
 
         // Render the figure using MarkdownRenderer (use raw markdown)
-        await MarkdownRenderer.render(this.app, figure.raw, contentDiv, currentFile?.path || '', this);
+        await MarkdownRenderer.render(this.app, figure.raw, contentDiv, sourcePath, this);
 
         // Disable native drag on images to allow parent drag
         contentDiv.querySelectorAll('img').forEach(img => {
@@ -599,12 +599,12 @@ export class EquationArrangePanel extends ItemView {
         // Add double-click handler to jump to figure in the editor
         figDiv.addEventListener('dblclick', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
-            if (ctrlKey && figure.tag && currentFile) {
+            if (ctrlKey && figure.tag && sourcePath) {
                 // Create a new split panel on the right
                 const newLeaf = this.app.workspace.getLeaf("split");
                 if (newLeaf) {
                     this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
-                    this.app.workspace.openLinkText("", currentFile.path, false).then().catch(console.error);
+                    this.app.workspace.openLinkText("", sourcePath, false).then().catch(console.error);
 
                     // Scroll to the figure after layout is ready
                     this.app.workspace.onLayoutReady(() => {
@@ -634,8 +634,9 @@ export class EquationArrangePanel extends ItemView {
             const figureData = {
                 tag: figure.tag || '',
                 type: 'figure',
-                sourcePath: currentFile?.path || '',
-                line: figure.line
+                sourcePath,
+                line: figure.line,
+                raw: figure.raw
             };
             const dataString = JSON.stringify(figureData);
             if (event.dataTransfer) {

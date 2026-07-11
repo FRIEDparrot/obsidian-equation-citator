@@ -278,7 +278,7 @@ function reconstructMarkdownImage(
  * addTagToImage("![fig:old|400](url)", "1.2", "fig:", false)
  * // Returns: { valid: true, oldTag: "old", processedLine: "![fig:1.2|400](url)" }
  */
-function addTagToImage(
+export function addTagToImage(
     image: ImageMatch,
     newTag: string,
     figCitationPrefix: string,

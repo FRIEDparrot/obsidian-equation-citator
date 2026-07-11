@@ -362,6 +362,11 @@ const en = {
     "context.syncFolderToWebsiteNotesFolder": "Sync folder to website notes folder",
     "context.renameEquationTag": "Rename equation tag",
     "context.renameFigureTag": "Rename tag for this picture",
+    "panel.dragDrop.sourceLineChanged": "The source line has changed or moved, so the tag cannot be added automatically. Please check it manually.",
+    "panel.dragDrop.sourceEditorUnavailable": "Open the source file in an editor before adding a tag from the panel.",
+    "panel.dragDrop.equationClosingMarkerMissing": "Unable to find the equation closing marker, so the tag cannot be added automatically. Please check the equation manually.",
+    "panel.dragDrop.figureTagAddFailed": "Unable to add the figure tag automatically. Please check the figure manually.",
+    "panel.dragDrop.figureLineInvalid": "The source line no longer looks like the same figure, so the tag cannot be added automatically. Please check it manually.",
 
     "modal.tagRename.title": "Rename tag",
     "modal.tagRename.heading": "Rename this tag to:",
@@ -377,6 +382,9 @@ const en = {
     "modal.tagInput.description": "This equation does not have a tag. Please enter a tag to cite it:",
     "modal.tagInput.placeholder": "e.g., 1.2.3",
     "modal.tagInput.submit": "Submit",
+    "modal.figureTagInput.title": "Enter figure tag",
+    "modal.figureTagInput.description": "This figure does not have a tag. Please enter a tag to cite it:",
+    "modal.figureTagInput.placeholder": "e.g., 1.2",
 
     "popover.referencedEquations": "Referenced equations",
     "popover.referencedFigures": "Referenced figures",

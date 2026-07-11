@@ -74,9 +74,16 @@
 
 ## Translation 
 
-Don't change zh-CN.tsx unless I explicitly specify that.  Since there would be some encoding issues. 
+For UI text, always add the text, like notice, to en.tsx file. Don't change zh-CN.tsx unless I explicitly specify that.  Since there would be some encoding issues. 
 
 
 ## Obsidian Plugin rules  
 
 1. Never insert any .style = xxx code into the script, use scss file instead. 
+
+
+## Command 
+These following commands should be selected if I prompt `cmd <CMD>`
+
+`translate` : there  are some options that not inlcuded in the zh-CN.tsx now. You may run git diff to see what we added and changed, sync these changes to zh-CN translation 
+`translate:changelogs` : sync the changelogs/en folder to changelogs/zh folder (translate chinese). 
