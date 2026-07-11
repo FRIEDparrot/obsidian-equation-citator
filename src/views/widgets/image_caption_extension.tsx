@@ -382,10 +382,12 @@ function createImageCaption(
 
 function getInternalImageEmbeds(root: ParentNode): Element[] {
     const images: Element[] = [];
-    const internalEmbeds = root.querySelectorAll('.internal-embed.image-embed, .internal-embed.is-loaded');
+    const internalEmbeds = root.querySelectorAll(
+        '.internal-embed.image-embed, .internal-embed.markdown-embed, .internal-embed.is-loaded'
+    );
 
     internalEmbeds.forEach(embedEl => {
-        if (embedEl.querySelector('img, svg')) {
+        if (embedEl.querySelector('img, svg, canvas, .markdown-embed-content')) {
             images.push(embedEl);
         }
     });

@@ -262,8 +262,9 @@ Bug fixes, improvements on PDF export function, added :
 - [x] Added [#179](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/179), now drag 
 - [x] **Added support for Chinese translation for all the UI of the SettingsTab options, Tooltips and Commands** (Check [PR #176](https://github.com/FRIEDparrot/obsidian-equation-citator/pull/176))
 
-Improvements :
+🔩 Improvements :
 - [x] Adjusted the style of figure preview widget for better width limit, now checking the figure preview widget does not need horizontal scrolling. 
+- [x] Added caption and description for Excalidraw/markdwon sections in preview widget. 
 
 📖 Documetations : 
 - [x] Migrated the **tutorials**, **Change logs** and the **API documentations** to a **Webpage version**.
@@ -283,6 +284,7 @@ Improvements :
 - [x] fixed [#175](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/175), add recognition for native svg element of excalidraw when adding the caption and description for figures
 - [x] fixed [#177](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/177), the caption and description is rendered by markdown grammar in options part. 
 - [x] fixed [#178](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/178), widget size will be preserved after the obsidian is reloaded or restarted. 
+- [x] fixed [#180](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/180), ctrl + right-click behavior is now correct for callouts in manage panel. 
 
 🏗️ refactors : 
 

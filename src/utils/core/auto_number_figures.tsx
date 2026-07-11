@@ -252,10 +252,8 @@ function reconstructMarkdownImage(
  * This function handles both WikiLink format (`![[image|metadata]]`) and Markdown format (`![alt](url)`) images.
  * When adding a tag, it ensures the tag is placed before any size parameters (numeric values).
  * 
- * @param line - The line to process (may contain an image)
  * @param newTag - The new tag to add (without prefix, e.g., "1.1")
  * @param figCitationPrefix - The prefix for figure citations (e.g., "fig:")
- * @param parseQuotes - Whether to parse images inside quote blocks
  * 
  * @returns An object containing:
  *   - `valid`: Whether a valid image was found and processed
