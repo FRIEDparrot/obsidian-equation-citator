@@ -270,8 +270,8 @@ Bug fixes, improvements on PDF export function, added :
 - [x] Migrated the **tutorials**, **Change logs** and the **API documentations** to a **Webpage version**.
 - [x] Support citation preview/jump at the webpage building process. 
 - [x] Build the npm package for easy web note integration (https://www.npmjs.com/package/@friedparrot/equation-citator)
-- [ ] Refine the documentation, split tutorials/changelogs into several parts, and added some other useful techniques. 
-- [ ] Added **full Chinese translation** for **tutorials** and **Change logs**. 
+- [x] Refine the documentation, split tutorials/changelogs into several parts, and added some other useful techniques. 
+- [x] Added **full Chinese translation** for **tutorials** and **Change logs**. 
 
 🐛 Fixed Bugs : 
 
