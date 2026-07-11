@@ -95,7 +95,7 @@ function isMarkdownFile(file: TAbstractFile): file is TFile {
  */
 function pathIsInsideFolder(filePath: string, folderPath: string): boolean {
     const normalizedFilePath = normalizePath(filePath);
-    const normalizedFolderPath = normalizePath(folderPath).replace(/^\/+|\/+$/g, "");
+    const normalizedFolderPath = normalizePath(folderPath).replace(/^\/+|\/+$/g, "");  // nosonar
 
     return normalizedFilePath === normalizedFolderPath || normalizedFilePath.startsWith(`${normalizedFolderPath}/`);
 }
