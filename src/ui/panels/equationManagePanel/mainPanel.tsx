@@ -603,15 +603,7 @@ export class EquationArrangePanel extends ItemView {
                 // Create a new split panel on the right
                 const newLeaf = this.app.workspace.getLeaf("split");
                 if (newLeaf) {
-                    this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
-                    this.app.workspace.openLinkText("", sourcePath, false).then().catch(console.error);
-
-                    // Scroll to the figure after layout is ready
-                    this.app.workspace.onLayoutReady(() => {
-                        activeWindow.setTimeout(() => {
-                            this.jumpToLine(figure.line).then().catch(console.error);
-                        }, 50);
-                    });
+                    this.jumpToLineInFile(sourcePath, figure.line, newLeaf).then().catch(console.error);
                 }
             } else {
                 // Normal double click - jump in current view
@@ -654,6 +646,7 @@ export class EquationArrangePanel extends ItemView {
     public async renderCalloutItem(container: HTMLElement, callout: CalloutMatch): Promise<void> {
         const calloutDiv = container.createDiv("ec-callout-item");
         const { calloutCitationPrefixes } = this.plugin.settings;
+        const sourcePath = this.getCurrentActiveFile() || "";
 
         // Make callout draggable
         calloutDiv.draggable = true;
@@ -670,27 +663,18 @@ export class EquationArrangePanel extends ItemView {
 
         // Create callout content div
         const contentDiv = calloutDiv.createDiv("ec-callout-content");
-        const currentFile = this.app.workspace.getActiveFile();
 
         // Render the callout using MarkdownRenderer (use raw content with quote marks)
-        await MarkdownRenderer.render(this.app, callout.raw, contentDiv, currentFile?.path || '', this);
+        await MarkdownRenderer.render(this.app, callout.raw, contentDiv, sourcePath, this);
 
         // Add double-click handler to jump to callout in the editor
         calloutDiv.addEventListener('dblclick', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
-            if (ctrlKey && callout.tag && currentFile) {
+            if (ctrlKey && sourcePath) {
                 // Create a new split panel on the right
                 const newLeaf = this.app.workspace.getLeaf("split");
                 if (newLeaf) {
-                    this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
-                    this.app.workspace.openLinkText("", currentFile.path, false).then().catch(console.error);
-
-                    // Scroll to the callout after layout is ready
-                    this.app.workspace.onLayoutReady(() => {
-                        activeWindow.setTimeout(() => {
-                            this.jumpToLine(callout.lineStart).then().catch(console.error);
-                        }, 50);
-                    });
+                    this.jumpToLineInFile(sourcePath, callout.lineStart, newLeaf).then().catch(console.error);
                 }
             } else {
                 // Normal double click - jump in current view
@@ -714,7 +698,7 @@ export class EquationArrangePanel extends ItemView {
                 tag: callout.tag || '',
                 type: 'callout',
                 prefix: callout.prefix || '',
-                sourcePath: currentFile?.path || '',
+                sourcePath,
                 lineStart: callout.lineStart
             };
             const dataString = JSON.stringify(calloutData);
@@ -732,15 +716,26 @@ export class EquationArrangePanel extends ItemView {
 
     private async jumpToLine(lineNumber: number): Promise<void> {
         const filePath = this.getCurrentActiveFile();
-        const normalizedPath = filePath ? normalizePath(filePath) : null;
+        if (!filePath) return;
+        await this.jumpToLineInFile(filePath, lineNumber);
+    }
+
+    private async jumpToLineInFile(filePath: string, lineNumber: number, leaf?: WorkspaceLeaf): Promise<void> {
+        const normalizedPath = normalizePath(filePath);
         const currentFile = normalizedPath ? this.app.vault.getAbstractFileByPath(normalizedPath) : null;
         if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
 
         // Open the file and jump to the line
-        const leaf = this.app.workspace.getLeaf(false);
-        await leaf.openFile(currentFile);
+        const targetLeaf = leaf || this.app.workspace.getLeaf(false);
+        this.app.workspace.setActiveLeaf(targetLeaf, { focus: true });
+        await targetLeaf.openFile(currentFile, {
+            eState: {
+                line: lineNumber,
+                cursor: { from: { line: lineNumber, ch: 0 } }
+            }
+        });
 
-        const view = leaf.view;
+        const view = targetLeaf.view;
         if (view instanceof MarkdownView) {
             const editor = view.editor;
             editor.setCursor({ line: lineNumber, ch: 0 });
