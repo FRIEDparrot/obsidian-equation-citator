@@ -77,6 +77,8 @@ const { buildApiShellModel, buildStandardDocsPage } = createDocsPageBuilder({
 async function main() {
     await cleanDocsOutput();
     await writeSharedAssets();
+    await copySharedSectionStaticAssets(TUTORIALS_ROOT);
+    await copySharedSectionStaticAssets(CHANGELOGS_ROOT);
 
     const localeNavigations = new Map();
     for (const locale of SUPPORTED_LOCALES) {
@@ -203,6 +205,29 @@ async function copySectionStaticAssets(sourceRoot, outputRoot) {
         const outputFilePath = path.join(outputRoot, relativeAssetPath);
         await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
         await fs.copyFile(sourceFilePath, outputFilePath);
+    }
+}
+
+/**
+ * Copies section-level static asset directories shared by all locales. Locale folders are
+ * skipped so `tutorials/img/example.png` is emitted as `docs/.../tutorials/img/example.png`
+ * without duplicating localized Markdown sources or export metadata into the generated site.
+ */
+async function copySharedSectionStaticAssets(sectionKey) {
+    const sectionRoot = sectionPathFromRoot(sectionKey);
+    const sourceRoot = path.join(repositoryRoot, sectionRoot);
+    const outputRoot = path.join(docsRoot, sectionRoot);
+    const entries = await fs.readdir(sourceRoot, { withFileTypes: true });
+
+    for (const entry of entries) {
+        if (SUPPORTED_LOCALES.includes(entry.name)) {
+            continue;
+        }
+
+        const entryPath = path.join(sourceRoot, entry.name);
+        if (entry.isDirectory()) {
+            await copySectionStaticAssets(entryPath, path.join(outputRoot, entry.name));
+        }
     }
 }
 
