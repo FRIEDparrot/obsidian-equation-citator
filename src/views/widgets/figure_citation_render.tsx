@@ -110,7 +110,7 @@ export function renderFigureCitation(
                         e.stopPropagation();
                         e.stopImmediatePropagation();
 
-                        new FileSuperScriptPopover(
+                        new FileSuperScriptPopover( // nosonar
                             plugin, 
                             parent,
                             fileSuperEl,
