@@ -20,9 +20,9 @@
 
 ---
 
-🚀 **快速入门**：我们提供了**详细的** [网页文档教程](https://friedparrot.github.io/projects/obsidian-equation-citator/tutorials/en/index.html)，带您了解所有功能（使用插件前请务必查看！）。
+🚀 **快速入门**：我们提供了**详细的** [网页文档教程](https://friedparrot.github.io/projects/obsidian-equation-citator/tutorials/zh-CN/index.html)，带您了解所有功能（使用插件前请务必查看！）。
 
-✨ **完整功能与更新记录**：详见 [更新日志](https://friedparrot.github.io/projects/obsidian-equation-citator/changelogs/en/index.html)。
+✨ **完整功能与更新记录**：详见 [更新日志](https://friedparrot.github.io/projects/obsidian-equation-citator/changelogs/zh-CN/index.html)。
 
 📹 **视频教程**：如果本插件下载量达到 5000 次或仓库获得 50 个 Star，将会录制视频教程。
 
