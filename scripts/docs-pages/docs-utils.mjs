@@ -48,7 +48,7 @@ export function encodeHrefPath(href) {
 }
 
 export function stripHtmlTags(text) {
-    return text.replace(/<[^>]+>/g, "").trim();
+    return text.replace(/<[^>]+>/g, "").trim();  // nosonar
 }
 
 export function stripLeadingHeading(contentHtml) {

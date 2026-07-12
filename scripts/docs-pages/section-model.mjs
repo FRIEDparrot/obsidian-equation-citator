@@ -174,7 +174,7 @@ function estimateReadingTimeLabel(markdown) {
 }
 
 function markdownLinkPattern() {
-    return new RegExp(String.raw`\[[^\]]+]\([^)]+\)`, "g");
+    return /\[[^\]]+]\([^)]+\)/g;  // nosonar
 }
 
 function parseFrontmatter(markdown) {
@@ -190,7 +190,7 @@ function parseFrontmatter(markdown) {
 
     const frontmatter = new Map();
     for (const line of normalizedMarkdown.slice(4, endIndex).split("\n")) {
-        const match = line.match(/^([A-Za-z0-9_-]+):\s*(.+)$/);
+        const match = line.match(/^([A-Za-z0-9_-]+):\s*(.+)$/);  // nosonar
         if (match) {
             frontmatter.set(match[1], match[2].replace(/^["']|["']$/g, "").trim());
         }

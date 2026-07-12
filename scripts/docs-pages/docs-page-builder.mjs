@@ -13,6 +13,11 @@ import {
 import localeRouting from "./locale-routing.cjs";
 import { withBaseRoot } from "./site-config.mjs";
 
+function relativeSiteHref(currentPageHref, targetPageHref) {
+    // currentPageHref is Unused parameter, but kept for potential future use
+    return withBaseRoot(targetPageHref);
+}
+
 function buildApiReferenceSectionHtml({ currentPageHref, currentPageLabel }) {
     const currentPageFileHref = normalizePath(path.basename(currentPageHref));
     return [
@@ -188,11 +193,6 @@ export function createDocsPageBuilder({
 
     function getDocsRelativeHref(filePath) {
         return normalizePath(path.relative(docsRoot, filePath));
-    }
-
-    function relativeSiteHref(currentPageHref, targetPageHref) {
-        void currentPageHref;
-        return withBaseRoot(targetPageHref);
     }
 
     return {
