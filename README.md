@@ -12,7 +12,7 @@
   <img src="https://sonarcloud.io/api/project_badges/measure?project=FRIEDparrot_obsidian-equation-citator&metric=alert_status" alt="Quality Gate">
 </span></div></center>
 
-<center><a href="/projects/obsidian-equation-citator/en/index.html">English </a> | <a href="/projects/obsidian-equation-citator/zh-CN/index.html">简体中文</a></center>
+<center><a href="https://friedparrot.github.io/projects/obsidian-equation-citator/en/index.html">English </a> | <a href="https://friedparrot.github.io/projects/obsidian-equation-citator/zh-CN/index.html">简体中文</a></center>
 
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4></center>
 
