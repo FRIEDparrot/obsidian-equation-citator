@@ -433,11 +433,27 @@
         margin: 0 auto;
     }
 
-    // Obsidian renders ![[...]] inside a <p> > <img> structure
-    p {
+    // Center media-only embed wrappers without changing paragraphs inside markdown embeds.
+    > p:has(> img:only-child),
+    > p:has(> video:only-child),
+    > p:has(> .internal-embed:only-child) {
         display: flex;
         justify-content: center;
         margin: 0;
+    }
+
+    p {
+        max-width: 100%;
+    }
+
+    code {
+        display: inline;
+        white-space: normal;
+    }
+
+    pre code {
+        display: block;
+        white-space: pre;
     }
 }
 
@@ -500,5 +516,15 @@
     // Ensure text content is readable and not clipped awkwardly
     p, li {
         font-size: 13px;
+    }
+
+    code {
+        display: inline;
+        white-space: normal;
+    }
+
+    pre code {
+        display: block;
+        white-space: pre;
     }
 }

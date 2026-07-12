@@ -23,7 +23,6 @@ export interface FigAutoNumberConfigs extends AutoNumberConfigs {
  * @remarks process for quotes is handled inside parseMarkdownLine function
  * 
  * @param content - the markdown content to process 
- * @param figCitationPrefix - the prefix for figure citations (e.g., "fig:")
  * @param configs - the auto-numbering related configurations, including type, depth, delimiter, etc.
  */
 export function autoNumberFigures(
@@ -253,10 +252,8 @@ function reconstructMarkdownImage(
  * This function handles both WikiLink format (`![[image|metadata]]`) and Markdown format (`![alt](url)`) images.
  * When adding a tag, it ensures the tag is placed before any size parameters (numeric values).
  * 
- * @param line - The line to process (may contain an image)
  * @param newTag - The new tag to add (without prefix, e.g., "1.1")
  * @param figCitationPrefix - The prefix for figure citations (e.g., "fig:")
- * @param parseQuotes - Whether to parse images inside quote blocks
  * 
  * @returns An object containing:
  *   - `valid`: Whether a valid image was found and processed
@@ -279,7 +276,7 @@ function reconstructMarkdownImage(
  * addTagToImage("![fig:old|400](url)", "1.2", "fig:", false)
  * // Returns: { valid: true, oldTag: "old", processedLine: "![fig:1.2|400](url)" }
  */
-function addTagToImage(
+export function addTagToImage(
     image: ImageMatch,
     newTag: string,
     figCitationPrefix: string,

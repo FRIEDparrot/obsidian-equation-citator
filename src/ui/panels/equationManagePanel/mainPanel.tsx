@@ -19,6 +19,7 @@ import { EquationPanelDragDropHandler } from "./drag_drop_handler";
 import { EquationPanelOutlineViewRenderer } from "./outline_view_renderer";
 import { boxedEquationFilter } from "./box_filters";
 import { PanelItem, getItemLine, getItemTag, getItemSearchableContent, ViewMode, SortType } from "./panelItemTypes";
+import { t } from "@/i18n/getLocale";
 
 export const EQUATION_MANAGE_PANEL_TYPE = "equation-arrange-panel";
 
@@ -51,7 +52,7 @@ export class EquationArrangePanel extends ItemView {
     public filterEmptyHeadings = false; // Default to outline view (show all headings)
     public filterTagOnlyItems = false;
     public filterBoxedEquation = false;
-    public lockRefreshEnabled = false;
+    public lockRefreshEnabled = false;  // lock : file path and cached items 
     public enableRenderHeadingOnly = false; // in outline mode, only render headings without equations 
     // #endregion
 
@@ -62,7 +63,8 @@ export class EquationArrangePanel extends ItemView {
     // last state stored for avoid frequent refresh
     public currentEquationHash = "";
     private currentActiveFile = "";      // current active file path (used for fast refresh)
-    private currentViewMode = "";    // current display mode (used for fast refresh)
+    private lastActiveFile = "";         // last active file path (used for fast refresh)
+    private currentViewMode = "";        // current display mode (used for fast refresh)
 
     private currentSortMode = "";    // current sort mode (used for fast refresh)
     private currentFilterEmptyHeadings = false; // current filter state (used for fast refresh)
@@ -113,7 +115,7 @@ export class EquationArrangePanel extends ItemView {
     }
 
     getDisplayText(): string {
-        return "Equations arrange panel";
+        return t("panel.equationManage.displayText");
     }
 
     getIcon(): string {
@@ -279,14 +281,14 @@ export class EquationArrangePanel extends ItemView {
     public renderEmptyPanelView(): void {
         if (this.viewPanel) {
             const objectTypeLabels = {
-                equation: "equation",
-                figure: "figure",
-                callout: "callout"
+                equation: t("panel.equationManage.object.equation"),
+                figure: t("panel.equationManage.object.figure"),
+                callout: t("panel.equationManage.object.callout")
             };
             const objectLabel = objectTypeLabels[this.previewObjectType];
             const message = this.searchQuery
-                ? `No ${objectLabel} match your search`
-                : `No ${objectLabel} found in current file`;
+                ? t("panel.equationManage.empty.noSearchMatch", { object: objectLabel })
+                : t("panel.equationManage.empty.noFound", { object: objectLabel });
 
             this.viewPanel.createDiv({
                 text: message,
@@ -302,10 +304,10 @@ export class EquationArrangePanel extends ItemView {
     ): Promise<void> {
         // List mode: Handle no items case
         const itemsHash = hashPanelItems(items);
-        const itemsEqual = (itemsHash === this.currentEquationHash);
+        const itemsEqual = (items.length !==0) && (itemsHash === this.currentEquationHash);
 
         if (viewStateEqual && itemsEqual) {
-            Debugger.log("View state equal, no need to refresh");
+            Debugger.log("View state equal, no need to refresh list view");
             return;
         }
         // Update state
@@ -324,13 +326,16 @@ export class EquationArrangePanel extends ItemView {
     public async refreshView(): Promise<void> {
         // Get the active file path (respecting lock mode)
         const activeFilePath = this.getCurrentActiveFile() || "";
+        const fileSwitched = (this.lastActiveFile !== this.currentActiveFile);
+        
         this.currentActiveFile = activeFilePath;   // used for record current state 
+        this.lastActiveFile = activeFilePath;
 
         // Handle no active file case
         if (!activeFilePath) {
             if (this.viewPanel) {
                 this.viewPanel.empty();
-                this.viewPanel.createDiv({ text: "No active file", cls: "ec-empty-message" });
+                this.viewPanel.createDiv({ text: t("panel.equationManage.noActiveFile"), cls: "ec-empty-message" });
             }
             this.currentEquationHash = hashPanelItems([]);
             return;
@@ -342,7 +347,7 @@ export class EquationArrangePanel extends ItemView {
         if (!(currentFile instanceof TFile)) {
             if (this.viewPanel) {
                 this.viewPanel.empty();
-                this.viewPanel.createDiv({ text: "File not found", cls: "ec-empty-message" });
+                this.viewPanel.createDiv({ text: t("panel.equationManage.fileNotFound"), cls: "ec-empty-message" });
             }
             this.currentEquationHash = hashPanelItems([]);
             return;
@@ -371,6 +376,18 @@ export class EquationArrangePanel extends ItemView {
             if (headings.length === 0) {
                 await this.handleListViewRefresh(itemsToRender, viewStateEqual);
                 return;
+            }
+            // when switching to a new file, restore fold state (issue #163) 
+            if (fileSwitched && this.outlineViewRenderer.collapseAllState === true) {
+                const occurrenceMap: Map<string, number> = new Map();
+                headings.forEach((heading, index) => {
+                    // see outline_view_renderer, function updateHeadingLines
+                    const key = `${heading.level}|${heading.text}`;
+                    const occurrence = occurrenceMap.get(key) || 0;
+                    occurrenceMap.set(key, occurrence + 1);
+                    const dataId = `${key}|${occurrence}`;
+                    this.outlineViewRenderer.collapseHeadings.add(dataId);
+                })
             }
             await this.outlineViewRenderer.handleOutlineViewRefresh(itemsToRender, headings, viewStateEqual);
         }
@@ -493,7 +510,7 @@ export class EquationArrangePanel extends ItemView {
 
                     // Scroll to the equation after layout is ready
                     this.app.workspace.onLayoutReady(() => {
-                        setTimeout(() => {
+                        activeWindow.setTimeout(() => {
                             if (equation.tag) {
                                 void scrollToEquationByTag(this.plugin, equation.tag, currentFile.path);
                             }
@@ -542,7 +559,7 @@ export class EquationArrangePanel extends ItemView {
             const menu = new Menu();
 
             menu.addItem((item) => {
-                item.setTitle("Copy");
+                item.setTitle(t("context.copy"));
                 item.setIcon("copy");
                 item.onClick(() => {
                     this.handleEquationCopy(equation);
@@ -555,7 +572,7 @@ export class EquationArrangePanel extends ItemView {
 
     public async renderFigureItem(container: HTMLElement, figure: ImageMatch): Promise<void> {
         const figDiv = container.createDiv("ec-figure-item");
-        const currentFile = this.app.workspace.getActiveFile();
+        const sourcePath = this.getCurrentActiveFile() || "";
 
         // Make figure draggable
         figDiv.draggable = true;
@@ -572,7 +589,7 @@ export class EquationArrangePanel extends ItemView {
         const contentDiv = figDiv.createDiv("ec-figure-content");
 
         // Render the figure using MarkdownRenderer (use raw markdown)
-        await MarkdownRenderer.render(this.app, figure.raw, contentDiv, currentFile?.path || '', this);
+        await MarkdownRenderer.render(this.app, figure.raw, contentDiv, sourcePath, this);
 
         // Disable native drag on images to allow parent drag
         contentDiv.querySelectorAll('img').forEach(img => {
@@ -582,19 +599,11 @@ export class EquationArrangePanel extends ItemView {
         // Add double-click handler to jump to figure in the editor
         figDiv.addEventListener('dblclick', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
-            if (ctrlKey && figure.tag && currentFile) {
+            if (ctrlKey && figure.tag && sourcePath) {
                 // Create a new split panel on the right
                 const newLeaf = this.app.workspace.getLeaf("split");
                 if (newLeaf) {
-                    this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
-                    this.app.workspace.openLinkText("", currentFile.path, false).then().catch(console.error);
-
-                    // Scroll to the figure after layout is ready
-                    this.app.workspace.onLayoutReady(() => {
-                        setTimeout(() => {
-                            this.jumpToLine(figure.line).then().catch(console.error);
-                        }, 50);
-                    });
+                    this.jumpToLineInFile(sourcePath, figure.line, newLeaf).then().catch(console.error);
                 }
             } else {
                 // Normal double click - jump in current view
@@ -617,8 +626,9 @@ export class EquationArrangePanel extends ItemView {
             const figureData = {
                 tag: figure.tag || '',
                 type: 'figure',
-                sourcePath: currentFile?.path || '',
-                line: figure.line
+                sourcePath,
+                line: figure.line,
+                raw: figure.raw
             };
             const dataString = JSON.stringify(figureData);
             if (event.dataTransfer) {
@@ -636,6 +646,7 @@ export class EquationArrangePanel extends ItemView {
     public async renderCalloutItem(container: HTMLElement, callout: CalloutMatch): Promise<void> {
         const calloutDiv = container.createDiv("ec-callout-item");
         const { calloutCitationPrefixes } = this.plugin.settings;
+        const sourcePath = this.getCurrentActiveFile() || "";
 
         // Make callout draggable
         calloutDiv.draggable = true;
@@ -652,27 +663,18 @@ export class EquationArrangePanel extends ItemView {
 
         // Create callout content div
         const contentDiv = calloutDiv.createDiv("ec-callout-content");
-        const currentFile = this.app.workspace.getActiveFile();
 
         // Render the callout using MarkdownRenderer (use raw content with quote marks)
-        await MarkdownRenderer.render(this.app, callout.raw, contentDiv, currentFile?.path || '', this);
+        await MarkdownRenderer.render(this.app, callout.raw, contentDiv, sourcePath, this);
 
         // Add double-click handler to jump to callout in the editor
         calloutDiv.addEventListener('dblclick', (event: MouseEvent) => {
             const ctrlKey = event.ctrlKey || event.metaKey;
-            if (ctrlKey && callout.tag && currentFile) {
+            if (ctrlKey && sourcePath) {
                 // Create a new split panel on the right
                 const newLeaf = this.app.workspace.getLeaf("split");
                 if (newLeaf) {
-                    this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
-                    this.app.workspace.openLinkText("", currentFile.path, false).then().catch(console.error);
-
-                    // Scroll to the callout after layout is ready
-                    this.app.workspace.onLayoutReady(() => {
-                        setTimeout(() => {
-                            this.jumpToLine(callout.lineStart).then().catch(console.error);
-                        }, 50);
-                    });
+                    this.jumpToLineInFile(sourcePath, callout.lineStart, newLeaf).then().catch(console.error);
                 }
             } else {
                 // Normal double click - jump in current view
@@ -696,7 +698,7 @@ export class EquationArrangePanel extends ItemView {
                 tag: callout.tag || '',
                 type: 'callout',
                 prefix: callout.prefix || '',
-                sourcePath: currentFile?.path || '',
+                sourcePath,
                 lineStart: callout.lineStart
             };
             const dataString = JSON.stringify(calloutData);
@@ -714,15 +716,26 @@ export class EquationArrangePanel extends ItemView {
 
     private async jumpToLine(lineNumber: number): Promise<void> {
         const filePath = this.getCurrentActiveFile();
-        const normalizedPath = filePath ? normalizePath(filePath) : null;
+        if (!filePath) return;
+        await this.jumpToLineInFile(filePath, lineNumber);
+    }
+
+    private async jumpToLineInFile(filePath: string, lineNumber: number, leaf?: WorkspaceLeaf): Promise<void> {
+        const normalizedPath = normalizePath(filePath);
         const currentFile = normalizedPath ? this.app.vault.getAbstractFileByPath(normalizedPath) : null;
         if (!filePath || !currentFile || !(currentFile instanceof TFile)) return;
 
         // Open the file and jump to the line
-        const leaf = this.app.workspace.getLeaf(false);
-        await leaf.openFile(currentFile);
+        const targetLeaf = leaf || this.app.workspace.getLeaf(false);
+        this.app.workspace.setActiveLeaf(targetLeaf, { focus: true });
+        await targetLeaf.openFile(currentFile, {
+            eState: {
+                line: lineNumber,
+                cursor: { from: { line: lineNumber, ch: 0 } }
+            }
+        });
 
-        const view = leaf.view;
+        const view = targetLeaf.view;
         if (view instanceof MarkdownView) {
             const editor = view.editor;
             editor.setCursor({ line: lineNumber, ch: 0 });

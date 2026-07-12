@@ -15,6 +15,10 @@ export interface RenderedEquation {
     footnoteIndex: string | null; // index of the footnote (if any)
 }
 
+export type AddEquationTagResult =
+    | { success: true }
+    | { success: false; reason: "view-not-found" | "line-changed" | "closing-marker-not-found" | "invalid-line-range" };
+
 /** 
  * Common class processing logic for equation files.
  * 
@@ -137,31 +141,47 @@ export class EquationServices {
         return { path: file.path, filename: match.label || null };
     }
 
-    /**
-     * Adds a tag to an equation at a specific line range to the active file. 
-     *     This function use replaceRange to modify the editor content directly, so its less costy.
-     * @param filePath - The path of the file containing the equation
-     * @param lineStart - The starting line number of the equation
-     * @param lineEnd - The ending line number of the equation
-     * @param tag - The tag to add (without \tag{} wrapper)
-     * @returns true if successful, false otherwise
-     */
     public addTagToEquation(filePath: string, lineStart: number, lineEnd: number, tag: string): boolean {
+        return this.addTagToEquationWithResult(filePath, lineStart, lineEnd, tag).success;
+    }
+
+    /**
+     * Adds a tag to the equation at the cached line range after confirming the
+     * current editor still contains the same equation text. Returns a failure
+     * reason instead of silently returning false so callers can warn about stale
+     * panel data when refresh has been stopped.
+     */
+    public addTagToEquationWithResult(
+        filePath: string,
+        lineStart: number,
+        lineEnd: number,
+        tag: string,
+        expectedContent?: string
+    ): AddEquationTagResult {
         const normalizedPath = normalizePath(filePath);
         // Find the MarkdownView for this file
         const view = this.getMarkdownViewByPath(normalizedPath);
         if (!view?.editor) {
             Debugger.log("Cannot find editor for file: ", normalizedPath);
-            return false;
+            return { success: false, reason: "view-not-found" };
         }
 
         const editor = view.editor;
+        if (lineStart < 0 || lineEnd < lineStart || lineEnd >= editor.lineCount()) {
+            Debugger.log("Invalid equation line range:", normalizedPath, lineStart, lineEnd);
+            return { success: false, reason: "invalid-line-range" };
+        }
+
         const tagString = createEquationTagString(tag, this.plugin.settings.enableTypstMode);
 
         // Read the equation lines
         const equationLines: string[] = [];
         for (let i = lineStart; i <= lineEnd; i++) {
             equationLines.push(editor.getLine(i));
+        }
+        if (expectedContent !== undefined && !this.linesStillContainEquation(equationLines, expectedContent)) {
+            Debugger.log("Equation line range changed before adding tag:", normalizedPath, lineStart, lineEnd, expectedContent, equationLines);
+            return { success: false, reason: "line-changed" };
         }
 
         // Handle single-line vs multi-line equations
@@ -172,7 +192,7 @@ export class EquationServices {
             const closingIndex = line.lastIndexOf('$$');
             if (closingIndex === -1) {
                 Debugger.log("Cannot find closing $$ in single-line equation");
-                return false;
+                return { success: false, reason: "closing-marker-not-found" };
             }
 
             const newLine = line.slice(0, closingIndex).trimEnd() + ' ' + tagString + ' ' + line.slice(closingIndex);
@@ -202,7 +222,7 @@ export class EquationServices {
                 const insertPosition = tagLine.lastIndexOf('$$');
                 if (insertPosition === -1) {
                     Debugger.log("Multi-line equation does not have proper closing $$");
-                    return false;
+                    return { success: false, reason: "closing-marker-not-found" };
                 }
                 const newTagLine = tagLine.slice(0, insertPosition).trimEnd() + ' ' + tagString + ' ' + tagLine.slice(insertPosition);
 
@@ -214,7 +234,14 @@ export class EquationServices {
             }
         }
 
-        return true;
+        return { success: true };
+    }
+
+    private linesStillContainEquation(equationLines: string[], expectedContent: string): boolean {
+        const currentContent = equationLines.join('\n').replace(/\s+/g, "");
+        const expectedNormalized = expectedContent.replace(/\s+/g, "");
+
+        return expectedNormalized.length > 0 && currentContent.includes(expectedNormalized);
     }
 
     /**

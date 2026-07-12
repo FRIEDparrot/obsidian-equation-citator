@@ -25,6 +25,7 @@ import { openFileAndScrollToEquation } from "@/utils/workspace/equation_navigati
 import { parseEquationTag } from "@/utils/parsers/equation_parser";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
 import { copyEquationToClipboard } from "@/utils/misc/equation_copy";
+import { t } from "@/i18n/getLocale";
 
 /**
  * Citaton Popover Class, render the equations in the popover 
@@ -78,14 +79,14 @@ export class CitationPopover extends HoverPopover {
         const header = container.createDiv();
         header.addClass("em-citation-header");
 
-        header.createEl("h3", { text: "Referenced equations", cls: "em-citation-title" });
+        header.createEl("h3", { text: t("popover.referencedEquations"), cls: "em-citation-title" });
         const footerSpan = header.createEl("div", {
             cls: "em-citation-title-note",
         });
 
         footerSpan.createDiv(); // placeholder  
         footerSpan.createDiv({
-            text: "shift + scroll to scroll horizontally",
+            text: t("popover.shiftScrollHint"),
             cls: "em-citation-title-note-text",
         })
         // Create content wrapper
@@ -109,7 +110,9 @@ export class CitationPopover extends HoverPopover {
         const footer = container.createDiv();
         const totalEquations = this.equationsToRender.length;
         footer.addClass("em-citation-footer");
-        footer.textContent = `${totalEquations} equation${totalEquations === 1 ? '' : 's'}`;
+        footer.textContent = totalEquations === 1 ?
+            t("popover.equationCount.one") :
+            t("popover.equationCount.many", { count: totalEquations });
     }
 }
 
@@ -203,7 +206,7 @@ function addClickLinkJump(
         if (!(view instanceof MarkdownView)) return;
         const isReadingMode = view.getMode() === "preview";
         if (isReadingMode) {
-            new Notice("Link jump is not supported in reading mode. Use live preview instead.");
+            new Notice(t("popover.linkJumpReadingModeNotice"));
             return;
         }
         const ctrlKey = (event.ctrlKey || event.metaKey);
@@ -228,7 +231,7 @@ function addContextMenuCopy(
         const menu = new Menu();
         
         menu.addItem((item) => {
-            item.setTitle("Copy");
+            item.setTitle(t("context.copy"));
             item.setIcon("copy");
             item.onClick(() => {
                 const copyType = plugin.settings.equationWidgetRightClickCopyType;

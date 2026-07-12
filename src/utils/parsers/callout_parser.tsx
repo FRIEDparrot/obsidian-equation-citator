@@ -1,6 +1,6 @@
 import { parseMarkdownLine } from "@/utils/string_processing/string_utils";
 import Debugger from "@/debug/debugger";
-import { CalloutCitationPrefix } from "@/settings/defaultSettings";
+import type { CalloutCitationPrefix } from "@/settings/defaultSettings";
 import { calloutPattern } from "@/utils/string_processing/regexp_utils";
 
 /**
@@ -121,7 +121,9 @@ export function parseAllCalloutsFromMarkdown(
         }
         
         // Skip lines in code blocks
-        if (inCodeBlock) continue;
+        if (inCodeBlock && !inCallout) {
+            continue;
+        }
 
         // Check if we're currently in a callout block
         if (inCallout) {

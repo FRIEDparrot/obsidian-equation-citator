@@ -36,16 +36,15 @@ export class ImageCache extends BaseCache<ImageMatch> {
             const markdown = await this.plugin.app.vault.cachedRead(file);
             const data = this.parseMarkdown(markdown);
             
-            // Post-process: prepend file path to heading links (imagePath starting with #)
+            // Post-process: prepend file path to heading links (imagePath starting with #).
+            // Keep `raw` as the literal source line so later editor-line checks and
+            // tag insertion operate on the text that is actually in the file.
             const processedData = data.map(img => {
                 if (img.imagePath?.startsWith('#')) {
                     const newImagePath = `${normalizedPath}${img.imagePath}`;
-                    // Also update raw to include the full path
-                    const newRaw = img.raw.replace(img.imagePath, newImagePath);
                     return {
                         ...img,
-                        imagePath: newImagePath,
-                        raw: newRaw
+                        imagePath: newImagePath
                     };
                 }
                 return img;

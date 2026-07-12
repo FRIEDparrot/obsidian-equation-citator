@@ -1,6 +1,6 @@
 import EquationCitator from "@/main";
 import { PluginSettingTab, App, Setting, Notice, setIcon } from "obsidian";
-import { DEFAULT_SETTINGS } from "./defaultSettings";
+import { DEFAULT_SETTINGS, EquationCitatorSettings } from "./defaultSettings";
 import { WidgetSizeManager } from "./styleManagers/widgetSizeManager";
 
 import { addPdfExportSettingsTab } from "@/settings/pages/pdfExportSettingsTab";
@@ -15,6 +15,7 @@ import { createCustomizePanel } from "@/settings/extensions/customizePanel";
 import { SETTINGS_METADATA } from "@/settings/defaultSettings";
 import { getAllSettingsByCategory } from "@/settings/settingsHelper";
 import { CalloutTableStyleManager } from '@/settings/styleManagers/calloutTabManager';
+import { t } from "@/i18n/getLocale";
 
 
 export interface UserSettingGroupConfig {
@@ -23,9 +24,9 @@ export interface UserSettingGroupConfig {
 }
 
 //#region Style Settings Utilities
-export function loadStyles(): void {
-    WidgetSizeManager.updateFromSettings(DEFAULT_SETTINGS);
-    CalloutTableStyleManager.update(DEFAULT_SETTINGS);
+export function loadStyles(settings: EquationCitatorSettings): void {
+    WidgetSizeManager.updateFromSettings(settings);
+    CalloutTableStyleManager.update(settings);
 }
 
 export function resetStyles(): void {
@@ -66,6 +67,10 @@ export class SettingsTabView extends PluginSettingTab {
     }
 
     display(): void {
+        this.refreshDisplay();
+    }
+
+    public refreshDisplay(): void {
         const { containerEl } = this;
         containerEl.empty();
 
@@ -76,17 +81,17 @@ export class SettingsTabView extends PluginSettingTab {
         // Mode toggle
         const modeDiv = toolbar.createDiv({ cls: "ec-settings-mode-toggle" });
         new Setting(modeDiv)
-            .setName("Display")
+            .setName(t("settings.display.name"))
             .setClass("ec-settings-display-mode-setting")
             .addDropdown((dd) => {
-                dd.addOption(SettingsDisplayMode.Concise, "Concise");
-                dd.addOption(SettingsDisplayMode.Categorical, "Categorical");
-                dd.addOption(SettingsDisplayMode.List, "List");
+                dd.addOption(SettingsDisplayMode.Concise, t("settings.display.concise"));
+                dd.addOption(SettingsDisplayMode.Categorical, t("settings.display.categorical"));
+                dd.addOption(SettingsDisplayMode.List, t("settings.display.list"));
                 dd.setValue(this.plugin.settings.settingsDisplayMode ?? SettingsDisplayMode.Concise);
                 dd.onChange(async (value) => {
                     this.plugin.settings.settingsDisplayMode = value as SettingsDisplayMode.Concise | SettingsDisplayMode.Categorical;
                     await this.plugin.saveSettings();
-                    this.display();
+                    this.refreshDisplay();
                 });
             });
 
@@ -95,7 +100,7 @@ export class SettingsTabView extends PluginSettingTab {
         searchSetting.setClass("ec-settings-search-setting")
         searchSetting.addSearch((text) => {
             text.inputEl.classList.add("ec-settings-search-textbox")
-            text.setPlaceholder("Search settings")
+            text.setPlaceholder(t("settings.search.placeholder"))
             text.setValue(this.searchQuery)
             text.onChange((value) => {
                 this.searchQuery = value.toLowerCase().trim();
@@ -149,13 +154,13 @@ export class SettingsTabView extends PluginSettingTab {
 
     private renderCategorical(containerEl: HTMLElement) {
         const groups = [
-            { id: "ec-group-citation", title: "Citation", icon: "feather" },
-            { id: "ec-group-auto", title: "Auto numbering", icon: "hash" },
-            { id: "ec-group-panel", title: "Equation panel", icon: "layout-panel-left" },
-            { id: "ec-group-style", title: "Style", icon: "palette" },
-            { id: "ec-group-pdf", title: "PDF export", icon: "file-down" },
-            { id: "ec-group-cache", title: "Cache", icon: "database" },
-            { id: "ec-group-other", title: "Others", icon: "settings" }
+            { id: "ec-group-citation", title: t("settings.category.citation"), icon: "feather" },
+            { id: "ec-group-auto", title: t("settings.category.autoNumbering"), icon: "hash" },
+            { id: "ec-group-panel", title: t("settings.category.equationPanel"), icon: "layout-panel-left" },
+            { id: "ec-group-style", title: t("settings.category.style"), icon: "palette" },
+            { id: "ec-group-pdf", title: t("settings.category.pdfExport"), icon: "file-down" },
+            { id: "ec-group-cache", title: t("settings.category.cache"), icon: "database" },
+            { id: "ec-group-other", title: t("settings.category.other"), icon: "settings" }
         ];
 
         // Create a wrapper container for both selector and content
@@ -193,8 +198,8 @@ export class SettingsTabView extends PluginSettingTab {
         // Add toggle button for reorder buttons
         const toggleContainer = containerEl.createDiv({ cls: "ec-reorder-toggle-container" });
         new Setting(toggleContainer)
-            .setName("Show reorder buttons")
-            .setDesc("Display arrow buttons to reorder settings")
+            .setName(t("settings.reorder.showButtons.name"))
+            .setDesc(t("settings.reorder.showButtons.desc"))
             .addToggle((toggle) => {
                 toggle.setValue(this.showReorderButtons);
                 toggle.onChange((value) => {
@@ -206,7 +211,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Render Basic Settings
         createFoldablePanel(
             containerEl,
-            "Basic",
+            t("settings.section.basic"),
             (panel) => {
                 this.renderSettingsPanel(panel, this.plugin.settings.basicSettingsKeys, "basic");
             },
@@ -219,7 +224,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Render Advanced Settings
         createFoldablePanel(
             containerEl,
-            "Advanced",
+            t("settings.section.advanced"),
             (panel) => {
                 this.renderSettingsPanel(panel, this.plugin.settings.advancedSettingsKeys, "advanced");
             },
@@ -232,7 +237,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Render Customize Panel
         createFoldablePanel(
             containerEl,
-            "Customize display sections",
+            t("settings.section.customizeDisplay"),
             (panel) => {
                 createCustomizePanel(
                     panel,
@@ -278,7 +283,7 @@ export class SettingsTabView extends PluginSettingTab {
         // Show message if search returned no results
         if (this.searchQuery && !hasResults) {
             const noResults = containerEl.createDiv({ cls: "ec-settings-no-results" });
-            noResults.textContent = "No settings found matching your search.";
+            noResults.textContent = t("settings.search.noResults");
         }
     }
 
@@ -309,7 +314,7 @@ export class SettingsTabView extends PluginSettingTab {
 
         if (filteredKeys.length === 0) {
             const noResults = containerEl.createDiv({ cls: "ec-settings-no-results" });
-            noResults.textContent = "No settings found matching your search in this category.";
+            noResults.textContent = t("settings.search.noCategoryResults");
             return;
         }
 
@@ -348,7 +353,7 @@ export class SettingsTabView extends PluginSettingTab {
 
         if (filteredKeys.length === 0 && this.searchQuery) {
             const noResults = containerEl.createDiv({ cls: "ec-settings-no-results" });
-            noResults.textContent = "No settings found matching your search.";
+            noResults.textContent = t("settings.search.noResults");
             return;
         }
 
@@ -367,7 +372,7 @@ export class SettingsTabView extends PluginSettingTab {
                 const reorderButtons = settingWrapper.createDiv({ cls: "ec-setting-reorder-buttons" });
 
                 // Move up button
-                const upBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": "Move up" } });
+                const upBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": t("settings.reorder.moveUp") } });
                 setIcon(upBtn, "arrow-up");
                 upBtn.disabled = originalIndex === 0;
                 if (originalIndex === 0) upBtn.addClass("ec-reorder-btn-disabled");
@@ -383,7 +388,7 @@ export class SettingsTabView extends PluginSettingTab {
                 };
 
                 // Move down button
-                const downBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": "Move down" } });
+                const downBtn = reorderButtons.createEl("button", { cls: "ec-reorder-btn", attr: { "aria-label": t("settings.reorder.moveDown") } });
                 setIcon(downBtn, "arrow-down");
                 downBtn.disabled = originalIndex === settingKeys.length - 1;
                 if (originalIndex === settingKeys.length - 1) downBtn.addClass("ec-reorder-btn-disabled");
@@ -413,18 +418,18 @@ export class SettingsTabView extends PluginSettingTab {
         // Add reset settings button at the end for basic panel
         if (panelType === "basic") {
             new Setting(containerEl)
-                .setName("Reset settings")
-                .setDesc("Reset all settings to default values")
+                .setName(t("settings.reset.name"))
+                .setDesc(t("settings.reset.desc"))
                 .addButton((button) => {
                     button.setIcon("reset");
                     button.onClick(async () => {
-                        new Notice("Restoring settings...");
-                        await new Promise((resolve) => setTimeout(resolve, 200));
+                        new Notice(t("settings.reset.restoring"));
+                        await new Promise((resolve) => activeWindow.setTimeout(resolve, 200));
                         this.plugin.settings = { ...DEFAULT_SETTINGS };
                         resetStyles();
                         await this.plugin.saveSettings();
-                        this.display();
-                        new Notice("Settings have been restored to defaults");
+                        this.refreshDisplay();
+                        new Notice(t("settings.reset.restored"));
                     });
                 });
         }

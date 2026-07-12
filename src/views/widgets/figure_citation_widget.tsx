@@ -5,6 +5,7 @@ import { FigureCitationPopover } from "@/views/popovers/figure_citation_popover"
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 import { renderFigureCitation } from "@/views/widgets/figure_citation_render";
+import t from "@/i18n/getLocale";
 
 /**
  * Widget for rendering figure citations in Live Preview mode
@@ -98,7 +99,7 @@ export class FigureCitationWidget extends WidgetType {
         if (renderedFigures.length === 0) {
             Debugger.log(`No valid figures found for citation: ${this.figureTagsAll.join(', ')}`);
             // Show a simple notice to the user instead of throwing an error
-            new Notice(`Figure not found: fig:${this.figureTagsAll.join(', ')}`);
+            new Notice(t("widget.figureNotFound", { citation: `fig:${this.figureTagsAll.join(', ')}` }));
             return;
         }
 

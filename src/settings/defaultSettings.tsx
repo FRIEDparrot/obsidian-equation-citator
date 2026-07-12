@@ -7,10 +7,16 @@ import { CacheSettingsTab } from "./pages/cacheSettingsTab";
 import { PdfExportSettingsTab } from "./pages/pdfExportSettingsTab";
 import { OtherSettingsTab } from "./pages/otherSettingsTab";
 import { EquationPanelSettingsTab } from "./pages/equationPanelSettingsTab";
+import { t } from "@/i18n/getLocale";
 
 export interface CalloutCitationPrefix {
     prefix: string;   // e.g., "table:", "thm:", "def:"
     format: string;   // e.g., "Table. #", "Theorem #", "Definition #"
+}
+
+export interface WebsiteNotesExcludedFolder {
+    path: string; // Vault-relative folder path excluded from repository/folder sync entry points
+    completelyIgnore: boolean; // Whether linked files under this folder should also be skipped
 }
 
 export interface SettingsMetadata {
@@ -41,6 +47,7 @@ export interface EquationCitatorSettings {
     enableRichAutoComplete: boolean; // Enable rich auto-complete suggestion for figures and callouts
     enableRichAutoCompleteHoverPreview: boolean; // Enable concise auto-complete preview for figures and callouts
     richAutoCompletePreviewDelayTime: number; // Delay time for concise auto-complete rendering (ms)
+    renderImageCaptionsAndDescriptions: boolean; // Render image captions and descriptions in preview and reading mode
 
     calloutCitationPrefixes: CalloutCitationPrefix[];  // Citation prefixes and formats for callouts  
 
@@ -88,9 +95,14 @@ export interface EquationCitatorSettings {
     cacheCleanTime: number; // Time to automatically clear cache 
 
     // pdf rendering settings
+    websiteNotesExportFolder: string; // Absolute folder path for website note export
+    websiteNotesExportIgnoredFilePatterns: string[]; // Markdown filename patterns copied directly during website note export
+    websiteNotesExcludedFolders: WebsiteNotesExcludedFolder[]; // folder rules excluded from website note export entry points
     citationColorInPdf: string; // default citation color in PDF rendering
     addImageCaptionsInPdf: boolean; // whether to add image captions in PDF export
     addImageDescInPdf: boolean; // whether to add image description in PDF export
+    keepImageSpacingForPdf: boolean; // whether to preserve blank spacing around images in PDF export
+    injectCitationMetadataInExportedMarkdown: boolean; // whether to inject citation metadata in exported markdown
     
     // other settings  
     enableTypstMode: boolean; // Enable compatibility with Typst syntax
@@ -130,6 +142,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     ],
     enableRichAutoCompleteHoverPreview: true, // enable concise auto-complete preview by default
     richAutoCompletePreviewDelayTime: 1500, // 1500ms delay for concise auto-complete rendering
+    renderImageCaptionsAndDescriptions: true, // render image captions and descriptions by default
 
     enableRenderFigureInfoInPreview: true, // enable rendering figure title and description in figure preview widget
     enableCenterTableInCallout: true,  // enable centering tables in callout for butiful rendering 
@@ -147,8 +160,13 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     cacheCleanTime: 300000, // Max time for cache to clear (5 minutes) 
 
     citationColorInPdf: "#4199df", // black color for default citation color in PDF rendering 
+    websiteNotesExportFolder: "", // external folder for website note export
+    websiteNotesExportIgnoredFilePatterns: ["*.excalidraw.md"], // direct-copy Excalidraw markdown files by default
+    websiteNotesExcludedFolders: [], // folders excluded from website note export entry points
     addImageCaptionsInPdf: true, // add image captions in PDF export by default
     addImageDescInPdf: true, // add image description in PDF export by default
+    keepImageSpacingForPdf: true, // keep images separated from neighboring paragraphs in PDF export
+    injectCitationMetadataInExportedMarkdown: false, // do not inject export metadata by default
 
     enableCiteWithCodeBlockInCallout: false, // cite with inline code block in quote
 
@@ -196,9 +214,13 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "figCitationFormat",
         "enableCrossFileCitation",
         "enableRenderLocalFileName",
+        "renderImageCaptionsAndDescriptions",
         "multiCitationDelimiter",
         "multiCitationDelimiterRender",
         "enableContinuousCitation",
+        "websiteNotesExportFolder",
+        "websiteNotesExportIgnoredFilePatterns",
+        "websiteNotesExcludedFolders",
         "calloutCitationPrefixes",
         "autoNumberDelimiter",
         "enableAutoNumberEquationsInQuotes",
@@ -223,117 +245,125 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
 
 export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMetadata> = {
     settingsDisplayMode: {
-        name: "Settings display mode",
-        desc: "Settings display mode",
+        name: t("settings.settingsDisplayMode.name"),
+        desc: t("settings.settingsDisplayMode.desc"),
         type: "select",
         renderCallback: (el, plugin) => { }  // toolbar settings no need that 
     },
 
     basicSettingsKeys: {
-        name: "Basic settings keys",
-        desc: "Keys shown in basic section for concise mode",
+        name: t("settings.basicSettingsKeys.name"),
+        desc: t("settings.basicSettingsKeys.desc"),
         type: "array",
         renderCallback: (el, plugin) => { }  // to be implemented
     },
 
     advancedSettingsKeys: {
-        name: "Advanced settings keys",
-        desc: "Keys shown in advanced section for concise mode",
+        name: t("settings.advancedSettingsKeys.name"),
+        desc: t("settings.advancedSettingsKeys.desc"),
         type: "array",
         renderCallback: (el, plugin) => { }  // to be implemented
     },
 
     enableCitationInSourceMode: {
-        name: "Enable in source mode",
-        desc: "Enable citation in source mode",
+        name: t("settings.enableCitationInSourceMode.name"),
+        desc: t("settings.enableCitationInSourceMode.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.enableCitationInSourceMode(el, plugin);
         }
     },
     citationPrefix: {
-        name: "Citation prefix",
-        desc: "Prefix used for citations, e.g. 'eq:' means use `\\ref{eq:1.1}` for citation",
+        name: t("settings.citationPrefix.name"),
+        desc: t("settings.citationPrefix.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.citationPrefix(el, plugin);
         }
     },
     citationFormat: {
-        name: "Citation display format",
-        desc: "Display format for citations, use '#' for equation number",
+        name: t("settings.citationFormat.name"),
+        desc: t("settings.citationFormat.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.citationFormat(el, plugin);
         }
     },
     figCitationPrefix: {
-        name: "Figure citation prefix",
-        desc: "Prefix used for figure citations, e.g. 'fig:' means use `\\ref{fig:1.1}` for citation",
+        name: t("settings.figCitationPrefix.name"),
+        desc: t("settings.figCitationPrefix.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.figCitationPrefix(el, plugin);
         }
     },
     figCitationFormat: {
-        name: "Figure citation display format",
-        desc: "Display format for figure citations, use '#' for figure number",
+        name: t("settings.figCitationFormat.name"),
+        desc: t("settings.figCitationFormat.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.figCitationFormat(el, plugin);
         }
     },
     enableRichAutoComplete: {
-        name: "Show full preview in autocomplete",
-        desc: "Displays the full figure or callout content directly inside each autocomplete suggestion. Disable to use compact mode with hover preview instead.",
+        name: t("settings.enableRichAutoComplete.name"),
+        desc: t("settings.enableRichAutoComplete.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.enableRichAutoComplete(el, plugin);
         }
     },
     enableRichAutoCompleteHoverPreview: {
-        name: "Show preview when hover on autocomplete item",
-        desc: "In compact mode, displays a preview of the figure or callout when hovering over a suggestion item.",
+        name: t("settings.enableRichAutoCompleteHoverPreview.name"),
+        desc: t("settings.enableRichAutoCompleteHoverPreview.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.enableRichAutoCompleteHoverPreview(el, plugin);
         }
     },
     richAutoCompletePreviewDelayTime: {
-        name: "Autocomplete hover preview delay time",
-        desc: "Delay ms before the preview appears when hovering over a suggestion (compact mode only).",
+        name: t("settings.richAutoCompletePreviewDelayTime.name"),
+        desc: t("settings.richAutoCompletePreviewDelayTime.desc"),
         type: "number",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.richAutoCompletePreviewDelayTime(el, plugin);
         }
     },
+    renderImageCaptionsAndDescriptions: {
+        name: t("settings.renderImageCaptionsAndDescriptions.name"),
+        desc: t("settings.renderImageCaptionsAndDescriptions.desc"),
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            StyleSettingsTab.renderImageCaptionsAndDescriptions(el, plugin);
+        }
+    },
     calloutCitationPrefixes: {
-        name: "Callout citation prefixes",
-        desc: "Prefixes for citing callouts. Default 'table:' for tables. Add 'thm:', 'def:', etc. for theorems, definitions.",
+        name: t("settings.calloutCitationPrefixes.name"),
+        desc: t("settings.calloutCitationPrefixes.desc"),
         type: "array",
         renderCallback: (el: HTMLElement, plugin: EquationCitator) => {
             CitationSettingsTab.calloutCitationPrefixes(el, plugin);
         }
     },
     multiCitationDelimiter: {
-        name: "Multiple citation delimiter",
-        desc: String.raw`Delimiter used for multiple citations, e.g. comma for '\ref{1.2, 1.3}'`,
+        name: t("settings.multiCitationDelimiter.name"),
+        desc: t("settings.multiCitationDelimiter.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.multiCitationDelimiter(el, plugin);
         }
     },
     multiCitationDelimiterRender: {
-        name: "Multiple citation rendered delimiter",
-        desc: String.raw`Delimiter shown between citations when rendered (purely visual)`,
+        name: t("settings.multiCitationDelimiterRender.name"),
+        desc: t("settings.multiCitationDelimiterRender.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.multiCitationDelimiterRender(el, plugin);
         }
     },
     enableContinuousCitation: {
-        name: "Enable continuous citations",
-        desc: "Enable continuous  citation format, also render citations in continuous format",
+        name: t("settings.enableContinuousCitation.name"),
+        desc: t("settings.enableContinuousCitation.desc"),
         type: "boolean",
         hasSubPanel: true, // it is a subpanel setting 
         renderCallback: (el, plugin, renderSubpanel) => {
@@ -341,24 +371,24 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     continuousRangeSymbol: {
-        name: "Continuous citation range symbol",
-        desc: "Range symbol for continuous citations, e.g. '~' for '1~2'",
+        name: t("settings.continuousRangeSymbol.name"),
+        desc: t("settings.continuousRangeSymbol.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.continuousRangeSymbol(el, plugin);
         }
     },
     continuousDelimiters: {
-        name: "Continuous citation delimiters",
-        desc: "Delimiter for recognition of continuous citations, split by space",
+        name: t("settings.continuousDelimiters.name"),
+        desc: t("settings.continuousDelimiters.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.continuousDelimiters(el, plugin);
         }
     },
     enableCrossFileCitation: {
-        name: "Enable cross-file citations",
-        desc: "Enable using pure footnote style citations to cite equations across files",
+        name: t("settings.enableCrossFileCitation.name"),
+        desc: t("settings.enableCrossFileCitation.desc"),
         type: "boolean",
         hasSubPanel: true, // it is a subpanel setting 
         renderCallback: (el, plugin, renderSubpanel) => {
@@ -366,112 +396,112 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     fileCiteDelimiter: {
-        name: "File citation delimiter",
-        desc: "Delimiter for file citations, e.g. '^' for '1^{1.1}'",
+        name: t("settings.fileCiteDelimiter.name"),
+        desc: t("settings.fileCiteDelimiter.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             CitationSettingsTab.fileCiteDelimiter(el, plugin);
         }
     },
     autoNumberDelimiter: {
-        name: "Auto number delimiter",
-        desc: "Delimiter used for numbering equations, e.g. '.' for '1.1', '-' for '1-1', etc.",
+        name: t("settings.autoNumberDelimiter.name"),
+        desc: t("settings.autoNumberDelimiter.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.autoNumberDelimiter(el, plugin);
         }
     },
     autoNumberType: {
-        name: "Auto number method",
-        desc: "Use absolute or relative heading level for auto numbering (shared by equations and figures)",
+        name: t("settings.autoNumberType.name"),
+        desc: t("settings.autoNumberType.desc"),
         type: "select",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.autoNumberType(el, plugin);
         }
     },
     autoNumberDepth: {
-        name: "Auto number depth",
-        desc: "Maximum depth for equation numbers (e.g., depth of 2 gives '1.1', depth of 3 gives '1.1.1')",
+        name: t("settings.autoNumberDepth.name"),
+        desc: t("settings.autoNumberDepth.desc"),
         type: "number",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.autoNumberDepth(el, plugin);
         }
     },
     autoNumberNoHeadingPrefix: {
-        name: "Auto number no heading prefix",
-        desc: "Prefix for equations without any heading level (e.g., 'P1', 'P2', etc.)",
+        name: t("settings.autoNumberNoHeadingPrefix.name"),
+        desc: t("settings.autoNumberNoHeadingPrefix.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.autoNumberNoHeadingPrefix(el, plugin);
         }
     },
     autoNumberGlobalPrefix: {
-        name: "Auto number global prefix",
-        desc: "Global auto equation numbering prefix for purpose like chapter",
+        name: t("settings.autoNumberGlobalPrefix.name"),
+        desc: t("settings.autoNumberGlobalPrefix.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.autoNumberGlobalPrefix(el, plugin);
         }
     },
     enableAutoNumberEquationsInQuotes: {
-        name: "Auto number equations in callouts",
-        desc: "Enable auto numbering for equations in callouts",
+        name: t("settings.enableAutoNumberEquationsInQuotes.name"),
+        desc: t("settings.enableAutoNumberEquationsInQuotes.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberEquationsInQuotes(el, plugin);
         }
     },
     enableAutoNumberTaggedEquationsOnly: {
-        name: "Auto number tagged equations only",
-        desc: "When auto-numbering, only update the equations that are already tagged",
+        name: t("settings.enableAutoNumberTaggedEquationsOnly.name"),
+        desc: t("settings.enableAutoNumberTaggedEquationsOnly.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberTaggedEquationsOnly(el, plugin);
         }
     },
     figAutoNumberDelimiter: {
-        name: "Figure auto number delimiter",
-        desc: "Delimiter used for numbering figures, e.g. '.' for '1.1', '-' for '1-1', etc.",
+        name: t("settings.figAutoNumberDelimiter.name"),
+        desc: t("settings.figAutoNumberDelimiter.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.figAutoNumberDelimiter(el, plugin);
         }
     },
     figAutoNumberDepth: {
-        name: "Auto number depth for figures",
-        desc: "Maximum depth for figure numbers (e.g., depth of 2 gives 'fig:1.1')",
+        name: t("settings.figAutoNumberDepth.name"),
+        desc: t("settings.figAutoNumberDepth.desc"),
         type: "number",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.figAutoNumberDepth(el, plugin);
         }
     },
     figAutoNumberNoHeadingPrefix: {
-        name: "Figure auto number no heading prefix",
-        desc: "Prefix for figures without any heading level (e.g., 'F1', 'F2', etc.)",
+        name: t("settings.figAutoNumberNoHeadingPrefix.name"),
+        desc: t("settings.figAutoNumberNoHeadingPrefix.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.figAutoNumberNoHeadingPrefix(el, plugin);
         }
     },
     figAutoNumberGlobalPrefix: {
-        name: "Figure auto number global prefix",
-        desc: "Global prefix for figure auto numbering for figures without any heading level",
+        name: t("settings.figAutoNumberGlobalPrefix.name"),
+        desc: t("settings.figAutoNumberGlobalPrefix.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.figAutoNumberGlobalPrefix(el, plugin);
         }
     },
     enableAutoNumberFigsInQuotes: {
-        name: "Auto number figures in callouts",
-        desc: "Enable auto numbering for figures in callouts",
+        name: t("settings.enableAutoNumberFigsInQuotes.name"),
+        desc: t("settings.enableAutoNumberFigsInQuotes.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberFigsInQuotes(el, plugin);
         }
     },
     enableAutoNumberTaggedFigsOnly: {
-        name: "Auto number tagged figures only",
-        desc: "When auto-numbering, only update the figures that are already tagged",
+        name: t("settings.enableAutoNumberTaggedFigsOnly.name"),
+        desc: t("settings.enableAutoNumberTaggedFigsOnly.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.enableAutoNumberTaggedFigsOnly(el, plugin);
@@ -479,8 +509,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
     // These 3 options are shared by figures and equations
     enableUpdateTagsInAutoNumber: {
-        name: "Auto update citations in auto number",
-        desc: "Enable auto update citations during auto numbering. Always keep it selected to ensure citations are correctly updated",
+        name: t("settings.enableUpdateTagsInAutoNumber.name"),
+        desc: t("settings.enableUpdateTagsInAutoNumber.desc"),
         type: "boolean",
         hasSubPanel: true,
         renderCallback: (el, plugin, renderSubpanel) => {
@@ -488,40 +518,40 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
         }
     },
     deleteRepeatTagsInAutoNumber: {
-        name: "Auto delete conflict tag citations",
-        desc: "Automatically delete conflicting tag citations during auto numbering.",
+        name: t("settings.deleteRepeatTagsInAutoNumber.name"),
+        desc: t("settings.deleteRepeatTagsInAutoNumber.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.deleteRepeatTagsInAutoNumber(el, plugin);
         }
     },
     deleteUnusedTagsInAutoNumber: {
-        name: "Auto delete unused tag citations",
-        desc: "Automatically delete unused tag citations during auto numbering.",
+        name: t("settings.deleteUnusedTagsInAutoNumber.name"),
+        desc: t("settings.deleteUnusedTagsInAutoNumber.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             AutoNumberSettingsTab.deleteUnusedTagsInAutoNumber(el, plugin);
         }
     },
     cacheUpdateTime: {
-        name: "Cache update time",
-        desc: "Time refresh cache (in ms), for very large document, consider increase this",
+        name: t("settings.cacheUpdateTime.name"),
+        desc: t("settings.cacheUpdateTime.desc"),
         type: "number",
         renderCallback: (el, plugin) => {
             CacheSettingsTab.cacheUpdateTime(el, plugin);
         }
     },
     cacheCleanTime: {
-        name: "Cache clean time",
-        desc: "Time to automatically clean cache",
+        name: t("settings.cacheCleanTime.name"),
+        desc: t("settings.cacheCleanTime.desc"),
         type: "select",
         renderCallback: (el, plugin) => {
             CacheSettingsTab.cacheCleanTime(el, plugin);
         }
     },
     citationPopoverSize: {
-        name: "Preview widget size",
-        desc: "Size for citation preview widgets (equations, figures, callouts)",
+        name: t("settings.citationPopoverSize.name"),
+        desc: t("settings.citationPopoverSize.desc"),
         type: "select",
         renderCallback: (el, plugin) => {
             StyleSettingsTab.citationPopoverSize(el, plugin);
@@ -529,8 +559,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     enableCenterTableInCallout: {
-        name: "Center tables in callouts",
-        desc: "If enabled, tables inside callouts will be centered within the callout box.",
+        name: t("settings.enableCenterTableInCallout.name"),
+        desc: t("settings.enableCenterTableInCallout.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             StyleSettingsTab.enableCenterTableInCallout(el, plugin);
@@ -538,8 +568,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     enableRenderFigureInfoInPreview: {
-        name: "Render figure info in preview",
-        desc: "If disabled, figure title and description will not be rendered in preview.",
+        name: t("settings.enableRenderFigureInfoInPreview.name"),
+        desc: t("settings.enableRenderFigureInfoInPreview.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             StyleSettingsTab.enableRenderFigureInfoInPreview(el, plugin);
@@ -547,17 +577,44 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     enableRenderLocalFileName: {
-        name: "Render local file name in equation preview",
-        desc: "Render local file name for citations",
+        name: t("settings.enableRenderLocalFileName.name"),
+        desc: t("settings.enableRenderLocalFileName.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             StyleSettingsTab.enableRenderLocalFileName(el, plugin);
         }
     },
 
+    websiteNotesExportFolder: {
+        name: t("settings.websiteNotesExportFolder.name"),
+        desc: t("settings.websiteNotesExportFolder.desc"),
+        type: "string",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.websiteNotesExportFolder(el, plugin);
+        }
+    },
+
+    websiteNotesExportIgnoredFilePatterns: {
+        name: t("settings.websiteNotesExportIgnoredFilePatterns.name"),
+        desc: t("settings.websiteNotesExportIgnoredFilePatterns.desc"),
+        type: "array",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.websiteNotesExportIgnoredFilePatterns(el, plugin);
+        }
+    },
+
+    websiteNotesExcludedFolders: {
+        name: t("settings.websiteNotesExcludedFolders.name"),
+        desc: t("settings.websiteNotesExcludedFolders.desc"),
+        type: "array",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.websiteNotesExcludedFolders(el, plugin);
+        }
+    },
+
     citationColorInPdf: {
-        name: "Citation color for PDF",
-        desc: "Citation color for PDF export",
+        name: t("settings.citationColorInPdf.name"),
+        desc: t("settings.citationColorInPdf.desc"),
         type: "color",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.citationColorInPdf(el, plugin);
@@ -565,8 +622,8 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     addImageCaptionsInPdf : {
-        name: "Add image captions in PDF",
-        desc: "Whether to add image captions in PDF export",
+        name: t("settings.addImageCaptionsInPdf.name"),
+        desc: t("settings.addImageCaptionsInPdf.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.addImageCaptionsInPdf(el, plugin);
@@ -574,129 +631,147 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
     },
 
     addImageDescInPdf : {
-        name: "Add image description in PDF",
-        desc: "Whether to add image description in PDF export (only works when image captions are rendered)",
+        name: t("settings.addImageDescInPdf.name"),
+        desc: t("settings.addImageDescInPdf.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             PdfExportSettingsTab.addImageDescInPdf(el, plugin);
         }
     },
 
+    keepImageSpacingForPdf: {
+        name: t("settings.keepImageSpacingForPdf.name"),
+        desc: t("settings.keepImageSpacingForPdf.desc"),
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.keepImageSpacingForPdf(el, plugin);
+        }
+    },
+
+    injectCitationMetadataInExportedMarkdown: {
+        name: t("settings.injectCitationMetadataInExportedMarkdown.name"),
+        desc: t("settings.injectCitationMetadataInExportedMarkdown.desc"),
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            PdfExportSettingsTab.injectCitationMetadataInExportedMarkdown(el, plugin);
+        }
+    },
+
     enableTypstMode: {
-        name: "Enable typst mode",
-        desc: "Enable compatibility with Typst syntax",
+        name: t("settings.enableTypstMode.name"),
+        desc: t("settings.enableTypstMode.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             OtherSettingsTab.enableTypstMode(el, plugin);
         }
     },
     typstBoxSymbol: {
-        name: "Typst box symbol",
-        desc: "Symbol for box equations in Typst mode (typst is `#box`, `boxed` for typst mate)",
+        name: t("settings.typstBoxSymbol.name"),
+        desc: t("settings.typstBoxSymbol.desc"),
         type: "string",
         renderCallback: (el, plugin) => {
             OtherSettingsTab.typstBoxSymbol(el, plugin);
         }
     },
     debugMode: {
-        name: "Debug mode",
-        desc: "Enables developer debug mode for this plugin",
+        name: t("settings.debugMode.name"),
+        desc: t("settings.debugMode.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             OtherSettingsTab.debugMode(el, plugin);
         }
     },
     extensionsUseMarkdownRenderer: {
-        name: "Extensions that use markdown renderer",
-        desc: "List of file extensions that should use markdown renderer instead of default image renderer",
+        name: t("settings.extensionsUseMarkdownRenderer.name"),
+        desc: t("settings.extensionsUseMarkdownRenderer.desc"),
         type: "array",
         renderCallback: (el, plugin) => {
             OtherSettingsTab.extensionsUseMarkdownRenderer(el, plugin);
         }
     },
     enableCiteWithCodeBlockInCallout: {
-        name: "Cite with inline code block in callout",
-        desc: "Enable citation by inline code block in callout (This feature will never be fully supported, and citations here will not be updated, you may not turn this on unless you have specific needs)",
+        name: t("settings.enableCiteWithCodeBlockInCallout.name"),
+        desc: t("settings.enableCiteWithCodeBlockInCallout.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             OtherSettingsTab.enableCiteWithCodeBlockInCallout(el, plugin);
         }
     },
     equationManagePanelFileCheckInterval: {
-        name: "Equation panel file check interval",
-        desc: "Time interval to check for newly opened files and refresh the equation panel (in ms)",
+        name: t("settings.equationManagePanelFileCheckInterval.name"),
+        desc: t("settings.equationManagePanelFileCheckInterval.desc"),
         type: "number",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelFileCheckInterval(el, plugin);
         }
     },
     equationManagePanelLazyUpdateTime: {
-        name: "Equation panel lazy update time",
-        desc: "Time interval to update the equation panel while editing (in ms)",
+        name: t("settings.equationManagePanelLazyUpdateTime.name"),
+        desc: t("settings.equationManagePanelLazyUpdateTime.desc"),
         type: "number",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelLazyUpdateTime(el, plugin);
         }
     },
     equationManagePanelDefaultViewType: {
-        name: "Equation panel default view type",
-        desc: "Default view type for the equation panel (outline or list)",
+        name: t("settings.equationManagePanelDefaultViewType.name"),
+        desc: t("settings.equationManagePanelDefaultViewType.desc"),
         type: "select",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelDefaultViewType(el, plugin);
         }
     },
     equationManagePanelPreviewObjectType: {
-        name: "Equation panel preview object type",
-        desc: "Type of object to preview in the equation panel (equations, figures, or callouts)",
+        name: t("settings.equationManagePanelPreviewObjectType.name"),
+        desc: t("settings.equationManagePanelPreviewObjectType.desc"),
         type: "select",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelPreviewObjectType(el, plugin);
         }
     },
     equationManagePanelFilterTagOnlyEquation: {
-        name: "Filter tag only equation",
-        desc: "Default value for filter tag only equations",
+        name: t("settings.equationManagePanelFilterTagOnlyEquation.name"),
+        desc: t("settings.equationManagePanelFilterTagOnlyEquation.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelFilterTagOnlyEquation(el, plugin);
         }
     },
     equationManagePanelEnableRenderHeadingsOnly: {
-        name: "Render headings only",
-        desc: "Default value for render headings only in outline view",
+        name: t("settings.equationManagePanelEnableRenderHeadingsOnly.name"),
+        desc: t("settings.equationManagePanelEnableRenderHeadingsOnly.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelEnableRenderHeadingsOnly(el, plugin);
         }
     },
     equationManagePanelFilterBoxedEquation: {
-        name: "Filter boxed equation",
-        desc: "Default value for filter boxed equations",
+        name: t("settings.equationManagePanelFilterBoxedEquation.name"),
+        desc: t("settings.equationManagePanelFilterBoxedEquation.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationManagePanelFilterBoxedEquation(el, plugin);
         }
     },
     skipFirstlineInBoxedFilter: {
-        name: "Skip first line when filter boxed equation",
-        desc: "When enabled, the filter for boxed equations will skip the first line for multi-line equations. Used for compatibility with some specific plugins",
+        name: t("settings.skipFirstlineInBoxedFilter.name"),
+        desc: t("settings.skipFirstlineInBoxedFilter.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.skipFirstlineInBoxedFilter(el, plugin);
         }
     },
     equationWidgetRightClickCopyType: {
-        name: "Equation widget right click copy content",
-        desc: "What to copy when select copy in equation widget",
+        name: t("settings.equationWidgetRightClickCopyType.name"),
+        desc: t("settings.equationWidgetRightClickCopyType.desc"),
         type: "select",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.equationWidgetRightClickCopyType(el, plugin);
         }
     },
     useFastMathRenderer: {
-        name: "Use fast math renderer in equation panel",
-        desc: "Whether to use a fast math rendering for equations. Fast renderer can significantly speed up the load of equations, but may cause rendering issues at first, this will often be resolved after scrolling",
+        name: t("settings.useFastMathRenderer.name"),
+        desc: t("settings.useFastMathRenderer.desc"),
         type: "boolean",
         renderCallback: (el, plugin) => {
             EquationPanelSettingsTab.useFastMathRenderer(el, plugin);

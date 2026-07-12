@@ -5,6 +5,7 @@ import { CalloutCitationPopover } from "@/views/popovers/callout_citation_popove
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 import { renderCalloutCitation } from "@/views/widgets/callout_citation_render";
+import t from "@/i18n/getLocale";
 
 /**
  * Widget for rendering callout citations in Live Preview mode
@@ -102,11 +103,11 @@ export class CalloutCitationWidget extends WidgetType {
             this.prefix,
             sourcePath
         );
-
+        
         if (renderedCallouts.length === 0) {
             Debugger.log(`No valid callouts found for citation: ${this.calloutTagsAll.join(', ')}`);
             // Show a simple notice to the user instead of throwing an error
-            new Notice(`Citation not found: ${this.prefix}${this.calloutTagsAll.join(', ')}`);
+            new Notice(t("widget.citationNotFound", { citation: `${this.prefix}${this.calloutTagsAll.join(', ')}` }));
             return;
         }
 

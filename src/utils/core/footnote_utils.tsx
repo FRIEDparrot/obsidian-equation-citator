@@ -1,6 +1,7 @@
 import Debugger from "@/debug/debugger";
 import EquationCitator from "@/main";
 import { Notice, normalizePath } from "obsidian";
+import t from "@/i18n/getLocale";
 
 
 /**
@@ -51,7 +52,7 @@ export async function checkFootnoteExists(
     const newNum = (maxNum + 1).toString();
 
     if (Number.isNaN(maxNum)) {
-        new Notice("Invalid footnote number");
+        new Notice(t("footnote.invalidNumber"));
         Debugger.error(`Invalid footnote number: ${maxNum}, existing Footnotes are : ${JSON.stringify(existingFootnotes)}`);
         return null;
     }

@@ -132,7 +132,7 @@ export class FigureServices {
             sourcePath: path,
             filename,
             footnoteIndex: crossFile
-        }) as RenderedFigure);
+        }));
     }
 
     /**

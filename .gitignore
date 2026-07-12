@@ -3,9 +3,6 @@
 .claude 
 tests
 
-backup
-backup/*
-
 # Intellij
 *.iml
 .idea
@@ -17,7 +14,7 @@ node_modules
 
 # Build output
 dist
-docs 
+docs
 
 # Don't include the compiled main.js file in the repo.
 # They should be uploaded to GitHub releases instead.

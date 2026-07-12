@@ -1,6 +1,167 @@
 import { Setting, Notice, setIcon } from "obsidian";
 import EquationCitator from "@/main";
-import { getAllSettingsByCategory, getSettingDisplayName } from "../settingsHelper";
+import { getAllSettingsByCategory, getSettingDisplayName, type SettingsCategory } from "../settingsHelper";
+import type { EquationCitatorSettings } from "../defaultSettings";
+import { t } from "@/i18n/getLocale";
+
+interface CategoryHeaderElements {
+    categoryHeader: HTMLElement;
+    chevron: HTMLElement;
+}
+
+function ensureSettingInList<T extends string>(settingKeys: T[], settingKey: T): T[] {
+    if (settingKeys.includes(settingKey)) {
+        return settingKeys;
+    }
+
+    return [...settingKeys, settingKey];
+}
+
+function removeSettingFromList<T extends string>(settingKeys: T[], settingKey: T): T[] {
+    return settingKeys.filter((key) => key !== settingKey);
+}
+
+async function saveCustomizePanelSettings(plugin: EquationCitator, onUpdate: () => void): Promise<void> {
+    try {
+        await plugin.saveSettings();
+        onUpdate();
+    } catch {
+        new Notice(t("settings.customize.saveError"));
+    }
+}
+
+function setSettingDisplaySection(
+    plugin: EquationCitator,
+    settingKey: keyof EquationCitatorSettings,
+    section: "basic" | "advanced" | null
+): void {
+    const nextBasicSettings = removeSettingFromList(plugin.settings.basicSettingsKeys, settingKey);
+    const nextAdvancedSettings = removeSettingFromList(plugin.settings.advancedSettingsKeys, settingKey);
+
+    plugin.settings.basicSettingsKeys = section === "basic" ?
+        ensureSettingInList(nextBasicSettings, settingKey) :
+        nextBasicSettings;
+    plugin.settings.advancedSettingsKeys = section === "advanced" ?
+        ensureSettingInList(nextAdvancedSettings, settingKey) :
+        nextAdvancedSettings;
+}
+
+function createCategoryHeader(categorySection: HTMLElement, title: string): CategoryHeaderElements {
+    const categoryHeader = categorySection.createDiv({ cls: "ec-customize-category-header" });
+    const chevron = categoryHeader.createDiv({ cls: "ec-customize-chevron" });
+    setIcon(chevron, "chevron-right");
+    categoryHeader.createSpan({ text: title, cls: "ec-customize-category-title" });
+
+    return {
+        categoryHeader,
+        chevron,
+    };
+}
+
+function bindCategoryCollapse(
+    categoryHeader: HTMLElement,
+    categoryContent: HTMLElement,
+    chevron: HTMLElement,
+    categoryId: string,
+    foldStates?: Map<string, boolean>
+): void {
+    let expanded = foldStates?.get(categoryId) ?? false;
+    const updateCollapse = () => {
+        categoryContent.toggleClass("is-collapsed", !expanded);
+        chevron.classList.toggle("is-rotated", expanded);
+    };
+    updateCollapse();
+
+    categoryHeader.addEventListener("click", () => {
+        expanded = !expanded;
+        updateCollapse();
+        foldStates?.set(categoryId, expanded);
+    });
+}
+
+function bindDisplaySectionCheckboxes(
+    plugin: EquationCitator,
+    settingKey: keyof EquationCitatorSettings,
+    basicCheckbox: HTMLInputElement,
+    advancedCheckbox: HTMLInputElement,
+    onUpdate: () => void
+): void {
+    basicCheckbox.addEventListener("change", () => {
+        setSettingDisplaySection(plugin, settingKey, basicCheckbox.checked ? "basic" : null);
+        advancedCheckbox.checked = false;
+        void saveCustomizePanelSettings(plugin, onUpdate);
+    });
+
+    advancedCheckbox.addEventListener("change", () => {
+        setSettingDisplaySection(plugin, settingKey, advancedCheckbox.checked ? "advanced" : null);
+        basicCheckbox.checked = false;
+        void saveCustomizePanelSettings(plugin, onUpdate);
+    });
+}
+
+function createSettingRow(
+    categoryContent: HTMLElement,
+    plugin: EquationCitator,
+    settingKey: keyof EquationCitatorSettings,
+    onUpdate: () => void
+): void {
+    const settingRow = categoryContent.createDiv({ cls: "ec-customize-setting-row" });
+    const settingName = settingRow.createDiv({ cls: "ec-customize-setting-name" });
+    settingName.textContent = getSettingDisplayName(settingKey);
+
+    const checkboxGroup = settingRow.createDiv({ cls: "ec-customize-checkbox-group" });
+    const basicLabel = checkboxGroup.createEl("label", { cls: "ec-customize-checkbox-label" });
+    const basicCheckbox = basicLabel.createEl("input", { type: "checkbox" });
+    basicLabel.createSpan({ text: t("settings.section.basic") });
+    basicCheckbox.checked = plugin.settings.basicSettingsKeys.includes(settingKey);
+
+    const advancedLabel = checkboxGroup.createEl("label", { cls: "ec-customize-checkbox-label" });
+    const advancedCheckbox = advancedLabel.createEl("input", { type: "checkbox" });
+    advancedLabel.createSpan({ text: t("settings.section.advanced") });
+    advancedCheckbox.checked = plugin.settings.advancedSettingsKeys.includes(settingKey);
+
+    bindDisplaySectionCheckboxes(plugin, settingKey, basicCheckbox, advancedCheckbox, onUpdate);
+}
+
+function createCategorySection(
+    customizeContainer: HTMLElement,
+    plugin: EquationCitator,
+    category: SettingsCategory,
+    onUpdate: () => void,
+    foldStates?: Map<string, boolean>
+): void {
+    const categorySection = customizeContainer.createDiv({ cls: "ec-customize-category" });
+    const { categoryHeader, chevron } = createCategoryHeader(categorySection, category.title);
+    const categoryContent = categorySection.createDiv({ cls: "ec-customize-category-content" });
+
+    category.settingKeys.forEach((settingKey) => {
+        createSettingRow(categoryContent, plugin, settingKey, onUpdate);
+    });
+
+    bindCategoryCollapse(categoryHeader, categoryContent, chevron, category.id, foldStates);
+}
+
+function createResetButton(
+    customizeContainer: HTMLElement,
+    plugin: EquationCitator,
+    onUpdate: () => void
+): void {
+    new Setting(customizeContainer)
+        .setName(t("settings.customize.reset.name"))
+        .setDesc(t("settings.customize.reset.desc"))
+        .addButton((btn) => {
+            btn.setButtonText(t("settings.customize.reset.button"));
+            btn.setIcon("reset");
+            btn.onClick(async () => {
+                const { DEFAULT_SETTINGS } = await import("../defaultSettings");
+                plugin.settings.basicSettingsKeys = [...DEFAULT_SETTINGS.basicSettingsKeys];
+                plugin.settings.advancedSettingsKeys = [...DEFAULT_SETTINGS.advancedSettingsKeys];
+                await plugin.saveSettings();
+                new Notice(t("settings.customize.reset.notice"));
+                onUpdate();
+            });
+        });
+}
 
 /**
  * Create a customize panel for managing which settings appear in Basic vs Advanced sections
@@ -15,121 +176,16 @@ export function createCustomizePanel(
 
     // Header with description
     const header = customizeContainer.createDiv({ cls: "ec-customize-header" });
-    new Setting(header).setName("Customize settings display").setHeading();
+    new Setting(header).setName(t("settings.customize.name")).setHeading();
     header.createEl("p", {
-        text: "Choose which settings to show in basic or advanced sections. Settings can only appear in one section at a time.",
+        text: t("settings.customize.desc"),
         cls: "ec-customize-desc"
     });
 
     // Create category sections
-    const categories = getAllSettingsByCategory();
-
-    categories.forEach(category => {
-        const categorySection = customizeContainer.createDiv({ cls: "ec-customize-category" });
-
-        // Category header (collapsible)
-        const categoryHeader = categorySection.createDiv({ cls: "ec-customize-category-header" });
-        const chevron = categoryHeader.createDiv({ cls: "ec-customize-chevron" });
-        setIcon(chevron, "chevron-right");
-        categoryHeader.createSpan({ text: category.title, cls: "ec-customize-category-title" });
-
-        // Category content (settings list)
-        const categoryContent = categorySection.createDiv({ cls: "ec-customize-category-content" });
-
-        category.settingKeys.forEach(settingKey => {
-            const settingRow = categoryContent.createDiv({ cls: "ec-customize-setting-row" });
-
-            // Setting name
-            const settingName = settingRow.createDiv({ cls: "ec-customize-setting-name" });
-            settingName.textContent = getSettingDisplayName(settingKey);
-
-            // Checkbox group
-            const checkboxGroup = settingRow.createDiv({ cls: "ec-customize-checkbox-group" });
-
-            // Basic checkbox
-            const basicLabel = checkboxGroup.createEl("label", { cls: "ec-customize-checkbox-label" });
-            const basicCheckbox = basicLabel.createEl("input", { type: "checkbox" });
-            basicLabel.createSpan({ text: "Basic" });
-            basicCheckbox.checked = plugin.settings.basicSettingsKeys.includes(settingKey as string);
-
-            // Advanced checkbox
-            const advancedLabel = checkboxGroup.createEl("label", { cls: "ec-customize-checkbox-label" });
-            const advancedCheckbox = advancedLabel.createEl("input", { type: "checkbox" });
-            advancedLabel.createSpan({ text: "Advanced" });
-            advancedCheckbox.checked = plugin.settings.advancedSettingsKeys.includes(settingKey as string);
-
-            // Handle checkbox changes - mutually exclusive
-            basicCheckbox.addEventListener("change", () => {
-                if (basicCheckbox.checked) {
-                    // Add to basic, remove from advanced
-                    if (!plugin.settings.basicSettingsKeys.includes(settingKey as string)) {
-                        plugin.settings.basicSettingsKeys.push(settingKey as string);
-                    }
-                    plugin.settings.advancedSettingsKeys = plugin.settings.advancedSettingsKeys.filter(
-                        k => k !== settingKey
-                    );
-                    advancedCheckbox.checked = false;
-                } else {
-                    // Remove from basic
-                    plugin.settings.basicSettingsKeys = plugin.settings.basicSettingsKeys.filter(
-                        k => k !== settingKey
-                    );
-                }
-                plugin.saveSettings().then(() => onUpdate()).catch(e => new Notice("Error saving settings"));
-            });
-
-            advancedCheckbox.addEventListener("change", () => {
-                if (advancedCheckbox.checked) {
-                    // Add to advanced, remove from basic
-                    if (!plugin.settings.advancedSettingsKeys.includes(settingKey as string)) {
-                        plugin.settings.advancedSettingsKeys.push(settingKey as string);
-                    }
-                    plugin.settings.basicSettingsKeys = plugin.settings.basicSettingsKeys.filter(
-                        k => k !== settingKey
-                    );
-                    basicCheckbox.checked = false;
-                } else {
-                    // Remove from advanced
-                    plugin.settings.advancedSettingsKeys = plugin.settings.advancedSettingsKeys.filter(
-                        k => k !== settingKey
-                    );
-                }
-                plugin.saveSettings().then(() => onUpdate()).catch(e => new Notice("Error saving settings"));
-            });
-        });
-
-        // Toggle category collapse with state tracking
-        let expanded = foldStates?.get(category.id) ?? false;
-        const updateCollapse = () => {
-            categoryContent.toggleClass("is-collapsed", !expanded);
-            chevron.classList.toggle("is-rotated", expanded);
-        };
-        updateCollapse();
-
-        categoryHeader.addEventListener("click", () => {
-            expanded = !expanded;
-            updateCollapse();
-            // Save the fold state
-            if (foldStates) {
-                foldStates.set(category.id, expanded);
-            }
-        });
+    getAllSettingsByCategory().forEach((category) => {
+        createCategorySection(customizeContainer, plugin, category, onUpdate, foldStates);
     });
 
-    // Reset button
-    new Setting(customizeContainer)
-        .setName("Reset to defaults")
-        .setDesc("Reset basic and advanced settings to their default values")
-        .addButton((btn) => {
-            btn.setButtonText("Reset");
-            btn.setIcon("reset");
-            btn.onClick(async () => {
-                const { DEFAULT_SETTINGS } = await import("../defaultSettings");
-                plugin.settings.basicSettingsKeys = [...DEFAULT_SETTINGS.basicSettingsKeys];
-                plugin.settings.advancedSettingsKeys = [...DEFAULT_SETTINGS.advancedSettingsKeys];
-                await plugin.saveSettings();
-                new Notice("Settings display reset to defaults");
-                onUpdate();
-            });
-        });
+    createResetButton(customizeContainer, plugin, onUpdate);
 }

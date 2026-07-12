@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS, SETTINGS_METADATA } from "../defaultSettings";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 import { resetStyles, SettingsTabView } from "../SettingsTab";
+import { t } from "@/i18n/getLocale";
 
 
 export const OtherSettingsTab = {
@@ -49,7 +50,7 @@ export const OtherSettingsTab = {
                     Debugger.debugMode = toggle.getValue();
                     plugin.settings.debugMode = Debugger.debugMode;
                     await plugin.saveSettings();
-                    new Notice("Equation Citator: Debug mode" + (value ? " enabled" : " disabled"));
+                    new Notice(value ? t("settings.debugMode.enabledNotice") : t("settings.debugMode.disabledNotice"));
                 });
             });
     },
@@ -62,30 +63,30 @@ export const OtherSettingsTab = {
      */
     resetSettings(containerEl: HTMLElement, plugin: EquationCitator, settingsTab: SettingsTabView) {
         new Setting(containerEl)
-            .setName("Reset settings")
-            .setDesc("Reset all settings to default values")
+            .setName(t("settings.reset.name"))
+            .setDesc(t("settings.reset.desc"))
             .addButton((button) => {
                 button.setIcon("reset");
                 button.onClick(async () => {
-                    new Notice("Restoring settings...");
+                    new Notice(t("settings.reset.restoring"));
                     
                     // Add a small delay to show the animation
-                    await new Promise(resolve => setTimeout(resolve, 200));
+                    await new Promise(resolve => activeWindow.setTimeout(resolve, 200));
                     
                     plugin.settings = { ...DEFAULT_SETTINGS };
                     resetStyles(); // reset styles
                     await plugin.saveSettings();
                     // Refresh the display
-                    settingsTab.display();
-                    new Notice("Settings have been restored to defaults");
+                    settingsTab.refreshDisplay();
+                    new Notice(t("settings.reset.restored"));
                 });
             });
     },
 
     extensionsUseMarkdownRenderer(containerEl: HTMLElement, plugin: EquationCitator) {
         new Setting(containerEl)
-            .setName("Extension names using Markdown renderer")
-            .setDesc("Use Markdown renderer for better render support to those figure files");
+            .setName(t("settings.extensionsUseMarkdownRenderer.sectionName"))
+            .setDesc(t("settings.extensionsUseMarkdownRenderer.sectionDesc"));
 
         // Container for the list of extensions
         const extensionListContainer = containerEl.createDiv("ec-extension-list-container");
@@ -98,7 +99,7 @@ export const OtherSettingsTab = {
         ) => {
             const newValue = textInput.value.trim();
             if (newValue === "") {
-                new Notice("Extension name cannot be empty");
+                new Notice(t("settings.extensionsUseMarkdownRenderer.emptyNotice"));
                 textInput.value = extension;
                 return;
             }
@@ -108,7 +109,7 @@ export const OtherSettingsTab = {
                     (ext, i) => i !== index && ext === newValue
                 );
                 if (exists) {
-                    new Notice("This extension name already exists");
+                    new Notice(t("settings.extensionsUseMarkdownRenderer.duplicateNotice"));
                     textInput.value = extension;
                     return;
                 }
@@ -154,13 +155,13 @@ export const OtherSettingsTab = {
             setting.addText((text) => {
                 text.inputEl.classList.add("ec-extension-input");
                 text.setValue(extension);
-                text.setPlaceholder("For example, `excalidraw`");
+                text.setPlaceholder(t("settings.extensionsUseMarkdownRenderer.placeholder"));
                 text.inputEl.onblur = () => handleExtensionBlur(extension, index, text.inputEl);
             });
 
             // Add remove button (right side)
             setting.addButton((button) => {
-                button.setButtonText("Remove")
+                button.setButtonText(t("settings.extensionsUseMarkdownRenderer.remove"))
                     .setClass("mod-warning")
                     .onClick(() => handleRemoveExtension(index, renderCallback));
             });
@@ -178,7 +179,7 @@ export const OtherSettingsTab = {
             new Setting(extensionListContainer)
                 .setClass("ec-add-extension-setting")
                 .addButton((button) => {
-                    button.setButtonText("Add new extension")
+                    button.setButtonText(t("settings.extensionsUseMarkdownRenderer.add"))
                         .setClass("mod-cta")
                         .onClick(() => handleAddExtension(renderExtensionList));
                 });
@@ -210,6 +211,6 @@ export function addOtherSettingsTab(containerEl: HTMLElement, plugin: EquationCi
     OtherSettingsTab.debugMode(containerEl, plugin);
     OtherSettingsTab.resetSettings(containerEl, plugin, settingsTab);
     // ==================  Beta features settings ==========   
-    new Setting(containerEl).setName("Beta features").setHeading();
+    new Setting(containerEl).setName(t("settings.category.betaFeatures")).setHeading();
     OtherSettingsTab.enableCiteWithCodeBlockInCallout(containerEl, plugin);
 }

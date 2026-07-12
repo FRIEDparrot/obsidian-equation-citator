@@ -12,7 +12,14 @@ export default defineConfig([
     ...obsidianmd.configs.recommended,
     // Ignore build outputs and other files
     {
-        ignores: ["node_modules/**", "docs/**/*", "dist/**", "build/**", "main.js", "tests/**", "*.mjs"],
+        ignores: [
+            "node_modules/**", 
+            "docs/**/*", "dist/**", 
+            "build/**", "main.js", 
+            "src/main.js", "tests/**", 
+            "**/*.mjs",
+            "scripts/*",
+        ],
     },
     {
         files: ["**/*.ts", "**/*.tsx"],
@@ -22,6 +29,8 @@ export default defineConfig([
             globals: {
                 ...globals.browser,
                 ...globals.node,
+                activeWindow: "readonly",
+                activeDocument: "readonly",
             },
         },
         plugins: {
@@ -43,5 +52,17 @@ export default defineConfig([
                 },
             ],
         },
-    },
+    }
+    // {
+    //     files: ["src/utils/misc/desktop_fs_utils.tsx"],
+    //     languageOptions: {
+    //         globals: {
+    //             require: "readonly",
+    //         },
+    //     },
+    //     rules: {
+    //         "import/no-nodejs-modules": "off",
+    //         "@typescript-eslint/no-require-imports": "off",
+    //     },
+    // },
 ]);

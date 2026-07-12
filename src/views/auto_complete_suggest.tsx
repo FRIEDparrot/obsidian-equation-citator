@@ -14,8 +14,14 @@ import { splitFileCitation } from "@/utils/core/citation_utils";
 import Debugger from "@/debug/debugger";
 
 
-export type CitationType = 'equation' | 'figure' | 'callout';
-export type CitationItem = RenderedEquation | RenderedFigure | RenderedCallout;
+export type CitationType = 'equation' | 'figure' | 'callout' | 'unfinished';
+
+export interface UnfinishedCitationItem {
+    kind: 'unfinished-prefix';
+    prefix: string;
+}
+
+export type CitationItem = RenderedEquation | RenderedFigure | RenderedCallout | UnfinishedCitationItem;
 
 interface MathEnvironmentInfo {
     line: string;        // line content
@@ -147,7 +153,11 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         let detectedType: CitationType | null = null;
         let detectedPrefix: string = citationPrefix;
 
-        if (label.startsWith(citationPrefix)) {
+        if (!label.includes(":")) {
+            detectedType = "unfinished";
+            detectedPrefix = label.trim()
+        }
+        else if (label.startsWith(citationPrefix)) {
             detectedType = 'equation';
             detectedPrefix = citationPrefix;
         } else if (label.startsWith(figCitationPrefix)) {
@@ -212,6 +222,32 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         return inMathEnv || (acceptInlineCode && inCodeEnv);
     }
 
+    private isUnfinishedCitationItem(value: CitationItem): value is UnfinishedCitationItem {
+        return 'kind' in value && value.kind === 'unfinished-prefix';
+    }
+
+    private getUnfinishedCitationSuggestions(parsedPrefix: string): UnfinishedCitationItem[] {
+        const { citationPrefix, figCitationPrefix, calloutCitationPrefixes } = this.plugin.settings;
+        const prefixes = [
+            citationPrefix,
+            figCitationPrefix,
+            ...calloutCitationPrefixes.map(prefixConfig => prefixConfig.prefix),
+        ]
+            .map(prefix => prefix.trim())
+            .filter(Boolean);
+
+        const uniqueSortedPrefixes = [...new Set(prefixes)].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        const normalizedParsedPrefix = parsedPrefix.trim();
+        const filteredPrefixes : UnfinishedCitationItem[] = uniqueSortedPrefixes
+            .filter(prefix => normalizedParsedPrefix === "" || prefix.startsWith(normalizedParsedPrefix))
+            .map(prefix => ({
+                kind: 'unfinished-prefix',
+                prefix,
+            }));
+        
+        return filteredPrefixes
+    }
+
     onSelectSuggestion(value: CitationItem, evt: MouseEvent | KeyboardEvent): void {
     }
 
@@ -242,7 +278,7 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
         // Use parseCitationInfo to get all information about the citation.
         const citationInfo = this.parseCitationInfo(mathInfo.eqContent, cursor.ch, mathInfo.lastDollarIndex + 1);
 
-        if (!citationInfo.valid || !citationInfo.citationType || !citationInfo.citationPrefix) return null;
+        if (!citationInfo.valid || !citationInfo.citationType || citationInfo.citationPrefix === null) return null;
 
         // Store the detected citation type and prefix for use in getSuggestions
         this.currentCitationType = citationInfo.citationType;
@@ -309,6 +345,8 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
 
         // Fetch suggestions based on citation type
         switch (this.currentCitationType) {
+            case 'unfinished':
+                return this.getUnfinishedCitationSuggestions(this.currentCitationPrefix);
             case 'equation':
                 return await this.plugin.equationServices.getEquationsForAutocomplete(
                     cleanedTag.trim(),
@@ -327,7 +365,6 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
                     this.currentCitationPrefix, // Pass the specific callout prefix
                     sourcePath
                 );
-
             default:
                 return [];
         }
@@ -335,25 +372,49 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
 
     renderSuggestion(value: CitationItem, el: HTMLElement): void {
         el.addClass("em-equation-option-container");
-        const targetEl = el.createDiv();
-        // Create a new component for each suggestion and track it for cleanup
-        const targetComponent = new TargetElComponent(targetEl);
-        this.suggestionComponents.push(targetComponent);
-        const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-        if (!view) return;
-
-        // Render based on citation type
         switch (this.currentCitationType) {
-            case 'equation':
+            case 'unfinished':
+                this.renderUnfinishedSuggestion(value as UnfinishedCitationItem, el);
+                break;
+            case 'equation': {
+                const targetEl = el.createDiv();
+                const targetComponent = new TargetElComponent(targetEl);
+                this.suggestionComponents.push(targetComponent);
+                const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!view) return;
                 this.renderEquationSuggestion(value as RenderedEquation, el, targetComponent, view);
                 break;
-            case 'figure':
+            }
+            case 'figure': {
+                const targetEl = el.createDiv();
+                const targetComponent = new TargetElComponent(targetEl);
+                this.suggestionComponents.push(targetComponent);
+                const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!view) return;
                 this.renderFigureSuggestion(value as RenderedFigure, el, targetComponent, view);
                 break;
-            case 'callout':
+            }
+            case 'callout': {
+                const targetEl = el.createDiv();
+                const targetComponent = new TargetElComponent(targetEl);
+                this.suggestionComponents.push(targetComponent);
+                const view = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!view) return;
                 this.renderCalloutSuggestion(value as RenderedCallout, el, targetComponent, view);
                 break;
+            }
         }
+    }
+
+    private renderUnfinishedSuggestion(
+        suggestion: UnfinishedCitationItem,
+        el: HTMLElement,
+    ): void {
+        const prefixContainer = el.createDiv();
+        prefixContainer.addClass("em-callout-autocomplete-item");
+        const prefixLabel = prefixContainer.createSpan();
+        prefixLabel.addClass("em-autocomplete-label");
+        prefixLabel.textContent = suggestion.prefix;
     }
 
     private renderEquationSuggestion(
@@ -517,6 +578,27 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
 
         const mathInfo = this.getMathEnvironmentInfo(editor, cursor);
         if (!mathInfo) return;
+        
+        if (this.isUnfinishedCitationItem(value)) {
+            const unfinishedContent = createCitationString(value.prefix, "", false);
+            const replaceStart = {
+                line: this.context.start.line,
+                ch: mathInfo.eqStart
+            };
+            const replaceEnd = {
+                line: cursor.line,
+                ch: mathInfo.eqEnd
+            };
+
+            editor.replaceRange(unfinishedContent, replaceStart, replaceEnd);
+            editor.setCursor({
+                line: this.context.start.line,
+                ch: mathInfo.lastDollarIndex + 1 + String.raw`\ref{${value.prefix}`.length,
+            });
+            this.currentCitationPrefix = value.prefix;
+            return;
+        }
+
         const citationInfo = this.parseCitationInfo(mathInfo.eqContent, cursor.ch, mathInfo.eqStart);
         if (!citationInfo.valid) return;
 

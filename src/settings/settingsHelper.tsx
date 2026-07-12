@@ -1,4 +1,5 @@
 import { SETTINGS_METADATA, EquationCitatorSettings } from "./defaultSettings";
+import { t } from "@/i18n/getLocale";
 
 /**
  * Settings organized by category for the customize panel
@@ -24,7 +25,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
     const categories: SettingsCategory[] = [
         {
             id: "citation",
-            title: "Citation",
+            title: t("settings.category.citation"),
             settingKeys: [
                 "enableCitationInSourceMode",
                 "citationPrefix",
@@ -46,7 +47,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "auto-numbering",
-            title: "Auto numbering",
+            title: t("settings.category.autoNumbering"),
             settingKeys: [
                 "autoNumberDelimiter",
                 "autoNumberDepth",
@@ -68,7 +69,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "equation-panel",
-            title: "Equation panel",
+            title: t("settings.category.equationPanel"),
             settingKeys: [
                 "equationManagePanelDefaultViewType",
                 "equationManagePanelPreviewObjectType",
@@ -84,26 +85,32 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "style",
-            title: "Style",
+            title: t("settings.category.style"),
             settingKeys: [
                 "enableRenderLocalFileName",
                 "enableRenderFigureInfoInPreview",
                 "enableCenterTableInCallout",
+                "renderImageCaptionsAndDescriptions",
                 "citationPopoverSize",
             ]
         },
         {
             id: "pdf-export",
-            title: "PDF export",
+            title: t("settings.category.pdfExport"),
             settingKeys: [
+                "websiteNotesExportFolder",
+                "websiteNotesExportIgnoredFilePatterns",
+                "websiteNotesExcludedFolders",
                 "citationColorInPdf",
                 "addImageCaptionsInPdf",
                 "addImageDescInPdf",
+                "keepImageSpacingForPdf",
+                "injectCitationMetadataInExportedMarkdown",
             ]
         },
         {
             id: "cache",
-            title: "Cache",
+            title: t("settings.category.cache"),
             settingKeys: [
                 "cacheUpdateTime",
                 "cacheCleanTime",
@@ -111,7 +118,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
         },
         {
             id: "other",
-            title: "Others",
+            title: t("settings.category.other"),
             settingKeys: [
                 "enableTypstMode",
                 "typstBoxSymbol",

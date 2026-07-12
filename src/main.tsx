@@ -12,10 +12,12 @@ import {
     createMathCitationExtension,
     mathCitationPostProcessor,
     calloutCitationPostProcessor,
-    createImageCaptionExtension,
-    imageCaptionPostProcessor,
     EditorSelectionInfo,
 } from '@/views/widgets/citation_render';
+import {
+    createImageCaptionExtension,
+    imageCaptionPostProcessor,
+} from '@/views/widgets/image_caption_extension';
 import { EquationCache } from '@/cache/equationCache';
 import { CitationCache } from '@/cache/citationCache';
 import { FootNoteCache } from '@/cache/footnoteCache';
@@ -35,31 +37,32 @@ import { dropCursorField } from '@/utils/workspace/drag_drop_event';
 
 
 export default class EquationCitator extends Plugin {
-    settings: EquationCitatorSettings;
-    extensions: Extension[] = [];
-    equationServices: EquationServices;
-    figureServices: FigureServices;
-    calloutServices: CalloutServices;
-    tagService: TagService;
-    figureTagService: FigureTagService;
-    tagSelectedField: StateField<EditorSelectionInfo>;
+    public settings!: EquationCitatorSettings;
+    public tagService!: TagService;
+    public figureTagService!: FigureTagService;
+    public equationServices!: EquationServices;
+    public figureServices!: FigureServices;
+    public calloutServices!: CalloutServices;
+    public readonly extensions: Extension[] = [];
+    
+    public tagSelectedField!: StateField<EditorSelectionInfo>;
 
     // initialize caches
-    public citationCache: CitationCache;   // citation cache instance
-    public equationCache: EquationCache;     // equation cache instance
-    public footnoteCache: FootNoteCache;     // footnote cache instance
-    public imageCache: ImageCache;           // image cache instance
-    public calloutCache: CalloutCache;       // callout cache instance
-    public lineHashCache: LineHashCache;     // line hash cache instance 
+    public citationCache!: CitationCache;   // citation cache instance
+    public equationCache!: EquationCache;     // equation cache instance
+    public footnoteCache!: FootNoteCache;     // footnote cache instance
+    public imageCache!: ImageCache;           // image cache instance
+    public calloutCache!: CalloutCache;       // callout cache instance
+    public lineHashCache!: LineHashCache;     // line hash cache instance 
 
-    private autoCompleteSuggest: AutoCompleteSuggest;
+    private autoCompleteSuggest!: AutoCompleteSuggest;
     private readonly mathCitationCompartment = new Compartment();
     private readonly imageCaptionCompartment = new Compartment();
 
     async loadSettings() {
         this.settings = { ...DEFAULT_SETTINGS, ...await this.loadData() };
         Debugger.debugMode = this.settings.debugMode;  // set debug mode from settings 
-        loadStyles();
+        loadStyles(this.settings);
         this.upDateEditorExtensions();
     }
 
@@ -178,6 +181,7 @@ export default class EquationCitator extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+        loadStyles(this.settings);
         this.upDateEditorExtensions();
     }
 

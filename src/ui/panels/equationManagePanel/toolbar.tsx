@@ -2,6 +2,7 @@ import EquationCitator from "@/main";
 import { EquationArrangePanel } from "./mainPanel";
 import { setIcon, setTooltip, Menu } from "obsidian";
 import { EquationPanelOutlineViewRenderer } from "./outline_view_renderer";
+import { t } from "@/i18n/getLocale";
 
 // ============================================================================
 // Private Toolbar Update Functions
@@ -23,19 +24,19 @@ function updateModeButtons(panel: EquationArrangePanel): void {
 function updatePanelViewMode(panel: EquationArrangePanel, mode: "outline" | "list"): void {
     panel.viewMode = mode;
     setIcon(panel.viewModeButton, mode === "outline" ? "list" : "rows-4");
-    setTooltip(panel.viewModeButton, `View mode: ${mode === "outline" ? "outline" : "list"}`);
+    setTooltip(panel.viewModeButton, t("toolbar.viewMode.tooltip", { mode: mode === "outline" ? t("toolbar.viewMode.outline") : t("toolbar.viewMode.list") }));
 }
 
 function updateSortMode(panel: EquationArrangePanel, mode: "tag" | "seq"): void {
     panel.sortMode = mode;
     setIcon(panel.sortButton, mode === "tag" ? "tag" : "list-ordered");
-    setTooltip(panel.sortButton, `Sort mode: ${mode == "tag" ? "tag" : "line number"}`);
+    setTooltip(panel.sortButton, t("toolbar.sortMode.tooltip", { mode: mode === "tag" ? t("toolbar.sortMode.tag") : t("toolbar.sortMode.lineNumber") }));
 }
 
 function updateFiltersButton(panel: EquationArrangePanel): void {
     const anyFilterActive = panel.filterTagOnlyItems || panel.filterBoxedEquation;
     panel.filtersForEquationsButton.toggleClass("is-active", anyFilterActive);
-    const tooltipText = "Show filters";
+    const tooltipText = t("toolbar.showFilters");
     setIcon(panel.filtersForEquationsButton, "filter");
     setTooltip(panel.filtersForEquationsButton, tooltipText);
 }
@@ -45,7 +46,7 @@ function showFiltersMenu(panel: EquationArrangePanel, event: MouseEvent): void {
 
     // Tag-only filter menu item
     menu.addItem((item) => {
-        item.setTitle("Filter tagged items")
+        item.setTitle(t("toolbar.filterTaggedItems"))
             .setIcon("tag")
             .setChecked(panel.filterTagOnlyItems)
             .onClick(() => {
@@ -57,7 +58,7 @@ function showFiltersMenu(panel: EquationArrangePanel, event: MouseEvent): void {
 
     // Boxed equation filter menu item
     menu.addItem((item) => {
-        item.setTitle("Filter boxed equations")
+        item.setTitle(t("toolbar.filterBoxedEquations"))
             .setIcon("box")
             .setChecked(panel.filterBoxedEquation)
             .onClick(() => {
@@ -85,7 +86,7 @@ function updateRefreshLockMode(panel: EquationArrangePanel, enabled: boolean): v
 
 function updateHeadingsFilterButton(panel: EquationArrangePanel): void {
     const iconName = panel.filterEmptyHeadings ? "book-x" : "book-check";
-    const tooltipText = panel.filterEmptyHeadings ? "Headings: Only show not empty" : "Headings: Show all";
+    const tooltipText = panel.filterEmptyHeadings ? t("toolbar.headingsOnlyNonEmpty") : t("toolbar.headingsShowAll");
     panel.filterEmptyHeadingsButton.toggleClass("is-active", panel.filterEmptyHeadings);
     setIcon(panel.filterEmptyHeadingsButton, iconName);
     setTooltip(panel.filterEmptyHeadingsButton, tooltipText);
@@ -93,7 +94,7 @@ function updateHeadingsFilterButton(panel: EquationArrangePanel): void {
 
 function updateHeadingOnlyButton(panel: EquationArrangePanel): void {
     panel.enableRenderHeadingOnlyButton.toggleClass("is-active", panel.enableRenderHeadingOnly);
-    const tooltipText = panel.enableRenderHeadingOnly ? "Show headings only: On" : "Show headings only: Off";
+    const tooltipText = panel.enableRenderHeadingOnly ? t("toolbar.showHeadingsOnlyOn") : t("toolbar.showHeadingsOnlyOff");
     setTooltip(panel.enableRenderHeadingOnlyButton, tooltipText);
 }
 
@@ -109,19 +110,19 @@ function updatePreviewObjectType(panel: EquationArrangePanel, type: "equation" |
     
     // Set tooltip based on type
     const labelMap = {
-        equation: "Equations",
-        figure: "Figures",
-        callout: "Callouts"
+        equation: t("toolbar.preview.equations"),
+        figure: t("toolbar.preview.figures"),
+        callout: t("toolbar.preview.callouts")
     };
     
     setIcon(panel.previewObjectTypeButton, iconMap[type]);
-    setTooltip(panel.previewObjectTypeButton, `Preview: ${labelMap[type]}`);
+    setTooltip(panel.previewObjectTypeButton, t("toolbar.preview", { label: labelMap[type] }));
 }
 
 function toggleTagShow(panel: EquationArrangePanel, mode: boolean): void {
     panel.showEquationTags = mode;
     setIcon(panel.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");
-    setTooltip(panel.toggleTagShowButton, mode ? "Tags: Show" : "Tags: Hidden");
+    setTooltip(panel.toggleTagShowButton, mode ? t("toolbar.tagsShow") : t("toolbar.tagsHidden"));
     document.body.classList.toggle("ec-tag-show", mode);
 }
 
@@ -192,10 +193,10 @@ function renderToolBarSubPanel(
     // Show headings only button (only visible in outline mode)
     panel.enableRenderHeadingOnlyButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Show headings only" },
+        attr: { "aria-label": t("toolbar.showHeadingsOnly") },
     });
     setIcon(panel.enableRenderHeadingOnlyButton, "list-tree");
-    setTooltip(panel.enableRenderHeadingOnlyButton, "Show headings only");
+    setTooltip(panel.enableRenderHeadingOnlyButton, t("toolbar.showHeadingsOnly"));
     panel.enableRenderHeadingOnlyButton.addEventListener("click", () => {
         panel.enableRenderHeadingOnly = !panel.enableRenderHeadingOnly;
         updateHeadingOnlyButton(panel);
@@ -205,7 +206,7 @@ function renderToolBarSubPanel(
 
     panel.sortButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Sort equations" },
+        attr: { "aria-label": t("toolbar.sortEquations") },
     });
 
     panel.sortButton.addEventListener("click", () => {
@@ -216,29 +217,29 @@ function renderToolBarSubPanel(
 
     panel.collapseButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Collapse all" },
+        attr: { "aria-label": t("toolbar.collapseAll") },
     });
     setIcon(panel.collapseButton, "chevrons-down-up");
-    setTooltip(panel.collapseButton, "Collapse all");
+    setTooltip(panel.collapseButton, t("toolbar.collapseAll"));
     panel.collapseButton.addEventListener("click", () => {
         if (renderer.collapseAllState === false) {
             void handleCollapseAll(panel, renderer);
             renderer.collapseAllState = true;
             setIcon(panel.collapseButton, "chevrons-up-down");
-            setTooltip(panel.collapseButton, "Expand all");
+            setTooltip(panel.collapseButton, t("toolbar.expandAll"));
         }
         else {
             void handleExpandAll(panel, renderer);
             renderer.collapseAllState = false;
             setIcon(panel.collapseButton, "chevrons-down-up");
-            setTooltip(panel.collapseButton, "Collapse all");
+            setTooltip(panel.collapseButton, t("toolbar.collapseAll"));
         }
     });
 
     // hide tag button
     panel.toggleTagShowButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button ec-tag-hide-button",
-        attr: { "aria-label": "Hide tag button" },
+        attr: { "aria-label": t("toolbar.hideTagButton") },
     });  // placeholder for tag button
     panel.toggleTagShowButton.addEventListener("click", () => {
         const mode = !panel.showEquationTags;
@@ -248,7 +249,7 @@ function renderToolBarSubPanel(
     // Filter empty headings button (only visible in outline mode)
     panel.filterEmptyHeadingsButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Filter empty headings" },
+        attr: { "aria-label": t("toolbar.filterEmptyHeadings") },
     });
     panel.filterEmptyHeadingsButton.addEventListener("click", () => {
         panel.filterEmptyHeadings = !panel.filterEmptyHeadings;
@@ -260,13 +261,13 @@ function renderToolBarSubPanel(
     // Filter equations button (opens dropdown menu)
     panel.filtersForEquationsButton = subPanel.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Show filters" },
+        attr: { "aria-label": t("toolbar.showFilters") },
     });
     setIcon(panel.filtersForEquationsButton, "filter");
-    setTooltip(panel.filtersForEquationsButton, "Show filters");
+    setTooltip(panel.filtersForEquationsButton, t("toolbar.showFilters"));
     panel.filtersForEquationsButton.addEventListener("click", (event) => {
         event.preventDefault();
-        showFiltersMenu(panel, event as MouseEvent);
+        showFiltersMenu(panel, event);
     });
     updateFiltersButton(panel); // Set initial state
 }
@@ -291,7 +292,7 @@ export function renderToolbar(
     // Preview object type button (FIRST button)
     panel.previewObjectTypeButton = toolbar.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Preview object type" },
+        attr: { "aria-label": t("toolbar.previewObjectType") },
     });
     panel.previewObjectTypeButton.addEventListener("click", () => {
         const types: Array<"equation" | "figure" | "callout"> = ["equation", "figure", "callout"];
@@ -314,7 +315,7 @@ export function renderToolbar(
         cls: "clickable-icon ec-mode-button",
     }); 
     setIcon(panel.lockRefreshButton, "refresh-cw"); 
-    setTooltip(panel.lockRefreshButton, "Disable refresh");
+    setTooltip(panel.lockRefreshButton, t("toolbar.disableRefresh"));
     panel.lockRefreshButton.addEventListener("click", () => {
         panel.lockRefreshEnabled = !panel.lockRefreshEnabled;
         updateRefreshLockMode(panel, panel.lockRefreshEnabled);
@@ -323,10 +324,10 @@ export function renderToolbar(
     // Search button
     panel.searchButton = toolbar.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "Search equations" },
+        attr: { "aria-label": t("toolbar.searchEquations") },
     });
     setIcon(panel.searchButton, "search");
-    setTooltip(panel.searchButton, "Search equations");
+    setTooltip(panel.searchButton, t("toolbar.searchEquations"));
     panel.searchButton.addEventListener("click", () => {
         void toggleSearchMode(panel, true);
     });
@@ -334,10 +335,10 @@ export function renderToolbar(
     // Extend toolbar button (opens sub-panel)
     panel.extendToolBarButton = toolbar.createEl("button", {
         cls: "clickable-icon ec-mode-button",
-        attr: { "aria-label": "More options" },
+        attr: { "aria-label": t("toolbar.moreOptions") },
     });
     setIcon(panel.extendToolBarButton, "chevron-down");
-    setTooltip(panel.extendToolBarButton, "More options");
+    setTooltip(panel.extendToolBarButton, t("toolbar.moreOptions"));
     panel.extendToolBarButton.addEventListener("click", () => {
         const isExpanded = panel.extendToolBarButton.hasClass("is-active");
         panel.extendToolBarButton.toggleClass("is-active", !isExpanded);
@@ -348,10 +349,10 @@ export function renderToolbar(
     // Quit search button (hidden by default)
     panel.quitSearchButton = toolbar.createEl("button", {
         cls: "clickable-icon ec-mode-button ec-quit-search-button",
-        attr: { "aria-label": "Exit search" },
+        attr: { "aria-label": t("toolbar.exitSearch") },
     });
     setIcon(panel.quitSearchButton, "x");
-    setTooltip(panel.quitSearchButton, "Exit search");
+    setTooltip(panel.quitSearchButton, t("toolbar.exitSearch"));
     panel.quitSearchButton.addEventListener("click", () => {
         void toggleSearchMode(panel, false);
     });
@@ -362,7 +363,7 @@ export function renderToolbar(
         cls: "ec-search-input",
         attr: {
             type: "text",
-            placeholder: "Search items..."
+            placeholder: t("toolbar.searchItemsPlaceholder")
         },
     });
     panel.searchInput.addEventListener("input", () => {
