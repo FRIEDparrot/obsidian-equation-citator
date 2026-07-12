@@ -112,7 +112,7 @@ export function renderCalloutCitation(
                         e.preventDefault();
                         e.stopPropagation();
                         e.stopImmediatePropagation();
-                        new FileSuperScriptPopover(
+                        new FileSuperScriptPopover( // nosonar
                             plugin,
                             parent,
                             fileSuperEl,
@@ -171,7 +171,7 @@ export function renderCalloutCitation(
                     }
 
                     // Create and show popover
-                    new CalloutCitationPopover(
+                    new CalloutCitationPopover( // nosonar
                         plugin,
                         parent,
                         el,
