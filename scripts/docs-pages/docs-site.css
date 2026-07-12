@@ -219,6 +219,11 @@ body.ec-typedoc-page {
   text-decoration: none;
 }
 
+.ec-docs-article .equation-citator-citation,
+.ec-docs-article .equation-citator-citation * {
+  cursor: pointer !important;
+}
+
 .ec-math-display {
   margin: 1rem 0;
   overflow-x: auto;
