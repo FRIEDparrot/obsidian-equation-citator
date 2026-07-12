@@ -292,7 +292,7 @@ Bug fixes, improvements on PDF export function, added :
 - [x] refactored `getEquationAtCursor` and function in box current equations 
 - [x] refactored figure citation wrapper function 
 - [x] refactored the figure caption extension part for better mainability 
-- [ ] resolved sonar issues to make sure that the code quality gate is passed after pushing to main branch. 
+- [x] resolved sonar issues to make sure that the code quality gate is passed after pushing to main branch. 
 
 ### 🚢 If you want following features, you can request it in issue page :
 
