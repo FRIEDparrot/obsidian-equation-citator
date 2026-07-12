@@ -10,6 +10,7 @@ import {
     buildSidebarHtml,
     buildToolbarLinksHtml,
 } from "./page-shell.mjs";
+import localeRouting from "./locale-routing.cjs";
 import { withBaseRoot } from "./site-config.mjs";
 
 function buildApiReferenceSectionHtml({ currentPageHref, currentPageLabel }) {
@@ -103,18 +104,13 @@ export function createDocsPageBuilder({
     }
 
     function getLocaleSwitchTargetHref(locale, currentPageHref) {
-        const normalizedHref = normalizePath(currentPageHref);
-        const parts = normalizedHref.split("/");
-
-        if (supportedLocales.includes(parts[0])) {
-            return normalizePath(path.join(locale, ...parts.slice(1)));
-        }
-
-        if ((parts[0] === tutorialsSectionKey || parts[0] === changelogsSectionKey) && supportedLocales.includes(parts[1])) {
-            return normalizePath(path.join(parts[0], locale, ...parts.slice(2)));
-        }
-
-        return normalizePath(path.join(locale, "index.html"));
+        return localeRouting.getLocaleSwitchTargetHref({
+            locale,
+            currentPageHref,
+            supportedLocales,
+            tutorialsSectionKey,
+            changelogsSectionKey,
+        });
     }
 
     function buildShellModel({ currentSection, currentPageHref, outputFilePath, navigation, extraSidebarHtml = "" }) {
