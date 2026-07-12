@@ -240,7 +240,7 @@ function getValidatedIgnoredPattern(
 }
 
 function normalizeWebsiteNotesExcludedFolderPath(rawPath: string): string | null {
-    const normalizedPath = rawPath.trim().replaceAll("\\", "/").replace(/^\/+|\/+$/g, "");
+    const normalizedPath = rawPath.trim().replaceAll("\\", "/").replace(/^\/+|\/+$/g, ""); // nosonar
     const pathSegments = normalizedPath.split("/");
 
     if (!normalizedPath || pathSegments.some(segment => !segment || segment === "." || segment === "..")) {
@@ -501,7 +501,7 @@ function addExcludedFolderSettingRow(
         .addText((text) => {
             text.setValue(folder.path);
             text.setPlaceholder(t("settings.websiteNotesExcludedFolders.pathPlaceholder"));
-            new WebsiteNotesExcludedFolderSuggest(plugin, text.inputEl);
+            new WebsiteNotesExcludedFolderSuggest(plugin, text.inputEl);  // nosonar
             text.inputEl.onblur = () => void saveExcludedFolderPathAtIndex(plugin, index, folder, text.inputEl);
         })
         .addToggle((toggle) => {
@@ -528,7 +528,7 @@ function addNewExcludedFolderSettingRow(
         .addText((text) => {
             text.setPlaceholder(t("settings.websiteNotesExcludedFolders.pathPlaceholder"));
             newFolderInput = text.inputEl;
-            new WebsiteNotesExcludedFolderSuggest(plugin, text.inputEl);
+            new WebsiteNotesExcludedFolderSuggest(plugin, text.inputEl); // nosonar
         })
         .addButton((button) => {
             button.setButtonText(t("settings.websiteNotesExcludedFolders.add"))

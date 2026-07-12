@@ -314,7 +314,12 @@ async function postProcessTypeDocPages(navigation) {
         );
         html = html.replace(
             /<body([^>]*)>/,
-            (match, attributes) => `<body${attributes.includes("class=") ? attributes.replace(/class="([^"]*)"/, 'class="$1 ec-docs-page ec-typedoc-page"') : `${attributes} class="ec-docs-page ec-typedoc-page"`}>`
+            (match, attributes) => {
+                const content = attributes.includes("class=") ? 
+                    attributes.replace(/class="([^"]*)"/, 'class="$1 ec-docs-page ec-typedoc-page"') : 
+                    `${attributes} class="ec-docs-page ec-typedoc-page"`;
+                return `<body${content}>`
+            }
         );
         html = html.replace(
             /<a href="(?:\.\.\/)*index\.html" class="title">[\s\S]*?<\/a>/,
@@ -441,7 +446,7 @@ function getDocsRelativeHref(filePath) {
 function normalizeGeneratedPageRouteLinks(contentHtml, navigation) {
     let normalizedHtml = contentHtml;
     for (const { shortHref, fullHref } of buildGeneratedPageRouteReplacements(navigation)) {
-        const routeBoundaryPattern = new RegExp(`${escapeRegExp(shortHref)}(?=$|[#"'<&\\s])`, "g");
+        const routeBoundaryPattern = new RegExp(String.raw`${escapeRegExp(shortHref)}(?=$|[#"'<&\s])`, "g");
         normalizedHtml = normalizedHtml.replace(routeBoundaryPattern, fullHref);
     }
 
@@ -470,12 +475,12 @@ function buildGeneratedPageRouteReplacements(navigation) {
 }
 
 function escapeRegExp(text) {
-    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return text.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 function docsPageRoutePattern() {
     const baseRoot = escapeRegExp(withBaseRoot(""));
-    return new RegExp(`(${baseRoot}(?:tutorials|changelogs)/[^#"'<&\\s]+?)(#|(?=$|["'<&\\s]))`, "g");
+    return new RegExp(String.raw`(${baseRoot}(?:tutorials|changelogs)/[^#"'<&\s]+?)(#|(?=$|["'<&\s]))`, "g");
 }
 
 function hasStaticAssetExtension(routePath) {

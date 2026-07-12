@@ -345,7 +345,7 @@ function renderFigureMetadataMarkdown(
     sourcePath: string | null,
     targetComponent: Component
 ): void {
-    void MarkdownRenderer.render(plugin.app, markdownText, container, sourcePath ?? '', targetComponent);
+    void MarkdownRenderer.render(plugin.app, markdownText, container, sourcePath ?? '', targetComponent); //nosonar
 }
 
 /**

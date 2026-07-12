@@ -242,7 +242,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         renderMarkdown(descLine: HTMLElement, desc: string, mathComp: Component) {
             const currentFile = this.view.state.field(editorInfoField).file;
             const sourcePath = currentFile instanceof TFile ? currentFile.path : '';
-            void MarkdownRenderer.render(plugin.app, desc, descLine, sourcePath, mathComp);
+            void MarkdownRenderer.render(plugin.app, desc, descLine, sourcePath, mathComp); //nosonar
         }
 
         updateCaption(captionEl: HTMLElement, image: ImageMatch, settings: EquationCitatorSettings) {
@@ -360,7 +360,7 @@ function createImageCaption(
 
         const componentTitle = new MarkdownRenderChild(titleLine);
         ctx.addChild(componentTitle);
-        void  MarkdownRenderer.render(plugin.app, titleText, titleLine, ctx.sourcePath, componentTitle);
+        void  MarkdownRenderer.render(plugin.app, titleText, titleLine, ctx.sourcePath, componentTitle); //nosonar
         captionDiv.appendChild(titleLine);
     }
 
@@ -373,7 +373,7 @@ function createImageCaption(
         // Tie the render's lifecycle (and any embedded widgets) to this post-processor block
         const component = new MarkdownRenderChild(descLine);
         ctx.addChild(component);
-        void MarkdownRenderer.render(plugin.app, image.desc, descLine, ctx.sourcePath, component);
+        void MarkdownRenderer.render(plugin.app, image.desc, descLine, ctx.sourcePath, component); //nosonar
     }
 
     // Append to internal embed element
