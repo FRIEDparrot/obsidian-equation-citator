@@ -1,6 +1,4 @@
-// eslint-disable-next-line import/no-nodejs-modules -- Desktop-only type import for optional runtime require fallback on mobile.
 import type * as FsPromises from "node:fs/promises";
-// eslint-disable-next-line import/no-nodejs-modules -- Desktop-only type import for optional runtime require fallback on mobile.
 import type * as Path from "node:path";
 import Debugger from "@/debug/debugger";
 
