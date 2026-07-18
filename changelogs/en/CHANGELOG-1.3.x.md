@@ -294,8 +294,8 @@ Bug fixes, improvements on PDF export function, added :
 - [x] refactored the figure caption extension part for better mainability 
 - [x] resolved sonar issues to make sure that the code quality gate is passed after pushing to main branch. 
 
-### Version 1.3.6 
-Minor issue fix. Fixed
+### Version 1.3.6 - 1.3.7
+Fixed the review issues 
 
 Make sure the quality of the "Review" part is excellent in obsidian plugins. 
 
@@ -307,6 +307,11 @@ Resolved Obsidian reivew state issues :
 - [x] Use 'window.clearTimeout()' instead of 'clearTimeout()' for popout window compatibility.
 - [x] Use 'window.clearInterval()' instead of 'clearInterval()' for popout window compatibility. 
 - [x] Avoid using 'globalThis'. Use 'window' or 'activeWindow' for popout window compatibility. 
+- [x] Do not import Node.js built-in module "node:path"/"node:fs/promises". Node.js APIs are not available on mobile. Use a dynamic import() or require() guarded by Platform.isDesktop instead.
+- [x] Use '.instanceOf(HTMLElement)' instead of 'instanceof HTMLElement' for cross-window safe type checking. 
+- [x] README contains unfilled placeholder text
+- [x] Removed vulnerability advisory denpendence (now all dependences are dev dependences)
+- [x] Uses document.createElement instead of Obsidian's createEl helpers 
 
 ### 🚢 If you want following features, you can request it in issue page :
 

@@ -3,7 +3,7 @@
 </div></center>
 
 <center><div width="100%"><span>
-  <img src="https://img.shields.io/badge/Latest-1.3.6-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest-1.3.7-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <a href="https://obsidian.md/plugins?id=equation-citator">
   <img src="https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22equation-citator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json" alt="Downloads">
@@ -82,8 +82,6 @@
 
 <center><img src="img/drag-drop-cite.gif" alt="drag-drop-cite" style="width:600px" /></center>
 
-<!-- 占位符：面板中切换公式 / 图表 / 标注视图的 GIF 演示 -->
-
 ### 4. 📜 PDF 导出与网站文档支持
 
 1. 运行命令「创建 Markdown 副本以导出 PDF」，生成格式正确、可直接用于 PDF 导出的 Markdown 文件。
@@ -132,17 +130,13 @@
 > [!TIP]
 > 由于本插件采用缓存机制以提升性能，轻微的延迟或未能即时更新属于正常的缓存行为。请等待几秒钟，或重新打开文件、重启 Obsidian，确认问题并非仅由缓存延迟引起。
 
-## 💖 协作与支持
+## 💖 参与贡献
+
+有关开发环境设置、命令、测试和 PR 要求，请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)。PR 请提交至 `dev-latest` 分支。
+
+## 支持
 
 本插件由我作为业余爱好开发，也用于我的日常工作，对所有人完全免费。由于学期期间较为忙碌，本插件通常每隔几个月更新一次。但问题会被积极关注，插件始终保持活跃维护状态。
-
-> [!NOTE]
-> **欢迎贡献者与维护者加入**：
-> 您可以通过 Fork 本仓库并提交 PR 来参与贡献：
-> 1. **提交 PR 时请将代码提交到 `dev-latest` 分支**。这是最新的开发分支。
-> 2. **提交 PR 前请务必仔细测试您的代码！**
-> 3. 将您的改动记录添加到 `CHANGELOG.md` 中。（若未计划新的小版本，请使用下一个补丁版本号。）
-> 4. 合并前有 CI 检查，请确保您的代码通过所有检查。
 
 感谢 [@azyarashi](https://github.com/azyarashi) 对本插件的协作与重要改进。也感谢所有提出宝贵新功能和增强建议的用户。
 

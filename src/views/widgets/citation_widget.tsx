@@ -151,7 +151,7 @@ export function renderEquationCitation(
         citationFormat,
         multiCitationDelimiterRender,
     } = plugin.settings;
-    const el = activeDocument.createElement('span');
+    const el = createEl('span');
     const fileDelimiter = enableCrossFileCitation ?
         fileCiteDelimiter || '^' :
         DISABLED_DELIMITER;
@@ -168,9 +168,9 @@ export function renderEquationCitation(
     // handle empty citation case 
     if (!formatedCiteEquationTags.length) {
         // empty equation tags
-        const containerDiv = activeDocument.createElement('div');
+        const containerDiv = createEl('div');
         containerDiv.addClass('em-math-citation-container');
-        const emptyCitationSpanEl = activeDocument.createElement('span');
+        const emptyCitationSpanEl = createEl('span');
         emptyCitationSpanEl.className = 'em-math-citation';
         emptyCitationSpanEl.textContent = citationFormat.replace('#', '');
         containerDiv.appendChild(emptyCitationSpanEl);
@@ -182,10 +182,10 @@ export function renderEquationCitation(
     // render equation parts
     for (const tag of formatedCiteEquationTags) {
         // replace # in render format with the tag number
-        const containerDiv = activeDocument.createElement('div');
+        const containerDiv = createEl('div');
         containerDiv.addClass('em-math-citation-container');
         const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
-        const citationSpanEl = activeDocument.createElement('span');
+        const citationSpanEl = createEl('span');
         citationSpanEl.className = 'em-math-citation';
         if (crossFile) {
             // Create citation with superscript bracket for cross-file references
@@ -194,7 +194,7 @@ export function renderEquationCitation(
             containerDiv.appendChild(citationSpanEl);
 
             // Create superscript bracket
-            const fileSuperEl = activeDocument.createElement('sup');
+            const fileSuperEl = createEl('sup');
             fileSuperEl.textContent = `[${crossFile}]`;
             fileSuperEl.className = "em-math-citation-file-superscript";
             if (parent) {
@@ -228,7 +228,7 @@ export function renderEquationCitation(
         if (multiCitationDelimiterRender && formatedCiteEquationTags.length > 1 &&
             tag !== formatedCiteEquationTags.at(-1) // not last one
         ) {
-            const multiDelimEl = activeDocument.createElement('span');
+            const multiDelimEl = createEl('span');
             multiDelimEl.className = 'em-math-citation-multi-delimiter';
             multiDelimEl.textContent = multiCitationDelimiterRender;
             containers.push(multiDelimEl);

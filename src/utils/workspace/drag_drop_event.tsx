@@ -11,7 +11,7 @@ class DragCursor extends WidgetType {
     }
 
     toDOM(): HTMLElement {
-        const el = activeDocument.createElement('div');
+        const el = createEl('div');
         el.classList.add('ec-drag-cursor');
         return el;
     }

@@ -55,7 +55,7 @@ export function renderCalloutCitation(
     const prefixConfig = quoteCitationPrefixes.find(p => p.prefix === prefix);
     const calloutFormat = prefixConfig?.format || `${prefix}#`;
 
-    const el = activeDocument.createElement('span');
+    const el = createEl('span');
     const fileDelimiter = enableCrossFileCitation ?
         fileCiteDelimiter || '^' :
         DISABLED_DELIMITER;
@@ -72,10 +72,10 @@ export function renderCalloutCitation(
 
     // Handle empty citation case
     if (!formattedCiteCalloutTags.length) {
-        const containerDiv = activeDocument.createElement('div');
+        const containerDiv = createEl('div');
         containerDiv.addClass('em-math-citation-container');
         containerDiv.addClass('em-callout-citation-container'); // Add callout-specific class
-        const emptyCitationSpanEl = activeDocument.createElement('span');
+        const emptyCitationSpanEl = createEl('span');
         emptyCitationSpanEl.className = 'em-math-citation em-callout-citation';
         emptyCitationSpanEl.textContent = calloutFormat.replace('#', '');
         containerDiv.appendChild(emptyCitationSpanEl);
@@ -87,12 +87,12 @@ export function renderCalloutCitation(
 
     // Render each callout citation
     for (const tag of formattedCiteCalloutTags) {
-        const containerDiv = activeDocument.createElement('div');
+        const containerDiv = createEl('div');
         containerDiv.addClass('em-math-citation-container');
         containerDiv.addClass('em-callout-citation-container'); // Add callout-specific class
 
         const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
-        const citationSpanEl = activeDocument.createElement('span');
+        const citationSpanEl = createEl('span');
         citationSpanEl.className = 'em-math-citation em-callout-citation';
 
         if (crossFile) {
@@ -102,7 +102,7 @@ export function renderCalloutCitation(
             containerDiv.appendChild(citationSpanEl);
 
             // Create superscript bracket
-            const fileSuperEl = activeDocument.createElement('sup');
+            const fileSuperEl = createEl('sup');
             fileSuperEl.textContent = `[${crossFile}]`;
             fileSuperEl.className = "em-math-citation-file-superscript em-callout-citation-file-superscript";
             if (parent) {
@@ -136,7 +136,7 @@ export function renderCalloutCitation(
         if (multiCitationDelimiterRender && formattedCiteCalloutTags.length > 1 &&
             tag !== formattedCiteCalloutTags.at(-1) // not last one
         ) {
-            const multiDelimEl = activeDocument.createElement('span');
+            const multiDelimEl = createEl('span');
             multiDelimEl.className = 'em-math-citation-multi-delimiter em-callout-citation-multi-delimiter';
             multiDelimEl.textContent = multiCitationDelimiterRender;
             containers.push(multiDelimEl);

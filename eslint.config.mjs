@@ -31,6 +31,7 @@ export default defineConfig([
                 ...globals.node,
                 activeWindow: "readonly",
                 activeDocument: "readonly",
+                createEl: "readonly",
             },
         },
         plugins: {

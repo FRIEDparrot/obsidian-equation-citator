@@ -3,7 +3,7 @@
 </div></center>
 
 <center><div width="100%"><span>
-  <img src="https://img.shields.io/badge/Latest-1.3.6-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest-1.3.7-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <a href="https://obsidian.md/plugins?id=equation-citator">
   <img src="https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22equation-citator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json" alt="Downloads">
@@ -131,18 +131,13 @@ If you have suggestions or questions for this plugin, feel free to leave them on
 > [!TIP]
 > Since this plugin has a cache mechanism for better performance, a normal delay or a non-immediate update is expected cache-related behavior. Wait a few seconds, or re-open the file or restart Obsidian to confirm your issue is not just a cache delay.
 
-## 💖 Collaboration and Support
+## Contributing
 
-I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. Since I'm busy during school term, this plugin is often updated every several months. But the problems are actively checked and this plugin is stay actively maintained. 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, commands, tests, and pull request requirements. Pull requests must target the `dev-latest` branch.
 
-> [!NOTE] 
-> **Contributors and maintainers are always welcome**:
-> You can contribute by forking this repo and submitting a PR:
-> 1. **Please commit to the `dev-latest` branch if you make a PR**. This is the latest development branch.
-> 2. **Please test your code carefully before submitting a PR!**
-> 3. Add what you have done to `CHANGELOG.md`. (Use the next patch version number if a new minor version is not planned.)
-> 4. We have CI checks before merging — please make sure your code passes all checks.
-> 
+## Support
+
+I developed this plugin as a hobby and use it in my daily work. It's completely free for everyone to use. Since I'm busy during school term, this plugin is often updated every several months. But the problems are actively checked and this plugin is stay actively maintained.
 
 Thanks to [@azyarashi](https://github.com/azyarashi) for collaboration and substantial improvements to the plugin. I also appreciate all the users who suggested useful new features and enhancements.
 

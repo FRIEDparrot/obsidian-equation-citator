@@ -1,17 +1,48 @@
-import type * as FsPromises from "node:fs/promises";
-import type * as Path from "node:path";
+import { Platform } from "obsidian";
 import Debugger from "@/debug/debugger";
 
-type SafeWindow  = Window &  {
+type SafeWindow = Window & {
     require?: (moduleName: string) => unknown;
-}
+};
 
 export interface NodeFileSystemModules {
-    fs: typeof FsPromises;
-    path: typeof Path;
+    fs: {
+        stat(filePath: string): Promise<{ isDirectory(): boolean; isFile(): boolean }>;
+        readFile(filePath: string, encoding: "utf8"): Promise<string>;
+        writeFile(filePath: string, data: string | Uint8Array, encoding?: "utf8"): Promise<void>;
+        mkdir(directoryPath: string, options: { recursive: true }): Promise<string | undefined>;
+        readdir(directoryPath: string): Promise<string[]>;
+        rm(filePath: string, options: { recursive: boolean; force: boolean }): Promise<void>;
+    };
+    path: {
+        resolve(...paths: string[]): string;
+        join(...paths: string[]): string;
+        dirname(filePath: string): string;
+    };
 }
 
-let cachedModules: NodeFileSystemModules | null | undefined; 
+let cachedModules: NodeFileSystemModules | null | undefined;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function isFileSystemModule(value: unknown): value is NodeFileSystemModules["fs"] {
+    return isRecord(value) &&
+        typeof value.stat === "function" &&
+        typeof value.readFile === "function" &&
+        typeof value.writeFile === "function" &&
+        typeof value.mkdir === "function" &&
+        typeof value.readdir === "function" &&
+        typeof value.rm === "function";
+}
+
+function isPathModule(value: unknown): value is NodeFileSystemModules["path"] {
+    return isRecord(value) &&
+        typeof value.resolve === "function" &&
+        typeof value.join === "function" &&
+        typeof value.dirname === "function";
+}
 
 function normalizePathSeparators(pathText: string): string {
     let normalizedPath = pathText.replaceAll('\\', "/");
@@ -22,28 +53,31 @@ function normalizePathSeparators(pathText: string): string {
     return normalizedPath;
 }
 
-function safeRequire<T>(moduleName: string): T | null {
+function safeRequire(moduleName: string): unknown {
+    if (!Platform.isDesktop) {
+        return null;
+    }
+
     try {
-        return ((window as SafeWindow).require?.(moduleName) as T | undefined) ?? null;   
-    } catch {
-        Debugger.error(`Failed to require Node module: ${moduleName}`);
+        return (window as SafeWindow).require?.(moduleName) ?? null;
+    } catch (error) {
+        Debugger.error(`Failed to require Node module: ${moduleName}`, error);
         return null;
     }
 }
 
-export function getNodeFileSystemModules() :  NodeFileSystemModules | null {
+/**
+ * Returns the desktop Node modules needed for external export cleanup, or null on mobile.
+ */
+export function getNodeFileSystemModules(): NodeFileSystemModules | null {
     if (cachedModules !== undefined) {
         return cachedModules;
     }
 
-    const fs =
-        safeRequire<typeof FsPromises>("node:fs/promises") ??
-        safeRequire<typeof FsPromises>("fs/promises");
-    const path =
-        safeRequire<typeof Path>("node:path") ??
-        safeRequire<typeof Path>("path");
+    const fs = safeRequire("node:fs/promises") ?? safeRequire("fs/promises");
+    const path = safeRequire("node:path") ?? safeRequire("path");
 
-    cachedModules = fs && path ? { fs, path } : null;
+    cachedModules = isFileSystemModule(fs) && isPathModule(path) ? { fs, path } : null;
     return cachedModules;
 }
 
