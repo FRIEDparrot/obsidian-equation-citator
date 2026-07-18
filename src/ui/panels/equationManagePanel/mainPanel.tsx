@@ -510,7 +510,7 @@ export class EquationArrangePanel extends ItemView {
 
                     // Scroll to the equation after layout is ready
                     this.app.workspace.onLayoutReady(() => {
-                        activeWindow.setTimeout(() => {
+                        window.setTimeout(() => {
                             if (equation.tag) {
                                 void scrollToEquationByTag(this.plugin, equation.tag, currentFile.path);
                             }

@@ -123,7 +123,7 @@ function toggleTagShow(panel: EquationArrangePanel, mode: boolean): void {
     panel.showEquationTags = mode;
     setIcon(panel.toggleTagShowButton, mode ? "bookmark-check" : "bookmark-x");
     setTooltip(panel.toggleTagShowButton, mode ? t("toolbar.tagsShow") : t("toolbar.tagsHidden"));
-    document.body.classList.toggle("ec-tag-show", mode);
+    activeDocument.body.classList.toggle("ec-tag-show", mode);
 }
 
 async function toggleSearchMode(panel: EquationArrangePanel, enable: boolean): Promise<void> {

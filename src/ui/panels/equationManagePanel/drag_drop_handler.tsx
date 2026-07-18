@@ -88,6 +88,7 @@ function parseDropData(value: string): PanelItemDropData | null {
 }
 
 export class EquationPanelDragDropHandler {
+    private readonly eventDocument: Document;
     private dropHandler: ((evt: DragEvent) => void) | undefined;
     private dragoverHandler: ((evt: DragEvent) => void) | undefined;
     private dragendHandler: ((evt: DragEvent) => void) | undefined;
@@ -97,20 +98,21 @@ export class EquationPanelDragDropHandler {
         private readonly plugin: EquationCitator,
         private readonly panel: EquationArrangePanel
     ) {
-        this.registerDropEquationHandler();
         this.app = this.plugin.app;
+        this.eventDocument = activeDocument;
+        this.registerDropEquationHandler();
     }
 
     unload() {
         // Remove drop handlers
         if (this.dropHandler) {
-            document.removeEventListener('drop', this.dropHandler, true);
+            this.eventDocument.removeEventListener('drop', this.dropHandler, true);
         }
         if (this.dragoverHandler) {
-            document.removeEventListener('dragover', this.dragoverHandler, true);
+            this.eventDocument.removeEventListener('dragover', this.dragoverHandler, true);
         }
         if (this.dragendHandler) {
-            document.removeEventListener('dragend', this.dragendHandler, true);
+            this.eventDocument.removeEventListener('dragend', this.dragendHandler, true);
         }
     }
 
@@ -180,9 +182,9 @@ export class EquationPanelDragDropHandler {
             }
         };
         // Register all handlers with capture phase to intercept before other handlers
-        document.addEventListener('drop', this.dropHandler, true);
-        document.addEventListener('dragover', this.dragoverHandler, true);
-        document.addEventListener('dragend', this.dragendHandler, true);
+        this.eventDocument.addEventListener('drop', this.dropHandler, true);
+        this.eventDocument.addEventListener('dragover', this.dragoverHandler, true);
+        this.eventDocument.addEventListener('dragend', this.dragendHandler, true);
     }
     
      private async handleEquationDrop(

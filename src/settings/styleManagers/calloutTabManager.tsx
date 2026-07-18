@@ -4,7 +4,7 @@ export class CalloutTableStyleManager {
     private static readonly BODY_CLASS = 'em-center-callout-tables';
     
     static update(settings: EquationCitatorSettings): void {
-        const body = document.body;
+        const body = activeDocument.body;
         if (settings.enableCenterTableInCallout) {
             body.addClass(this.BODY_CLASS);
         } else {
@@ -13,6 +13,6 @@ export class CalloutTableStyleManager {
     }
 
     static cleanup(): void {
-        document.body.removeClass(this.BODY_CLASS);
+        activeDocument.body.removeClass(this.BODY_CLASS);
     }
 }
