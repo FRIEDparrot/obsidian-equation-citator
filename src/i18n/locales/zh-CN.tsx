@@ -33,7 +33,8 @@ const zh = {
     "update.newVersionAvailable": "新版本 v{version} 可用",
     "update.latestVersion": "您已在使用最新版本",
     "update.checkFailed": "检查更新时出错，请查看控制台了解详情。",
-
+    "update.invalidResponse": "从更新服务器收到无效的响应",
+    
     "cache.updateFailed": "更新 {cacheType} 缓存失败，请打开调试模式查看详情",
 
     "footnote.invalidNumber": "无效的脚注编号",

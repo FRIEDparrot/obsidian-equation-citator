@@ -19,6 +19,34 @@ export type PanelItem =
     | { type: "figure"; data: ImageMatch }
     | { type: "callout"; data: CalloutMatch };
 
+/**
+ * Serialized drag-and-drop data for panel items. It is separate from PanelItem
+ * because it includes the source file path and preserves the legacy flat payload.
+ */
+export type PanelItemDropData =
+    | {
+        type: "equation";
+        tag: string;
+        content: string;
+        sourcePath: string;
+        lineStart: number;
+        lineEnd: number;
+    }
+    | {
+        type: "figure";
+        tag: string;
+        sourcePath: string;
+        line: number;
+        raw?: string;
+    }
+    | {
+        type: "callout";
+        tag: string;
+        prefix: string;
+        sourcePath: string;
+        lineStart: number;
+    };
+
 
 /**
  * Group of panel items under a heading (or no heading if null)

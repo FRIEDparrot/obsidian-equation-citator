@@ -60,7 +60,7 @@ export default class EquationCitator extends Plugin {
     private readonly imageCaptionCompartment = new Compartment();
 
     async loadSettings() {
-        this.settings = { ...DEFAULT_SETTINGS, ...await this.loadData() };
+        this.settings = { ...DEFAULT_SETTINGS, ...(await this.loadData() as Partial<EquationCitatorSettings>) };
         Debugger.debugMode = this.settings.debugMode;  // set debug mode from settings 
         loadStyles(this.settings);
         this.upDateEditorExtensions();

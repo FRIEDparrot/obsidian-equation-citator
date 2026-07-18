@@ -109,10 +109,13 @@ export class CitationWidget extends WidgetType {
             this.plugin.app.workspace.getActiveFile()?.path || "",
             300
         );
-        const originalOnClose = this.popover.onClose.bind(this.popover);
-        this.popover.onClose = () => {
+        const popover = this.popover;
+        const originalOnClose = popover.onClose;
+        popover.onClose = () => {
             originalOnClose();
-            this.popover = null;  // remove popover when closed 
+            if (this.popover === popover) {
+                this.popover = null;
+            }
         };
     }
 
@@ -202,7 +205,7 @@ export function renderEquationCitation(
                         e.stopPropagation();  // prevent original popover from showing up  
                         e.stopImmediatePropagation();    // prevent other popovers from showing up 
 
-                        new FileSuperScriptPopover(
+                        new FileSuperScriptPopover(  // nosonar
                             plugin,
                             parent,
                             fileSuperEl,

@@ -33,7 +33,8 @@ const en = {
     "update.newVersionAvailable": "New version v{version} is available",
     "update.latestVersion": "You are already using the latest version",
     "update.checkFailed": "Error checking for updates, check console for details.",
-
+    "update.invalidResponse": "Invalid response from update server",
+    
     "cache.updateFailed": "Failed to update {cacheType} cache, turn on debug mode for details",
 
     "footnote.invalidNumber": "Invalid footnote number",

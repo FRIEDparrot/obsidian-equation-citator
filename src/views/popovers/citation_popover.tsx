@@ -52,7 +52,7 @@ export class CitationPopover extends HoverPopover {
         this.targetComponent = new TargetElComponent(this.targetEl);
     }
     public onOpen() { }
-    public onClose() { }
+    public onClose(this: void): void { }
     
     onload(): void {
         this.onOpen();

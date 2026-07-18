@@ -121,10 +121,13 @@ export class CalloutCitationWidget extends WidgetType {
             300
         );
 
-        const originalOnClose = this.popover.onClose.bind(this.popover);
-        this.popover.onClose = () => {
+        const popover = this.popover;
+        const originalOnClose = popover.onClose;
+        popover.onClose = () => {
             originalOnClose();
-            this.popover = null;  // remove popover when closed
+            if (this.popover === popover) {
+                this.popover = null;
+            }
         };
     }
 

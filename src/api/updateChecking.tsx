@@ -18,8 +18,15 @@ export async function isUpdateAvailable(plugin: EquationCitator, use_notice=true
             new Notice(t("update.networkError"));
             return false;
         }
-        const data = response.json;
-        const latestVersion = data.version;
+        const data: unknown = response.json;
+        const latestVersion = typeof data === "object" && data !== null && "version" in data && typeof data.version === "string"
+            ? data.version
+            : null;
+
+        if (!latestVersion) {
+            new Notice(t("update.invalidResponse"));
+            return false;
+        }
         const currentVersion = plugin.manifest.version;
 
         const updateAvailable = latestVersion !== currentVersion;

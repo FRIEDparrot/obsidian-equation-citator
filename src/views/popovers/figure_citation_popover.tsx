@@ -52,7 +52,7 @@ export class FigureCitationPopover extends HoverPopover {
     }
 
     public onOpen() { }
-    public onClose() { }
+    public onClose(this: void): void { }
     
     onload(): void {
         this.onOpen();

@@ -27,8 +27,8 @@ export class FileSuperScriptPopover extends HoverPopover {
                 return;
             }
             this.showFootnote(footnote)
-        })().catch(err => {
-            Debugger.error(err);
+        })().catch((error: unknown) => {
+            Debugger.error(`Failed to load footnotes for ${this.sourcePath}.`, error);
         })
     }
     
@@ -69,8 +69,8 @@ export class FileSuperScriptPopover extends HoverPopover {
                     "",
                     sourceFile.path,
                     false,
-                ).then().catch((err) => {
-                    Debugger.error(err);
+                ).then().catch((error: unknown) => {
+                    Debugger.error(`Failed to open footnote file ${sourceFile.path}.`, error);
                 });
             });
         }

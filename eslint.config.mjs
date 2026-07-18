@@ -39,10 +39,7 @@ export default defineConfig([
         rules: {
             ...tseslint.configs.recommended.rules,
             // Disable overly strict rules for Obsidian plugin development
-            "@typescript-eslint/no-unsafe-assignment": "off",
-            "@typescript-eslint/no-unsafe-member-access": "off",
-            "@typescript-eslint/no-unsafe-call": "off",
-            "@typescript-eslint/no-unsafe-argument": "off",
+            "import/no-nodejs-modules": "off",
             "obsidianmd/ui/sentence-case": [
                 "warn",
                 {

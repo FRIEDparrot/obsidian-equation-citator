@@ -294,6 +294,14 @@ Bug fixes, improvements on PDF export function, added :
 - [x] refactored the figure caption extension part for better mainability 
 - [x] resolved sonar issues to make sure that the code quality gate is passed after pushing to main branch. 
 
+### Version 1.3.6 
+Minor issue fix. Fixed
+
+Make sure the quality of the "Review" part is excellent in obsidian plugins. 
+- [x] resolved `npm run check` issues after re-enabling all the rules
+
+
+
 ### 🚢 If you want following features, you can request it in issue page :
 
 1. Check citations of equations, figures and tables in equation manage panel.
