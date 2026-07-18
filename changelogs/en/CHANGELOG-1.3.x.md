@@ -294,8 +294,8 @@ Bug fixes, improvements on PDF export function, added :
 - [x] refactored the figure caption extension part for better mainability 
 - [x] resolved sonar issues to make sure that the code quality gate is passed after pushing to main branch. 
 
-### Version 1.3.6 
-Minor issue fix. Fixed
+### Version 1.3.6 - 1.3.7
+Fixed the review issues 
 
 Make sure the quality of the "Review" part is excellent in obsidian plugins. 
 
