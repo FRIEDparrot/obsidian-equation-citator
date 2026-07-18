@@ -200,7 +200,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
 
         getLineNumber(element: Element, view: EditorView): number {
             try {
-                const domNode = element instanceof HTMLElement ? element : element.parentElement;
+                const domNode = element.instanceOf(HTMLElement) ? element : element.parentElement;
                 if (domNode) {
                     const pos = view.posAtDOM(domNode);
                     const line = view.state.doc.lineAt(pos).number - 1; // 0-indexed

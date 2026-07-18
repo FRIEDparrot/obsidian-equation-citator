@@ -87,3 +87,4 @@ These following commands should be selected if I prompt `cmd <CMD>`
 
 `translate` : there  are some options that not inlcuded in the zh-CN.tsx now. You may run git diff to see what we added and changed, sync these changes to zh-CN translation 
 `translate:changelogs` : sync the changelogs/en folder to changelogs/zh folder (translate chinese). 
+`translate:readme`: sync en to zh for readme 

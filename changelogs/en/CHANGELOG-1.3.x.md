@@ -307,6 +307,10 @@ Resolved Obsidian reivew state issues :
 - [x] Use 'window.clearTimeout()' instead of 'clearTimeout()' for popout window compatibility.
 - [x] Use 'window.clearInterval()' instead of 'clearInterval()' for popout window compatibility. 
 - [x] Avoid using 'globalThis'. Use 'window' or 'activeWindow' for popout window compatibility. 
+- [x] Do not import Node.js built-in module "node:path"/"node:fs/promises". Node.js APIs are not available on mobile. Use a dynamic import() or require() guarded by Platform.isDesktop instead.
+- [x] Use '.instanceOf(HTMLElement)' instead of 'instanceof HTMLElement' for cross-window safe type checking. 
+- [x] README contains unfilled placeholder text
+- [x] Removed vulnerability advisory denpendence (now all dependences are dev dependences)
 
 ### 🚢 If you want following features, you can request it in issue page :
 

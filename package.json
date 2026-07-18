@@ -39,6 +39,7 @@
 		"@typescript-eslint/utils": "^8.46.4",
 		"boolean": "^3.2.0",
 		"case-police": "^2.0.0",
+		"chevrotain": "^11.0.3",
 		"esbuild": "^0.25.8",
 		"eslint": "^9.39.1",
 		"eslint-plugin-obsidianmd": "^0.1.8",
@@ -50,16 +51,13 @@
 		"markdown-it-task-lists": "^2.1.1",
 		"obsidian": "latest",
 		"obsidian-typings": "^3.13.2",
+		"sass": "^1.101.0",
 		"ts-jest": "^29.4.0",
 		"ts-node": "^10.9.2",
 		"tslib": "2.4.0",
 		"typedoc": "^0.28.17",
 		"typedoc-github-theme": "^0.4.0",
 		"typescript": "^5.9.3"
-	},
-	"dependencies": {
-		"chevrotain": "^11.1.1",
-		"sass": "^1.89.2"
 	},
 	"allowScripts": {
 		"electron@41.1.1": true,
