@@ -43,7 +43,7 @@ export function autoNumberFigures(
     const headings: Heading[] = parseHeadingsInMarkdown(content);
 
     let inCodeBlock = false;
-    const levelCounters: number[] = new Array(maxDepth).fill(0);
+    const levelCounters: number[] = new Array<number>(maxDepth).fill(0);
 
     const numberingState: AutoNumberingState = {
         levelCounters,

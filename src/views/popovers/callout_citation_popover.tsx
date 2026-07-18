@@ -47,7 +47,7 @@ export class CalloutCitationPopover extends HoverPopover {
     }
 
     public onOpen() { }
-    public onClose() { }
+    public onClose(this: void): void { }
 
     onload(): void {
         this.onOpen();

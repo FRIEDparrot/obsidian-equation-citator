@@ -8,7 +8,7 @@
  * @returns 
  */
 function buildNext<T>(pattern: T[]): number[] {
-    const next: number[] = new Array(pattern.length).fill(0);
+    const next: number[] = new Array<number>(pattern.length).fill(0);
     // use j to = calculate the next[i]
     let j = 0;
     for (let i = 1; i < pattern.length; i++) {

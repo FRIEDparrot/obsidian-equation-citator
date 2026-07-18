@@ -7,10 +7,85 @@ import { drawCursorAtDragPosition, clearDragCursor, getEditorDropLocation } from
 import { getMarkdownViewFromEvent } from "@/utils/workspace/get_evt_view";
 import { insertTextWithCursorOffset } from "@/utils/workspace/insertTextOnCursor";
 import { checkFootnoteExists } from "@/utils/core/footnote_utils";
+import type { PanelItemDropData } from "@/ui/panels/equationManagePanel/panelItemTypes";
 import Debugger from "@/debug/debugger";
 import t from "@/i18n/getLocale";
 
 import { EquationArrangePanel } from "./mainPanel";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Parses the flattened drag payload produced by the equation management panel.
+ * Returns null for malformed JSON or data that does not match a supported item type.
+ */
+function parseDropData(value: string): PanelItemDropData | null {
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(value);
+    } catch (error: unknown) {
+        Debugger.error("Failed to parse equation panel drop data.", error);
+        return null;
+    }
+
+    if (!isRecord(parsed)) {
+        return null;
+    }
+
+    if (
+        parsed.type === "figure" &&
+        typeof parsed.tag === "string" &&
+        typeof parsed.sourcePath === "string" &&
+        typeof parsed.line === "number" &&
+        (parsed.raw === undefined || typeof parsed.raw === "string")
+    ) {
+        return {
+            type: "figure",
+            tag: parsed.tag,
+            sourcePath: parsed.sourcePath,
+            line: parsed.line,
+            ...(typeof parsed.raw === "string" ? { raw: parsed.raw } : {}),
+        };
+    }
+
+    if (
+        parsed.type === "callout" &&
+        typeof parsed.tag === "string" &&
+        typeof parsed.prefix === "string" &&
+        typeof parsed.sourcePath === "string" &&
+        typeof parsed.lineStart === "number"
+    ) {
+        return {
+            type: "callout",
+            tag: parsed.tag,
+            prefix: parsed.prefix,
+            sourcePath: parsed.sourcePath,
+            lineStart: parsed.lineStart,
+        };
+    }
+
+    if (
+        (parsed.type === undefined || parsed.type === "equation") &&
+        typeof parsed.tag === "string" &&
+        typeof parsed.content === "string" &&
+        typeof parsed.sourcePath === "string" &&
+        typeof parsed.lineStart === "number" &&
+        typeof parsed.lineEnd === "number"
+    ) {
+        return {
+            type: "equation",
+            tag: parsed.tag,
+            content: parsed.content,
+            sourcePath: parsed.sourcePath,
+            lineStart: parsed.lineStart,
+            lineEnd: parsed.lineEnd,
+        };
+    }
+
+    return null;
+}
 
 export class EquationPanelDragDropHandler {
     private dropHandler: ((evt: DragEvent) => void) | undefined;
@@ -82,14 +157,17 @@ export class EquationPanelDragDropHandler {
             evt.preventDefault();
             evt.stopPropagation();
 
-            const dropData = JSON.parse(data);
+            const dropData = parseDropData(data);
+            if (!dropData) {
+                Debugger.log("No valid drop data found");
+                return; 
+            }
             // Handle different types of drops
             if (dropData.type === 'figure') {
                 void this.handleFigureDrop(dropData, evt);
             } else if (dropData.type === 'callout') {
                 void this.handleCalloutDrop(dropData, evt);
-            } else if (dropData.content) {
-                // Original equation drop (has content field, no type field for backward compatibility)
+            } else {
                 void this.handleEquationDrop(dropData, evt);
             }
         };
@@ -108,13 +186,7 @@ export class EquationPanelDragDropHandler {
     }
     
      private async handleEquationDrop(
-        equationData: {
-            tag: string;
-            content: string;
-            sourcePath: string;
-            lineStart: number;
-            lineEnd: number;
-        },
+        equationData: Extract<PanelItemDropData, { type: "equation" }>,
         evt: DragEvent
     ): Promise<void> {
         const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
@@ -235,13 +307,7 @@ export class EquationPanelDragDropHandler {
     }
 
     private async handleFigureDrop(
-        figureData: {
-            type: 'figure';
-            tag: string;
-            sourcePath: string;
-            line: number;
-            raw?: string;
-        },
+        figureData: Extract<PanelItemDropData, { type: "figure" }>,
         evt: DragEvent
     ): Promise<void> {
         const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);
@@ -315,13 +381,7 @@ export class EquationPanelDragDropHandler {
     }
 
     private async handleCalloutDrop(
-        calloutData: {
-            type: 'callout';
-            tag: string;
-            prefix: string;
-            sourcePath: string;
-            lineStart: number;
-        },
+        calloutData: Extract<PanelItemDropData, { type: "callout" }>,
         evt: DragEvent
     ): Promise<void> {
         const targetView = getMarkdownViewFromEvent(this.plugin.app.workspace, evt);

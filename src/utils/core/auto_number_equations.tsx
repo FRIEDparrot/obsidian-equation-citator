@@ -72,7 +72,7 @@ export function getEqAutoNumberInCursor(
     let newTag: string | null = null;
     let equationBuffer: string[] = [];
     // Set Counters for equation numbering
-    const levelCounters: number[] = new Array(maxDepth).fill(0);
+    const levelCounters: number[] = new Array<number>(maxDepth).fill(0);
 
     const numberingState: AutoNumberingState = {
         levelCounters,
@@ -217,7 +217,7 @@ export function autoNumberEquations(
     let inEquationBlock = false;
 
     // Set Counters for equation numbering
-    const levelCounters: number[] = new Array(maxDepth).fill(0);
+    const levelCounters: number[] = new Array<number>(maxDepth).fill(0);
     let equationBuffer: string[] = [];
 
     // maintain two unique counters for non-heading and heading equations  
