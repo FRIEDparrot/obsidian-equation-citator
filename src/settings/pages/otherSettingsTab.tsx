@@ -71,7 +71,7 @@ export const OtherSettingsTab = {
                     new Notice(t("settings.reset.restoring"));
                     
                     // Add a small delay to show the animation
-                    await new Promise(resolve => activeWindow.setTimeout(resolve, 200));
+                    await new Promise(resolve => window.setTimeout(resolve, 200));
                     
                     plugin.settings = { ...DEFAULT_SETTINGS };
                     resetStyles(); // reset styles

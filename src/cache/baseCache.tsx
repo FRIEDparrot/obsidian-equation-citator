@@ -20,7 +20,7 @@ export abstract class BaseCacheSimple<T> {
     protected cache: Map<string, CachedData<T>> = new Map();
     protected maxCacheSize = 30;
     protected forceUpdateTimeout: number;
-    private cleanupTimer: ReturnType<typeof setTimeout> | null = null;
+    private cleanupTimer: number | null = null;
 
     constructor(protected plugin: EquationCitator) {
         this.forceUpdateTimeout = plugin.settings.cacheUpdateTime ?? 5000;
@@ -111,7 +111,7 @@ export abstract class BaseCacheSimple<T> {
         if (this.cleanupTimer || this.isDestroyed) return;
 
         const cleanTime = this.plugin.settings.cacheCleanTime ?? 90000; // 默认90秒
-        this.cleanupTimer = setInterval(() => {
+        this.cleanupTimer = window.setInterval(() => {
             if (!this.isDestroyed) {
                 this.autoCleanCache();
             }

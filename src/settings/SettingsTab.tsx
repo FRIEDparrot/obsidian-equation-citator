@@ -424,7 +424,7 @@ export class SettingsTabView extends PluginSettingTab {
                     button.setIcon("reset");
                     button.onClick(async () => {
                         new Notice(t("settings.reset.restoring"));
-                        await new Promise((resolve) => activeWindow.setTimeout(resolve, 200));
+                        await new Promise((resolve) => window.setTimeout(resolve, 200));
                         this.plugin.settings = { ...DEFAULT_SETTINGS };
                         resetStyles();
                         await this.plugin.saveSettings();

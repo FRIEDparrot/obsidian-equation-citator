@@ -298,9 +298,15 @@ Bug fixes, improvements on PDF export function, added :
 Minor issue fix. Fixed
 
 Make sure the quality of the "Review" part is excellent in obsidian plugins. 
+
+Resolved Obsidian reivew state issues : 
 - [x] resolved `npm run check` issues after re-enabling all the rules
-
-
+- [x] Use 'activeDocument' instead of 'document' for popout window compatibility. 
+- [x] Unsafe assignment of an error or any typed value 
+- [x] Use 'window.setTimeout()' instead of 'activeWindow.setTimeout()'. Timer functions should use 'window'. 
+- [x] Use 'window.clearTimeout()' instead of 'clearTimeout()' for popout window compatibility.
+- [x] Use 'window.clearInterval()' instead of 'clearInterval()' for popout window compatibility. 
+- [x] Avoid using 'globalThis'. Use 'window' or 'activeWindow' for popout window compatibility. 
 
 ### 🚢 If you want following features, you can request it in issue page :
 

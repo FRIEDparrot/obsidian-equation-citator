@@ -228,7 +228,7 @@ function addClickEffects(calloutWrapper: HTMLElement): void {
 
     calloutWrapper.addEventListener("click", () => {
         calloutWrapper.addClass("em-callout-clicked");
-        activeWindow.setTimeout(() => {
+        window.setTimeout(() => {
             calloutWrapper.removeClass("em-callout-clicked");
         }, 300);
     });
@@ -325,7 +325,7 @@ async function openFileAndScrollToCallout(
     }
 
     // Scroll to the callout
-    activeWindow.setTimeout(() => {
+    window.setTimeout(() => {
         const view = targetLeaf.view;
         if (view instanceof MarkdownView && view.editor) {
             const editor = view.editor;
