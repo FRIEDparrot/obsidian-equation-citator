@@ -311,6 +311,7 @@ Resolved Obsidian reivew state issues :
 - [x] Use '.instanceOf(HTMLElement)' instead of 'instanceof HTMLElement' for cross-window safe type checking. 
 - [x] README contains unfilled placeholder text
 - [x] Removed vulnerability advisory denpendence (now all dependences are dev dependences)
+- [x] Uses document.createElement instead of Obsidian's createEl helpers 
 
 ### 🚢 If you want following features, you can request it in issue page :
 

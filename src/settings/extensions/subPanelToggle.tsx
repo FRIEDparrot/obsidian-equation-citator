@@ -27,7 +27,7 @@ export function addSubPanelToggle(
         const parent = setting.settingEl.parentElement;
         const showSubPanel = () => {
             if (renderPanel && parent && !subPanel) {
-                subPanel = activeDocument.createElement("div");
+                subPanel = createEl("div");
                 subPanel.classList.add("ec-settings-subpanel");
                 if (insertAfter) {
                     parent.insertBefore(subPanel, setting.settingEl.nextSibling);
