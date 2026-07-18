@@ -56,9 +56,9 @@ export class EquationArrangePanel extends ItemView {
     public enableRenderHeadingOnly = false; // in outline mode, only render headings without equations 
     // #endregion
 
-    private refreshDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-    private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-    private fileCheckInterval: ReturnType<typeof setTimeout> | null = null;
+    private refreshDebounceTimer: number | null = null;
+    private searchDebounceTimer: number | null = null;
+    private fileCheckInterval: number | null = null;
 
     // last state stored for avoid frequent refresh
     public currentEquationHash = "";
@@ -97,11 +97,11 @@ export class EquationArrangePanel extends ItemView {
 
             // Clear existing timer
             if (this.refreshDebounceTimer !== null) {
-                clearTimeout(this.refreshDebounceTimer);
+                window.clearTimeout(this.refreshDebounceTimer);
             }
 
             // Schedule refresh using current setting value
-            this.refreshDebounceTimer = globalThis.setTimeout(
+            this.refreshDebounceTimer = window.setTimeout(
                 () => {
                     void this.refreshView();
                     this.refreshDebounceTimer = null;
@@ -146,7 +146,7 @@ export class EquationArrangePanel extends ItemView {
         );
 
         // Poll to check if active file changed (using current setting value)
-        this.fileCheckInterval = globalThis.setInterval(() => {
+        this.fileCheckInterval = window.setInterval(() => {
             if (this.lockRefreshEnabled) return; // Skip check when locked
 
             const currentFile = this.app.workspace.getActiveFile();
@@ -158,7 +158,7 @@ export class EquationArrangePanel extends ItemView {
                 void this.refreshView();
                 // Cancel pending debounced refresh since we're switching files
                 if (this.refreshDebounceTimer !== null) {
-                    clearTimeout(this.refreshDebounceTimer);
+                    window.clearTimeout(this.refreshDebounceTimer);
                     this.refreshDebounceTimer = null;
                 }
             }
@@ -185,17 +185,17 @@ export class EquationArrangePanel extends ItemView {
     onunload(): void {
         // Clean up debounce timers
         if (this.refreshDebounceTimer !== null) {
-            clearTimeout(this.refreshDebounceTimer);
+            window.clearTimeout(this.refreshDebounceTimer);
             this.refreshDebounceTimer = null;
         }
         if (this.searchDebounceTimer !== null) {
-            clearTimeout(this.searchDebounceTimer);
+            window.clearTimeout(this.searchDebounceTimer);
             this.searchDebounceTimer = null;
         }
 
         // Clean up file check interval
         if (this.fileCheckInterval !== null) {
-            clearInterval(this.fileCheckInterval);
+            window.clearInterval(this.fileCheckInterval);
             this.fileCheckInterval = null;
         }
 
@@ -269,10 +269,10 @@ export class EquationArrangePanel extends ItemView {
      */
     public scheduleRefreshView(timeout = 500) {
         if (this.searchDebounceTimer !== null) {
-            clearTimeout(this.searchDebounceTimer);
+            window.clearTimeout(this.searchDebounceTimer);
             this.searchDebounceTimer = null;
         }
-        this.searchDebounceTimer = globalThis.setTimeout(() => {
+        this.searchDebounceTimer = window.setTimeout(() => {
             void this.refreshView();
             this.searchDebounceTimer = null;
         }, timeout); // adjust delay as needed
