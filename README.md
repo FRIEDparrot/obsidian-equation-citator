@@ -82,8 +82,6 @@ One-click auto-numbering support for:
 
 <center><img src="img/drag-drop-cite.gif" alt="drag-drop-cite" style="width:600px" /></center>
 
-<!-- PLACEHOLDER: gif of switching between equation / figure / callout view in the panel -->
-
 ### 4. 📜 PDF Export & Web documentation support 
 1. Run the command `Make markdown copy to export PDF` to generate a properly formatted markdown file ready for PDF export. 
   - Correct citation and reference numbers with configurable citation colors
