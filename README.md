@@ -3,7 +3,7 @@
 </div></center>
 
 <center><div width="100%"><span>
-  <img src="https://img.shields.io/badge/Latest-1.3.7-blue" alt="Release">
+  <img src="https://img.shields.io/badge/Latest-1.3.8-blue" alt="Release">
   <img src="https://img.shields.io/github/stars/FRIEDparrot/obsidian-equation-citator?style=flat-square&label=Stars&color=yellow" alt="Stars">
   <a href="https://obsidian.md/plugins?id=equation-citator">
   <img src="https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22equation-citator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json" alt="Downloads">
@@ -81,8 +81,6 @@ One-click auto-numbering support for:
 - **Jump to equations**, figures and callouts directly from the popover and Equation Manage Panel
 
 <center><img src="img/drag-drop-cite.gif" alt="drag-drop-cite" style="width:600px" /></center>
-
-<!-- PLACEHOLDER: gif of switching between equation / figure / callout view in the panel -->
 
 ### 4. 📜 PDF Export & Web documentation support 
 1. Run the command `Make markdown copy to export PDF` to generate a properly formatted markdown file ready for PDF export. 

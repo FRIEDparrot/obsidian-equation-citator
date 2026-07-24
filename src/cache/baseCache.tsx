@@ -122,7 +122,7 @@ export abstract class BaseCacheSimple<T> {
 
     private stopAutoCleanup(): void {
         if (this.cleanupTimer) {
-            clearInterval(this.cleanupTimer);
+            window.clearInterval(this.cleanupTimer);
             this.cleanupTimer = null;
             Debugger.log(`${this.getCacheTypeName()} cache auto-cleanup stopped`);
         }

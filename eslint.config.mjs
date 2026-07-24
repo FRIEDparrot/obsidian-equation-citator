@@ -40,7 +40,7 @@ export default defineConfig([
         rules: {
             ...tseslint.configs.recommended.rules,
             // Disable overly strict rules for Obsidian plugin development
-            "import/no-nodejs-modules": "off",
+            "@typescript-eslint/no-deprecated": "off",
             "obsidianmd/ui/sentence-case": [
                 "warn",
                 {
@@ -50,17 +50,17 @@ export default defineConfig([
                 },
             ],
         },
-    }
-    // {
-    //     files: ["src/utils/misc/desktop_fs_utils.tsx"],
-    //     languageOptions: {
-    //         globals: {
-    //             require: "readonly",
-    //         },
-    //     },
-    //     rules: {
-    //         "import/no-nodejs-modules": "off",
-    //         "@typescript-eslint/no-require-imports": "off",
-    //     },
-    // },
+    },
+    {
+        files: ["src/utils/misc/desktop_fs_utils.tsx"],
+        languageOptions: {
+            globals: {
+                require: "readonly",
+            },
+        },
+        rules: {
+            "import/no-nodejs-modules": "off",
+            "@typescript-eslint/no-require-imports": "off",
+        },
+    },
 ]);

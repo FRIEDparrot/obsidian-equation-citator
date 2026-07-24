@@ -50,7 +50,7 @@ npm run docs:build
 
 ## Tests
 
-Tests live in the nested `tests/` repository. Add or update `.ts` test files there, following [`tests/README.md`](tests/README.md). Do not add source-adjacent test files under `src/`.
+Tests live in the nested `tests/` repository. Add or update `.ts` test files there. Do not add source-adjacent test files under `src/`.
 
 ## Pull requests
 
