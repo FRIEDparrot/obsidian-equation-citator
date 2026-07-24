@@ -1,6 +1,6 @@
 {
 	"name": "equation-citator",
-	"version": "1.3.7",
+	"version": "1.3.8",
 	"description": "A Powerful, Convenient and Elegant Academic Tool for Citation",
 	"main": "main.js",
 	"scripts": {
