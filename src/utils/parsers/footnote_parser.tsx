@@ -57,14 +57,14 @@ export function parseFootnoteInMarkdown(markdown: string): FootNote[] {
 }
 
 function parseFootnoteLine(line: string, result: FootNote[]) {
-    const match = line.match(footnoteRegex);
+    const match = new RegExp(footnoteRegex).exec(line);
     if (!match) return;
 
     const num = match[1].substring(1);  // remove the ^
     const text = match[2];              // full text of the footnote
     
     for (const { regex, handler } of footnoteParsers) {
-        const subMatch = line.match(regex);
+        const subMatch = new RegExp(regex).exec(line);
         if (subMatch) {
             const { path, url, label } = handler(subMatch);
             result.push({ num, path, url, label, text });

@@ -37,7 +37,7 @@ export const CacheSettingsTab = {
 
                 dropdown.setValue(plugin.settings.cacheCleanTime.toString());
                 dropdown.onChange(async (value) => {
-                    plugin.settings.cacheCleanTime = parseInt(value);
+                    plugin.settings.cacheCleanTime = Number.parseInt(value);
                     await plugin.saveSettings();
                 });
             });
