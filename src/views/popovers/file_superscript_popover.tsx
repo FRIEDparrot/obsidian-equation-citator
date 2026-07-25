@@ -76,9 +76,9 @@ export class FileSuperScriptPopover extends HoverPopover {
         }
         else if (footnote.url === null) {
             // text-only format footnote  
-            const textEl = footnoteContent.createEl("span", {
-                text: footnote.text,
-            });
+            const textEl = document.createElement("span");
+            textEl.textContent = footnote.text;
+            footnoteContent.appendChild(textEl);
             textEl.addClass("em-file-superscript-popover-text");
         }
         else {

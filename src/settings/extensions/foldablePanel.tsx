@@ -9,10 +9,10 @@ export function createFoldablePanel(
 ) {
     let openState = defaultOpenState;
     // Title bar
-    const titleEl = containerEl.createEl("div", {
-        text: title,
-        cls: "ec-settings-title ec-concise-title"
-    });
+    const titleEl = document.createElement("div");
+    titleEl.textContent = title;
+    titleEl.classList.add("ec-settings-title", "ec-concise-title");
+    containerEl.appendChild(titleEl);
 
     // Fold icon
     const iconEl = titleEl.createDiv({ cls: "ec-settings-icon" });

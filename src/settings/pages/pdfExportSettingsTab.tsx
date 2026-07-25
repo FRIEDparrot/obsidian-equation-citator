@@ -552,15 +552,15 @@ export const PdfExportSettingsTab = {
     websiteNotesExportFolder(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.websiteNotesExportFolder;
         const setting = new Setting(containerEl);
-        const currentFolderText = createEl("div");
-        currentFolderText.addClass("setting-item-description");
+        const currentFolderText = document.createElement("div");
+        currentFolderText.classList.add("setting-item-description");
         let openButtonEl: HTMLButtonElement | null = null;
 
         const updateCurrentFolderText = () => {
             const hasExportFolder = plugin.settings.websiteNotesExportFolder.trim().length > 0;
-            currentFolderText.setText(hasExportFolder
+            currentFolderText.textContent = hasExportFolder
                 ? plugin.settings.websiteNotesExportFolder
-                : t("settings.websiteNotesExportFolder.notSet"));
+                : t("settings.websiteNotesExportFolder.notSet");
             if (openButtonEl) {
                 openButtonEl.style.display = hasExportFolder ? "" : "none";
             }

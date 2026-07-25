@@ -87,9 +87,9 @@ export class CalloutCitationPopover extends HoverPopover {
         }
 
         header.createEl("h3", { text: t("popover.referencedCallouts", { displayName }), cls: "em-citation-title" });
-        const footerSpan = header.createEl("div", {
-            cls: "em-citation-title-note",
-        });
+        const footerSpan = document.createElement("div");
+        footerSpan.classList.add("em-citation-title-note");
+        header.appendChild(footerSpan);
 
         footerSpan.createDiv(); // placeholder
         footerSpan.createDiv({
