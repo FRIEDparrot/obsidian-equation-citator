@@ -76,7 +76,9 @@ export class SettingsTabView extends PluginSettingTab {
 
         // Toolbar with mode toggle and group selector placeholder
         const toolbar_wrapper = containerEl.createDiv({ cls: "ec-settings-toolbar-wrapper" })
-        const toolbar = toolbar_wrapper.createEl("div", { cls: "ec-settings-toolbar" });
+        const toolbar = document.createElement("div");
+        toolbar.classList.add("ec-settings-toolbar");
+        toolbar_wrapper.appendChild(toolbar);
 
         // Mode toggle
         const modeDiv = toolbar.createDiv({ cls: "ec-settings-mode-toggle" });
@@ -132,7 +134,9 @@ export class SettingsTabView extends PluginSettingTab {
     }
 
     private renderGroupSelector(containerEl: HTMLElement, groups: { id: string; title: string; icon: string }[], onSelect: (id: string) => void) {
-        const selector = containerEl.createEl("div", { cls: "ec-settings-group-selector" });
+        const selector = document.createElement("div");
+        selector.classList.add("ec-settings-group-selector");
+        containerEl.appendChild(selector);
         const setActive = (id: string) => {
             selector.querySelectorAll(".ec-chip").forEach((el) => el.classList.remove("is-active"));
             const activeEl = selector.querySelector(`.ec-chip[data-target='${id}']`);
@@ -164,7 +168,9 @@ export class SettingsTabView extends PluginSettingTab {
         ];
 
         // Create a wrapper container for both selector and content
-        const wrapper = containerEl.createEl("div", { cls: "ec-categorical-wrapper" });
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("ec-categorical-wrapper");
+        containerEl.appendChild(wrapper);
 
         // group selector controls active category
         this.renderGroupSelector(wrapper, groups, (id) => {
@@ -172,7 +178,9 @@ export class SettingsTabView extends PluginSettingTab {
             renderActive();
         });
 
-        const content = wrapper.createEl("div", { cls: "ec-category-content-holder" });
+        const content = document.createElement("div");
+        content.classList.add("ec-category-content-holder");
+        wrapper.appendChild(content);
 
         const renderActive = () => {
             content.empty();
