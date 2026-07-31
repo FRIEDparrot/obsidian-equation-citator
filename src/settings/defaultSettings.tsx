@@ -24,7 +24,7 @@ export interface SettingsMetadata {
     desc: string; // description
     type: "string" | "number" | "boolean" | "select" | "color" | "array";
     renderCallback: (el: HTMLElement, plugin: EquationCitator, renderSubpanel?: boolean) => void; // optional callback to render the value in the UI
-    favoriate?: boolean; // whether to show this setting in the basic section
+    favorite?: boolean; // whether to show this setting in the basic section
     hasSubPanel?: boolean; // whether this setting can have a subpanel to render
 }
 
@@ -42,6 +42,7 @@ export interface EquationCitatorSettings {
     citationPrefix: string; // Citation prefix for equations
     citationFormat: string; // Citation display format for equations
 
+	requireCtrlForWidgetPreview: boolean; // Whether to require Ctrl key for previewing citations
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures
     enableRichAutoComplete: boolean; // Enable rich auto-complete suggestion for figures and callouts
@@ -131,7 +132,8 @@ export interface EquationCitatorSettings {
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
-    citationPopoverSize: "md", // Default to medium size
+    requireCtrlForWidgetPreview: true,  // need control for previewing citations by default
+	citationPopoverSize: "md", // Default to medium size
     citationPrefix: "eq:", // Default prefix for citations
     citationFormat: "(#)", // Default display format for citations
     figCitationPrefix: "fig:", // prefix for cite figures
@@ -202,6 +204,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "figAutoNumberDepth",
         "enableAutoNumberTaggedEquationsOnly",
         "equationManagePanelFilterTagOnlyEquation",
+		"requireCtrlForWidgetPreview",
         "citationPopoverSize",
         "enableCenterTableInCallout",
     ],
@@ -273,6 +276,16 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             CitationSettingsTab.enableCitationInSourceMode(el, plugin);
         }
     },
+
+	requireCtrlForWidgetPreview : {
+		name: t("settings.requireCtrlForWidgetPreview.name"),
+		desc: t("settings.requireCtrlForWidgetPreview.desc"),
+		type: "boolean",
+		renderCallback: (el, plugin) => {
+			CitationSettingsTab.requireCtrlForWidgetPreview(el, plugin);
+		}
+	},
+
     citationPrefix: {
         name: t("settings.citationPrefix.name"),
         desc: t("settings.citationPrefix.desc"),

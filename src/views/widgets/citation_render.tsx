@@ -611,6 +611,7 @@ async function showReadingModePopover(
     const cleanedEquations = equations.filter(eq => eq.md && eq.sourcePath);
 
     if (cleanedEquations.length === 0) {
+		new Notice(t("widget.equationNotFound", { citation: `${plugin.settings.citationPrefix}${eqNumbersAll.join(', ')}` }));
         Debugger.log(`No valid equation found for citation: ${eqNumbersAll.join(', ')}`);
         return;
     } // no equations found for this citation, skip popover 

@@ -1,6 +1,6 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { HoverParent, MarkdownView, editorInfoField } from "obsidian";
+import { Notice, HoverParent, MarkdownView, editorInfoField } from "obsidian";
 import { CitationPopover } from "@/views/popovers/citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
@@ -10,6 +10,7 @@ import {
 } from "@/utils/core/citation_utils";
 import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
 import { FileSuperScriptPopover } from "@/views/popovers/file_superscript_popover";
+import {t} from "@/i18n/getLocale";
 
 /**
  * Widget for render citation in Live Preview mode. 
@@ -60,19 +61,20 @@ export class CitationWidget extends WidgetType {
             view.focus();
             setSelectionRange(view, this.range.from, this.range.to);
         });
-        this.registerCitaionEvents();
+        this.registerCitationEvents();
         return el;
     }
 
     /**
-     * reigster events for whole citation part.
+     * register events for whole citation part.
      * render equations in once  
      */
-    private registerCitaionEvents() {
+    private registerCitationEvents() {
         if (this.el) {
             this.el.addEventListener('mouseenter', (event) => {
                 const ctrlKey = event.ctrlKey || event.metaKey;
-                if (ctrlKey) {
+                if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) || 
+					!this.plugin.settings.requireCtrlForWidgetPreview) {
                     void this.showPopover();
                 }
             })
@@ -98,7 +100,8 @@ export class CitationWidget extends WidgetType {
         const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || "";
         const renderedEquations = await this.plugin.equationServices.getEquationsByTags(this.eqNumbersAll, sourcePath);
         if (renderedEquations.length === 0) {
-            Debugger.error("No valid equations found for citation widget");
+			Debugger.error("No valid equations found for citation widget");
+            new Notice(t("widget.equationNotFound", { citation: `${this.plugin.settings.citationPrefix}${this.eqNumbersAll.join(', ')}` }));
             return;
         }
         this.popover = new CitationPopover(

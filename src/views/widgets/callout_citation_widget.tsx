@@ -74,7 +74,8 @@ export class CalloutCitationWidget extends WidgetType {
         if (this.el) {
             this.el.addEventListener('mouseenter', (event) => {
                 void (async ()=> {const ctrlKey = event.ctrlKey || event.metaKey;
-                if (ctrlKey) {
+                if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
+					 !this.plugin.settings.requireCtrlForWidgetPreview) {
                     await this.showPopover();
                 }})();
             });

@@ -153,7 +153,10 @@ const en = {
     "settings.advancedSettingsKeys.desc": "Keys shown in advanced section for concise mode",
     "settings.enableCitationInSourceMode.name": "Enable in source mode",
     "settings.enableCitationInSourceMode.desc": "Enable citation rendering in source mode",
-    "settings.citationPrefix.name": "Citation prefix",
+    "settings.requireCtrlForWidgetPreview.name": "Require ctrl for widget preview in live editing mode",
+	"settings.requireCtrlForWidgetPreview.desc": "Require holding ctrl/cmd key to show citation preview widget in live preview mode. Disable to show the widget without ctrl/cmd.",
+
+	"settings.citationPrefix.name": "Citation prefix",
     "settings.citationPrefix.desc": "Prefix used for citations, e.g. 'eq:' means use `\\ref{eq:1.1}` for citation",
     "settings.citationFormat.name": "Citation display format",
     "settings.citationFormat.desc": "Display format for citations, use '#' for equation number",
@@ -406,8 +409,9 @@ const en = {
     "popover.figureNotFound": "Figure {tag} not found in {file}",
     "popover.linkJumpReadingModeNotice": "Link jump is not supported in reading mode. Use live preview instead.",
 
+	"widget.equationNotFound": "Equation not found: {citation}",
     "widget.citationNotFound": "Citation not found: {citation}",
-    "widget.figureNotFound": "Figure not found: {citation}",
+	"widget.figureNotFound": "Figure not found: {citation}",
     "widget.lineHashNotFound": "Can't locate the line hash for this section, skip rendering",
     "widget.citationBlockNotMatched": "Citation block not fully matched, skip rendering (open debug mode for more information)",
 } as const;

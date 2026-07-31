@@ -153,6 +153,8 @@ const zh = {
     "settings.advancedSettingsKeys.desc": "在简洁模式下高级区域显示的设置项",
     "settings.enableCitationInSourceMode.name": "在源码模式下启用",
     "settings.enableCitationInSourceMode.desc": "在源码模式下启用引用渲染",
+    "settings.requireCtrlForWidgetPreview.name": "实时编辑模式中需要按住 Ctrl 显示组件预览",
+	"settings.requireCtrlForWidgetPreview.desc": "在实时预览模式中需要按住 Ctrl/Cmd 键才能显示引用预览组件。禁用后无需按住 Ctrl/Cmd 即可显示组件。",
     "settings.citationPrefix.name": "引用前缀",
     "settings.citationPrefix.desc": "引用使用的前缀，例如 'eq:' 表示使用 `\\ref{eq:1.1}` 进行引用",
     "settings.citationFormat.name": "引用显示格式",

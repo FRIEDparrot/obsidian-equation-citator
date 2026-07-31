@@ -70,7 +70,8 @@ export class FigureCitationWidget extends WidgetType {
         if (this.el) {
             this.el.addEventListener('mouseenter', (event) => {
                 const ctrlKey = event.ctrlKey || event.metaKey;
-                if (ctrlKey) {
+                if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
+					 !this.plugin.settings.requireCtrlForWidgetPreview) {
                     void this.showPopover();
                 }
             });

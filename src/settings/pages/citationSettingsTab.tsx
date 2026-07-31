@@ -22,6 +22,21 @@ export const CitationSettingsTab = {
                 });
             });
     },
+
+    requireCtrlForWidgetPreview(containerEl: HTMLElement, plugin: EquationCitator) {
+        const requireCtrlSetting = new Setting(containerEl);
+        const { name, desc } = SETTINGS_METADATA.requireCtrlForWidgetPreview;
+        requireCtrlSetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.requireCtrlForWidgetPreview);
+                toggle.onChange(async (value) => {
+                    plugin.settings.requireCtrlForWidgetPreview = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
     enableRichAutoCompleteHoverPreview(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = false) {
         const { name, desc } = SETTINGS_METADATA.enableRichAutoCompleteHoverPreview;
         const setting = new Setting(containerEl)
@@ -456,6 +471,7 @@ export const CitationSettingsTab = {
  */
 export function addCitationSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     CitationSettingsTab.enableCitationInSourceMode(containerEl, plugin);
+	CitationSettingsTab.requireCtrlForWidgetPreview(containerEl, plugin);
     CitationSettingsTab.enableRichAutoComplete(containerEl, plugin);
     CitationSettingsTab.enableRichAutoCompleteHoverPreview(containerEl, plugin, true);
     CitationSettingsTab.citationPrefix(containerEl, plugin);
