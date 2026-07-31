@@ -29,6 +29,7 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             settingKeys: [
                 "enableCitationInSourceMode",
 				"requireCtrlForWidgetPreview",
+                "requireCtrlForFileSuperscriptPreview",
                 "citationPrefix",
                 "citationFormat",
                 "multiCitationDelimiter",

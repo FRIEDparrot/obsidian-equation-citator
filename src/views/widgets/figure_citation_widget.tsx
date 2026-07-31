@@ -63,17 +63,19 @@ export class FigureCitationWidget extends WidgetType {
     }
 
     /**
-     * Register events for the figure citation
-     * Render figures on hover with Ctrl key
+     * Register figure preview events without including cross-file superscripts.
      */
     private registerCitationEvents() {
         if (this.el) {
-            this.el.addEventListener('mouseenter', (event) => {
-                const ctrlKey = event.ctrlKey || event.metaKey;
-                if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
-					 !this.plugin.settings.requireCtrlForWidgetPreview) {
-                    void this.showPopover();
-                }
+            const citationElements = this.el.querySelectorAll<HTMLElement>('.em-math-citation');
+            citationElements.forEach((citationElement) => {
+                citationElement.addEventListener('mouseenter', (event: MouseEvent) => {
+                    const ctrlKey = event.ctrlKey || event.metaKey;
+                    if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
+						!this.plugin.settings.requireCtrlForWidgetPreview) {
+                        void this.showPopover();
+                    }
+                });
             });
         }
     }

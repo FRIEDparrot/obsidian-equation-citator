@@ -66,18 +66,20 @@ export class CitationWidget extends WidgetType {
     }
 
     /**
-     * register events for whole citation part.
-     * render equations in once  
+     * Register equation preview events without including cross-file superscripts.
      */
     private registerCitationEvents() {
         if (this.el) {
-            this.el.addEventListener('mouseenter', (event) => {
-                const ctrlKey = event.ctrlKey || event.metaKey;
-                if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) || 
-					!this.plugin.settings.requireCtrlForWidgetPreview) {
-                    void this.showPopover();
-                }
-            })
+            const citationElements = this.el.querySelectorAll<HTMLElement>('.em-math-citation');
+            citationElements.forEach((citationElement) => {
+                citationElement.addEventListener('mouseenter', (event: MouseEvent) => {
+                    const ctrlKey = event.ctrlKey || event.metaKey;
+                    if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
+						!this.plugin.settings.requireCtrlForWidgetPreview) {
+                        void this.showPopover();
+                    }
+                });
+            });
         }
     }
     private getMarkdownView(): MarkdownView | null {
@@ -203,7 +205,7 @@ export function renderEquationCitation(
             if (parent) {
                 fileSuperEl.addEventListener('mouseenter', (e: MouseEvent) => {
                     const ctrlKey = e.ctrlKey || e.metaKey;
-                    if (isInteractive || ctrlKey) {
+                    if (isInteractive || !plugin.settings.requireCtrlForFileSuperscriptPreview || ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();  // prevent original popover from showing up  
                         e.stopImmediatePropagation();    // prevent other popovers from showing up 

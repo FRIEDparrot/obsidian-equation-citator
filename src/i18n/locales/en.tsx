@@ -155,6 +155,8 @@ const en = {
     "settings.enableCitationInSourceMode.desc": "Enable citation rendering in source mode",
     "settings.requireCtrlForWidgetPreview.name": "Require ctrl for widget preview in live editing mode",
 	"settings.requireCtrlForWidgetPreview.desc": "Require holding ctrl/cmd key to show citation preview widget in live preview mode. Disable to show the widget without ctrl/cmd.",
+    "settings.requireCtrlForFileSuperscriptPreview.name": "Require ctrl for file superscript preview in live editing mode",
+    "settings.requireCtrlForFileSuperscriptPreview.desc": "Require holding ctrl/cmd key to show cross-file citation superscript previews in live preview mode. Disable to show the preview without ctrl/cmd.",
 
 	"settings.citationPrefix.name": "Citation prefix",
     "settings.citationPrefix.desc": "Prefix used for citations, e.g. 'eq:' means use `\\ref{eq:1.1}` for citation",

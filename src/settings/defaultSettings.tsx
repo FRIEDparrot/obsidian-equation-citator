@@ -43,6 +43,7 @@ export interface EquationCitatorSettings {
     citationFormat: string; // Citation display format for equations
 
 	requireCtrlForWidgetPreview: boolean; // Whether to require Ctrl key for previewing citations
+    requireCtrlForFileSuperscriptPreview: boolean; // Whether to require Ctrl key for cross-file superscript previews
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures
     enableRichAutoComplete: boolean; // Enable rich auto-complete suggestion for figures and callouts
@@ -133,6 +134,7 @@ export interface EquationCitatorSettings {
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
     requireCtrlForWidgetPreview: true,  // need control for previewing citations by default
+    requireCtrlForFileSuperscriptPreview: true, // require Ctrl for cross-file superscript previews by default
 	citationPopoverSize: "md", // Default to medium size
     citationPrefix: "eq:", // Default prefix for citations
     citationFormat: "(#)", // Default display format for citations
@@ -285,6 +287,15 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
 			CitationSettingsTab.requireCtrlForWidgetPreview(el, plugin);
 		}
 	},
+
+    requireCtrlForFileSuperscriptPreview: {
+        name: t("settings.requireCtrlForFileSuperscriptPreview.name"),
+        desc: t("settings.requireCtrlForFileSuperscriptPreview.desc"),
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.requireCtrlForFileSuperscriptPreview(el, plugin);
+        }
+    },
 
     citationPrefix: {
         name: t("settings.citationPrefix.name"),

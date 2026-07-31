@@ -67,17 +67,19 @@ export class CalloutCitationWidget extends WidgetType {
     }
 
     /**
-     * Register events for the callout citation
-     * Render callouts on hover with Ctrl key
+     * Register callout preview events without including cross-file superscripts.
      */
     private registerCitationEvents() {
         if (this.el) {
-            this.el.addEventListener('mouseenter', (event) => {
-                void (async ()=> {const ctrlKey = event.ctrlKey || event.metaKey;
-                if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
-					 !this.plugin.settings.requireCtrlForWidgetPreview) {
-                    await this.showPopover();
-                }})();
+            const citationElements = this.el.querySelectorAll<HTMLElement>('.em-math-citation');
+            citationElements.forEach((citationElement) => {
+                citationElement.addEventListener('mouseenter', (event: MouseEvent) => {
+                    const ctrlKey = event.ctrlKey || event.metaKey;
+                    if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
+						!this.plugin.settings.requireCtrlForWidgetPreview) {
+                        void this.showPopover();
+                    }
+                });
             });
         }
     }

@@ -105,7 +105,7 @@ export function renderFigureCitation(
             if (parent) {
                 fileSuperEl.addEventListener('mouseenter', (e: MouseEvent) => {
                     const ctrlKey = e.ctrlKey || e.metaKey;
-                    if (isInteractive || ctrlKey) {
+                    if (isInteractive || !plugin.settings.requireCtrlForFileSuperscriptPreview || ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();
                         e.stopImmediatePropagation();

@@ -310,8 +310,19 @@ Resolved Obsidian reivew state issues :
 - [x] Do not import Node.js built-in module "node:path"/"node:fs/promises". Node.js APIs are not available on mobile. Use a dynamic import() or require() guarded by Platform.isDesktop instead.
 - [x] Use '.instanceOf(HTMLElement)' instead of 'instanceof HTMLElement' for cross-window safe type checking. 
 - [x] README contains unfilled placeholder text
-- [x] Removed vulnerability advisory denpendence (now all dependences are dev dependences)
+- [x] Removed vulnerability advisory dependence (now all dependencies are dev dependencies)
 - [x] Uses document.createElement instead of Obsidian's createEl helpers 
+
+### Version 1.3.10 
+
+✨ New Features : 
+- [x] Optional Ctrl key for citation preview widgets (feature [#196](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/196))  and the file superscripts 
+
+
+🐛 Fixed Bugs : 
+- [x] Nothing popped out when target file doesn't exist for citations 
+- [x] When hovering on the file superscript, the equation still shows
+
 
 ### 🚢 If you want following features, you can request it in issue page :
 
