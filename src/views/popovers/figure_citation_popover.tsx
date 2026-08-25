@@ -13,7 +13,7 @@ import {
 } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
-import { adjustPopoverPosition } from "@/utils/workspace/popoverPosition";
+import { adjustPopoverPosition, cleanupInvisiblePopover } from "@/utils/workspace/popoverPosition";
 import { RenderedFigure } from "@/services/figure_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
@@ -87,6 +87,7 @@ export class FigureCitationPopover extends HoverPopover {
     async showFigures() {
         if (!this.targetEl) {
             Debugger.log("can't find targetEl of figure citation popover");
+            cleanupInvisiblePopover(this.hoverEl);
             return;
         }
 
@@ -121,21 +122,30 @@ export class FigureCitationPopover extends HoverPopover {
 
         // Get leaf for click navigation
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
-        if (!leaf) return;
+        if (!leaf) {
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
+        }
 
-        // Loop and create div for each figure (for...of lets layout settle
-        // synchronously before we measure)
-        for (const fig of this.figuresToRender) {
-            const figureOptionContainer = figuresContainer.createDiv();
-            figureOptionContainer.addClass("em-figure-option-container");
-            renderFigureWrapper(
-                this.plugin,
-                leaf,
-                fig,
-                figureOptionContainer,
-                this.targetComponent,
-                true
-            );
+        // Loop and create div for each figure (await so async image/markdown
+        // rendering completes before we measure the popover for positioning)
+        try {
+            for (const fig of this.figuresToRender) {
+                const figureOptionContainer = figuresContainer.createDiv();
+                figureOptionContainer.addClass("em-figure-option-container");
+                await renderFigureWrapper(
+                    this.plugin,
+                    leaf,
+                    fig,
+                    figureOptionContainer,
+                    this.targetComponent,
+                    true
+                );
+            }
+        } catch (error) {
+            Debugger.error("Failed to render figures in figure citation popover:", error);
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
         }
 
         // Add footer with figure count
@@ -170,14 +180,14 @@ export class FigureCitationPopover extends HoverPopover {
  *      i.e., `<img src="imageLink" alt="title or tag">`
  * @summary for `wiki link` (internal image in obsidian vault), we need to resolve the vault path first, then render the image;
  */
-export function renderFigureWrapper(
+export async function renderFigureWrapper(
     plugin: EquationCitator,
     leaf: WorkspaceLeaf,
     fig: RenderedFigure,
     container: HTMLElement,
     targetComponent: Component,
     addLinkJump = false
-): void {
+): Promise<void> {
     if (!container) {
         Debugger.log("can't find container for figure");
         return;
@@ -186,8 +196,8 @@ export function renderFigureWrapper(
     const elements = createFigureWrapperElements(container, plugin, fig);
     const markdownRendererExtensions = new Set(plugin.settings.extensionsUseMarkdownRenderer);
 
-    renderFigureImage(plugin, fig, elements.imageContainer, targetComponent, markdownRendererExtensions);
-    renderFigureMetadata(plugin, fig, elements.figureContentDiv, targetComponent);
+    await renderFigureImage(plugin, fig, elements.imageContainer, targetComponent, markdownRendererExtensions);
+    await renderFigureMetadata(plugin, fig, elements.figureContentDiv, targetComponent);
     addClickEffects(elements.figureWrapper);
 
     if (addLinkJump && fig.sourcePath) {
@@ -238,7 +248,7 @@ function renderFigureLabels(
     fileNameLabel.textContent = fig.filename;
 }
 
-function renderFigureImageElement(imageContainer: HTMLElement, src: string, alt: string): void {
+async function renderFigureImageElement(imageContainer: HTMLElement, src: string, alt: string): Promise<void> {
     const img = imageContainer.createEl("img", {
         attr: {
             src,
@@ -246,16 +256,24 @@ function renderFigureImageElement(imageContainer: HTMLElement, src: string, alt:
         }
     });
     img.addClass("em-figure-image");
+    // Wait for the image to decode so its intrinsic size is reflected in
+    // layout before the popover is measured; broken/slow images reject
+    // decode(), which we ignore (the element still occupies its space).
+    try {
+        await img.decode();
+    } catch {
+        // ignore: image failed to load, layout still correct
+    }
 }
 
-function renderMarkdownFigureImage(
+async function renderMarkdownFigureImage(
     plugin: EquationCitator,
     markdownText: string,
     imageContainer: HTMLElement,
     sourcePath: string,
     targetComponent: Component
-): void {
-    void MarkdownRenderer.render(
+): Promise<void> {
+    await MarkdownRenderer.render(
         plugin.app,
         markdownText,
         imageContainer,
@@ -281,13 +299,13 @@ function renderMissingFigureImage(imageContainer: HTMLElement, imagePath: string
 /**
  * Renders an internal vault figure reference, including markdown-rendered assets and markdown section previews.
  */
-function renderInternalFigureImage(
+async function renderInternalFigureImage(
     plugin: EquationCitator,
     fig: RenderedFigure,
     imageContainer: HTMLElement,
     targetComponent: Component,
     markdownRendererExtensions: ReadonlySet<string>
-): void {
+): Promise<void> {
     if (!fig.imagePath || !fig.sourcePath) {
         return;
     }
@@ -302,11 +320,11 @@ function renderInternalFigureImage(
     if (imageFile instanceof TFile) {
         const fullPath = imageFile.path;
         if (shouldRenderWithMarkdown(fullPath, markdownRendererExtensions)) {
-            renderMarkdownFigureImage(plugin, `![[${fullPath}]]`, imageContainer, fig.sourcePath, targetComponent);
+            await renderMarkdownFigureImage(plugin, `![[${fullPath}]]`, imageContainer, fig.sourcePath, targetComponent);
             return;
         }
 
-        renderFigureImageElement(
+        await renderFigureImageElement(
             imageContainer,
             plugin.app.vault.getResourcePath(imageFile),
             fig.title || fig.tag || t("popover.figureAlt")
@@ -315,28 +333,28 @@ function renderInternalFigureImage(
     }
 
     if (fig.imagePath.contains("#") && markdownRendererExtensions.has("md")) {
-        renderMarkdownFigureImage(plugin, `![[${fig.imagePath}]]`, imageContainer, fig.sourcePath, targetComponent);
+        await renderMarkdownFigureImage(plugin, `![[${fig.imagePath}]]`, imageContainer, fig.sourcePath, targetComponent);
         return;
     }
 
     renderMissingFigureImage(imageContainer, fig.imagePath);
 }
 
-function renderFigureImage(
+async function renderFigureImage(
     plugin: EquationCitator,
     fig: RenderedFigure,
     imageContainer: HTMLElement,
     targetComponent: Component,
     markdownRendererExtensions: ReadonlySet<string>
-): void {
+): Promise<void> {
     const alt = fig.title || fig.tag || t("popover.figureAlt");
 
     if (fig.imageLink) {
-        renderFigureImageElement(imageContainer, fig.imageLink, alt);
+        await renderFigureImageElement(imageContainer, fig.imageLink, alt);
         return;
     }
 
-    renderInternalFigureImage(
+    await renderInternalFigureImage(
         plugin,
         fig,
         imageContainer,
@@ -345,12 +363,12 @@ function renderFigureImage(
     );
 }
 
-function renderFigureMetadata(
+async function renderFigureMetadata(
     plugin: EquationCitator,
     fig: RenderedFigure,
     figureContentDiv: HTMLElement,
     targetComponent: Component
-): void {
+): Promise<void> {
     if (!plugin.settings.enableRenderFigureInfoInPreview || (!fig.title && !fig.desc)) {
         return;
     }
@@ -361,7 +379,7 @@ function renderFigureMetadata(
     if (fig.title) {
         const titleDiv = metadataDiv.createDiv();
         titleDiv.addClass("em-figure-title");
-        renderFigureMetadataMarkdown(plugin, titleDiv, fig.title, fig.sourcePath, targetComponent);
+        await renderFigureMetadataMarkdown(plugin, titleDiv, fig.title, fig.sourcePath, targetComponent);
     }
 
     if (!fig.desc) {
@@ -370,17 +388,17 @@ function renderFigureMetadata(
 
     const descDiv = metadataDiv.createDiv();
     descDiv.addClass("em-figure-desc");
-    renderFigureMetadataMarkdown(plugin, descDiv, fig.desc, fig.sourcePath, targetComponent);
+    await renderFigureMetadataMarkdown(plugin, descDiv, fig.desc, fig.sourcePath, targetComponent);
 }
 
-function renderFigureMetadataMarkdown(
+async function renderFigureMetadataMarkdown(
     plugin: EquationCitator,
     container: HTMLElement,
     markdownText: string,
     sourcePath: string | null,
     targetComponent: Component
-): void {
-    void MarkdownRenderer.render(plugin.app, markdownText, container, sourcePath ?? '', targetComponent); //nosonar
+): Promise<void> {
+    await MarkdownRenderer.render(plugin.app, markdownText, container, sourcePath ?? '', targetComponent); //nosonar
 }
 
 /**

@@ -13,7 +13,7 @@ import {
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
-import { adjustPopoverPosition } from "@/utils/workspace/popoverPosition";
+import { adjustPopoverPosition, cleanupInvisiblePopover } from "@/utils/workspace/popoverPosition";
 import { RenderedCallout } from "@/services/callout_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
@@ -81,6 +81,7 @@ export class CalloutCitationPopover extends HoverPopover {
     async showCallouts() {
         if (!this.targetEl) {
             Debugger.log("can't find targetEl of callout citation popover");
+            cleanupInvisiblePopover(this.hoverEl);
             return;
         }
 
@@ -126,21 +127,30 @@ export class CalloutCitationPopover extends HoverPopover {
 
         // Get leaf for click navigation
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
-        if (!leaf) return;
+        if (!leaf) {
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
+        }
 
         // Loop and create div for each callout (await so async rendering
         // completes before we measure the popover for positioning)
-        for (const callout of this.calloutsToRender) {
-            const calloutOptionContainer = calloutsContainer.createDiv();
-            calloutOptionContainer.addClass("em-callout-option-container");
-            await renderCalloutWrapper(
-                this.plugin,
-                leaf,
-                callout,
-                calloutOptionContainer,
-                this.targetComponent,
-                true
-            );
+        try {
+            for (const callout of this.calloutsToRender) {
+                const calloutOptionContainer = calloutsContainer.createDiv();
+                calloutOptionContainer.addClass("em-callout-option-container");
+                await renderCalloutWrapper(
+                    this.plugin,
+                    leaf,
+                    callout,
+                    calloutOptionContainer,
+                    this.targetComponent,
+                    true
+                );
+            }
+        } catch (error) {
+            Debugger.error("Failed to render callouts in callout citation popover:", error);
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
         }
 
         // Add footer with callout count

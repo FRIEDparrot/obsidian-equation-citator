@@ -12,7 +12,7 @@ import {
     finishRenderMath,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
-import { adjustPopoverPosition } from "@/utils/workspace/popoverPosition";
+import { adjustPopoverPosition, cleanupInvisiblePopover } from "@/utils/workspace/popoverPosition";
 
 export class TargetElComponent extends Component {
     constructor(public targetEl: HTMLElement | null) {
@@ -81,6 +81,7 @@ export class CitationPopover extends HoverPopover {
     async showEquations() {
         if (!this.targetEl) {
             Debugger.log("can't find targetEl of citation popover");
+            cleanupInvisiblePopover(this.hoverEl);
             return;
         }
         const container: HTMLElement = this.hoverEl.createDiv();
@@ -113,12 +114,21 @@ export class CitationPopover extends HoverPopover {
 
         // Loop and create div for each equation
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
-        if (!leaf) return;
-        await Promise.all(this.equationsToRender.map((eq, index) => {
-            const equationOptionContainer = equationsContainer.createDiv();
-            equationOptionContainer.addClass("em-equation-option-container");
-            return renderEquationWrapper(this.plugin, leaf, eq, equationOptionContainer, this.targetComponent, true);
-        }));
+        if (!leaf) {
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
+        }
+        try {
+            await Promise.all(this.equationsToRender.map((eq, index) => {
+                const equationOptionContainer = equationsContainer.createDiv();
+                equationOptionContainer.addClass("em-equation-option-container");
+                return renderEquationWrapper(this.plugin, leaf, eq, equationOptionContainer, this.targetComponent, true);
+            }));
+        } catch (error) {
+            Debugger.error("Failed to render equations in citation popover:", error);
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
+        }
 
         // Add footer with equation count
         const footer = container.createDiv();

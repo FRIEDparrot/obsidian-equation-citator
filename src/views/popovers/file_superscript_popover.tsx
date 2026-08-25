@@ -1,6 +1,6 @@
 import { HoverParent, HoverPopover, TFile, normalizePath } from "obsidian";
 import Debugger from "@/debug/debugger";
-import { adjustPopoverPosition } from "@/utils/workspace/popoverPosition";
+import { adjustPopoverPosition, cleanupInvisiblePopover } from "@/utils/workspace/popoverPosition";
 import EquationCitator from "@/main";
 import { FootNote } from "@/utils/parsers/footnote_parser";
 
@@ -31,16 +31,19 @@ export class FileSuperScriptPopover extends HoverPopover {
             const footnotes = await this.plugin.footnoteCache.getFootNotesFromFile(this.sourcePath);
             if (!footnotes) {
                 Debugger.log("can't find footnotes for file: ", this.sourcePath);
+                cleanupInvisiblePopover(this.hoverEl);
                 return;
             }
             const footnote = footnotes.find(f => f.num === this.footnoteIndex);
             if (!footnote) {
                 Debugger.log("can't find footnote with index: ", this.footnoteIndex, " in file: ", this.sourcePath);
+                cleanupInvisiblePopover(this.hoverEl);
                 return;
             }
             this.showFootnote(footnote)
         })().catch((error: unknown) => {
             Debugger.error(`Failed to load footnotes for ${this.sourcePath}.`, error);
+            cleanupInvisiblePopover(this.hoverEl);
         })
     }
 

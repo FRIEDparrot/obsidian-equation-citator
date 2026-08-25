@@ -44,6 +44,17 @@ export function computePopoverPosition(
 }
 
 /**
+ * Clean up a popover host that failed to render: empties any partial content
+ * and removes the `em-popover-rendering` class so the host is not left
+ * permanently invisible (leaked) on early-return / error paths.
+ */
+export function cleanupInvisiblePopover(hoverEl: HTMLElement | null): void {
+    if (!hoverEl) return;
+    hoverEl.empty();
+    hoverEl.removeClass("em-popover-rendering");
+}
+
+/**
  * Position a popover so it stays inside the viewport. Tags the host with
  * `em-popover-host` (the class SCSS uses to bind the position CSS variables)
  * and writes the resolved coordinates as CSS custom properties — never
@@ -77,11 +88,14 @@ export function adjustPopoverPosition(
 ): void {
     if (!hoverEl) return;
 
-    hoverEl.addClass("em-popover-host");
-
     const popRect = hoverEl.getBoundingClientRect();
     // Bail out if the popover isn't measured yet (width/height === 0).
     if (!popRect.width || !popRect.height) return;
+
+    // Add the positioning class only after we know the host has a real size;
+    // otherwise the class rule's left/top fallbacks (0px) would reveal the
+    // popover at the viewport origin when measurement fails.
+    hoverEl.addClass("em-popover-host");
 
     const { left, top } = computePopoverPosition(
         { width: popRect.width, height: popRect.height },
