@@ -319,6 +319,11 @@ Resolved Obsidian reivew state issues :
 - [x] Optional Ctrl key for citation preview widgets (feature [#196](https://github.com/FRIEDparrot/obsidian-equation-citator/issues/196))  and the file superscripts 
 
 
+- [x] Removed dynamic tooltips
+
+
+
+
 🐛 Fixed Bugs : 
 - [x] Nothing popped out when target file doesn't exist for citations 
 - [x] When hovering on the file superscript, the equation still shows

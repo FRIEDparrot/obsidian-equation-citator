@@ -82,7 +82,7 @@ export interface EquationCitatorSettings {
     enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
     
     figAutoNumberDelimiter: string; // Auto numbering delimiter for figures
-    figAutoNumberDepth: number; // Maximum depth for auto numbering figures (sepreate from the equations)
+    figAutoNumberDepth: number; // Maximum depth for auto numbering figures (separate from the equations)
     figAutoNumberNoHeadingPrefix: string; // figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: string; // Global Auto numbering prefix for figures without any heading level
     enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in callouts,
@@ -149,7 +149,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     renderImageCaptionsAndDescriptions: true, // render image captions and descriptions by default
 
     enableRenderFigureInfoInPreview: true, // enable rendering figure title and description in figure preview widget
-    enableCenterTableInCallout: true,  // enable centering tables in callout for butiful rendering 
+    enableCenterTableInCallout: true,  // enable centering tables in callout for beautiful rendering 
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
     multiCitationDelimiterRender: ", ", // Default rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: true, // Default to true for convenience 
