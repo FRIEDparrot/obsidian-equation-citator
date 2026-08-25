@@ -22,6 +22,35 @@ export const CitationSettingsTab = {
                 });
             });
     },
+
+    requireCtrlForWidgetPreview(containerEl: HTMLElement, plugin: EquationCitator) {
+        const requireCtrlSetting = new Setting(containerEl);
+        const { name, desc } = SETTINGS_METADATA.requireCtrlForWidgetPreview;
+        requireCtrlSetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.requireCtrlForWidgetPreview);
+                toggle.onChange(async (value) => {
+                    plugin.settings.requireCtrlForWidgetPreview = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
+    requireCtrlForFileSuperscriptPreview(containerEl: HTMLElement, plugin: EquationCitator) {
+        const requireCtrlSetting = new Setting(containerEl);
+        const { name, desc } = SETTINGS_METADATA.requireCtrlForFileSuperscriptPreview;
+        requireCtrlSetting.setName(name)
+            .setDesc(desc)
+            .addToggle((toggle) => {
+                toggle.setValue(plugin.settings.requireCtrlForFileSuperscriptPreview);
+                toggle.onChange(async (value) => {
+                    plugin.settings.requireCtrlForFileSuperscriptPreview = value;
+                    await plugin.saveSettings();
+                });
+            });
+    },
+
     enableRichAutoCompleteHoverPreview(containerEl: HTMLElement, plugin: EquationCitator, renderSubpanel = false) {
         const { name, desc } = SETTINGS_METADATA.enableRichAutoCompleteHoverPreview;
         const setting = new Setting(containerEl)
@@ -49,7 +78,6 @@ export const CitationSettingsTab = {
             .addSlider((slider) => {
                 slider.setLimits(500, 3000, 100);
                 slider.setValue(plugin.settings.richAutoCompletePreviewDelayTime);
-                slider.setDynamicTooltip();
                 slider.onChange(async (value) => {
                     plugin.settings.richAutoCompletePreviewDelayTime = value;
                     await plugin.saveSettings();
@@ -338,6 +366,11 @@ export const CitationSettingsTab = {
         // Container for the list of prefixes
         const prefixListContainer = containerEl.createDiv("ec-prefix-list-container");
 
+        const hasDuplicate = (excludeIndex: number, value: string) =>
+            plugin.settings.calloutCitationPrefixes.some(
+                (p, i) => i !== excludeIndex && p.prefix === value
+            );
+
         const renderPrefixList = () => {
             prefixListContainer.empty();
 
@@ -374,9 +407,7 @@ export const CitationSettingsTab = {
                         }
                         if (newValue !== item.prefix) {
                             // Check for duplicates
-                            const exists = plugin.settings.calloutCitationPrefixes.some(
-                                (p, i) => i !== index && p.prefix === newValue
-                            );
+                            const exists = hasDuplicate(index, newValue);
                             if (exists) {
                                 new Notice(t("settings.validation.duplicatePrefix"));
                                 text.setValue(item.prefix);
@@ -456,6 +487,8 @@ export const CitationSettingsTab = {
  */
 export function addCitationSettingsTab(containerEl: HTMLElement, plugin: EquationCitator) {
     CitationSettingsTab.enableCitationInSourceMode(containerEl, plugin);
+	CitationSettingsTab.requireCtrlForWidgetPreview(containerEl, plugin);
+    CitationSettingsTab.requireCtrlForFileSuperscriptPreview(containerEl, plugin);
     CitationSettingsTab.enableRichAutoComplete(containerEl, plugin);
     CitationSettingsTab.enableRichAutoCompleteHoverPreview(containerEl, plugin, true);
     CitationSettingsTab.citationPrefix(containerEl, plugin);

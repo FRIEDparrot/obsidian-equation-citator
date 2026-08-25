@@ -1,6 +1,6 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { HoverParent, MarkdownView, editorInfoField } from "obsidian";
+import { Notice, HoverParent, MarkdownView, editorInfoField } from "obsidian";
 import { CitationPopover } from "@/views/popovers/citation_popover";
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
@@ -10,6 +10,7 @@ import {
 } from "@/utils/core/citation_utils";
 import { DISABLED_DELIMITER } from "@/utils/string_processing/string_utils";
 import { FileSuperScriptPopover } from "@/views/popovers/file_superscript_popover";
+import {t} from "@/i18n/getLocale";
 
 /**
  * Widget for render citation in Live Preview mode. 
@@ -19,6 +20,8 @@ export class CitationWidget extends WidgetType {
     private view: EditorView| null = null;
     private popover: CitationPopover | null = null;
     private readonly parent: HoverParent | null = null;
+    private lastMouseX: number | undefined;
+    private lastMouseY: number | undefined;
     constructor(
         private readonly plugin: EquationCitator,
         private readonly sourcePath: string,
@@ -60,22 +63,27 @@ export class CitationWidget extends WidgetType {
             view.focus();
             setSelectionRange(view, this.range.from, this.range.to);
         });
-        this.registerCitaionEvents();
+        this.registerCitationEvents();
         return el;
     }
 
     /**
-     * reigster events for whole citation part.
-     * render equations in once  
+     * Register equation preview events without including cross-file superscripts.
      */
-    private registerCitaionEvents() {
+    private registerCitationEvents() {
         if (this.el) {
-            this.el.addEventListener('mouseenter', (event) => {
-                const ctrlKey = event.ctrlKey || event.metaKey;
-                if (ctrlKey) {
-                    void this.showPopover();
-                }
-            })
+            const citationElements = this.el.querySelectorAll<HTMLElement>('.em-math-citation');
+            citationElements.forEach((citationElement) => {
+                citationElement.addEventListener('mouseenter', (event: MouseEvent) => {
+                    const ctrlKey = event.ctrlKey || event.metaKey;
+                    if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
+						!this.plugin.settings.requireCtrlForWidgetPreview) {
+                        this.lastMouseX = event.clientX;
+                        this.lastMouseY = event.clientY;
+                        void this.showPopover();
+                    }
+                });
+            });
         }
     }
     private getMarkdownView(): MarkdownView | null {
@@ -98,7 +106,8 @@ export class CitationWidget extends WidgetType {
         const sourcePath = this.plugin.app.workspace.getActiveFile()?.path || "";
         const renderedEquations = await this.plugin.equationServices.getEquationsByTags(this.eqNumbersAll, sourcePath);
         if (renderedEquations.length === 0) {
-            Debugger.error("No valid equations found for citation widget");
+			Debugger.error("No valid equations found for citation widget");
+            new Notice(t("widget.equationNotFound", { citation: `${this.plugin.settings.citationPrefix}${this.eqNumbersAll.join(', ')}` }));
             return;
         }
         this.popover = new CitationPopover(
@@ -107,7 +116,9 @@ export class CitationWidget extends WidgetType {
             this.el,
             renderedEquations,
             this.plugin.app.workspace.getActiveFile()?.path || "",
-            300
+            300,
+            this.lastMouseX,
+            this.lastMouseY
         );
         const popover = this.popover;
         const originalOnClose = popover.onClose;
@@ -200,7 +211,7 @@ export function renderEquationCitation(
             if (parent) {
                 fileSuperEl.addEventListener('mouseenter', (e: MouseEvent) => {
                     const ctrlKey = e.ctrlKey || e.metaKey;
-                    if (isInteractive || ctrlKey) {
+                    if (isInteractive || !plugin.settings.requireCtrlForFileSuperscriptPreview || ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();  // prevent original popover from showing up  
                         e.stopImmediatePropagation();    // prevent other popovers from showing up 
@@ -211,7 +222,9 @@ export function renderEquationCitation(
                             fileSuperEl,
                             sourcePath,
                             crossFile,
-                            300
+                            300,
+                            e.clientX,
+                            e.clientY
                         );
                     }
                 });

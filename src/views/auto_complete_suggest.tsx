@@ -436,7 +436,7 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
             this.plugin.settings;
 
         if (enableRichAutoComplete) {
-            renderFigureWrapper(this.plugin, view.leaf, fig, el, targetComponent);
+            void renderFigureWrapper(this.plugin, view.leaf, fig, el, targetComponent);
         } else {
             // Simple rendering: show figure number and title
             const figContainer = el.createDiv();
@@ -456,7 +456,7 @@ export class AutoCompleteSuggest extends EditorSuggest<CitationItem> {
                     richAutoCompletePreviewDelayTime,
                     (previewEl) => {
                         previewEl.addClass("em-figure-autocomplete-preview");
-                        renderFigureWrapper(this.plugin, view.leaf, fig, previewEl, targetComponent);
+                        void renderFigureWrapper(this.plugin, view.leaf, fig, previewEl, targetComponent);
                     }
                 );
             }

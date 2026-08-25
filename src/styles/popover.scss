@@ -1,5 +1,47 @@
 @use "variables";
 
+/* Hide popover content during the first render pass so the user doesn't see
+   content flicker / a wrong-positioned popover while async rendering and
+   viewport-clamp math complete. The class is added in JS and removed on
+   the next animation frame after adjustPopoverPosition runs. */
+.em-popover-rendering {
+    visibility: hidden;
+}
+
+/* Popover positioning — JS sets --em-popover-left / --em-popover-top on the
+   popover host via setProperty(); SCSS binds them as left/top on the host.
+   We tag the host ourselves (see adjustPopoverPosition) instead of depending
+   on Obsidian's internal `.hover-popover` class, so this rule stays scoped
+   to popovers we create. The host is already position: absolute (set by
+   Obsidian's HoverPopover), so left/top here replaces Obsidian's default
+   placement. */
+.em-popover-host {
+    /* Obsidian's HoverPopover sets inline `style.left` / `style.top` directly
+       on the host to place it. Those inline styles win over class rules by
+       specificity, so `!important` is needed here for our CSS-var-driven
+       placement to actually take effect. The CSS variables themselves are
+       written via setProperty() (allowed by the Obsidian plugin review bot);
+       !important in pure CSS is fine.
+
+       We use physical `top` / `left` (not the logical `inset-*` variants)
+       for two reasons:
+         1. Some browser/Electron versions misbehave when logical insets
+            (inset-block-start / inset-inline-start) are set with `!important`
+            while Obsidian sets physical inline styles on the same element —
+            the cascade comparison is per-property and physical-vs-logical
+            can leave the host stretched to fill its offset container.
+         2. With `position: absolute` and only one of top/bottom (or its
+            logical equivalent) specified plus auto height, some Chromium
+            builds default the unspecified edge to fill the offset container.
+            Adding `height: max-content` keeps the host tightly wrapped
+            around its container child. */
+    position: absolute !important;
+    left: var(--em-popover-left, 0px) !important;
+    top: var(--em-popover-top, 0px) !important;
+    height: max-content !important;
+    width: max-content !important;
+}
+
 /* Main container styles */
 .em-citation-popover-container {
     min-width: var(--em-citation-popover-container-width);

@@ -1,7 +1,7 @@
 import EquationCitator from "@/main";
 import {
-    loadMathJax, 
-    Notice, 
+    loadMathJax,
+    Notice,
     WorkspaceLeaf,
     Component,
     HoverPopover,
@@ -12,6 +12,7 @@ import {
     finishRenderMath,
 } from "obsidian";
 import Debugger from "@/debug/debugger";
+import { adjustPopoverPosition, cleanupInvisiblePopover } from "@/utils/workspace/popoverPosition";
 
 export class TargetElComponent extends Component {
     constructor(public targetEl: HTMLElement | null) {
@@ -28,35 +29,45 @@ import { copyEquationToClipboard } from "@/utils/misc/equation_copy";
 import { t } from "@/i18n/getLocale";
 
 /**
- * Citaton Popover Class, render the equations in the popover 
+ * Citation Popover Class, render the equations in the popover
  */
 export class CitationPopover extends HoverPopover {
     tags: string[] = []; // list of tags to be cited
     private readonly equationsToRender: RenderedEquation[] = [];
     private readonly targetEl: HTMLElement;
     private readonly targetComponent: TargetElComponent;
-    
+    private readonly mouseX?: number;
+    private readonly mouseY?: number;
+
     constructor(
         private readonly plugin: EquationCitator,
         parent: HoverParent,
         targetEl: HTMLElement,
         equationsToRender: RenderedEquation[],
         private readonly sourcePath: string,
-        waitTime?: number
+        waitTime?: number,
+        mouseX?: number,
+        mouseY?: number
     ) {
         super(parent, targetEl, waitTime);
+        // Hide the whole host (Obsidian's .hover-popover box) from the very
+        // start — it has its own background/border and would flash at its
+        // default position while content renders and we reposition it.
+        this.hoverEl.addClass("em-popover-rendering");
         this.targetEl = targetEl;
-        // only render valid equations 
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
+        // only render valid equations
         this.equationsToRender = equationsToRender.filter(eq => eq.tag && eq.md && eq.sourcePath);
         // Create targetComponent once to avoid memory leaks
         this.targetComponent = new TargetElComponent(this.targetEl);
     }
     public onOpen() { }
     public onClose(this: void): void { }
-    
+
     onload(): void {
         this.onOpen();
-        this.showEquations();
+        void this.showEquations();
     }
     onunload(): void {
         this.targetComponent.unload();
@@ -67,13 +78,17 @@ export class CitationPopover extends HoverPopover {
     * Warning: Never use show() method. It will overwrite original method
     * and cause unexpected render issues.
     */
-    showEquations() {
+    async showEquations() {
         if (!this.targetEl) {
             Debugger.log("can't find targetEl of citation popover");
+            cleanupInvisiblePopover(this.hoverEl);
             return;
         }
         const container: HTMLElement = this.hoverEl.createDiv();
         container.addClass("em-citation-popover-container", WidgetSizeManager.getCurrentClassName());
+        // Hide until the first render + position pass completes, so the
+        // user never sees an un-positioned or half-rendered popover.
+        container.addClass("em-popover-rendering");
 
         // Create header
         const header = container.createDiv();
@@ -84,7 +99,7 @@ export class CitationPopover extends HoverPopover {
         footerSpan.classList.add("em-citation-title-note");
         header.appendChild(footerSpan);
 
-        footerSpan.createDiv(); // placeholder  
+        footerSpan.createDiv(); // placeholder
         footerSpan.createDiv({
             text: t("popover.shiftScrollHint"),
             cls: "em-citation-title-note-text",
@@ -97,14 +112,23 @@ export class CitationPopover extends HoverPopover {
         const equationsContainer = content.createDiv();
         equationsContainer.addClass("em-equations-container");
 
-        // Loop and create div for each equation 
+        // Loop and create div for each equation
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
-        if (!leaf) return;
-        this.equationsToRender.forEach((eq, index) => {
-            const equationOptionContainer = equationsContainer.createDiv();
-            equationOptionContainer.addClass("em-equation-option-container");
-            void renderEquationWrapper(this.plugin, leaf, eq, equationOptionContainer, this.targetComponent, true);
-        });
+        if (!leaf) {
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
+        }
+        try {
+            await Promise.all(this.equationsToRender.map((eq, index) => {
+                const equationOptionContainer = equationsContainer.createDiv();
+                equationOptionContainer.addClass("em-equation-option-container");
+                return renderEquationWrapper(this.plugin, leaf, eq, equationOptionContainer, this.targetComponent, true);
+            }));
+        } catch (error) {
+            Debugger.error("Failed to render equations in citation popover:", error);
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
+        }
 
         // Add footer with equation count
         const footer = container.createDiv();
@@ -113,17 +137,33 @@ export class CitationPopover extends HoverPopover {
         footer.textContent = totalEquations === 1 ?
             t("popover.equationCount.one") :
             t("popover.equationCount.many", { count: totalEquations });
+
+        // Position the popover AFTER all content (including async MathJax
+        // equation rendering) is in the DOM. Measuring before this point
+        // returns an under-estimated height and the viewport-clamp logic
+        // miscalculates, causing the popover to overflow vertically.
+        // Position is computed from the recorded cursor position only.
+        if (this.mouseX !== undefined && this.mouseY !== undefined) {
+            adjustPopoverPosition(this.hoverEl, this.mouseX, this.mouseY);
+        }
+
+        // Show only after rendering + positioning are done. Both the CSS
+        // custom properties (position) and the visibility change are applied
+        // synchronously, so the browser paints the popover directly at its
+        // final position — no flash, no jump.
+        container.removeClass("em-popover-rendering");
+        this.hoverEl.removeClass("em-popover-rendering");
     }
 }
 
 /**
  * Render the equation container (shared function by reading and live preview mode)
- * @param plugin 
- * @param leaf 
- * @param eq 
- * @param container 
- * @param targetComponent 
- * @param addLinkJump 
+ * @param plugin
+ * @param leaf
+ * @param eq
+ * @param container
+ * @param targetComponent
+ * @param addLinkJump
  */
 export async function renderEquationWrapper(
     plugin: EquationCitator,
@@ -159,7 +199,7 @@ export async function renderEquationWrapper(
     // Render the equation
     if (!window.MathJax) await loadMathJax();
     const eqTag = parseEquationTag(eq.md);
-    
+
     // render the math equation
     if (plugin.settings.useFastMathRenderer) {
         // Fast method: Direct conversion
@@ -169,7 +209,7 @@ export async function renderEquationWrapper(
         equationDiv.replaceChildren(rendered);
         await finishRenderMath();
     }
-    
+
     // Add click effects to each equation
     addClickEffects(equationWrapper);
     if (addLinkJump) {
@@ -229,7 +269,7 @@ function addContextMenuCopy(
     equationWrapper.addEventListener('contextmenu', (event: MouseEvent) => {
         event.preventDefault();
         const menu = new Menu();
-        
+
         menu.addItem((item) => {
             item.setTitle(t("context.copy"));
             item.setIcon("copy");
@@ -238,7 +278,7 @@ function addContextMenuCopy(
                 copyEquationToClipboard(contentWithTag, content, copyType);
             });
         });
-        
+
         menu.showAtMouseEvent(event);
     });
 }

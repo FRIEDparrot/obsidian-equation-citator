@@ -28,6 +28,8 @@ export function getAllSettingsByCategory(): SettingsCategory[] {
             title: t("settings.category.citation"),
             settingKeys: [
                 "enableCitationInSourceMode",
+				"requireCtrlForWidgetPreview",
+                "requireCtrlForFileSuperscriptPreview",
                 "citationPrefix",
                 "citationFormat",
                 "multiCitationDelimiter",

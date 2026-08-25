@@ -24,7 +24,7 @@ export interface SettingsMetadata {
     desc: string; // description
     type: "string" | "number" | "boolean" | "select" | "color" | "array";
     renderCallback: (el: HTMLElement, plugin: EquationCitator, renderSubpanel?: boolean) => void; // optional callback to render the value in the UI
-    favoriate?: boolean; // whether to show this setting in the basic section
+    favorite?: boolean; // whether to show this setting in the basic section
     hasSubPanel?: boolean; // whether this setting can have a subpanel to render
 }
 
@@ -42,6 +42,8 @@ export interface EquationCitatorSettings {
     citationPrefix: string; // Citation prefix for equations
     citationFormat: string; // Citation display format for equations
 
+	requireCtrlForWidgetPreview: boolean; // Whether to require Ctrl key for previewing citations
+    requireCtrlForFileSuperscriptPreview: boolean; // Whether to require Ctrl key for cross-file superscript previews
     figCitationPrefix: string; // Figure Citation Prefix
     figCitationFormat: string; // citation display format for figures
     enableRichAutoComplete: boolean; // Enable rich auto-complete suggestion for figures and callouts
@@ -80,7 +82,7 @@ export interface EquationCitatorSettings {
     enableAutoNumberTaggedEquationsOnly: boolean; // Enable auto numbering only for tagged equations
     
     figAutoNumberDelimiter: string; // Auto numbering delimiter for figures
-    figAutoNumberDepth: number; // Maximum depth for auto numbering figures (sepreate from the equations)
+    figAutoNumberDepth: number; // Maximum depth for auto numbering figures (separate from the equations)
     figAutoNumberNoHeadingPrefix: string; // figure numbering prefix for no heading level figures
     figAutoNumberGlobalPrefix: string; // Global Auto numbering prefix for figures without any heading level
     enableAutoNumberFigsInQuotes: boolean; // Enable auto numbering for figures in callouts,
@@ -131,7 +133,9 @@ export interface EquationCitatorSettings {
 
 export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     enableCitationInSourceMode: false, // Not enabled by default  
-    citationPopoverSize: "md", // Default to medium size
+    requireCtrlForWidgetPreview: true,  // need control for previewing citations by default
+    requireCtrlForFileSuperscriptPreview: true, // require Ctrl for cross-file superscript previews by default
+	citationPopoverSize: "md", // Default to medium size
     citationPrefix: "eq:", // Default prefix for citations
     citationFormat: "(#)", // Default display format for citations
     figCitationPrefix: "fig:", // prefix for cite figures
@@ -145,7 +149,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
     renderImageCaptionsAndDescriptions: true, // render image captions and descriptions by default
 
     enableRenderFigureInfoInPreview: true, // enable rendering figure title and description in figure preview widget
-    enableCenterTableInCallout: true,  // enable centering tables in callout for butiful rendering 
+    enableCenterTableInCallout: true,  // enable centering tables in callout for beautiful rendering 
     multiCitationDelimiter: ",", // Default delimiter for multiple citations in a single cite
     multiCitationDelimiterRender: ", ", // Default rendered delimiter for multiple citations in a single cite 
     enableContinuousCitation: true, // Default to true for convenience 
@@ -202,6 +206,7 @@ export const DEFAULT_SETTINGS: EquationCitatorSettings = {
         "figAutoNumberDepth",
         "enableAutoNumberTaggedEquationsOnly",
         "equationManagePanelFilterTagOnlyEquation",
+		"requireCtrlForWidgetPreview",
         "citationPopoverSize",
         "enableCenterTableInCallout",
     ],
@@ -273,6 +278,25 @@ export const SETTINGS_METADATA: Record<keyof EquationCitatorSettings, SettingsMe
             CitationSettingsTab.enableCitationInSourceMode(el, plugin);
         }
     },
+
+	requireCtrlForWidgetPreview : {
+		name: t("settings.requireCtrlForWidgetPreview.name"),
+		desc: t("settings.requireCtrlForWidgetPreview.desc"),
+		type: "boolean",
+		renderCallback: (el, plugin) => {
+			CitationSettingsTab.requireCtrlForWidgetPreview(el, plugin);
+		}
+	},
+
+    requireCtrlForFileSuperscriptPreview: {
+        name: t("settings.requireCtrlForFileSuperscriptPreview.name"),
+        desc: t("settings.requireCtrlForFileSuperscriptPreview.desc"),
+        type: "boolean",
+        renderCallback: (el, plugin) => {
+            CitationSettingsTab.requireCtrlForFileSuperscriptPreview(el, plugin);
+        }
+    },
+
     citationPrefix: {
         name: t("settings.citationPrefix.name"),
         desc: t("settings.citationPrefix.desc"),

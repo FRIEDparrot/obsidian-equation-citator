@@ -108,7 +108,7 @@ export function renderCalloutCitation(
             if (parent) {
                 fileSuperEl.addEventListener('mouseenter', (e: MouseEvent) => {
                     const ctrlKey = e.ctrlKey || e.metaKey;
-                    if (isInteractive || ctrlKey) {
+                    if (isInteractive || !plugin.settings.requireCtrlForFileSuperscriptPreview || ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();
                         e.stopImmediatePropagation();
@@ -118,7 +118,9 @@ export function renderCalloutCitation(
                             fileSuperEl,
                             sourcePath,
                             crossFile,
-                            300
+                            300,
+                            e.clientX,
+                            e.clientY
                         );  
                     }
                 });
@@ -178,7 +180,9 @@ export function renderCalloutCitation(
                         prefix,
                         renderedCallouts,
                         sourcePath,
-                        300  // wait time in ms
+                        300,
+                        event.clientX,
+                        event.clientY
                     );
                 }
             })();  // ignore promise

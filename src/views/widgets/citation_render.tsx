@@ -492,7 +492,9 @@ async function showReadingModeFigurePopover(
         citationEl,
         figures,
         sourcePath,
-        300
+        300,
+        event.clientX,
+        event.clientY
     );
 
     popover.onClose = function () {
@@ -543,7 +545,9 @@ async function showReadingModeCalloutPopover(
         prefix,
         callouts,
         sourcePath,
-        300
+        300,
+        event.clientX,
+        event.clientY
     );
 
     popover.onClose = function () {
@@ -611,6 +615,7 @@ async function showReadingModePopover(
     const cleanedEquations = equations.filter(eq => eq.md && eq.sourcePath);
 
     if (cleanedEquations.length === 0) {
+		new Notice(t("widget.equationNotFound", { citation: `${plugin.settings.citationPrefix}${eqNumbersAll.join(', ')}` }));
         Debugger.log(`No valid equation found for citation: ${eqNumbersAll.join(', ')}`);
         return;
     } // no equations found for this citation, skip popover 
@@ -621,7 +626,9 @@ async function showReadingModePopover(
         citationEl,
         equations,
         sourcePath,
-        300);
+        300,
+        event.clientX,
+        event.clientY);
     popover.onClose = function () {
         popover = null;
     };

@@ -13,6 +13,7 @@ import {
 import EquationCitator from "@/main";
 import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
+import { adjustPopoverPosition, cleanupInvisiblePopover } from "@/utils/workspace/popoverPosition";
 import { RenderedCallout } from "@/services/callout_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
@@ -26,7 +27,9 @@ export class CalloutCitationPopover extends HoverPopover {
     private readonly calloutsToRender: RenderedCallout[] = [];
     private readonly targetEl: HTMLElement;
     private readonly targetComponent: TargetElComponent;
-    
+    private readonly mouseX?: number;
+    private readonly mouseY?: number;
+
     constructor(
         private readonly plugin: EquationCitator,
         parent: HoverParent,
@@ -34,10 +37,18 @@ export class CalloutCitationPopover extends HoverPopover {
         private readonly prefix: string,  // e.g., "table:", "thm:", "def:"
         calloutsToRender: RenderedCallout[],
         private readonly sourcePath: string,
-        waitTime?: number
+        waitTime?: number,
+        mouseX?: number,
+        mouseY?: number
     ) {
         super(parent, targetEl, waitTime);
+        // Hide the whole host (Obsidian's .hover-popover box) from the very
+        // start — it has its own background/border and would flash at its
+        // default position while content renders and we reposition it.
+        this.hoverEl.addClass("em-popover-rendering");
         this.targetEl = targetEl;
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
         // Only render valid callouts (must have tag and content)
         this.calloutsToRender = calloutsToRender.filter(c =>
             c.tag && c.sourcePath && c.content
@@ -60,16 +71,25 @@ export class CalloutCitationPopover extends HoverPopover {
     }
 
     /**
-     * Display callouts in the popover
+     * Display callouts in the popover.
+     *
+     * The popover is rendered with `visibility: hidden` for the first frame so
+     * the user doesn't see content flicker while async callout markdown
+     * rendering finishes. Layout is performed while hidden, then
+     * `adjustPopoverPosition` measures the final size and we reveal it.
      */
     async showCallouts() {
         if (!this.targetEl) {
             Debugger.log("can't find targetEl of callout citation popover");
+            cleanupInvisiblePopover(this.hoverEl);
             return;
         }
 
         const container: HTMLElement = this.hoverEl.createDiv();
         container.addClass("em-citation-popover-container", "em-callout-citation-popover-container", WidgetSizeManager.getCurrentClassName());
+        // Hide until the first render + position pass completes, so the
+        // user never sees an un-positioned or half-rendered popover.
+        container.addClass("em-popover-rendering");
 
         // Create header
         const header = container.createDiv();
@@ -107,20 +127,30 @@ export class CalloutCitationPopover extends HoverPopover {
 
         // Get leaf for click navigation
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
-        if (!leaf) return;
+        if (!leaf) {
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
+        }
 
-        // Loop and create div for each callout
-        for (const callout of this.calloutsToRender) {
-            const calloutOptionContainer = calloutsContainer.createDiv();
-            calloutOptionContainer.addClass("em-callout-option-container");
-            await renderCalloutWrapper(
-                this.plugin,
-                leaf,
-                callout,
-                calloutOptionContainer,
-                this.targetComponent,
-                true
-            );
+        // Loop and create div for each callout (await so async rendering
+        // completes before we measure the popover for positioning)
+        try {
+            for (const callout of this.calloutsToRender) {
+                const calloutOptionContainer = calloutsContainer.createDiv();
+                calloutOptionContainer.addClass("em-callout-option-container");
+                await renderCalloutWrapper(
+                    this.plugin,
+                    leaf,
+                    callout,
+                    calloutOptionContainer,
+                    this.targetComponent,
+                    true
+                );
+            }
+        } catch (error) {
+            Debugger.error("Failed to render callouts in callout citation popover:", error);
+            cleanupInvisiblePopover(this.hoverEl);
+            return;
         }
 
         // Add footer with callout count
@@ -131,6 +161,22 @@ export class CalloutCitationPopover extends HoverPopover {
             count: totalCallouts,
             displayName: displayName.toLowerCase(),
         });
+
+        // Position the popover AFTER all async rendering (callout markdown
+        // render) is done. Measuring before this point under-estimates the
+        // height and the viewport-clamp logic miscalculates, causing the
+        // popover to overflow. Position is computed from the recorded cursor
+        // position only.
+        if (this.mouseX !== undefined && this.mouseY !== undefined) {
+            adjustPopoverPosition(this.hoverEl, this.mouseX, this.mouseY);
+        }
+
+        // Show only after rendering + positioning are done. Both the CSS
+        // custom properties (position) and the visibility change are applied
+        // synchronously, so the browser paints the popover directly at its
+        // final position — no flash, no jump.
+        container.removeClass("em-popover-rendering");
+        this.hoverEl.removeClass("em-popover-rendering");
     }
 }
 
