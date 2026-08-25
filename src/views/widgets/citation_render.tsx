@@ -492,7 +492,9 @@ async function showReadingModeFigurePopover(
         citationEl,
         figures,
         sourcePath,
-        300
+        300,
+        event.clientX,
+        event.clientY
     );
 
     popover.onClose = function () {
@@ -543,7 +545,9 @@ async function showReadingModeCalloutPopover(
         prefix,
         callouts,
         sourcePath,
-        300
+        300,
+        event.clientX,
+        event.clientY
     );
 
     popover.onClose = function () {
@@ -622,7 +626,9 @@ async function showReadingModePopover(
         citationEl,
         equations,
         sourcePath,
-        300);
+        300,
+        event.clientX,
+        event.clientY);
     popover.onClose = function () {
         popover = null;
     };

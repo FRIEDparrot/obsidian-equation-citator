@@ -118,7 +118,9 @@ export function renderCalloutCitation(
                             fileSuperEl,
                             sourcePath,
                             crossFile,
-                            300
+                            300,
+                            e.clientX,
+                            e.clientY
                         );  
                     }
                 });
@@ -178,7 +180,9 @@ export function renderCalloutCitation(
                         prefix,
                         renderedCallouts,
                         sourcePath,
-                        300  // wait time in ms
+                        300,
+                        event.clientX,
+                        event.clientY
                     );
                 }
             })();  // ignore promise

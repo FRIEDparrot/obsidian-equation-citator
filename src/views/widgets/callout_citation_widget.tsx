@@ -15,6 +15,8 @@ export class CalloutCitationWidget extends WidgetType {
     private el: HTMLElement| null = null;
     private view: EditorView | null = null;
     private popover: CalloutCitationPopover | null = null;
+    private lastMouseX: number | undefined;
+    private lastMouseY: number | undefined;
 
     constructor(
         private readonly plugin: EquationCitator,
@@ -77,6 +79,8 @@ export class CalloutCitationWidget extends WidgetType {
                     const ctrlKey = event.ctrlKey || event.metaKey;
                     if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
 						!this.plugin.settings.requireCtrlForWidgetPreview) {
+                        this.lastMouseX = event.clientX;
+                        this.lastMouseY = event.clientY;
                         void this.showPopover();
                     }
                 });
@@ -121,7 +125,9 @@ export class CalloutCitationWidget extends WidgetType {
             this.prefix,
             renderedCallouts,
             this.plugin.app.workspace.getActiveFile()?.path || "",
-            300
+            300,
+            this.lastMouseX,
+            this.lastMouseY
         );
 
         const popover = this.popover;
