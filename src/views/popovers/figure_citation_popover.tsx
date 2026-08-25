@@ -1,9 +1,9 @@
 import EquationCitator from "@/main";
 import {
-    WorkspaceLeaf, 
-    TFile, 
-    Notice, 
-    MarkdownView, 
+    WorkspaceLeaf,
+    TFile,
+    Notice,
+    MarkdownView,
     MarkdownRenderer,
     EditorRange,
     Component,
@@ -13,6 +13,7 @@ import {
 } from "obsidian";
 import Debugger from "@/debug/debugger";
 import { TargetElComponent } from "@/views/popovers/citation_popover";
+import { adjustPopoverPosition } from "@/utils/workspace/popoverPosition";
 import { RenderedFigure } from "@/services/figure_services";
 import { getLeafByElement } from "@/utils/workspace/workspace_utils";
 import { WidgetSizeManager } from "@/settings/styleManagers/widgetSizeManager";
@@ -32,6 +33,8 @@ export class FigureCitationPopover extends HoverPopover {
     private readonly figuresToRender: RenderedFigure[] = [];
     private readonly targetEl: HTMLElement;
     private readonly targetComponent: TargetElComponent;
+    private readonly mouseX?: number;
+    private readonly mouseY?: number;
 
     constructor(
         private readonly plugin: EquationCitator,
@@ -39,10 +42,18 @@ export class FigureCitationPopover extends HoverPopover {
         targetEl: HTMLElement,
         figuresToRender: RenderedFigure[],
         private readonly sourcePath: string,
-        waitTime?: number
+        waitTime?: number,
+        mouseX?: number,
+        mouseY?: number
     ) {
         super(parent, targetEl, waitTime);
+        // Hide the whole host (Obsidian's .hover-popover box) from the very
+        // start — it has its own background/border and would flash at its
+        // default position while content renders and we reposition it.
+        this.hoverEl.addClass("em-popover-rendering");
         this.targetEl = targetEl;
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
         // Only render valid figures (must have tag and either imagePath or imageLink)
         this.figuresToRender = figuresToRender.filter(fig =>
             fig.tag && fig.sourcePath && (fig.imagePath || fig.imageLink)
@@ -53,10 +64,10 @@ export class FigureCitationPopover extends HoverPopover {
 
     public onOpen() { }
     public onClose(this: void): void { }
-    
+
     onload(): void {
         this.onOpen();
-        this.showFigures();
+        void this.showFigures();
     }
 
     onunload(): void {
@@ -65,9 +76,15 @@ export class FigureCitationPopover extends HoverPopover {
     }
 
     /**
-     * Display figures in the popover
+     * Display figures in the popover.
+     *
+     * The popover is rendered with `visibility: hidden` for the first frame so
+     * the user doesn't see content flicker while async assets (MathJax
+     * equations, figure markdown rendering) finish loading. Layout is
+     * performed while hidden, then `adjustPopoverPosition` measures the
+     * final popover size and we reveal it.
      */
-    showFigures() {
+    async showFigures() {
         if (!this.targetEl) {
             Debugger.log("can't find targetEl of figure citation popover");
             return;
@@ -75,6 +92,9 @@ export class FigureCitationPopover extends HoverPopover {
 
         const container: HTMLElement = this.hoverEl.createDiv();
         container.addClass("em-citation-popover-container", "em-figure-citation-popover-container", WidgetSizeManager.getCurrentClassName());
+        // Hide until the first render + position pass completes, so the
+        // user never sees an un-positioned or half-rendered popover.
+        container.addClass("em-popover-rendering");
 
         // Create header
         const header = container.createDiv();
@@ -103,8 +123,9 @@ export class FigureCitationPopover extends HoverPopover {
         const leaf = getLeafByElement(this.plugin.app, this.targetEl);
         if (!leaf) return;
 
-        // Loop and create div for each figure
-        this.figuresToRender.forEach((fig, index) => {
+        // Loop and create div for each figure (for...of lets layout settle
+        // synchronously before we measure)
+        for (const fig of this.figuresToRender) {
             const figureOptionContainer = figuresContainer.createDiv();
             figureOptionContainer.addClass("em-figure-option-container");
             renderFigureWrapper(
@@ -115,7 +136,7 @@ export class FigureCitationPopover extends HoverPopover {
                 this.targetComponent,
                 true
             );
-        });
+        }
 
         // Add footer with figure count
         const footer = container.createDiv();
@@ -124,16 +145,30 @@ export class FigureCitationPopover extends HoverPopover {
         footer.textContent = t(totalFigures === 1 ? "popover.figureCount.one" : "popover.figureCount.many", {
             count: totalFigures,
         });
+
+        // Position the popover now that the sync DOM structure is complete
+        // and its size is measurable. Position is computed from the recorded
+        // cursor position only.
+        if (this.mouseX !== undefined && this.mouseY !== undefined) {
+            adjustPopoverPosition(this.hoverEl, this.mouseX, this.mouseY);
+        }
+
+        // Show only after rendering + positioning are done. Both the CSS
+        // custom properties (position) and the visibility change are applied
+        // synchronously, so the browser paints the popover directly at its
+        // final position — no flash, no jump.
+        container.removeClass("em-popover-rendering");
+        this.hoverEl.removeClass("em-popover-rendering");
     }
 }
 
 /**
  * Render a single figure wrapper with image and metadata
- * @remarks since there are 2 types of image formats (wiki link vs markdown link), 
+ * @remarks since there are 2 types of image formats (wiki link vs markdown link),
  *      the rendering logic is different for each type
  * @summary for `markdown link` (web image link), we always use image link to render the image;
  *      i.e., `<img src="imageLink" alt="title or tag">`
- * @summary for `wiki link` (internal image in obsidian vault), we need to resolve the vault path first, then render the image;   
+ * @summary for `wiki link` (internal image in obsidian vault), we need to resolve the vault path first, then render the image;
  */
 export function renderFigureWrapper(
     plugin: EquationCitator,

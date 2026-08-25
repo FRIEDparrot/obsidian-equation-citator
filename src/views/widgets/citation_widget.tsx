@@ -20,6 +20,8 @@ export class CitationWidget extends WidgetType {
     private view: EditorView| null = null;
     private popover: CitationPopover | null = null;
     private readonly parent: HoverParent | null = null;
+    private lastMouseX: number | undefined;
+    private lastMouseY: number | undefined;
     constructor(
         private readonly plugin: EquationCitator,
         private readonly sourcePath: string,
@@ -76,6 +78,8 @@ export class CitationWidget extends WidgetType {
                     const ctrlKey = event.ctrlKey || event.metaKey;
                     if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
 						!this.plugin.settings.requireCtrlForWidgetPreview) {
+                        this.lastMouseX = event.clientX;
+                        this.lastMouseY = event.clientY;
                         void this.showPopover();
                     }
                 });
@@ -112,7 +116,9 @@ export class CitationWidget extends WidgetType {
             this.el,
             renderedEquations,
             this.plugin.app.workspace.getActiveFile()?.path || "",
-            300
+            300,
+            this.lastMouseX,
+            this.lastMouseY
         );
         const popover = this.popover;
         const originalOnClose = popover.onClose;
@@ -216,7 +222,9 @@ export function renderEquationCitation(
                             fileSuperEl,
                             sourcePath,
                             crossFile,
-                            300
+                            300,
+                            e.clientX,
+                            e.clientY
                         );
                     }
                 });

@@ -15,6 +15,8 @@ export class FigureCitationWidget extends WidgetType {
     private el: HTMLElement|null = null;
     private view: EditorView| null = null;
     private popover: FigureCitationPopover | null = null;
+    private lastMouseX: number | undefined;
+    private lastMouseY: number | undefined;
 
     constructor(
         private readonly plugin: EquationCitator,
@@ -73,6 +75,8 @@ export class FigureCitationWidget extends WidgetType {
                     const ctrlKey = event.ctrlKey || event.metaKey;
                     if ((this.plugin.settings.requireCtrlForWidgetPreview && ctrlKey) ||
 						!this.plugin.settings.requireCtrlForWidgetPreview) {
+                        this.lastMouseX = event.clientX;
+                        this.lastMouseY = event.clientY;
                         void this.showPopover();
                     }
                 });
@@ -112,7 +116,9 @@ export class FigureCitationWidget extends WidgetType {
             this.el,
             renderedFigures,
             this.plugin.app.workspace.getActiveFile()?.path || "",
-            300
+            300,
+            this.lastMouseX,
+            this.lastMouseY
         );
 
         const popover = this.popover;

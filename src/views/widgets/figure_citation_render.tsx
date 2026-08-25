@@ -116,7 +116,9 @@ export function renderFigureCitation(
                             fileSuperEl,
                             sourcePath,
                             crossFile,
-                            300
+                            300,
+                            e.clientX,
+                            e.clientY
                         );  
                     }
                 });
@@ -154,7 +156,7 @@ export function renderFigureCitation(
             if (isInteractive || ctrlKey) {
                 event.preventDefault();
                 event.stopPropagation();
-                void showFigurePopover(plugin, parent, el, citeFigureTags, sourcePath);
+                void showFigurePopover(plugin, parent, el, citeFigureTags, sourcePath, event.clientX, event.clientY);
             }
         });
     }
@@ -170,7 +172,9 @@ async function showFigurePopover(
     parent: HoverParent,
     targetEl: HTMLElement,
     figureTags: string[],
-    sourcePath: string
+    sourcePath: string,
+    mouseX?: number,
+    mouseY?: number
 ): Promise<void> {
     try {
         // Fetch figures from FigureServices
@@ -188,7 +192,9 @@ async function showFigurePopover(
             targetEl,
             figures,
             sourcePath,
-            300
+            300,
+            mouseX,
+            mouseY
         );
     } catch (error) {
         Debugger.error("Error showing figure popover:", error);
