@@ -55,7 +55,7 @@ export function renderCalloutCitation(
     const prefixConfig = quoteCitationPrefixes.find(p => p.prefix === prefix);
     const calloutFormat = prefixConfig?.format || `${prefix}#`;
 
-    const el = document.createElement('span');
+    const el: HTMLSpanElement = createSpan();
     const fileDelimiter = enableCrossFileCitation ?
         fileCiteDelimiter || '^' :
         DISABLED_DELIMITER;
@@ -72,10 +72,10 @@ export function renderCalloutCitation(
 
     // Handle empty citation case
     if (!formattedCiteCalloutTags.length) {
-        const containerDiv = document.createElement('div');
+        const containerDiv: HTMLDivElement = createDiv();
         containerDiv.addClass('em-math-citation-container');
         containerDiv.addClass('em-callout-citation-container'); // Add callout-specific class
-        const emptyCitationSpanEl = document.createElement('span');
+        const emptyCitationSpanEl: HTMLSpanElement = createSpan();
         emptyCitationSpanEl.className = 'em-math-citation em-callout-citation';
         emptyCitationSpanEl.textContent = calloutFormat.replace('#', '');
         containerDiv.appendChild(emptyCitationSpanEl);
@@ -87,12 +87,12 @@ export function renderCalloutCitation(
 
     // Render each callout citation
     for (const tag of formattedCiteCalloutTags) {
-        const containerDiv = document.createElement('div');
+        const containerDiv: HTMLDivElement = createDiv();
         containerDiv.addClass('em-math-citation-container');
         containerDiv.addClass('em-callout-citation-container'); // Add callout-specific class
 
         const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
-        const citationSpanEl = document.createElement('span');
+        const citationSpanEl: HTMLSpanElement = createSpan();
         citationSpanEl.className = 'em-math-citation em-callout-citation';
 
         if (crossFile) {
@@ -138,7 +138,7 @@ export function renderCalloutCitation(
         if (multiCitationDelimiterRender && formattedCiteCalloutTags.length > 1 &&
             tag !== formattedCiteCalloutTags.at(-1) // not last one
         ) {
-            const multiDelimEl = document.createElement('span');
+            const multiDelimEl: HTMLSpanElement = createSpan();
             multiDelimEl.className = 'em-math-citation-multi-delimiter em-callout-citation-multi-delimiter';
             multiDelimEl.textContent = multiCitationDelimiterRender;
             containers.push(multiDelimEl);

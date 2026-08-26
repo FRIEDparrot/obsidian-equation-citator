@@ -76,7 +76,7 @@ export class SettingsTabView extends PluginSettingTab {
 
         // Toolbar with mode toggle and group selector placeholder
         const toolbar_wrapper = containerEl.createDiv({ cls: "ec-settings-toolbar-wrapper" })
-        const toolbar = document.createElement("div");
+        const toolbar = containerEl.createDiv();
         toolbar.classList.add("ec-settings-toolbar");
         toolbar_wrapper.appendChild(toolbar);
 
@@ -134,7 +134,7 @@ export class SettingsTabView extends PluginSettingTab {
     }
 
     private renderGroupSelector(containerEl: HTMLElement, groups: { id: string; title: string; icon: string }[], onSelect: (id: string) => void) {
-        const selector = document.createElement("div");
+        const selector = containerEl.createDiv();
         selector.classList.add("ec-settings-group-selector");
         containerEl.appendChild(selector);
         const setActive = (id: string) => {
@@ -168,7 +168,7 @@ export class SettingsTabView extends PluginSettingTab {
         ];
 
         // Create a wrapper container for both selector and content
-        const wrapper = document.createElement("div");
+        const wrapper = containerEl.createDiv();
         wrapper.classList.add("ec-categorical-wrapper");
         containerEl.appendChild(wrapper);
 
@@ -178,7 +178,7 @@ export class SettingsTabView extends PluginSettingTab {
             renderActive();
         });
 
-        const content = document.createElement("div");
+        const content = wrapper.createDiv();
         content.classList.add("ec-category-content-holder");
         wrapper.appendChild(content);
 

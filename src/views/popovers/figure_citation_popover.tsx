@@ -102,7 +102,7 @@ export class FigureCitationPopover extends HoverPopover {
         header.addClass("em-citation-header");
 
         header.createEl("h3", { text: t("popover.referencedFigures"), cls: "em-citation-title" });
-        const footerSpan = document.createElement("div");
+        const footerSpan = header.createDiv();
         footerSpan.classList.add("em-citation-title-note");
         header.appendChild(footerSpan);
 

@@ -52,7 +52,7 @@ export function renderFigureCitation(
     
     const figureCitationFormat = plugin.settings.figCitationFormat; // e.g., (fig:3.1)
 
-    const el = document.createElement('span');
+    const el: HTMLSpanElement = createSpan();
     const fileDelimiter = enableCrossFileCitation ?
         fileCiteDelimiter || '^' :
         DISABLED_DELIMITER;
@@ -69,10 +69,10 @@ export function renderFigureCitation(
     
     // Handle empty citation case
     if (!formattedCiteFigureTags.length) {
-        const containerDiv = document.createElement('div');
+        const containerDiv: HTMLDivElement = createDiv();
         containerDiv.addClass('em-math-citation-container');
         containerDiv.addClass('em-figure-citation-container'); // Add figure-specific class
-        const emptyCitationSpanEl = document.createElement('span');
+        const emptyCitationSpanEl: HTMLSpanElement = createSpan();
         emptyCitationSpanEl.className = 'em-math-citation em-figure-citation';
         emptyCitationSpanEl.textContent = figureCitationFormat.replace('#', '');
         containerDiv.appendChild(emptyCitationSpanEl);
@@ -84,12 +84,12 @@ export function renderFigureCitation(
 
     // Render each figure citation
     for (const tag of formattedCiteFigureTags) {
-        const containerDiv = document.createElement('div');
+        const containerDiv: HTMLDivElement = createDiv();
         containerDiv.addClass('em-math-citation-container');
         containerDiv.addClass('em-figure-citation-container'); // Add figure-specific class
 
         const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
-        const citationSpanEl = document.createElement('span');
+        const citationSpanEl: HTMLSpanElement = createSpan();
         citationSpanEl.className = 'em-math-citation em-figure-citation';
         
         if (crossFile) {
@@ -136,7 +136,7 @@ export function renderFigureCitation(
         if (multiCitationDelimiterRender && formattedCiteFigureTags.length > 1 &&
             tag !== formattedCiteFigureTags.at(-1) // not last one
         ) {
-            const multiDelimEl = document.createElement('span');
+            const multiDelimEl: HTMLSpanElement = createSpan();
             multiDelimEl.className = 'em-math-citation-multi-delimiter em-figure-citation-multi-delimiter';
             multiDelimEl.textContent = multiCitationDelimiterRender;
             containers.push(multiDelimEl);
