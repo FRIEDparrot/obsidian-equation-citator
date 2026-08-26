@@ -552,7 +552,7 @@ export const PdfExportSettingsTab = {
     websiteNotesExportFolder(containerEl: HTMLElement, plugin: EquationCitator) {
         const { name, desc } = SETTINGS_METADATA.websiteNotesExportFolder;
         const setting = new Setting(containerEl);
-        const currentFolderText = document.createElement("div");
+        const currentFolderText = containerEl.createDiv();
         currentFolderText.classList.add("setting-item-description");
         let openButtonEl: HTMLButtonElement | null = null;
 

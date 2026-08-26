@@ -98,7 +98,7 @@ export class FileSuperScriptPopover extends HoverPopover {
         }
         else if (footnote.url === null) {
             // text-only format footnote
-            const textEl = document.createElement("span");
+            const textEl = footnoteContent.createSpan();
             textEl.textContent = footnote.text;
             footnoteContent.appendChild(textEl);
             textEl.addClass("em-file-superscript-popover-text");

@@ -9,7 +9,7 @@ export function createFoldablePanel(
 ) {
     let openState = defaultOpenState;
     // Title bar
-    const titleEl = document.createElement("div");
+    const titleEl = containerEl.createDiv();
     titleEl.textContent = title;
     titleEl.classList.add("ec-settings-title", "ec-concise-title");
     containerEl.appendChild(titleEl);

@@ -32,6 +32,10 @@ export default defineConfig([
                 activeWindow: "readonly",
                 activeDocument: "readonly",
                 createEl: "readonly",
+                createDiv: "readonly",
+                createSpan: "readonly",
+                createFragment: "readonly",
+                createSvg: "readonly",
             },
         },
         plugins: {

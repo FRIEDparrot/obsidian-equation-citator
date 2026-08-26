@@ -1,4 +1,5 @@
-import { Editor,  MarkdownView } from "obsidian";
+
+import { Editor, MarkdownView } from "obsidian";
 import { Line, StateEffect, StateField } from "@codemirror/state";
 import { Decoration, EditorView, WidgetType, DecorationSet } from "@codemirror/view";
 
@@ -11,7 +12,7 @@ class DragCursor extends WidgetType {
     }
 
     toDOM(): HTMLElement {
-        const el = document.createElement('div');
+        const el: HTMLDivElement = createDiv();
         el.classList.add('ec-drag-cursor');
         return el;
     }

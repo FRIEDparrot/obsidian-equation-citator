@@ -162,7 +162,7 @@ export function renderEquationCitation(
         citationFormat,
         multiCitationDelimiterRender,
     } = plugin.settings;
-    const el = document.createElement('span');
+    const el: HTMLSpanElement = createSpan();
     const fileDelimiter = enableCrossFileCitation ?
         fileCiteDelimiter || '^' :
         DISABLED_DELIMITER;
@@ -179,9 +179,9 @@ export function renderEquationCitation(
     // handle empty citation case 
     if (!formatedCiteEquationTags.length) {
         // empty equation tags
-        const containerDiv = document.createElement('div');
+        const containerDiv: HTMLDivElement = createDiv();
         containerDiv.addClass('em-math-citation-container');
-        const emptyCitationSpanEl = document.createElement('span');
+        const emptyCitationSpanEl: HTMLSpanElement = createSpan();
         emptyCitationSpanEl.className = 'em-math-citation';
         emptyCitationSpanEl.textContent = citationFormat.replace('#', '');
         containerDiv.appendChild(emptyCitationSpanEl);
@@ -193,10 +193,10 @@ export function renderEquationCitation(
     // render equation parts
     for (const tag of formatedCiteEquationTags) {
         // replace # in render format with the tag number
-        const containerDiv = document.createElement('div');
+        const containerDiv: HTMLDivElement = createDiv();
         containerDiv.addClass('em-math-citation-container');
         const { local, crossFile } = splitFileCitation(tag, fileDelimiter);
-        const citationSpanEl = document.createElement('span');
+        const citationSpanEl: HTMLSpanElement = createSpan();
         citationSpanEl.className = 'em-math-citation';
         if (crossFile) {
             // Create citation with superscript bracket for cross-file references
@@ -241,7 +241,7 @@ export function renderEquationCitation(
         if (multiCitationDelimiterRender && formatedCiteEquationTags.length > 1 &&
             tag !== formatedCiteEquationTags.at(-1) // not last one
         ) {
-            const multiDelimEl = document.createElement('span');
+            const multiDelimEl: HTMLSpanElement = createSpan();
             multiDelimEl.className = 'em-math-citation-multi-delimiter';
             multiDelimEl.textContent = multiCitationDelimiterRender;
             containers.push(multiDelimEl);

@@ -1,10 +1,11 @@
 import EquationCitator from "@/main";
 import { parseAllImagesFromMarkdown, parseImageLine, ImageMatch } from "@/utils/parsers/image_parser";
-import { normalizePath, 
-    MarkdownRenderer, 
-    MarkdownRenderChild, 
-    Component, 
-    editorInfoField, 
+import {
+    normalizePath,
+    MarkdownRenderer,
+    MarkdownRenderChild,
+    Component,
+    editorInfoField,
     TFile,
     MarkdownPostProcessorContext,
 } from "obsidian";
@@ -229,7 +230,7 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         }
 
         createCaption(element: Element, image: ImageMatch, settings: EquationCitatorSettings) {
-            const captionDiv = document.createElement('div');
+            const captionDiv: HTMLDivElement = element.createDiv();
             captionDiv.className = 'em-image-caption';
             this.renderCaptionContent(captionDiv, image, settings);
             element.appendChild(captionDiv);
@@ -253,14 +254,14 @@ export function createImageCaptionExtension(plugin: EquationCitator) {
         renderCaptionContent(captionEl: HTMLElement, image: ImageMatch, settings: EquationCitatorSettings) {
             const titleText = getImageCaptionTitle(image, settings.figCitationFormat);
             if (titleText) {
-                const titleLine = document.createElement('div');
+                const titleLine: HTMLDivElement = captionEl.createDiv();
                 titleLine.className = 'em-image-caption-title';
                 captionEl.appendChild(titleLine);
                 this.renderMarkdown(titleLine, titleText, this.mathRenderComponentCapt);
             }
 
             if (image.desc) {
-                const descLine = document.createElement('div');
+                const descLine: HTMLDivElement = captionEl.createDiv();
                 descLine.className = 'em-image-caption-desc';
                 captionEl.appendChild(descLine);
                 this.renderMarkdown(descLine, image.desc, this.mathRenderComponentDesc);
@@ -350,12 +351,12 @@ function createImageCaption(
     image: ImageMatch,
     figCitationFormat: string
 ): void {
-    const captionDiv = document.createElement('div');
+    const captionDiv: HTMLDivElement = createDiv();
     captionDiv.className = 'em-image-caption';
 
     const titleText = getImageCaptionTitle(image, figCitationFormat);
     if (titleText) {
-        const titleLine = document.createElement('div');
+        const titleLine: HTMLDivElement = createDiv();
         titleLine.className = 'em-image-caption-title';
 
         const componentTitle = new MarkdownRenderChild(titleLine);
@@ -366,7 +367,7 @@ function createImageCaption(
 
     // Second line: description - rendered as Markdown so inline math (e.g. $n_g$) works
     if (image.desc) {
-        const descLine = document.createElement('div');
+        const descLine: HTMLDivElement = createDiv();
         descLine.className = 'em-image-caption-desc';
         captionDiv.appendChild(descLine);
 
