@@ -324,6 +324,8 @@ Resolved Obsidian reivew state issues :
 - [x] Nothing popped out when target file doesn't exist for citations 
 - [x] When hovering on the file superscript, the equation still shows
 
+### Version 1.3.11 
+- [x] resolved typing issues in `createEl()`. Improved the plugin healthy
 
 ### 🚢 If you want following features, you can request it in issue page :
 
