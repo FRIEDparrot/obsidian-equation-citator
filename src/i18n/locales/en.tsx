@@ -128,6 +128,7 @@ const en = {
     "settings.search.noCategoryResults": "No settings found matching your search in this category.",
     "settings.reorder.showButtons.name": "Show reorder buttons",
     "settings.reorder.showButtons.desc": "Display arrow buttons to reorder settings",
+    "settings.concise.hiddenSettingsTip": "In Concise view, settings that are not assigned to Basic or Advanced are hidden. Use Categorical or List view to access all settings. You can configure these sections in the Customize display sections tab.",
     "settings.reorder.moveUp": "Move up",
     "settings.reorder.moveDown": "Move down",
     "settings.section.basic": "Basic",
