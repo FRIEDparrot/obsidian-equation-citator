@@ -203,6 +203,11 @@ export class SettingsTabView extends PluginSettingTab {
     }
 
     private renderConcise(containerEl: HTMLElement) {
+        containerEl.createDiv({
+            cls: "ec-settings-tip",
+            text: t("settings.concise.hiddenSettingsTip"),
+        });
+
         // Add toggle button for reorder buttons
         const toggleContainer = containerEl.createDiv({ cls: "ec-reorder-toggle-container" });
         new Setting(toggleContainer)

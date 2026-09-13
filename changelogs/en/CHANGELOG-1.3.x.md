@@ -327,6 +327,12 @@ Resolved Obsidian reivew state issues :
 ### Version 1.3.11 
 - [x] resolved typing issues in `createEl()`. Improved the plugin healthy
 
+### Version 1.3.12
+
+🐛 Style Fixes:
+- [x] Fixed several Concise settings view layout issues in Obsidian 1.13, including setting-card spacing and Basic/Advanced chevron alignment and padding.
+- [x] Added concise-view guidance explaining how to access and configure settings not shown in the Basic or Advanced sections.
+
 ### 🚢 If you want following features, you can request it in issue page :
 
 1. Check citations of equations, figures and tables in equation manage panel.

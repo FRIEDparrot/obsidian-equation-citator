@@ -128,6 +128,7 @@ const zh = {
     "settings.search.noCategoryResults": "此分类中未找到匹配的设置。",
     "settings.reorder.showButtons.name": "显示排序按钮",
     "settings.reorder.showButtons.desc": "显示箭头按钮以调整设置顺序",
+    "settings.concise.hiddenSettingsTip": "在简洁视图中，未分配到基础或高级区域的设置将被隐藏。请使用分类或列表视图访问所有设置。您可以在“自定义显示区域”标签页中配置这些区域。",
     "settings.reorder.moveUp": "上移",
     "settings.reorder.moveDown": "下移",
     "settings.section.basic": "基础",
