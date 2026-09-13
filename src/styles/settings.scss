@@ -531,13 +531,15 @@
     color: var(--text-normal);
 }
 
-/* Reorder toggle container */
+/* Reorder toggle container.
+   Obsidian 1.13 renders every .setting-item as its own card (background, radius and
+   padding), so this wrapper only spaces the toggle; giving it its own border and
+   background produced a box-in-box. */
 .ec-reorder-toggle-container {
     margin-bottom: 16px;
-    padding: 12px;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 8px;
-    background: var(--background-secondary);
+    padding: 0;
+    border: none;
+    background: transparent;
 }
 
 /* Settings with reorder buttons */
@@ -545,7 +547,10 @@
     display: flex;
     align-items: stretch;
     width: 100%;
-    height: 100%;
+    /* No height: 100% here: Obsidian 1.13 gives the settings scroll container a
+       definite height, so a percentage height stretches every row to the full
+       container height and leaves a huge empty gap under each setting. The flex
+       row already stretches its children, which is all the reorder buttons need. */
 }
 
 .ec-setting-content {
@@ -657,9 +662,7 @@
 
 /* Divider line between settings in basic/advanced panels */
 .ec-settings-divider {
-    border: none;
-    border-top: 1px solid var(--background-modifier-border);
-    margin-top: 0px;
-    margin-bottom: 8px;
-    opacity: 0.6;
+    /* Hidden: Obsidian 1.13 renders every setting as its own card, so an extra
+       full-width rule between cards only reads as a stray line. */
+    display: none;
 }
