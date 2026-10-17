@@ -16,7 +16,7 @@
 
 <center><h4>强大、便捷且优雅的学术引用工具</h4></center>
 
-<center><b><h3>感谢 1.7k 下载😄!</h3></b></center> 
+<center><b><h3>感谢 4k 下载😄!</h3></b></center> 
 
 ---
 

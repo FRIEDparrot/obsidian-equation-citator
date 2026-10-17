@@ -16,7 +16,7 @@
 
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4></center>
 
-<center><b><h3>Thanks for 1.7k downloads😄!</h3></b></center> 
+<center><b><h3>Thanks for 4k downloads😄!</h3></b></center> 
 
 ---
 
