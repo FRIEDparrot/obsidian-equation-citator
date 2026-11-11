@@ -16,7 +16,7 @@
 
 <center><h4>A Powerful, Convenient & Elegant Academic Tool for Citation</h4></center>
 
-<center><b><h3>Thanks for 4k downloads😄!</h3></b></center> 
+<center><b><h3>Thanks for 5k downloads😄!</h3></b></center> 
 
 ---
 
@@ -24,7 +24,7 @@
 
 ✨ **Complete Features & Updates**: See [Changelog](https://friedparrot.github.io/projects/obsidian-equation-citator/changelogs/en/index.html) for details.
 
-📹 **Video Tutorial**: 😄 Coming after this plugin gets 5000 downloads in market or this repo gets 50 stars⭐. 
+📹 **Video Tutorial**: Thanks for reaching 5000 downloads milestone🥳! The video tutorial is scheduled after the next version⭐. 
  
 📱 **Platform support**: This plugin has been tested on **Windows, Linux, Mac, and Android** (certain functions may be limited on mobile).
 
