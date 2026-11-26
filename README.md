@@ -24,7 +24,7 @@
 
 ✨ **Complete Features & Updates**: See [Changelog](https://friedparrot.github.io/projects/obsidian-equation-citator/changelogs/en/index.html) for details.
 
-📹 **Video Tutorial**: Thanks for reaching 5000 downloads milestone🥳! The video tutorial is scheduled after the next version⭐. 
+📹 **Video Tutorial**: Thanks for achieving 5000 downloads milestone🥳! The video tutorial is scheduled after the next version⭐. 
  
 📱 **Platform support**: This plugin has been tested on **Windows, Linux, Mac, and Android** (certain functions may be limited on mobile).
 
